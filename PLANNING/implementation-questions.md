@@ -11,7 +11,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - Which takes precedence if both exist?
 - Should we auto-convert between formats?
 
-**Decision**: _To be determined_
+**Decision**: **YAML only** - Since this is a greenfield prototype with no existing users, we'll use YAML exclusively as specified in the tickets. The YAML format provides better structure for language-specific configurations and is more readable.
 
 ---
 
@@ -24,7 +24,12 @@ This document outlines key unknowns and unresolved questions that need to be add
 - Should the hook call the CLI tools or embed the logic?
 - Directory structure for the modular architecture?
 
-**Decision**: _To be determined_
+**Decision**: **Modular API-first design** - The tool will be structured as a Python package with:
+- Core library providing language-agnostic APIs
+- CLI commands as the primary interface
+- Hook adapters that wrap the core functionality
+- The existing main.py becomes a thin adapter in `ccguard/hooks/claude.py`
+- See `PLANNING/directory-structure.md` for full details
 
 ---
 
