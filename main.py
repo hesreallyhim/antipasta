@@ -201,7 +201,7 @@ def radon_metrics(source: str) -> Metrics:
 
 
 def heuristic_metrics(source: str) -> Metrics:
-    """Approximate metrics for non‑Python languages or when radon is unavailable."""
+    """Approximate metrics for non-Python languages or when radon is unavailable."""
     lines = [line for line in source.split("\n")
              if line.strip() and not line.strip().startswith("//")]
     loc = len(lines)
@@ -214,7 +214,7 @@ def heuristic_metrics(source: str) -> Metrics:
         stripped = re.sub(r"(['\"]).*?\1", "", line)
         for kw in decision_keywords:
             cyclomatic += stripped.count(kw)
-    # Tokenize for Halstead metrics: split on non‑alphanumeric
+    # Tokenize for Halstead metrics: split on non-alphanumeric
     tokens = [tok for tok in re.split(r"[^A-Za-z0-9_]+", source) if tok]
     unique_tokens = set(tokens)
     n1 = len(unique_tokens)

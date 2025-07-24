@@ -1,14 +1,36 @@
 graph TD
-  T01["T-01 Schema"]
-  T02["T-02 Language detector"]
-  T03["T-03 Radon runner"]
-  T04["T-04 Complexipy runner"]
-  T05["T-05 TS runner"]
-  T06["T-06 Aggregator"]
-  T07["T-07 Hook wrapper"]
-  T08["T-08 Docs"]
-  T09["T-09 CI"]
+  %%{init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#E5E7EB',
+      'primaryTextColor': '#6B7280',
+      'primaryBorderColor': '#D1D5DB',
+      'lineColor': '#9CA3AF',
+      'secondaryColor': '#3B82F6',
+      'tertiaryColor': '#10B981',
+      'background': '#FFFFFF',
+      'mainBkg': '#FFFFFF',
+      'secondBkg': '#F9FAFB',
+      'tertiaryBkg': '#F3F4F6'
+    }
+  }}%%
 
+  classDef notStarted fill:#E5E7EB,stroke:#9CA3AF,stroke-width:2px,color:#374151
+  classDef inProgress fill:#3B82F6,stroke:#2563EB,stroke-width:2px,color:#FFFFFF
+  classDef complete fill:#10B981,stroke:#059669,stroke-width:2px,color:#FFFFFF
+  classDef blocked fill:#EF4444,stroke:#DC2626,stroke-width:2px,color:#FFFFFF
+  classDef needsReview fill:#F59E0B,stroke:#D97706,stroke-width:2px,color:#FFFFFF
+  classDef wontDo fill:#6B7280,stroke:#4B5563,stroke-width:2px,color:#FFFFFF
+
+  T01["T-01 Schema"]:::notStarted
+  T02["T-02 Language detector"]:::notStarted
+  T03["T-03 Radon runner"]:::notStarted
+  T04["T-04 Complexipy runner"]:::notStarted
+  T05["T-05 TS runner"]:::notStarted
+  T06["T-06 Aggregator"]:::notStarted
+  T07["T-07 Hook wrapper"]:::notStarted
+  T08["T-08 Docs"]:::notStarted
+  T09["T-09 CI"]:::notStarted
   T01 --> T03
   T01 --> T04
   T01 --> T05
