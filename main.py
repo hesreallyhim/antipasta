@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ccguard_metrics.py - A hook script for Claude Code to enforce code quality
-using a variety of metrics beyond simple lines‑of‑code counting.
+using a variety of metrics beyond simple lines-of-code counting.
 
 This script is designed to be invoked as a `PreToolUse` hook in Claude Code.
 It reads hook input JSON from stdin and evaluates the proposed file operation
@@ -14,13 +14,13 @@ The script attempts to support both Python and TypeScript/JavaScript files.
 For Python files it leverages the open source `radon` library to compute
 Cyclomatic Complexity, Maintainability Index, Halstead metrics and raw
 metrics.  Radon is widely used for static analysis of Python code and its
-documentation describes the definitions of these metrics【347414987174434†L36-L52】【347414987174434†L63-L99】.
+documentation describes the definitions of these metrics.
 For TypeScript/JavaScript files, where a mature cross-platform library is
 not available in this environment, the script falls back to a heuristic
 analysis that approximates cyclomatic complexity by counting common control
 flow keywords and calculates a basic Halstead volume and difficulty from
 tokens.  Maintainability index is then estimated using the standard formula
-based on these values【347414987174434†L63-L99】.
+based on these values.
 
 Configuration
 -------------
@@ -57,7 +57,7 @@ The metrics are interpreted as follows:
   better【347414987174434†L63-L99】.
 * **max_loc_increase** - The maximum allowed increase in source lines of
   code (SLOC).  This supplements the existing LOC guard and prevents
-  operations from adding excessive blank/comment lines【347414987174434†L106-L119】.
+  operations from adding excessive blank/comment lines.
 * **max_class_count** - An optional structural metric limiting the total
   number of class declarations introduced by the edit (across all edits).
 
@@ -74,7 +74,10 @@ Claude Code:
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/ccguard_metrics.py"}
+          {
+              "type": "command",
+              "command": "python3 $CLAUDE_PROJECT_DIR/ccguard_metrics.py"
+           }
         ]
       }
     ]
@@ -94,14 +97,14 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 try:
     # Import radon modules if available
     from radon.complexity import cc_visit  # type: ignore
     from radon.metrics import mi_visit  # type: ignore
     from radon.raw import analyze  # type: ignore
-    from radon.halstead import h_visit  # type: ignore
+    from radon.metrics import h_visit  # type: ignore
 
     RADON_AVAILABLE = True
 except Exception:
@@ -159,7 +162,8 @@ def detect_language(file_path: Optional[str]) -> str:
 
 
 def radon_metrics(source: str) -> Metrics:
-    """Compute metrics for Python code using radon.  Fall back to heuristics if radon is unavailable."""
+    """Compute metrics for Python code using radon.
+    Fall back to heuristics if radon is unavailable."""
     if RADON_AVAILABLE:
         try:
             # Cyclomatic complexity: sum of block complexities
@@ -168,18 +172,16 @@ def radon_metrics(source: str) -> Metrics:
             # Maintainability index: radon returns a score per module
             mi_scores = mi_visit(source, multi=True)
             maintainability_index = mi_scores
-            # Raw metrics: returns (loc, lloc, sloc, comments, multi, blank, comments percent, comments lines)
+            # Raw metrics: returns (loc, lloc, sloc, comments, multi, blank,
+            # comments percent, comments lines)
             raw = analyze(source)
             loc = raw.loc
-            # Halstead metrics: radon.halstead.h_visit returns a list of results per function
-            results = h_visit(source)
-            # Aggregate Halstead metrics across functions
-            if results:
-                total_volume = sum(r.halstead.volume for r in results)
-                total_difficulty = sum(r.halstead.difficulty for r in results)
-                total_effort = sum(r.halstead.effort for r in results)
-            else:
-                total_volume = total_difficulty = total_effort = 0.0
+            # Halstead metrics: h_visit returns a Halstead namedtuple with total and functions
+            halstead_result = h_visit(source)
+            # Use the total metrics for the entire file
+            total_volume = halstead_result.total.volume
+            total_difficulty = halstead_result.total.difficulty
+            total_effort = halstead_result.total.effort
             # Structural metrics: count class declarations
             class_count = len(re.findall(r"^\s*class\s+", source, re.MULTILINE))
             return Metrics(
@@ -200,11 +202,13 @@ def radon_metrics(source: str) -> Metrics:
 
 def heuristic_metrics(source: str) -> Metrics:
     """Approximate metrics for non‑Python languages or when radon is unavailable."""
-    lines = [line for line in source.split("\n") if line.strip() and not line.strip().startswith("//")]
+    lines = [line for line in source.split("\n")
+             if line.strip() and not line.strip().startswith("//")]
     loc = len(lines)
     # Approximate cyclomatic complexity: 1 + count of decision points
     cyclomatic = 1.0
-    decision_keywords = ["if", "for", "while", "switch", "case", "catch", "&&", "||", "?", "elif", "except"]
+    decision_keywords = ["if", "for", "while", "switch", "case", "catch",
+                        "&&", "||", "?", "elif", "except"]
     for line in lines:
         # Remove string literals to avoid counting keywords inside strings
         stripped = re.sub(r"(['\"]).*?\1", "", line)
@@ -223,7 +227,8 @@ def heuristic_metrics(source: str) -> Metrics:
     halstead_effort = halstead_volume * halstead_difficulty
     # Maintainability index (approximate using original formula with natural log)
     # Avoid log(0) by using max()
-    MI = 171.0 - 5.2 * math.log(max(halstead_volume, 1e-8)) - 0.23 * cyclomatic - 16.2 * math.log(max(loc, 1))
+    MI = (171.0 - 5.2 * math.log(max(halstead_volume, 1e-8))
+          - 0.23 * cyclomatic - 16.2 * math.log(max(loc, 1)))
     maintainability_index = max(0.0, 100.0 * MI / 171.0)
     # Structural metric: count classes and extends keywords
     class_count = len(re.findall(r"\bclass\b", source))
@@ -249,7 +254,11 @@ def compute_diff(old: Metrics, new: Metrics) -> Dict[str, float]:
     }
 
 
-def evaluate_operation(tool_name: str, tool_input: Dict[str, any], thresholds: Dict[str, float]) -> Tuple[str, str]:
+def evaluate_operation(
+        tool_name: str,
+        tool_input: Dict[str, Any],
+        thresholds: Dict[str, float]
+     ) -> Tuple[str, str]:
     """
     Evaluate the change implied by an operation and return a (decision, reason)
     tuple.  The decision is either "approve" or "block".
@@ -260,6 +269,7 @@ def evaluate_operation(tool_name: str, tool_input: Dict[str, any], thresholds: D
     file_path = tool_input.get("file_path")
     language = detect_language(file_path)
     # Helper to compute metrics for a snippet
+
     def compute_metrics_for_snippet(source: str) -> Metrics:
         if language == "python":
             return radon_metrics(source)
@@ -310,38 +320,49 @@ def evaluate_operation(tool_name: str, tool_input: Dict[str, any], thresholds: D
     if total_diff["cyclomatic"] > thresholds["max_cyclomatic_increase"]:
         decision = "block"
         reasons.append(
-            f"Cyclomatic complexity increase {total_diff['cyclomatic']:.2f} exceeds allowed {thresholds['max_cyclomatic_increase']}"
+            f"Cyclomatic complexity increase {total_diff['cyclomatic']:.2f} "
+            f"exceeds allowed {thresholds['max_cyclomatic_increase']}"
         )
     # Halstead volume increase
-    if total_diff["halstead_volume"] > thresholds["max_halstead_volume_increase"]:
+    if total_diff["halstead_volume"] > (
+        thresholds["max_halstead_volume_increase"]
+    ):
         decision = "block"
         reasons.append(
-            f"Halstead volume increase {total_diff['halstead_volume']:.2f} exceeds allowed {thresholds['max_halstead_volume_increase']}"
+            f"Halstead volume increase {total_diff['halstead_volume']:.2f} "
+            f"exceeds allowed {thresholds['max_halstead_volume_increase']}"
         )
-    # Maintainability index drop (we use negative difference - drop is negative)
+    # Maintainability index drop
+    # (we use negative difference - drop is negative)
     final_mi = None
-    # We need the final maintainability index after all edits.  For Write or Edit we can compute new_metrics.
-    # For MultiEdit we cannot easily know final MI across entire file, so we estimate by applying diffs to baseline 100.
+    # We need the final maintainability index after all edits.
+    # For Write or Edit we can compute new_metrics.
+    # For MultiEdit we cannot easily know final MI across entire file,
+    # so we estimate by applying diffs to baseline 100.
     # In absence of full file context we treat the new MI as 100 + diff.
     final_mi = 100.0 + total_diff["maintainability_index"]
     if final_mi < thresholds["min_maintainability_index"]:
         decision = "block"
         reasons.append(
-            f"Maintainability index would be {final_mi:.2f}, below minimum {thresholds['min_maintainability_index']}"
+            f"Maintainability index would be {final_mi:.2f}, "
+            f"below minimum {thresholds['min_maintainability_index']}"
         )
     # LOC increase
     if total_diff["loc"] > thresholds["max_loc_increase"]:
         decision = "block"
         reasons.append(
-            f"Lines of code increase {total_diff['loc']} exceeds allowed {thresholds['max_loc_increase']}"
+            f"Lines of code increase {total_diff['loc']} "
+            f"exceeds allowed {thresholds['max_loc_increase']}"
         )
     # Class count
     if total_diff["class_count"] > thresholds["max_class_count"]:
         decision = "block"
         reasons.append(
-            f"Class declarations increase {total_diff['class_count']} exceeds allowed {thresholds['max_class_count']}"
+            f"Class declarations increase {total_diff['class_count']} "
+            f"exceeds allowed {thresholds['max_class_count']}"
         )
-    reason = "Operation approved" if decision == "approve" else "Operation blocked: " + "; ".join(reasons)
+    reason = ("Operation approved" if decision == "approve"
+              else "Operation blocked: " + "; ".join(reasons))
     # Append summary of diffs
     summary_parts = []
     for k, v in total_diff.items():
@@ -364,7 +385,8 @@ def main():
     tool_input = hook_data.get("tool_input", {}) or {}
     # Only act on PreToolUse events
     if event != "PreToolUse":
-        print(json.dumps({"decision": "approve", "reason": "Not a PreToolUse event"}))
+        print(json.dumps({"decision": "approve",
+                         "reason": "Not a PreToolUse event"}))
         return
     # Load thresholds
     thresholds = load_config()

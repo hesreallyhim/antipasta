@@ -1,0 +1,23 @@
+graph TD
+  T01["T-01 Schema"]
+  T02["T-02 Language detector"]
+  T03["T-03 Radon runner"]
+  T04["T-04 Complexipy runner"]
+  T05["T-05 TS runner"]
+  T06["T-06 Aggregator"]
+  T07["T-07 Hook wrapper"]
+  T08["T-08 Docs"]
+  T09["T-09 CI"]
+
+  T01 --> T03
+  T01 --> T04
+  T01 --> T05
+  T01 --> T06
+  T02 --> T07
+  T03 --> T06
+  T04 --> T06
+  T05 --> T06
+  T06 --> T07
+  T07 --> T08
+  T06 --> T09
+  T07 --> T09
