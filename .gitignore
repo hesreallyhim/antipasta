@@ -108,7 +108,6 @@ test-results/
 junit.xml
 
 # Logs
-logs/
 *.log
 *.log.*
 
@@ -137,3 +136,6 @@ target/
 .grunt
 .lock-wscript
 .eslintcache
+
+!CLAUDE.md
+!claude/

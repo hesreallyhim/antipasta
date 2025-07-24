@@ -7,11 +7,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **code-cop** is a code quality enforcement tool that analyzes code complexity metrics. It's designed to work as a CLI tool with future support for git hooks and pre-commit integration.
 
 ### Current State
+
 - Working prototype in `main.py` that functions as a Claude Code hook
 - Analyzes Python code using Radon, with heuristic fallback for JS/TS
 - Uses JSON config (`.code_cop.config.json`)
 
 ### Target Architecture
+
 - Modular Python package (`code_cop/`)
 - CLI-first design: `code-cop metrics`, `code-cop validate-config`
 - YAML configuration (`.code_cop.yaml`)
@@ -38,14 +40,18 @@ mypy .
 ## Architecture Decisions
 
 ### Modular Structure
+
 The codebase is being refactored from a monolithic script to a modular package:
+
 - `code_cop/core/` - Language-agnostic business logic
 - `code_cop/runners/` - Language-specific metric runners (Radon, Complexipy)
 - `code_cop/cli/` - Command-line interface
 - `code_cop/hooks/` - Adapters for various hook systems
 
 ### Configuration Format
+
 Moving from JSON to YAML for better readability and language-specific settings:
+
 ```yaml
 defaults:
   max_cyclomatic_complexity: 10
@@ -60,7 +66,9 @@ languages:
 ```
 
 ### Python-First Implementation
+
 Initial focus is Python-only with:
+
 - Radon for traditional metrics (cyclomatic complexity, maintainability index)
 - Complexipy for cognitive complexity
 - Pathspec for .gitignore support
