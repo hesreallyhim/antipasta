@@ -1,8 +1,8 @@
 T-01 Define metrics-config schema
-• Decide file format (YAML with .ccguard.metrics.yaml)
+• Decide file format (YAML with .code_cop.yaml)
 • Draft key hierarchy (defaults, languages[].metrics[])
 • Add JSON-schema or Pydantic model for validation
-• CLI helper ccguard-validate-config that exits non-zero on invalid file
+• CLI helper code-cop-validate-config that exits non-zero on invalid file
 • Generate example config with sane defaults (radon: CC<=10, etc.)
 • Unit test: valid sample passes
 • Unit test: missing field or bad comparison operator fails
@@ -66,7 +66,7 @@ T-06 Aggregator & decision engine
 ⸻
 
 T-07 Pre-commit wrapper script
-• CLI entry ccguard-metrics with --files argument
+• CLI entry code-cop with --files argument
 • If run under pre-commit, read $ARGS else run git diff --staged --name-only
 • Detect language (T-02) per file
 • Call corresponding runner (T-03/04/05) and collect results

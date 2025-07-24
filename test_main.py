@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for main.py (ccguard_metrics)"""
+"""Unit tests for main.py (code_cop)"""
 
 import json
 import os
@@ -37,7 +37,7 @@ class TestLoadConfig(unittest.TestCase):
     def test_load_config_from_file(self):
         """Test that load_config loads custom values from config file"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            config_path = os.path.join(tmpdir, '.ccguard.metrics.config.json')
+            config_path = os.path.join(tmpdir, '.code_cop.config.json')
             config_data = {
                 'thresholds': {
                     'max_cyclomatic_increase': 5.0,

@@ -13,11 +13,11 @@ cc-code-cop/
 ├── requirements.txt            # Python dependencies
 ├── requirements-dev.txt        # Development dependencies
 ├── package.json               # Node dependencies for JS/TS analysis
-├── .ccguard.metrics.yaml      # Example configuration
+├── .code_cop.yaml      # Example configuration
 ├── .gitignore
 ├── .pre-commit-config.yaml    # Pre-commit framework config
 │
-├── ccguard/                   # Main package
+├── code_cop/                   # Main package
 │   ├── __init__.py
 │   ├── __version__.py         # Single source of version
 │   │
@@ -96,24 +96,25 @@ cc-code-cop/
 ## Key Design Principles
 
 ### 1. **Core Package Structure**
-- `ccguard.core`: Language-agnostic metric models and business logic
-- `ccguard.runners`: Pluggable language-specific implementations
-- `ccguard.cli`: Command-line interface
-- `ccguard.hooks`: Adapters for various hook systems
+
+- `code_cop.core`: Language-agnostic metric models and business logic
+- `code_cop.runners`: Pluggable language-specific implementations
+- `code_cop.cli`: Command-line interface
+- `code_cop.hooks`: Adapters for various hook systems
 
 ### 2. **API Layers**
 
 ```python
 # Low-level API (direct Python usage)
-from ccguard.core import analyze_file
-from ccguard.core.config import load_config
+from code_cop.core import analyze_file
+from code_cop.core.config import load_config
 
-config = load_config(".ccguard.metrics.yaml")
+config = load_config(".code_cop.yaml")
 metrics = analyze_file("myfile.py", config)
 
 # CLI API
-$ ccguard-metrics --files src/*.py
-$ ccguard-validate-config .ccguard.metrics.yaml
+$ code-cop metrics --files src/*.py
+$ code-cop validate-config .code_cop.yaml
 
 # Hook API (via adapters)
 # Pre-commit: calls CLI with specific arguments
@@ -123,18 +124,19 @@ $ ccguard-validate-config .ccguard.metrics.yaml
 ### 3. **Entry Points**
 
 Defined in `pyproject.toml`:
+
 ```toml
 [project.scripts]
-ccguard-metrics = "ccguard.cli.main:metrics_command"
-ccguard-validate-config = "ccguard.cli.main:validate_command"
+code-cop = "code_cop.cli.main:main"
 
 # For backwards compatibility with existing main.py
-ccguard-claude-hook = "ccguard.hooks.claude:main"
+code-cop-claude-hook = "code_cop.hooks.claude:main"
 ```
 
 ### 4. **Runner Plugin Architecture**
 
 Each language runner implements a common interface:
+
 ```python
 class BaseRunner(ABC):
     @abstractmethod
@@ -148,10 +150,11 @@ class BaseRunner(ABC):
 
 ### 5. **Configuration Schema Location**
 
-- JSON Schema: `ccguard/schemas/metrics-config.schema.json`
-- Pydantic models: `ccguard/core/config.py`
+- JSON Schema: `code_cop/schemas/metrics-config.schema.json`
+- Pydantic models: `code_cop/core/config.py`
 
 This structure provides:
+
 - Clear separation of concerns
 - Easy testing at each layer
 - Multiple ways to consume the functionality

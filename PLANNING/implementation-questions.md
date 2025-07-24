@@ -7,6 +7,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Should we support both JSON (existing) and YAML (tickets) configs simultaneously?
 
 **Questions**:
+
 - Migration path for existing users?
 - Which takes precedence if both exist?
 - Should we auto-convert between formats?
@@ -20,15 +21,17 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Current code is a hook script, but tickets describe CLI tools
 
 **Questions**:
+
 - How do these coexist? Is main.py being replaced or wrapped?
 - Should the hook call the CLI tools or embed the logic?
 - Directory structure for the modular architecture?
 
 **Decision**: **Modular API-first design** - The tool will be structured as a Python package with:
+
 - Core library providing language-agnostic APIs
 - CLI commands as the primary interface
 - Hook adapters that wrap the core functionality
-- The existing main.py becomes a thin adapter in `ccguard/hooks/claude.py`
+- The existing main.py becomes a thin adapter in `code_cop/hooks/claude.py`
 - See `PLANNING/directory-structure.md` for full details
 
 ---
@@ -38,6 +41,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: `ts-complex` npm package details and availability
 
 **Questions**:
+
 - Is ts-complex actually published on npm? (need to verify)
 - Fallback strategy if not available?
 - How to handle Node.js dependency in Python project?
@@ -52,6 +56,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Package availability and Python version compatibility
 
 **Questions**:
+
 - Is it on PyPI? What's the exact package name?
 - Does it output JSON or need parsing?
 - How does cognitive complexity differ from cyclomatic?
@@ -65,6 +70,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Exact behavior expected
 
 **Questions**:
+
 - Should we respect .gitignore by default or make it configurable?
 - What about other ignore files (.dockerignore, .npmignore)?
 - How deep should the integration go?
@@ -78,6 +84,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: How this relates to the existing Claude Code hook
 
 **Questions**:
+
 - Are we supporting both pre-commit framework AND Claude Code hooks?
 - Different entry points for each?
 - How to handle the different input formats?
@@ -91,6 +98,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: How to aggregate metrics across mixed languages
 
 **Questions**:
+
 - Should Python and JS files have different thresholds?
 - How to handle partial file analysis in MultiEdit?
 - Should we analyze whole files or just changed portions?
@@ -104,6 +112,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Specific exit code semantics
 
 **Questions**:
+
 - What's the difference between exit code 2 (block) vs 1 (error)?
 - How to handle missing dependencies gracefully?
 - Should we fail open or closed when tools are unavailable?
@@ -117,6 +126,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Performance impact of running multiple tools
 
 **Questions**:
+
 - Should we parallelize language analysis?
 - Cache strategy for unchanged files?
 - Timeout handling for large files?
@@ -130,6 +140,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: How to package and distribute
 
 **Questions**:
+
 - Use setup.py, pyproject.toml, or both?
 - How to handle the Node.js dependencies?
 - Should we create a separate package or extend current?
@@ -143,6 +154,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 **Unknown**: Impact on existing users of main.py
 
 **Questions**:
+
 - Can we break the existing hook interface?
 - How to communicate changes to users?
 - Version numbering strategy?
@@ -154,6 +166,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 ## Notes
 
 This document will be updated with decisions as they are made. Each decision should include:
+
 - The chosen approach
 - Rationale for the decision
 - Any implications or trade-offs

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ccguard_metrics.py - A hook script for Claude Code to enforce code quality
+code_cop.py - A hook script for Claude Code to enforce code quality
 using a variety of metrics beyond simple lines-of-code counting.
 
 This script is designed to be invoked as a `PreToolUse` hook in Claude Code.
@@ -26,7 +26,7 @@ Configuration
 -------------
 
 Thresholds can be adjusted via a JSON configuration file named
-`.ccguard.metrics.config.json` located in the project root (as defined by
+`.code_cop.config.json` located in the project root (as defined by
 the `CLAUDE_PROJECT_DIR` environment variable).  If the file is absent
 defaults are used.  A typical configuration might look like:
 
@@ -76,7 +76,7 @@ Claude Code:
         "hooks": [
           {
               "type": "command",
-              "command": "python3 $CLAUDE_PROJECT_DIR/ccguard_metrics.py"
+              "command": "python3 $CLAUDE_PROJECT_DIR/code_cop.py"
            }
         ]
       }
@@ -132,7 +132,7 @@ def load_config() -> Dict[str, float]:
         "max_class_count": 9999999.0,
     }
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
-    config_path = os.path.join(project_dir, ".ccguard.metrics.config.json")
+    config_path = os.path.join(project_dir, ".code_cop.config.json")
     if os.path.exists(config_path):
         try:
             with open(config_path, "r", encoding="utf-8") as fh:
