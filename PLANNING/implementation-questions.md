@@ -47,7 +47,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - How to handle Node.js dependency in Python project?
 - Should we bundle node_modules or expect users to npm install?
 
-**Decision**: _To be determined_
+**Decision**: **Deferred** - Initial prototype will focus on Python only. Design will maintain extensibility for future language support through the runner plugin architecture.
 
 ---
 
@@ -61,7 +61,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - Does it output JSON or need parsing?
 - How does cognitive complexity differ from cyclomatic?
 
-**Decision**: _To be determined_
+**Decision**: **Use complexipy from PyPI** - Package is available on PyPI as `complexipy`. Repository at https://github.com/rohaquinlop/complexipy. Will integrate as a second Python runner alongside Radon.
 
 ---
 
@@ -75,7 +75,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - What about other ignore files (.dockerignore, .npmignore)?
 - How deep should the integration go?
 
-**Decision**: _To be determined_
+**Decision**: **Mirror .gitignore** - First pass will respect .gitignore by default using the `pathspec` library. No configuration needed initially.
 
 ---
 
@@ -89,7 +89,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - Different entry points for each?
 - How to handle the different input formats?
 
-**Decision**: _To be determined_
+**Decision**: **CLI-first approach** - Focus on building a working CLI library first. Hooks can be added later as thin wrappers around the CLI. This provides maximum flexibility for integration.
 
 ---
 
@@ -103,7 +103,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - How to handle partial file analysis in MultiEdit?
 - Should we analyze whole files or just changed portions?
 
-**Decision**: _To be determined_
+**Decision**: **Deferred** - First pass supports Python only. Will design aggregator with language-specific thresholds in mind for future extensibility.
 
 ---
 
@@ -117,7 +117,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - How to handle missing dependencies gracefully?
 - Should we fail open or closed when tools are unavailable?
 
-**Decision**: _To be determined_
+**Decision**: **Not relevant for POC** - Exit codes pertain to hooks. CLI will use standard conventions: 0 for success, 1 for errors, 2 for violations found.
 
 ---
 
@@ -131,7 +131,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - Cache strategy for unchanged files?
 - Timeout handling for large files?
 
-**Decision**: _To be determined_
+**Decision**: **Build first, optimize later** - Create a "steel thread" implementation for Python metrics. Test against various file sizes and optimize only if needed. Focus on correctness over performance initially.
 
 ---
 
@@ -145,7 +145,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - How to handle the Node.js dependencies?
 - Should we create a separate package or extend current?
 
-**Decision**: _To be determined_
+**Decision**: **Modern Python tooling** - Use pyproject.toml with hatchling build backend, venv for virtual environments, and standard tools (ruff, black, mypy) with default settings. No Node.js dependencies in initial version.
 
 ---
 
@@ -159,7 +159,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - How to communicate changes to users?
 - Version numbering strategy?
 
-**Decision**: _To be determined_
+**Decision**: **Not an issue** - This is the first implementation with no existing users. Start at version 0.1.0 following semantic versioning.
 
 ---
 
