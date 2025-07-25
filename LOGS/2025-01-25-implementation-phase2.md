@@ -36,3 +36,26 @@ Key files:
 - `code_cop/cli/validate.py` - Validation command
 - `code_cop/schemas/metrics-config.schema.json` - JSON schema
 - Tests: `test_config.py`, `test_validate_command.py`
+
+### T-02: Language Detector Implementation
+
+Implementing language detection with pathspec integration:
+- Extension-based language detection for Python, JavaScript, TypeScript
+- Integration with pathspec library for .gitignore support
+- Support for grouping and filtering files by language
+
+### T-02 Complete
+
+Implemented comprehensive language detection system:
+- Created `Language` enum for supported languages
+- Built `LanguageDetector` class with pathspec integration
+- Extension mapping for Python (.py, .pyw, .pyi, .ipynb)
+- Extension mapping for JavaScript (.js, .mjs, .cjs, .jsx)
+- Extension mapping for TypeScript (.ts, .tsx, .mts, .cts)
+- .gitignore pattern support via pathspec
+- File grouping and filtering utilities
+- Comprehensive unit tests (12 tests, all passing)
+
+Key files:
+- `code_cop/core/detector.py` - Language detection implementation
+- `tests/unit/test_detector.py` - Comprehensive test suite
