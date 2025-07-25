@@ -131,7 +131,7 @@ result = cognitive_complexity.calculate(code)
 
 ## Implementation Order
 
-1. **Research Phase** (30 min)
+1. **Research Phase** (30 min) ✓ COMPLETED
    - Run complexipy manually on demo files
    - Understand output format
    - Review complexipy documentation
@@ -155,6 +155,51 @@ result = cognitive_complexity.calculate(code)
    - Update all docs
    - Add examples
    - Document thresholds
+
+## Complexity and Time Estimates
+
+### Overall Complexity Assessment
+- **Technical Complexity**: Medium (6/10)
+  - Following established RadonRunner pattern reduces complexity
+  - JSON parsing is straightforward
+  - Main challenge: handling edge cases and optional imports
+
+- **Integration Complexity**: Low-Medium (4/10)
+  - Clear integration points in existing architecture
+  - Config schema changes are minimal
+  - Detector already supports multiple runners
+
+- **Testing Complexity**: Low (3/10)
+  - Can follow existing test patterns
+  - Clear expected outputs from manual testing
+  - Demo files provide good test cases
+
+### Time Estimates
+
+**Total Estimated Time**: 3.5 - 4.5 hours
+
+**Breakdown by Phase**:
+1. ~~Research Phase: 30 min~~ ✓ COMPLETED
+2. Basic Implementation: 45-60 min
+3. Integration: 30-45 min
+4. Testing: 60-90 min
+5. Documentation: 20-30 min
+6. Buffer for issues: 30-45 min
+
+**Confidence Level**: 85%
+- High confidence due to clear pattern to follow
+- Existing RadonRunner provides good template
+- JSON output format is simple and well-structured
+
+### Risk Factors
+1. **Low Risk**: Subprocess handling (already solved in RadonRunner)
+2. **Medium Risk**: Edge cases in output parsing (mitigated by tests)
+3. **Low Risk**: Performance impact (can be optimized later if needed)
+
+### Expected Completion
+- With focused effort: 3.5 hours
+- With normal interruptions: 4.5 hours
+- Could be split across 2-3 sessions
 
 ## Success Criteria
 
