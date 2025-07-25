@@ -6,6 +6,7 @@ from typing import Optional
 import click
 
 from code_cop import __version__
+from code_cop.cli.validate import validate_config as validate_config_cmd
 
 
 @click.group()
@@ -22,11 +23,8 @@ def metrics() -> None:
     sys.exit(1)
 
 
-@cli.command()
-def validate_config() -> None:
-    """Validate a code-cop configuration file."""
-    click.echo("Validate config command not yet implemented")
-    sys.exit(1)
+# Add the validate-config command
+cli.add_command(validate_config_cmd, name="validate-config")
 
 
 def main(argv: Optional[list[str]] = None) -> None:
