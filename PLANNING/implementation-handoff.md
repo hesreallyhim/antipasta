@@ -66,7 +66,7 @@
    - `code-cop validate-config .code_cop.yaml`
 
 4. **Dependencies**:
-   - Production: `radon`, `complexipy`, `pydantic`, `pyyaml`, `pathspec`, `click` (for CLI)
+   - Production: `radon`, `complexipy`, `pydantic`, `pyyaml`, `pathspec`, CLI framework (TBD - Click or argparse)
    - Development: `pytest`, `ruff`, `black`, `mypy`, `pytest-cov`
 
 ### Critical Implementation Details
@@ -105,7 +105,7 @@ class BaseRunner(ABC):
 1. **Python-First**: Only implement Python support initially. Design for extensibility but don't implement JS/TS
 2. **No Hooks Yet**: Focus on CLI only. Hooks come later
 3. **Use Pathspec**: Must respect .gitignore using the pathspec library
-4. **Modern Python**: Use type hints everywhere, Python 3.8+ features
+4. **Modern Python**: Use type hints everywhere, Python 3.11 features (match statements, etc.)
 
 ### Testing Approach
 
@@ -177,6 +177,6 @@ A: No, YAML only.
 A: No, focus on T-01, T-02, T-03, T-06 (and T-04 if time permits).
 
 **Q: What Python version?**
-A: Target 3.8+ for compatibility.
+A: Python 3.11 (see `.python-version` file).
 
 Good luck! The planning is solid, now it just needs to be built.
