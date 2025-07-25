@@ -85,3 +85,31 @@ Key files:
 - `code_cop/runners/base.py` - Abstract base runner
 - `code_cop/runners/python/radon.py` - Radon runner implementation
 - `tests/unit/runners/test_python.py` - Comprehensive test suite
+
+### T-06: Aggregator & Decision Engine Implementation
+
+Implementing the core aggregation and violation detection logic:
+- Violation models for tracking threshold breaches
+- File report models for per-file results
+- Aggregator to coordinate analysis across files
+
+### T-06 Complete
+
+Implemented comprehensive aggregation system:
+- Created `Violation` class with automatic message generation
+- Created `FileReport` class for per-file results
+- Built `MetricAggregator` to coordinate analysis:
+  - Language detection and file grouping
+  - Runner selection and execution
+  - Violation checking against thresholds
+  - Summary generation with statistics
+- Support for all comparison operators (<=, >=, <, >, ==, !=)
+- Respect for ignore patterns and disabled metrics
+- Default configuration fallback
+- Comprehensive unit tests (21 tests, all passing)
+
+Key files:
+- `code_cop/core/violations.py` - Violation and report models
+- `code_cop/core/aggregator.py` - Main aggregation logic
+- `tests/unit/test_violations.py` - Violation tests
+- `tests/unit/test_aggregator.py` - Aggregator tests
