@@ -113,12 +113,17 @@ class RadonRunner(BaseRunner):
         Returns:
             Parsed JSON output or None on error
         """
+        import os
+        env = os.environ.copy()
+        env['COVERAGE_CORE'] = ''  # Disable coverage in subprocess
+
         try:
             result = subprocess.run(
                 command,
                 capture_output=True,
                 text=True,
                 check=True,
+                env=env,
             )
             return json.loads(result.stdout)
         except (subprocess.CalledProcessError, json.JSONDecodeError):

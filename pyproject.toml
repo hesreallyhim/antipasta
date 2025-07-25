@@ -114,15 +114,13 @@ python_functions = ["test_*"]
 addopts = [
     "-ra",
     "--strict-markers",
-    "--cov=code_cop",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
 ]
 
 [tool.coverage.run]
 branch = true
 source = ["code_cop"]
+parallel = false
+disable_warnings = ["module-not-measured"]
 
 [tool.coverage.report]
 exclude_lines = [

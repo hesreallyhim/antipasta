@@ -23,14 +23,16 @@ type-check:  ## Run type checking with mypy
 	mypy code_cop tests
 
 test:  ## Run tests with pytest
-	pytest
+	pytest --no-cov
 
 test-cov:  ## Run tests with coverage report
+	rm -f .coverage*
 	pytest --cov=code_cop --cov-report=term-missing --cov-report=html
+	@if ls .coverage.* 1> /dev/null 2>&1; then coverage combine; fi
 
 clean:  ## Clean up build artifacts and cache files
 	rm -rf build dist *.egg-info
 	rm -rf .pytest_cache .mypy_cache .ruff_cache
-	rm -rf htmlcov .coverage coverage.xml
+	rm -rf htmlcov .coverage .coverage.* coverage.xml
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete

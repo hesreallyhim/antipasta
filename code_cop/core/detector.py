@@ -47,12 +47,14 @@ class LanguageDetector:
         """
         self.ignore_patterns = ignore_patterns or []
         self._pathspec: pathspec.PathSpec | None = None
+        self._gitignore_patterns: list[str] = []  # Track patterns from .gitignore
 
     @property
     def pathspec(self) -> pathspec.PathSpec:
         """Get or create the pathspec instance."""
         if self._pathspec is None:
-            self._pathspec = pathspec.PathSpec.from_lines("gitwildmatch", self.ignore_patterns)
+            all_patterns = self.ignore_patterns + self._gitignore_patterns
+            self._pathspec = pathspec.PathSpec.from_lines("gitwildmatch", all_patterns)
         return self._pathspec
 
     def add_gitignore(self, gitignore_path: Path) -> None:
@@ -64,7 +66,7 @@ class LanguageDetector:
         if gitignore_path.exists():
             with open(gitignore_path, "r") as f:
                 patterns = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-                self.ignore_patterns.extend(patterns)
+                self._gitignore_patterns.extend(patterns)
                 self._pathspec = None  # Reset to rebuild with new patterns
 
     def detect_language(self, file_path: Path) -> Language | None:
@@ -93,17 +95,26 @@ class LanguageDetector:
         Returns:
             True if file should be ignored
         """
-        if not self.ignore_patterns:
+        if not self.ignore_patterns and not self._gitignore_patterns:
             return False
 
-        # Convert to relative path for matching
-        try:
-            relative_path = file_path.relative_to(Path.cwd())
-            path_str = str(relative_path)
-        except ValueError:
-            # If path is not relative to cwd, only use the filename
-            # This prevents absolute paths from matching patterns like 'tmp/'
-            path_str = file_path.name
+        # Convert to string for matching
+        if file_path.is_absolute():
+            try:
+                # Try to get relative path from current directory
+                relative_path = file_path.relative_to(Path.cwd())
+                path_str = str(relative_path)
+            except ValueError:
+                # Path is outside current directory
+                # Only apply non-gitignore patterns to files outside the project
+                if self.ignore_patterns:
+                    spec = pathspec.PathSpec.from_lines("gitwildmatch", self.ignore_patterns)
+                    # Use just the filename for matching outside project files
+                    return spec.match_file(file_path.name)
+                return False
+        else:
+            # Already relative, use as is
+            path_str = str(file_path)
 
         return self.pathspec.match_file(path_str)
 
