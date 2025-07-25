@@ -17,7 +17,7 @@ from code_cop.core.metrics import MetricType
 class TestMetricAggregator:
     """Tests for MetricAggregator class."""
 
-    def test_aggregator_initialization(self):
+    def test_aggregator_initialization(self) -> None:
         """Test creating an aggregator."""
         config = CodeCopConfig.generate_default()
         aggregator = MetricAggregator(config)
@@ -26,7 +26,7 @@ class TestMetricAggregator:
         assert aggregator.detector is not None
         assert len(aggregator.runners) > 0
 
-    def test_analyze_simple_python_file(self, tmp_path):
+    def test_analyze_simple_python_file(self, tmp_path: Path) -> None:
         """Test analyzing a simple Python file."""
         # Create a simple Python file
         file_path = tmp_path / "simple.py"
@@ -47,7 +47,7 @@ def hello():
         assert len(report.metrics) > 0
         assert not report.has_violations  # Simple function should pass
 
-    def test_analyze_complex_file_with_violations(self, tmp_path):
+    def test_analyze_complex_file_with_violations(self, tmp_path: Path) -> None:
         """Test analyzing a file that violates thresholds."""
         # Create a complex Python file
         file_path = tmp_path / "complex.py"
@@ -110,7 +110,7 @@ def complex_function(a, b, c, d):
         assert violation.metric_type == MetricType.CYCLOMATIC_COMPLEXITY
         assert violation.value > 5
 
-    def test_analyze_multiple_files(self, tmp_path):
+    def test_analyze_multiple_files(self, tmp_path: Path) -> None:
         """Test analyzing multiple files."""
         # Create multiple Python files
         file1 = tmp_path / "file1.py"
@@ -128,7 +128,7 @@ def complex_function(a, b, c, d):
         assert all(report.language == "python" for report in reports)
         assert all(not report.has_violations for report in reports)
 
-    def test_analyze_mixed_languages(self, tmp_path):
+    def test_analyze_mixed_languages(self, tmp_path: Path) -> None:
         """Test analyzing files of different languages."""
         # Create Python file
         py_file = tmp_path / "test.py"
@@ -151,7 +151,7 @@ def complex_function(a, b, c, d):
         assert len(reports) == 1
         assert reports[0].file_path == py_file
 
-    def test_analyze_with_ignore_patterns(self, tmp_path):
+    def test_analyze_with_ignore_patterns(self, tmp_path: Path) -> None:
         """Test that ignored files are skipped."""
         # Create files
         main_file = tmp_path / "main.py"
@@ -178,7 +178,7 @@ def complex_function(a, b, c, d):
         assert len(reports) == 1
         assert reports[0].file_path == main_file
 
-    def test_generate_summary_no_violations(self, tmp_path):
+    def test_generate_summary_no_violations(self, tmp_path: Path) -> None:
         """Test generating summary with no violations."""
         file_path = tmp_path / "good.py"
         file_path.write_text("def simple(): return 42")
@@ -195,7 +195,7 @@ def complex_function(a, b, c, d):
         assert summary["success"] is True
         assert summary["files_by_language"]["python"] == 1
 
-    def test_generate_summary_with_violations(self, tmp_path):
+    def test_generate_summary_with_violations(self, tmp_path: Path) -> None:
         """Test generating summary with violations."""
         # Create a file that violates maintainability index
         file_path = tmp_path / "unmaintainable.py"
@@ -253,7 +253,7 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
         assert summary["success"] is False
         assert len(summary["violations_by_type"]) > 0
 
-    def test_analyze_nonexistent_file(self):
+    def test_analyze_nonexistent_file(self) -> None:
         """Test analyzing a file that doesn't exist."""
         config = CodeCopConfig.generate_default()
         aggregator = MetricAggregator(config)
@@ -264,7 +264,7 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
         assert reports[0].error is not None
         assert not reports[0].has_violations
 
-    def test_default_config_fallback(self, tmp_path):
+    def test_default_config_fallback(self, tmp_path: Path) -> None:
         """Test that defaults are used when no language config exists."""
         file_path = tmp_path / "test.py"
         file_path.write_text("def test(): pass")

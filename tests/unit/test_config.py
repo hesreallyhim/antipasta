@@ -18,7 +18,7 @@ from code_cop.core.metrics import MetricType
 class TestMetricConfig:
     """Tests for MetricConfig model."""
 
-    def test_valid_metric_config(self):
+    def test_valid_metric_config(self) -> None:
         """Test creating a valid metric configuration."""
         config = MetricConfig(
             type=MetricType.CYCLOMATIC_COMPLEXITY,
@@ -30,7 +30,7 @@ class TestMetricConfig:
         assert config.comparison == ComparisonOperator.LE
         assert config.enabled is True
 
-    def test_negative_threshold_fails(self):
+    def test_negative_threshold_fails(self) -> None:
         """Test that negative thresholds are rejected."""
         with pytest.raises(ValidationError) as exc_info:
             MetricConfig(
@@ -40,7 +40,7 @@ class TestMetricConfig:
             )
         assert "Threshold must be non-negative" in str(exc_info.value)
 
-    def test_default_enabled(self):
+    def test_default_enabled(self) -> None:
         """Test that metrics are enabled by default."""
         config = MetricConfig(
             type=MetricType.CYCLOMATIC_COMPLEXITY,
@@ -53,7 +53,7 @@ class TestMetricConfig:
 class TestLanguageConfig:
     """Tests for LanguageConfig model."""
 
-    def test_valid_language_config(self):
+    def test_valid_language_config(self) -> None:
         """Test creating a valid language configuration."""
         config = LanguageConfig(
             name="python",
@@ -70,7 +70,7 @@ class TestLanguageConfig:
         assert config.extensions == [".py", ".pyw"]
         assert len(config.metrics) == 1
 
-    def test_extension_without_dot_fails(self):
+    def test_extension_without_dot_fails(self) -> None:
         """Test that extensions without dots are rejected."""
         with pytest.raises(ValidationError) as exc_info:
             LanguageConfig(
@@ -84,7 +84,7 @@ class TestLanguageConfig:
 class TestDefaultsConfig:
     """Tests for DefaultsConfig model."""
 
-    def test_default_values(self):
+    def test_default_values(self) -> None:
         """Test that default values are set correctly."""
         config = DefaultsConfig()
         assert config.max_cyclomatic_complexity == 10
@@ -94,7 +94,7 @@ class TestDefaultsConfig:
         assert config.max_halstead_effort == 10000
         assert config.max_cognitive_complexity == 15
 
-    def test_negative_value_fails(self):
+    def test_negative_value_fails(self) -> None:
         """Test that negative values are rejected."""
         with pytest.raises(ValidationError) as exc_info:
             DefaultsConfig(max_cyclomatic_complexity=-1)
@@ -104,7 +104,7 @@ class TestDefaultsConfig:
 class TestCodeCopConfig:
     """Tests for CodeCopConfig model."""
 
-    def test_generate_default(self):
+    def test_generate_default(self) -> None:
         """Test generating default configuration."""
         config = CodeCopConfig.generate_default()
         assert isinstance(config.defaults, DefaultsConfig)
@@ -113,7 +113,7 @@ class TestCodeCopConfig:
         assert len(config.languages[0].metrics) == 6
         assert len(config.ignore_patterns) == 3
 
-    def test_get_language_config(self):
+    def test_get_language_config(self) -> None:
         """Test retrieving language-specific configuration."""
         config = CodeCopConfig.generate_default()
         python_config = config.get_language_config("python")
@@ -153,7 +153,7 @@ languages:
         assert config.defaults.min_maintainability_index == 40
         assert len(config.languages) == 1
 
-    def test_from_yaml_file_not_found(self):
+    def test_from_yaml_file_not_found(self) -> None:
         """Test loading from non-existent file."""
         with pytest.raises(FileNotFoundError):
             CodeCopConfig.from_yaml("non_existent.yaml")

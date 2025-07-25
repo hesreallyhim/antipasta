@@ -99,11 +99,13 @@ class LanguageDetector:
         # Convert to relative path for matching
         try:
             relative_path = file_path.relative_to(Path.cwd())
+            path_str = str(relative_path)
         except ValueError:
-            # If path is not relative to cwd, use as is
-            relative_path = file_path
+            # If path is not relative to cwd, only use the filename
+            # This prevents absolute paths from matching patterns like 'tmp/'
+            path_str = file_path.name
 
-        return self.pathspec.match_file(str(relative_path))
+        return self.pathspec.match_file(path_str)
 
     def group_by_language(self, file_paths: list[Path]) -> dict[Language, list[Path]]:
         """Group files by their detected language.

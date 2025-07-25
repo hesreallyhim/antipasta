@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from code_cop.core.config import CodeCopConfig, MetricConfig
+from code_cop.core.config import CodeCopConfig, ComparisonOperator, MetricConfig
 from code_cop.core.detector import Language, LanguageDetector
 from code_cop.core.metrics import FileMetrics, MetricType
 from code_cop.core.violations import FileReport, Violation, check_metric_violation
@@ -214,5 +214,3 @@ class MetricAggregator:
             "success": total_violations == 0,
         }
 
-
-from code_cop.core.config import ComparisonOperator
