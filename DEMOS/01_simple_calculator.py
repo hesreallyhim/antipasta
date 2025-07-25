@@ -40,8 +40,8 @@ def calculate(operation: str, a: float, b: float) -> float:
         "multiply": multiply,
         "divide": divide,
     }
-    
+
     if operation not in operations:
         raise ValueError(f"Unknown operation: {operation}")
-    
+
     return operations[operation](a, b)
