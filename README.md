@@ -72,6 +72,10 @@ code-cop uses YAML configuration files. By default, it looks for `.code_cop.yaml
 
 ```yaml
 # .code_cop.yaml
+
+# Use patterns from .gitignore file (default: true)
+use_gitignore: true
+
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -114,6 +118,7 @@ ignore_patterns:
 
 ### Configuration Structure
 
+- **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
 - **defaults**: Default thresholds used when language-specific configuration is not provided
 - **languages**: Language-specific configurations
   - **name**: Language identifier (currently only "python" is supported)
@@ -123,7 +128,7 @@ ignore_patterns:
     - **threshold**: The threshold value
     - **comparison**: How to compare the metric value with the threshold
     - **enabled**: Whether to check this metric (default: true)
-- **ignore_patterns**: Gitignore-style patterns for files to skip
+- **ignore_patterns**: Additional gitignore-style patterns for files to skip (combined with .gitignore if `use_gitignore` is true)
 
 ### Comparison Operators
 

@@ -1,6 +1,9 @@
 # Example code-cop configuration file
 # This file defines code quality metrics and thresholds
 
+# Use patterns from .gitignore file (default: true)
+use_gitignore: true
+
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50

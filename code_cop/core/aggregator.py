@@ -25,6 +25,13 @@ class MetricAggregator:
         """
         self.config = config
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
+
+        # Load .gitignore patterns if enabled
+        if config.use_gitignore:
+            gitignore_path = Path(".gitignore")
+            if gitignore_path.exists():
+                self.detector.add_gitignore(gitignore_path)
+
         self.runners: dict[Language, BaseRunner] = {
             Language.PYTHON: RadonRunner(),
         }

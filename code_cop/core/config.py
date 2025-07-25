@@ -82,6 +82,7 @@ class CodeCopConfig(BaseModel):
     defaults: DefaultsConfig = Field(default_factory=DefaultsConfig)
     languages: list[LanguageConfig] = Field(default_factory=list)
     ignore_patterns: list[str] = Field(default_factory=list)
+    use_gitignore: bool = Field(default=True)
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> CodeCopConfig:
