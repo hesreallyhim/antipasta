@@ -27,3 +27,11 @@ Starting with a comprehensive `pyproject.toml` that includes:
 - Entry point for CLI command
 
 This will serve as the foundation for the entire project.
+
+### Development Tools Setup
+
+Created additional configuration files:
+- `.editorconfig` - Ensures consistent code formatting across different editors
+- `Makefile` - Provides convenient commands for development tasks (format, lint, test, etc.)
+
+The main tool configurations (ruff, black, mypy, pytest) are already in `pyproject.toml`.
