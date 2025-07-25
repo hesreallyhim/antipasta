@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import pytest
 from click.testing import CliRunner
 
 from code_cop.cli.main import cli
@@ -11,7 +10,7 @@ from code_cop.cli.main import cli
 class TestValidateConfigCommand:
     """Tests for validate-config command."""
 
-    def test_validate_valid_config(self, tmp_path):
+    def test_validate_valid_config(self, tmp_path: Path) -> None:
         """Test validating a valid configuration file."""
         config_content = """
 defaults:
@@ -37,7 +36,7 @@ languages:
         assert "Configuration summary:" in result.output
         assert "Languages: 1" in result.output
 
-    def test_validate_invalid_config(self, tmp_path):
+    def test_validate_invalid_config(self, tmp_path: Path) -> None:
         """Test validating an invalid configuration file."""
         config_content = """
 defaults:
@@ -62,7 +61,7 @@ languages:
         assert "Configuration validation failed" in result.output
         assert "Validation errors:" in result.output
 
-    def test_validate_missing_file(self):
+    def test_validate_missing_file(self, tmp_path: Path) -> None:
         """Test validating a non-existent file."""
         runner = CliRunner()
         result = runner.invoke(cli, ["validate-config", "non_existent.yaml"])
@@ -70,7 +69,7 @@ languages:
         assert result.exit_code == 2  # Click returns 2 for missing files
         assert "does not exist" in result.output.lower()
 
-    def test_validate_malformed_yaml(self, tmp_path):
+    def test_validate_malformed_yaml(self, tmp_path: Path) -> None:
         """Test validating a malformed YAML file."""
         config_content = """
 defaults:

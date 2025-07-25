@@ -44,7 +44,7 @@ dev = [
 ]
 
 [project.scripts]
-code-cop = "code_cop.cli:main"
+code-cop = "code_cop.cli.main:main"
 
 [project.urls]
 Homepage = "https://github.com/yourusername/code-cop"
