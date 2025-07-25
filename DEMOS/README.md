@@ -10,37 +10,33 @@ This directory contains Python demo files that exhibit varying degrees of comple
 
 ### 1. `01_simple_calculator.py` ✅
 - **Complexity**: Very Low
-- **Cyclomatic**: 1-2 per function
-- **Cognitive**: 0-1
-- **Maintainability**: ~85 (Excellent)
+- **Cyclomatic**: 1-2 per function (measured: 1-2)
+- **Maintainability**: 85.50 (Excellent)
 - **Pattern**: Clean, single-responsibility functions
 
 ### 2. `02_password_validator_complex.py` ❌
 - **Complexity**: Very High (Bad Example)
-- **Cyclomatic**: 15+
-- **Cognitive**: 20+
-- **Maintainability**: ~45 (Poor)
-- **Issues**: Deep nesting, multiple concerns, long function
+- **Cyclomatic**: 34 (Extremely High!)
+- **Maintainability**: 53.96 (Poor for single function)
+- **Halstead Volume**: 595.48
+- **Issues**: Deep nesting, multiple concerns, single massive function
 
 ### 3. `03_password_validator_refactored.py` ✅
 - **Complexity**: Low-Medium (Good Refactor)
-- **Cyclomatic**: 2-3 per function
-- **Cognitive**: 1-2 per function
-- **Maintainability**: ~75 (Good)
+- **Cyclomatic**: 1-9 per method (most are 1-3)
+- **Maintainability**: 52.51 (Good considering multiple methods)
 - **Pattern**: Decomposed methods, early returns, clear separation
 
 ### 4. `04_data_processor_medium.py` ⚠️
 - **Complexity**: Medium
-- **Cyclomatic**: 5-8
-- **Cognitive**: 4-6
-- **Maintainability**: ~65 (Moderate)
+- **Cyclomatic**: 1-9 per method (varies by function)
+- **Maintainability**: 45.60 (Moderate)
 - **Pattern**: Realistic business logic, some nesting
 
 ### 5. `05_metrics_analyzer_cognitive.py` ⚠️
-- **Complexity**: High Cognitive
-- **Cyclomatic**: 6-10
-- **Cognitive**: 10-15 (high due to nesting)
-- **Maintainability**: ~55 (Moderate-Poor)
+- **Complexity**: Very High
+- **Cyclomatic**: 42 for main method (Extremely High!)
+- **Maintainability**: 41.99 (Poor)
 - **Issues**: Deep nesting, mixed abstraction levels
 
 ## Key Learnings
