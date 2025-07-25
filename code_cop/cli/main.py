@@ -1,11 +1,11 @@
 """Main CLI entry point for code-cop."""
 
-import sys
 from typing import Optional
 
 import click
 
 from code_cop import __version__
+from code_cop.cli.metrics import metrics as metrics_cmd
 from code_cop.cli.validate import validate_config as validate_config_cmd
 
 
@@ -16,14 +16,8 @@ def cli() -> None:
     pass
 
 
-@cli.command()
-def metrics() -> None:
-    """Analyze code metrics for specified files."""
-    click.echo("Metrics command not yet implemented")
-    sys.exit(1)
-
-
-# Add the validate-config command
+# Add commands
+cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(validate_config_cmd, name="validate-config")
 
 
