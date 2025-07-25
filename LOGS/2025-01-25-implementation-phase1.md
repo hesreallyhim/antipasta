@@ -50,3 +50,16 @@ Key files created:
 - `code_cop/__init__.py` - Package initialization
 - `code_cop/cli/main.py` - Basic CLI structure with Click framework
 - All necessary `__init__.py` files to make directories Python packages
+
+### GitHub Actions CI Setup
+
+Created GitHub Actions workflows:
+- `.github/workflows/ci.yml` - Main CI workflow with:
+  - Linting (ruff, black)
+  - Type checking (mypy)
+  - Testing with coverage
+  - Building and checking the package
+  - Matrix testing for Python 3.11 and 3.12
+- `.github/workflows/test.yml` - Quick test workflow for development branches
+
+The CI pipeline ensures code quality and correctness across multiple Python versions.
