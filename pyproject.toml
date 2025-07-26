@@ -8,11 +8,15 @@ version = "0.1.0"
 description = "A code quality enforcement tool that analyzes code complexity metrics"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
-authors = [
-    {name = "code-cop contributors"},
+license = { text = "MIT" }
+authors = [{ name = "Really Him", email = "hesreallyhim@proton.me" }]
+keywords = [
+    "code-quality",
+    "complexity",
+    "metrics",
+    "linting",
+    "static-analysis",
 ]
-keywords = ["code-quality", "complexity", "metrics", "linting", "static-analysis"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -100,10 +104,7 @@ show_error_codes = true
 show_error_context = true
 
 [[tool.mypy.overrides]]
-module = [
-    "radon.*",
-    "complexipy.*",
-]
+module = ["radon.*", "complexipy.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -111,10 +112,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "-ra",
-    "--strict-markers",
-]
+addopts = ["-ra", "--strict-markers"]
 
 [tool.coverage.run]
 branch = true

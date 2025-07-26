@@ -1,6 +1,6 @@
 # code-cop
 
-A code quality enforcement tool that analyzes code complexity metrics and helps maintain readable, maintainable code.
+A code quality enforcement tool that analyzes code complexity across a number of metrics and helps maintain readable, maintainable code.
 
 ## What is code-cop?
 
@@ -12,10 +12,10 @@ Currently, code-cop supports Python code analysis with plans to add JavaScript a
 
 Complex code is harder to understand, test, and maintain. By enforcing limits on complexity metrics, you can:
 
-- Catch overly complex functions before they're merged
-- Maintain consistent code quality standards across your team
-- Identify refactoring opportunities
-- Reduce technical debt over time
+-   Catch overly complex functions before they're merged
+-   Maintain consistent code quality standards across your team
+-   Identify refactoring opportunities
+-   Reduce technical debt over time
 
 ## Installation
 
@@ -36,8 +36,8 @@ pip install -e ".[dev]"
 
 ### Requirements
 
-- Python 3.11 or higher
-- Radon (automatically installed as a dependency)
+-   Python 3.11 or higher
+-   Radon (automatically installed as a dependency)
 
 ## Basic Usage
 
@@ -77,67 +77,67 @@ code-cop uses YAML configuration files. By default, it looks for `.code_cop.yaml
 use_gitignore: true
 
 defaults:
-  max_cyclomatic_complexity: 10
-  min_maintainability_index: 50
-  max_halstead_volume: 1000
-  max_halstead_difficulty: 10
-  max_halstead_effort: 10000
-  max_cognitive_complexity: 15
+    max_cyclomatic_complexity: 10
+    min_maintainability_index: 50
+    max_halstead_volume: 1000
+    max_halstead_difficulty: 10
+    max_halstead_effort: 10000
+    max_cognitive_complexity: 15
 
 languages:
-  - name: python
-    extensions:
-      - .py
-    metrics:
-      - type: cyclomatic_complexity
-        threshold: 10
-        comparison: "<="
-      - type: maintainability_index
-        threshold: 50
-        comparison: ">="
-      - type: halstead_volume
-        threshold: 1000
-        comparison: "<="
-      - type: halstead_difficulty
-        threshold: 10
-        comparison: "<="
-      - type: halstead_effort
-        threshold: 10000
-        comparison: "<="
-      - type: cognitive_complexity
-        threshold: 15
-        comparison: "<="
-        enabled: false  # Requires complexipy (not yet implemented)
+    - name: python
+      extensions:
+          - .py
+      metrics:
+          - type: cyclomatic_complexity
+            threshold: 10
+            comparison: "<="
+          - type: maintainability_index
+            threshold: 50
+            comparison: ">="
+          - type: halstead_volume
+            threshold: 1000
+            comparison: "<="
+          - type: halstead_difficulty
+            threshold: 10
+            comparison: "<="
+          - type: halstead_effort
+            threshold: 10000
+            comparison: "<="
+          - type: cognitive_complexity
+            threshold: 15
+            comparison: "<="
+            enabled: false # Requires complexipy (not yet implemented)
 
 ignore_patterns:
-  - "**/test_*.py"
-  - "**/*_test.py"
-  - "**/tests/**"
-  - "**/__pycache__/**"
+    - "**/test_*.py"
+    - "**/*_test.py"
+    - "**/tests/**"
+    - "**/__pycache__/**"
 ```
 
 ### Configuration Structure
 
-- **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
-- **defaults**: Default thresholds used when language-specific configuration is not provided
-- **languages**: Language-specific configurations
-  - **name**: Language identifier (currently only "python" is supported)
-  - **extensions**: File extensions to associate with this language
-  - **metrics**: List of metrics to check
-    - **type**: The metric type (see Metrics section below)
-    - **threshold**: The threshold value
-    - **comparison**: How to compare the metric value with the threshold
-    - **enabled**: Whether to check this metric (default: true)
-- **ignore_patterns**: Additional gitignore-style patterns for files to skip (combined with .gitignore if `use_gitignore` is true)
+-   **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
+-   **defaults**: Default thresholds used when language-specific configuration is not provided
+-   **languages**: Language-specific configurations
+    -   **name**: Language identifier (currently only "python" is supported)
+    -   **extensions**: File extensions to associate with this language
+    -   **metrics**: List of metrics to check
+        -   **type**: The metric type (see Metrics section below)
+        -   **threshold**: The threshold value
+        -   **comparison**: How to compare the metric value with the threshold
+        -   **enabled**: Whether to check this metric (default: true)
+-   **ignore_patterns**: Additional gitignore-style patterns for files to skip (combined with .gitignore if `use_gitignore` is true)
 
 ### Comparison Operators
 
-- `<=` - Metric value must be less than or equal to threshold
-- `<` - Metric value must be less than threshold
-- `>=` - Metric value must be greater than or equal to threshold
-- `>` - Metric value must be greater than threshold
-- `==` - Metric value must equal threshold
-- `!=` - Metric value must not equal threshold
+-   `<=` - Metric value must be less than or equal to threshold
+-   `<` - Metric value must be less than threshold
+-   `>=` - Metric value must be greater than or equal to threshold
+-   `>` - Metric value must be greater than threshold
+-   `==` - Metric value must equal threshold
+-   `!=` - Metric value must not equal threshold
 
 ## Metrics Explained
 
@@ -145,11 +145,12 @@ ignore_patterns:
 
 Measures the number of linearly independent paths through a function. Higher values indicate more complex control flow.
 
-- **Good**: 1-10 (simple, easy to test)
-- **Moderate**: 11-20 (more complex, harder to test)
-- **High**: 21+ (very complex, consider refactoring)
+-   **Good**: 1-10 (simple, easy to test)
+-   **Moderate**: 11-20 (more complex, harder to test)
+-   **High**: 21+ (very complex, consider refactoring)
 
 Example of high complexity:
+
 ```python
 def process_data(data, mode, validate, transform):
     if validate:
@@ -175,33 +176,33 @@ def process_data(data, mode, validate, transform):
 
 A composite metric (0-100) that considers cyclomatic complexity, lines of code, and Halstead volume. Higher values indicate more maintainable code.
 
-- **Good**: 50-100 (maintainable)
-- **Moderate**: 20-49 (moderately maintainable)
-- **Low**: 0-19 (difficult to maintain)
+-   **Good**: 50-100 (maintainable)
+-   **Moderate**: 20-49 (moderately maintainable)
+-   **Low**: 0-19 (difficult to maintain)
 
 ### Halstead Metrics
 
 Based on the number of operators and operands in code:
 
-- **Volume**: Program size based on the number of operations
-- **Difficulty**: How hard the code is to understand
-- **Effort**: Mental effort required to understand the code
-- **Time**: Estimated time to implement (in seconds)
-- **Bugs**: Estimated number of bugs (Volume / 3000)
+-   **Volume**: Program size based on the number of operations
+-   **Difficulty**: How hard the code is to understand
+-   **Effort**: Mental effort required to understand the code
+-   **Time**: Estimated time to implement (in seconds)
+-   **Bugs**: Estimated number of bugs (Volume / 3000)
 
 ### Lines of Code Metrics
 
-- **LOC**: Total lines of code
-- **SLOC**: Source lines of code (excluding comments and blanks)
-- **LLOC**: Logical lines of code
-- **Comment Lines**: Number of comment lines
-- **Blank Lines**: Number of blank lines
+-   **LOC**: Total lines of code
+-   **SLOC**: Source lines of code (excluding comments and blanks)
+-   **LLOC**: Logical lines of code
+-   **Comment Lines**: Number of comment lines
+-   **Blank Lines**: Number of blank lines
 
 ## Exit Codes
 
-- **0**: All metrics pass their thresholds
-- **1**: Error (invalid configuration, missing files, etc.)
-- **2**: One or more metrics violate their thresholds
+-   **0**: All metrics pass their thresholds
+-   **1**: Error (invalid configuration, missing files, etc.)
+-   **2**: One or more metrics violate their thresholds
 
 This makes code-cop suitable for CI/CD pipelines:
 
@@ -302,13 +303,13 @@ code_cop/
 
 ## Future Enhancements
 
-- JavaScript/TypeScript support via ts-complex
-- Cognitive complexity for Python via complexipy
-- Pre-commit hook integration
-- Git hook support
-- HTML report generation
-- Baseline file support (ignore existing violations)
-- Trend analysis over time
+-   JavaScript/TypeScript support via ts-complex
+-   Cognitive complexity for Python via complexipy
+-   Pre-commit hook integration
+-   Git hook support
+-   HTML report generation
+-   Baseline file support (ignore existing violations)
+-   Trend analysis over time
 
 ## Contributing
 
@@ -326,5 +327,5 @@ Contributions are welcome! Please:
 
 ## Acknowledgments
 
-- [Radon](https://github.com/rubik/radon) for Python code metrics
-- Inspired by various code quality tools like ESLint, Pylint, and SonarQube
+-   [Radon](https://github.com/rubik/radon) for Python code metrics
+-   Inspired by various code quality tools like ESLint, Pylint, and SonarQube
