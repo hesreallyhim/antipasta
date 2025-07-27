@@ -138,7 +138,7 @@ def format_phone_number(phone):
         return None
 
     # Extract digits only
-    digits = ''.join(c for c in phone if c.isdigit())
+    digits = "".join(c for c in phone if c.isdigit())
 
     if len(digits) == 10:
         return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
@@ -166,11 +166,27 @@ def normalize_boolean(value):
     return value in [True, "true", "1", "yes"]
 
 
-def process_user_registration(username, password, email, age, country,
-                            referral_code, newsletter, terms_accepted,
-                            marketing_consent, phone, address, city,
-                            state, zipcode, backup_email, security_question,
-                            security_answer, preferred_language, timezone):
+def process_user_registration(
+    username,
+    password,
+    email,
+    age,
+    country,
+    referral_code,
+    newsletter,
+    terms_accepted,
+    marketing_consent,
+    phone,
+    address,
+    city,
+    state,
+    zipcode,
+    backup_email,
+    security_question,
+    security_answer,
+    preferred_language,
+    timezone,
+):
     """Process user registration with all validations and business logic."""
 
     # Validate all required fields
@@ -215,7 +231,7 @@ def process_user_registration(username, password, email, age, country,
         "phone": formatted_phone,
         "address_verified": address_verified,
         "language": preferred_language if preferred_language in ["en", "es", "fr", "de"] else "en",
-        "timezone": timezone or "UTC"
+        "timezone": timezone or "UTC",
     }
 
     # Save to database (simulated)

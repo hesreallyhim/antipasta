@@ -101,7 +101,7 @@ class FileTreeWidget(Widget):
             # Sort children: directories first, then files
             children = sorted(
                 node_data["children"].items(),
-                key=lambda x: (x[1]["type"] != "directory", x[0].lower())
+                key=lambda x: (x[1]["type"] != "directory", x[0].lower()),
             )
 
             for name, child_data in children:

@@ -210,9 +210,15 @@ class DashboardDataBridge:
                     complexities.append(metric.value)
         elif isinstance(report.metrics, dict):
             # Handle dict of metric values
-            if "cyclomatic_complexity" in report.metrics and report.metrics["cyclomatic_complexity"] is not None:
+            if (
+                "cyclomatic_complexity" in report.metrics
+                and report.metrics["cyclomatic_complexity"] is not None
+            ):
                 complexities.append(report.metrics["cyclomatic_complexity"])
-            if "cognitive_complexity" in report.metrics and report.metrics["cognitive_complexity"] is not None:
+            if (
+                "cognitive_complexity" in report.metrics
+                and report.metrics["cognitive_complexity"] is not None
+            ):
                 complexities.append(report.metrics["cognitive_complexity"])
 
         return max(complexities) if complexities else 0

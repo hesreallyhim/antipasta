@@ -32,28 +32,27 @@ class ComplexityPatternAnalyzer(ast.NodeVisitor):
 
         # Pattern 1: Nested if-else that could be early returns
         if self.nesting_level > 1 and node.orelse:
-            self.patterns['nested_if_else'].append({
-                'function': self.current_function,
-                'line': node.lineno,
-                'depth': self.nesting_level
-            })
+            self.patterns["nested_if_else"].append(
+                {
+                    "function": self.current_function,
+                    "line": node.lineno,
+                    "depth": self.nesting_level,
+                }
+            )
 
         # Pattern 2: If-elif chains (could be dictionary dispatch)
         if self._is_elif_chain(node):
             chain_length = self._count_elif_chain(node)
             if chain_length > 3:
-                self.patterns['long_elif_chain'].append({
-                    'function': self.current_function,
-                    'line': node.lineno,
-                    'length': chain_length
-                })
+                self.patterns["long_elif_chain"].append(
+                    {"function": self.current_function, "line": node.lineno, "length": chain_length}
+                )
 
         # Pattern 3: Boolean flag setting
         if self._is_boolean_flag_pattern(node):
-            self.patterns['boolean_flag'].append({
-                'function': self.current_function,
-                'line': node.lineno
-            })
+            self.patterns["boolean_flag"].append(
+                {"function": self.current_function, "line": node.lineno}
+            )
 
         self.generic_visit(node)
         self.nesting_level -= 1
@@ -62,17 +61,15 @@ class ComplexityPatternAnalyzer(ast.NodeVisitor):
         """Analyze for loops for patterns."""
         # Pattern 4: Accumulator pattern
         if self._is_accumulator_pattern(node):
-            self.patterns['accumulator_loop'].append({
-                'function': self.current_function,
-                'line': node.lineno
-            })
+            self.patterns["accumulator_loop"].append(
+                {"function": self.current_function, "line": node.lineno}
+            )
 
         # Pattern 5: Boolean search pattern
         if self._is_boolean_search_pattern(node):
-            self.patterns['boolean_search'].append({
-                'function': self.current_function,
-                'line': node.lineno
-            })
+            self.patterns["boolean_search"].append(
+                {"function": self.current_function, "line": node.lineno}
+            )
 
         self.generic_visit(node)
 
@@ -82,11 +79,13 @@ class ComplexityPatternAnalyzer(ast.NodeVisitor):
 
         # Pattern 6: Nested try-except
         if self.nesting_level > 1:
-            self.patterns['nested_try'].append({
-                'function': self.current_function,
-                'line': node.lineno,
-                'depth': self.nesting_level
-            })
+            self.patterns["nested_try"].append(
+                {
+                    "function": self.current_function,
+                    "line": node.lineno,
+                    "depth": self.nesting_level,
+                }
+            )
 
         self.generic_visit(node)
         self.nesting_level -= 1
@@ -132,7 +131,7 @@ class ComplexityPatternAnalyzer(ast.NodeVisitor):
             if isinstance(stmt, ast.Expr):
                 if isinstance(stmt.value, ast.Call):
                     if isinstance(stmt.value.func, ast.Attribute):
-                        if stmt.value.func.attr == 'append':
+                        if stmt.value.func.attr == "append":
                             return True
         return False
 
@@ -169,9 +168,9 @@ def analyze_file(filepath: Path) -> Dict[str, List]:
 
 def generate_report(patterns: Dict[str, List]) -> None:
     """Generate a report of found patterns."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("COMPLEXITY PATTERN ANALYSIS REPORT")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     if not patterns:
         print("No complexity patterns found!")
@@ -187,12 +186,12 @@ def generate_report(patterns: Dict[str, List]) -> None:
     print("PATTERNS FOUND:\n")
 
     pattern_descriptions = {
-        'nested_if_else': "Nested if-else structures (can use early returns)",
-        'long_elif_chain': "Long if-elif chains (can use dictionary dispatch)",
-        'boolean_flag': "Boolean flag assignments (can use any/all)",
-        'accumulator_loop': "Accumulator loops (can use comprehensions)",
-        'boolean_search': "Boolean search loops (can use any/next)",
-        'nested_try': "Nested try-except blocks (can flatten)"
+        "nested_if_else": "Nested if-else structures (can use early returns)",
+        "long_elif_chain": "Long if-elif chains (can use dictionary dispatch)",
+        "boolean_flag": "Boolean flag assignments (can use any/all)",
+        "accumulator_loop": "Accumulator loops (can use comprehensions)",
+        "boolean_search": "Boolean search loops (can use any/next)",
+        "nested_try": "Nested try-except blocks (can flatten)",
     }
 
     for pattern_type, instances in patterns.items():
@@ -201,13 +200,13 @@ def generate_report(patterns: Dict[str, List]) -> None:
 
         # Show top 3 examples
         for i, instance in enumerate(instances[:3]):
-            func = instance.get('function', 'module-level')
-            line = instance.get('line', '?')
+            func = instance.get("function", "module-level")
+            line = instance.get("line", "?")
             extra = ""
 
-            if 'depth' in instance:
+            if "depth" in instance:
                 extra = f" (depth: {instance['depth']})"
-            elif 'length' in instance:
+            elif "length" in instance:
                 extra = f" (length: {instance['length']})"
 
             print(f"    - {func}:{line}{extra}")

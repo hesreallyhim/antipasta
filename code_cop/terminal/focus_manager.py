@@ -58,9 +58,7 @@ class FocusManager:
                 return widgets[next_idx]
         return None
 
-    def get_directional_target(
-        self, current_id: str, direction: str
-    ) -> Optional[str]:
+    def get_directional_target(self, current_id: str, direction: str) -> Optional[str]:
         """Get target widget for directional navigation.
 
         Args:

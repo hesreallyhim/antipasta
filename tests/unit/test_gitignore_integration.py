@@ -1,7 +1,5 @@
 """Tests for .gitignore integration."""
 
-
-
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
 

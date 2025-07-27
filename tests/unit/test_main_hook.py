@@ -291,7 +291,7 @@ def simple_func(x):
                 },
                 {
                     "old_string": "def func2():\n    pass",
-                    "new_string": ("def func2():\n" "    if True:\n" "        return 2"),
+                    "new_string": ("def func2():\n    if True:\n        return 2"),
                 },
             ],
         }

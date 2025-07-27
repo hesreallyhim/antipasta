@@ -1,6 +1,5 @@
 """Main CLI entry point for code-cop."""
 
-
 import click
 
 from code_cop import __version__

@@ -34,15 +34,23 @@ class ShortcutManager:
         self.add_shortcut("ctrl+c", "quit", "Quit", "General", show_in_footer=False)
         self.add_shortcut("?", "show_help", "Help", "General")
         self.add_shortcut("r", "refresh", "Refresh", "General")
-        self.add_shortcut("ctrl+r", "force_refresh", "Force Refresh", "General", show_in_footer=False)
+        self.add_shortcut(
+            "ctrl+r", "force_refresh", "Force Refresh", "General", show_in_footer=False
+        )
         self.add_shortcut(":", "command_palette", "Command", "General")
-        self.add_shortcut("ctrl+p", "command_palette", "Command Palette", "General", show_in_footer=False)
+        self.add_shortcut(
+            "ctrl+p", "command_palette", "Command Palette", "General", show_in_footer=False
+        )
 
         # Navigation shortcuts
         self.add_shortcut("tab", "focus_next", "Next Panel", "Navigation", show_in_footer=False)
-        self.add_shortcut("shift+tab", "focus_previous", "Previous Panel", "Navigation", show_in_footer=False)
+        self.add_shortcut(
+            "shift+tab", "focus_previous", "Previous Panel", "Navigation", show_in_footer=False
+        )
         self.add_shortcut("ctrl+h", "focus_left", "Focus Left", "Navigation", show_in_footer=False)
-        self.add_shortcut("ctrl+l", "focus_right", "Focus Right", "Navigation", show_in_footer=False)
+        self.add_shortcut(
+            "ctrl+l", "focus_right", "Focus Right", "Navigation", show_in_footer=False
+        )
         self.add_shortcut("ctrl+j", "focus_down", "Focus Down", "Navigation", show_in_footer=False)
         self.add_shortcut("ctrl+k", "focus_up", "Focus Up", "Navigation", show_in_footer=False)
 
@@ -53,8 +61,12 @@ class ShortcutManager:
         self.add_shortcut("l", "move_right", "Right", "Vim", vim_mode=True, show_in_footer=False)
         self.add_shortcut("g g", "move_top", "Top", "Vim", vim_mode=True, show_in_footer=False)
         self.add_shortcut("G", "move_bottom", "Bottom", "Vim", vim_mode=True, show_in_footer=False)
-        self.add_shortcut("ctrl+u", "page_up", "Page Up", "Vim", vim_mode=True, show_in_footer=False)
-        self.add_shortcut("ctrl+d", "page_down", "Page Down", "Vim", vim_mode=True, show_in_footer=False)
+        self.add_shortcut(
+            "ctrl+u", "page_up", "Page Up", "Vim", vim_mode=True, show_in_footer=False
+        )
+        self.add_shortcut(
+            "ctrl+d", "page_down", "Page Down", "Vim", vim_mode=True, show_in_footer=False
+        )
 
         # View shortcuts
         self.add_shortcut("1", "view_overview", "Overview", "Views")
@@ -68,7 +80,9 @@ class ShortcutManager:
         self.add_shortcut("/", "search", "Search", "Filters")
         self.add_shortcut("f", "filter", "Filter", "Filters")
         self.add_shortcut("F", "clear_filters", "Clear Filters", "Filters")
-        self.add_shortcut("ctrl+f", "filter_complexity", "Filter Complexity", "Filters", show_in_footer=False)
+        self.add_shortcut(
+            "ctrl+f", "filter_complexity", "Filter Complexity", "Filters", show_in_footer=False
+        )
 
         # Actions
         self.add_shortcut("space", "toggle_expand", "Toggle", "Actions")

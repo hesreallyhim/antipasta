@@ -1,6 +1,5 @@
 """Tests for configuration loading and validation."""
 
-
 import pytest
 from pydantic import ValidationError
 

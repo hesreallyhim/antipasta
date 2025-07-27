@@ -59,7 +59,9 @@ class HeatmapWidget(Widget):
         if self.heatmap_data:
             self._render_heatmap()
 
-    def watch_heatmap_data(self, old_data: list[dict[str, Any]], new_data: list[dict[str, Any]]) -> None:
+    def watch_heatmap_data(
+        self, old_data: list[dict[str, Any]], new_data: list[dict[str, Any]]
+    ) -> None:
         """React to heatmap data changes."""
         self._render_heatmap()
 
@@ -76,7 +78,9 @@ class HeatmapWidget(Widget):
         self._heatmap_items.clear()
 
         # Calculate max complexity for scaling
-        max_complexity = max(item["avg_complexity"] for item in self.heatmap_data) if self.heatmap_data else 1
+        max_complexity = (
+            max(item["avg_complexity"] for item in self.heatmap_data) if self.heatmap_data else 1
+        )
 
         # Create heatmap items
         for i, item in enumerate(self.heatmap_data):
@@ -84,7 +88,9 @@ class HeatmapWidget(Widget):
             self._heatmap_items.append(heatmap_item)
             scroll_container.mount(heatmap_item)
 
-    def _create_heatmap_item(self, item: dict[str, Any], max_complexity: float, index: int) -> Widget:
+    def _create_heatmap_item(
+        self, item: dict[str, Any], max_complexity: float, index: int
+    ) -> Widget:
         """Create a single heatmap item."""
         path = item["path"] if item["path"] != "." else "root"
         avg_complexity = item["avg_complexity"]

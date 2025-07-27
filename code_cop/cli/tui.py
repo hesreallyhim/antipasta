@@ -11,13 +11,15 @@ from code_cop.terminal import TerminalDashboard
 
 @click.command()
 @click.option(
-    "--path", "-p",
+    "--path",
+    "-p",
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
     default=".",
     help="Path to the project to analyze",
 )
 @click.option(
-    "--watch", "-w",
+    "--watch",
+    "-w",
     is_flag=True,
     help="Enable file watching for live updates",
 )

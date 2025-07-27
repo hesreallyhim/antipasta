@@ -110,43 +110,36 @@ class CommandPalette(Container):
             ("Go to File", "goto_file", "Open file by name"),
             ("Go to Function", "goto_function", "Navigate to function"),
             ("Go to Line", "goto_line", "Jump to line number"),
-
             # View commands
             ("Show Overview", "view_overview", "Switch to overview view"),
             ("Show Heatmap", "view_heatmap", "Switch to heatmap view"),
             ("Show Trends", "view_trends", "Switch to trends view"),
             ("Show Details", "view_details", "Switch to details view"),
             ("Show Functions", "view_functions", "Switch to functions view"),
-
             # Analysis commands
             ("Refresh Metrics", "refresh", "Re-analyze all files"),
             ("Force Refresh", "force_refresh", "Clear cache and re-analyze"),
             ("Analyze File", "analyze_file", "Analyze specific file"),
             ("Analyze Directory", "analyze_directory", "Analyze specific directory"),
-
             # Filter commands
             ("Filter by Complexity", "filter_complexity", "Set complexity threshold"),
             ("Filter by Type", "filter_type", "Filter by metric type"),
             ("Clear Filters", "clear_filters", "Remove all filters"),
             ("Save Filter Preset", "save_filter", "Save current filter settings"),
-
             # Export commands
             ("Export View", "export_current", "Export current view"),
             ("Export All Data", "export_all", "Export all metrics data"),
             ("Export Report", "export_report", "Generate full report"),
             ("Copy Metrics", "copy_metrics", "Copy metrics to clipboard"),
-
             # Settings commands
             ("Toggle Vim Mode", "toggle_vim", "Enable/disable vim navigation"),
             ("Change Theme", "cycle_theme", "Cycle through themes"),
             ("Theme Menu", "theme_menu", "Open theme selector"),
             ("Save Session", "save_session", "Save current session"),
-
             # Help commands
             ("Show Help", "show_help", "Display keyboard shortcuts"),
             ("About", "about", "Show version and info"),
             ("Documentation", "docs", "Open documentation"),
-
             # File operations
             ("Open File", "open_file", "Open selected file in editor"),
             ("Open Directory", "open_directory", "Open directory in file manager"),
@@ -217,9 +210,7 @@ class CommandPalette(Container):
             item_class = "selected" if is_selected else ""
             prefix = "▶ " if is_selected else "  "
 
-            results.append(
-                f'[{item_class}]{prefix}[bold]{name}[/bold] [dim]{desc}[/dim][/]'
-            )
+            results.append(f"[{item_class}]{prefix}[bold]{name}[/bold] [dim]{desc}[/dim][/]")
 
         results_container.update("\n".join(results))
 

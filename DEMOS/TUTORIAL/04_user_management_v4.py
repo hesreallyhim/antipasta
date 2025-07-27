@@ -41,6 +41,7 @@ STANDARD_REFERRAL_BONUS = 50
 @dataclass
 class UserRegistrationData:
     """User registration input data."""
+
     username: str
     password: str
     email: str
@@ -58,6 +59,7 @@ class UserRegistrationData:
 @dataclass
 class AddressData:
     """User address information."""
+
     address: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
@@ -66,6 +68,7 @@ class AddressData:
 
 class ValidationError(Exception):
     """Custom exception for validation errors."""
+
     pass
 
 
@@ -75,10 +78,14 @@ def validate_username(username: str) -> None:
         raise ValidationError("Username is required")
 
     if not MIN_USERNAME_LENGTH <= len(username) <= MAX_USERNAME_LENGTH:
-        raise ValidationError(f"Username must be {MIN_USERNAME_LENGTH}-{MAX_USERNAME_LENGTH} characters")
+        raise ValidationError(
+            f"Username must be {MIN_USERNAME_LENGTH}-{MAX_USERNAME_LENGTH} characters"
+        )
 
     if not all(c.isalnum() or c in "_-." for c in username):
-        raise ValidationError("Username can only contain letters, numbers, underscore, dash, or dot")
+        raise ValidationError(
+            "Username can only contain letters, numbers, underscore, dash, or dot"
+        )
 
     # In real app, this would check database
     if username.lower() in ["admin", "root", "test", "user", "demo"]:
@@ -97,11 +104,13 @@ def validate_password(password: str) -> None:
         "uppercase": any(c.isupper() for c in password),
         "lowercase": any(c.islower() for c in password),
         "digit": any(c.isdigit() for c in password),
-        "special": any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)
+        "special": any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password),
     }
 
     if not all(checks.values()):
-        raise ValidationError("Password must contain uppercase, lowercase, digit and special character")
+        raise ValidationError(
+            "Password must contain uppercase, lowercase, digit and special character"
+        )
 
 
 def validate_email(email: str) -> None:
@@ -145,7 +154,11 @@ def calculate_bonus_credits(referral_code: Optional[str]) -> int:
     if not referral_code or len(referral_code) != 8 or not referral_code.startswith("REF"):
         return 0
 
-    return PREMIUM_REFERRAL_BONUS if referral_code in PREMIUM_REFERRAL_CODES else STANDARD_REFERRAL_BONUS
+    return (
+        PREMIUM_REFERRAL_BONUS
+        if referral_code in PREMIUM_REFERRAL_CODES
+        else STANDARD_REFERRAL_BONUS
+    )
 
 
 def format_phone_number(phone: Optional[str]) -> Optional[str]:
@@ -153,7 +166,7 @@ def format_phone_number(phone: Optional[str]) -> Optional[str]:
     if not phone:
         return None
 
-    digits = ''.join(c for c in phone if c.isdigit())
+    digits = "".join(c for c in phone if c.isdigit())
 
     if len(digits) == 10:
         return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
@@ -190,11 +203,13 @@ def create_user_account(data: UserRegistrationData, address: AddressData) -> dic
         "phone": format_phone_number(data.phone),
         "address_verified": is_address_complete(address),
         "language": data.preferred_language if data.preferred_language in VALID_LANGUAGES else "en",
-        "timezone": data.timezone or "UTC"
+        "timezone": data.timezone or "UTC",
     }
 
 
-def process_user_registration(registration_data: UserRegistrationData, address_data: AddressData) -> dict:
+def process_user_registration(
+    registration_data: UserRegistrationData, address_data: AddressData
+) -> dict:
     """Process user registration with all validations and business logic."""
     try:
         # Validate all data
@@ -206,14 +221,7 @@ def process_user_registration(registration_data: UserRegistrationData, address_d
         # Save to database (simulated)
         print(f"User created: {user_data}")
 
-        return {
-            "success": True,
-            "user_id": 12345,
-            "data": user_data
-        }
+        return {"success": True, "user_id": 12345, "data": user_data}
 
     except ValidationError as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        return {"success": False, "error": str(e)}

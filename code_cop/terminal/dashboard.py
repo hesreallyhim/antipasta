@@ -32,7 +32,7 @@ class TerminalDashboard(App):
 
     CSS_PATH = "dashboard.tcss"
 
-    def __init__(self, project_path: Optional[str] = None):
+    def __init__(self, project_path: str | None = None):
         """Initialize the dashboard.
 
         Args:
@@ -49,7 +49,7 @@ class TerminalDashboard(App):
 
     def _update_bindings(self) -> None:
         """Update app bindings from shortcut manager."""
-        self.BINDINGS = self.shortcut_manager.get_bindings()
+        type(self).BINDINGS = self.shortcut_manager.get_bindings()
 
     def compose(self) -> ComposeResult:
         """Create the application layout."""
@@ -63,24 +63,15 @@ class TerminalDashboard(App):
             # Right side - Main content area
             with Vertical(id="main-content"):
                 # Top - Metrics overview
-                yield MetricsOverviewWidget(
-                    id="metrics-widget",
-                    classes="metrics-overview"
-                )
+                yield MetricsOverviewWidget(id="metrics-widget", classes="metrics-overview")
 
                 # Bottom panels
                 with Horizontal():
                     # Heatmap visualization
-                    yield HeatmapWidget(
-                        id="heatmap-widget",
-                        classes="heatmap"
-                    )
+                    yield HeatmapWidget(id="heatmap-widget", classes="heatmap")
 
                     # Detail view
-                    yield DetailViewWidget(
-                        id="detail-widget",
-                        classes="detail-view"
-                    )
+                    yield DetailViewWidget(id="detail-widget", classes="detail-view")
 
         yield Footer()
 
@@ -252,13 +243,13 @@ class TerminalDashboard(App):
     def action_move_down(self) -> None:
         """Move focus down (vim j)."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_cursor_down'):
+        if focused and hasattr(focused, "action_cursor_down"):
             focused.action_cursor_down()
 
     def action_move_up(self) -> None:
         """Move focus up (vim k)."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_cursor_up'):
+        if focused and hasattr(focused, "action_cursor_up"):
             focused.action_cursor_up()
 
     def action_move_left(self) -> None:
@@ -272,25 +263,25 @@ class TerminalDashboard(App):
     def action_move_top(self) -> None:
         """Move to top (vim gg)."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_first'):
+        if focused and hasattr(focused, "action_first"):
             focused.action_first()
 
     def action_move_bottom(self) -> None:
         """Move to bottom (vim G)."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_last'):
+        if focused and hasattr(focused, "action_last"):
             focused.action_last()
 
     def action_page_up(self) -> None:
         """Page up (vim ctrl+u)."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_page_up'):
+        if focused and hasattr(focused, "action_page_up"):
             focused.action_page_up()
 
     def action_page_down(self) -> None:
         """Page down (vim ctrl+d)."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_page_down'):
+        if focused and hasattr(focused, "action_page_down"):
             focused.action_page_down()
 
     # Focus navigation actions
@@ -429,13 +420,13 @@ class TerminalDashboard(App):
     def action_toggle_expand(self) -> None:
         """Toggle expand/collapse in focused widget."""
         focused = self.focused
-        if focused and hasattr(focused, 'toggle'):
+        if focused and hasattr(focused, "toggle"):
             focused.toggle()
 
     def action_select(self) -> None:
         """Select item in focused widget."""
         focused = self.focused
-        if focused and hasattr(focused, 'action_select'):
+        if focused and hasattr(focused, "action_select"):
             focused.action_select()
 
 

@@ -44,7 +44,9 @@ from code_cop.terminal import TerminalDashboard
     default="text",
     help="Output format (text, terminal for TUI, or json)",
 )
-def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool, format: str) -> None:
+def metrics(
+    config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool, format: str
+) -> None:
     """Analyze code metrics for specified files.
 
     Exits with code 0 if all metrics pass, 2 if violations found.

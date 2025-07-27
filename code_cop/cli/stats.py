@@ -126,7 +126,7 @@ def _collect_overall_stats(reports, metrics_to_include):
             "avg_loc": 0.0,
             "min_loc": 0,
             "max_loc": 0,
-        }
+        },
     }
 
     # Collect LOC per file
@@ -136,8 +136,12 @@ def _collect_overall_stats(reports, metrics_to_include):
     for report in reports:
         # File LOC
         file_loc = next(
-            (m.value for m in report.metrics if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None),
-            0
+            (
+                m.value
+                for m in report.metrics
+                if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
+            ),
+            0,
         )
         if file_loc > 0:
             file_locs.append(file_loc)
@@ -173,11 +177,7 @@ def _collect_overall_stats(reports, metrics_to_include):
 
 def _collect_directory_stats(reports, metrics_to_include):
     """Collect statistics grouped by directory."""
-    dir_stats = defaultdict(lambda: {
-        "files": [],
-        "functions": [],
-        "metrics": defaultdict(list)
-    })
+    dir_stats = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
 
     # Group reports by directory
     for report in reports:
@@ -200,21 +200,26 @@ def _collect_directory_stats(reports, metrics_to_include):
         file_locs = []
         for report in data["files"]:
             file_loc = next(
-                (m.value for m in report.metrics if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None),
-                0
+                (
+                    m.value
+                    for m in report.metrics
+                    if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
+                ),
+                0,
             )
             if file_loc > 0:
                 file_locs.append(file_loc)
 
         # Function LOCs in this directory
         function_locs = [
-            m.value for m in data["functions"]
-            if m.metric_type == MetricType.LINES_OF_CODE
+            m.value for m in data["functions"] if m.metric_type == MetricType.LINES_OF_CODE
         ]
 
         results[str(dir_path)] = {
             "file_count": len(data["files"]),
-            "function_count": len(set(m.function_name for m in data["functions"] if m.function_name)),
+            "function_count": len(
+                set(m.function_name for m in data["functions"] if m.function_name)
+            ),
             "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
             "avg_function_loc": statistics.mean(function_locs) if function_locs else 0,
             "total_loc": sum(file_locs),
@@ -230,11 +235,7 @@ def _collect_directory_stats(reports, metrics_to_include):
 
 def _collect_module_stats(reports, metrics_to_include):
     """Collect statistics grouped by Python module."""
-    module_stats = defaultdict(lambda: {
-        "files": [],
-        "functions": [],
-        "metrics": defaultdict(list)
-    })
+    module_stats = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
 
     # Group reports by module
     for report in reports:
@@ -268,20 +269,25 @@ def _collect_module_stats(reports, metrics_to_include):
         file_locs = []
         for report in data["files"]:
             file_loc = next(
-                (m.value for m in report.metrics if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None),
-                0
+                (
+                    m.value
+                    for m in report.metrics
+                    if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
+                ),
+                0,
             )
             if file_loc > 0:
                 file_locs.append(file_loc)
 
         function_locs = [
-            m.value for m in data["functions"]
-            if m.metric_type == MetricType.LINES_OF_CODE
+            m.value for m in data["functions"] if m.metric_type == MetricType.LINES_OF_CODE
         ]
 
         results[module_name] = {
             "file_count": len(data["files"]),
-            "function_count": len(set(m.function_name for m in data["functions"] if m.function_name)),
+            "function_count": len(
+                set(m.function_name for m in data["functions"] if m.function_name)
+            ),
             "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
             "avg_function_loc": statistics.mean(function_locs) if function_locs else 0,
             "total_loc": sum(file_locs),
@@ -325,9 +331,9 @@ def _display_table(stats_data):
     """Display statistics as a formatted table."""
     if isinstance(stats_data, dict) and "files" in stats_data:
         # Overall statistics
-        click.echo("\n" + "="*60)
+        click.echo("\n" + "=" * 60)
         click.echo("CODE METRICS STATISTICS")
-        click.echo("="*60 + "\n")
+        click.echo("=" * 60 + "\n")
 
         # File statistics
         click.echo("FILE STATISTICS:")
@@ -336,13 +342,13 @@ def _display_table(stats_data):
         click.echo(f"  Average LOC per file: {stats_data['files']['avg_loc']:.1f}")
         click.echo(f"  Min LOC: {stats_data['files']['min_loc']}")
         click.echo(f"  Max LOC: {stats_data['files']['max_loc']}")
-        if stats_data['files']['std_dev'] > 0:
+        if stats_data["files"]["std_dev"] > 0:
             click.echo(f"  Standard deviation: {stats_data['files']['std_dev']:.1f}")
 
         # Function statistics
         click.echo("\nFUNCTION STATISTICS:")
         click.echo(f"  Total functions: {stats_data['functions']['count']}")
-        if stats_data['functions']['count'] > 0:
+        if stats_data["functions"]["count"] > 0:
             click.echo(f"  Average LOC per function: {stats_data['functions']['avg_loc']:.1f}")
             click.echo(f"  Min LOC: {stats_data['functions']['min_loc']}")
             click.echo(f"  Max LOC: {stats_data['functions']['max_loc']}")
@@ -357,9 +363,12 @@ def _display_table(stats_data):
                 click.echo(f"  Max: {value.get('max', 0):.2f}")
     else:
         # Directory or module statistics
-        click.echo("\n" + "="*80)
-        click.echo("CODE METRICS BY " + ("DIRECTORY" if "/" in str(list(stats_data.keys())[0]) else "MODULE"))
-        click.echo("="*80 + "\n")
+        click.echo("\n" + "=" * 80)
+        click.echo(
+            "CODE METRICS BY "
+            + ("DIRECTORY" if "/" in str(list(stats_data.keys())[0]) else "MODULE")
+        )
+        click.echo("=" * 80 + "\n")
 
         # Find all metric keys
         all_keys = set()
@@ -400,7 +409,7 @@ def _format_table_row(values):
     formatted = []
     for i, value in enumerate(values):
         if i < len(widths):
-            formatted.append(str(value).ljust(widths[i])[:widths[i]])
+            formatted.append(str(value).ljust(widths[i])[: widths[i]])
         else:
             formatted.append(str(value))
     return " ".join(formatted)
@@ -410,12 +419,13 @@ def _truncate_path(path, max_length):
     """Truncate long paths for display."""
     if len(path) <= max_length:
         return path
-    return "..." + path[-(max_length-3):]
+    return "..." + path[-(max_length - 3) :]
 
 
 def _display_json(stats_data):
     """Display statistics as JSON."""
     import json
+
     click.echo(json.dumps(stats_data, indent=2))
 
 

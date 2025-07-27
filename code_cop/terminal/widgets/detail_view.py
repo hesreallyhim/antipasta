@@ -58,7 +58,9 @@ class DetailViewWidget(Widget):
         if self.file_report:
             self._update_display()
 
-    def watch_file_report(self, old_report: Optional[FileReport], new_report: Optional[FileReport]) -> None:
+    def watch_file_report(
+        self, old_report: Optional[FileReport], new_report: Optional[FileReport]
+    ) -> None:
         """React to file report changes."""
         self._update_display()
 
@@ -140,7 +142,7 @@ class DetailViewWidget(Widget):
                     func_data.get("name", "Unknown"),
                     str(func_data.get("cyclomatic_complexity", "-")),
                     str(func_data.get("cognitive_complexity", "-")),
-                    str(func_data.get("lines", "-"))
+                    str(func_data.get("lines", "-")),
                 )
         else:
             # Show aggregate data
@@ -153,7 +155,7 @@ class DetailViewWidget(Widget):
                     "File Total",
                     str(cc) if cc != "-" else "-",
                     str(cog) if cog != "-" else "-",
-                    str(loc) if loc != "-" else "-"
+                    str(loc) if loc != "-" else "-",
                 )
 
     def _update_violations(self) -> None:

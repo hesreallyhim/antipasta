@@ -86,7 +86,9 @@ class MetricsOverviewWidget(Widget):
         if self.metrics_summary:
             self._update_display()
 
-    def watch_metrics_summary(self, old_summary: dict[str, Any], new_summary: dict[str, Any]) -> None:
+    def watch_metrics_summary(
+        self, old_summary: dict[str, Any], new_summary: dict[str, Any]
+    ) -> None:
         """React to metrics summary changes."""
         self._update_display()
 
@@ -101,7 +103,9 @@ class MetricsOverviewWidget(Widget):
 
         # Update success rate
         files_with_violations = self.metrics_summary.get("files_with_violations", 0)
-        success_rate = ((total_files - files_with_violations) / total_files * 100) if total_files > 0 else 100
+        success_rate = (
+            ((total_files - files_with_violations) / total_files * 100) if total_files > 0 else 100
+        )
         self.query_one("#success-rate", Static).update(f"{success_rate:.1f}%")
 
         # Update total violations
@@ -143,12 +147,16 @@ class MetricsOverviewWidget(Widget):
         violations_container.remove_children()
 
         if violations_by_type:
-            for metric_type, count in sorted(violations_by_type.items(), key=lambda x: x[1], reverse=True):
+            for metric_type, count in sorted(
+                violations_by_type.items(), key=lambda x: x[1], reverse=True
+            ):
                 with violations_container:
                     with Horizontal(classes="violation-row"):
                         # Format metric type name
                         type_name = metric_type.replace("_", " ").title()
-                        violations_container.mount(Static(f"• {type_name}:", classes="violation-type"))
+                        violations_container.mount(
+                            Static(f"• {type_name}:", classes="violation-type")
+                        )
                         violations_container.mount(Static(str(count), classes="violation-count"))
         else:
             violations_container.mount(Static("✓ No violations found", classes="no-violations"))

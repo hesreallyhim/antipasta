@@ -241,6 +241,7 @@ class FilterManager:
                 return expected in str(actual)
             elif comparison == "matches":
                 import re
+
                 return bool(re.match(expected, str(actual)))
             elif comparison == "exists":
                 if isinstance(actual, list):
@@ -271,7 +272,9 @@ class FilterManager:
 
         return " AND ".join(summaries)
 
-    def get_filter_stats(self, original: List[MetricResult], filtered: List[MetricResult]) -> Dict[str, int]:
+    def get_filter_stats(
+        self, original: List[MetricResult], filtered: List[MetricResult]
+    ) -> Dict[str, int]:
         """Get statistics about filter results.
 
         Args:

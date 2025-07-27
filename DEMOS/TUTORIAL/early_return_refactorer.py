@@ -64,8 +64,9 @@ class EarlyReturnRefactorer(ast.NodeTransformer):
 
         # Nested if-else where all branches return
         if isinstance(last_stmt, ast.If):
-            return (self._branch_ends_with_return(last_stmt.body) and
-                    self._branch_ends_with_return(last_stmt.orelse))
+            return self._branch_ends_with_return(last_stmt.body) and self._branch_ends_with_return(
+                last_stmt.orelse
+            )
 
         return False
 
@@ -80,11 +81,7 @@ class EarlyReturnRefactorer(ast.NodeTransformer):
             else_returns = self._get_return_statements(if_stmt.orelse)
 
             # Create early return with inverted condition
-            early_if = ast.If(
-                test=inverted,
-                body=else_returns,
-                orelse=[]
-            )
+            early_if = ast.If(test=inverted, body=else_returns, orelse=[])
             early_returns.append(early_if)
 
             # Add the original if body (without the else)
@@ -139,7 +136,7 @@ def refactor_code(source_code: str) -> str:
 # Example usage
 if __name__ == "__main__":
     # Example 1: Simple nested if-else
-    example1 = '''
+    example1 = """
 def validate_age(age):
     if age is not None:
         if age >= 0:
@@ -151,10 +148,10 @@ def validate_age(age):
             return False
     else:
         return False
-'''
+"""
 
     # Example 2: More complex validation
-    example2 = '''
+    example2 = """
 def process_user(user):
     if user is not None:
         if user.active:
@@ -168,7 +165,7 @@ def process_user(user):
             return {"success": False, "error": "User not active"}
     else:
         return {"success": False, "error": "User is None"}
-'''
+"""
 
     print("Example 1 - Before:")
     print(example1)
@@ -177,7 +174,7 @@ def process_user(user):
     print("\nExample 1 - After:")
     print(refactored1)
 
-    print("\n" + "="*60 + "\n")
+    print("\n" + "=" * 60 + "\n")
 
     print("Example 2 - Before:")
     print(example2)

@@ -23,6 +23,7 @@ import re
 @dataclass
 class UserRegistrationData:
     """User registration input data."""
+
     username: str
     password: str
     email: str
@@ -43,6 +44,7 @@ class UserRegistrationData:
 
 class ValidationResult:
     """Result of a validation check."""
+
     def __init__(self, is_valid: bool, error: Optional[str] = None):
         self.is_valid = is_valid
         self.error = error
@@ -50,6 +52,7 @@ class ValidationResult:
 
 class Validator(ABC):
     """Base validator interface."""
+
     @abstractmethod
     def validate(self, value: any) -> ValidationResult:
         pass
@@ -62,17 +65,21 @@ class UsernameValidator(Validator):
         self.min_length = min_length
         self.max_length = max_length
         self.reserved_names = {"admin", "root", "test", "user", "demo"}
-        self.valid_pattern = re.compile(r'^[a-zA-Z0-9._-]+$')
+        self.valid_pattern = re.compile(r"^[a-zA-Z0-9._-]+$")
 
     def validate(self, username: str) -> ValidationResult:
         if not username:
             return ValidationResult(False, "Username is required")
 
         if not self.min_length <= len(username) <= self.max_length:
-            return ValidationResult(False, f"Username must be {self.min_length}-{self.max_length} characters")
+            return ValidationResult(
+                False, f"Username must be {self.min_length}-{self.max_length} characters"
+            )
 
         if not self.valid_pattern.match(username):
-            return ValidationResult(False, "Username can only contain letters, numbers, underscore, dash, or dot")
+            return ValidationResult(
+                False, "Username can only contain letters, numbers, underscore, dash, or dot"
+            )
 
         if username.lower() in self.reserved_names:
             return ValidationResult(False, "Username is already taken")
@@ -91,13 +98,15 @@ class PasswordValidator(Validator):
             return ValidationResult(False, "Password is required")
 
         if len(password) < self.min_length:
-            return ValidationResult(False, f"Password must be at least {self.min_length} characters")
+            return ValidationResult(
+                False, f"Password must be at least {self.min_length} characters"
+            )
 
         requirements = [
-            (r'[A-Z]', "uppercase letter"),
-            (r'[a-z]', "lowercase letter"),
-            (r'[0-9]', "digit"),
-            (r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]', "special character")
+            (r"[A-Z]", "uppercase letter"),
+            (r"[a-z]", "lowercase letter"),
+            (r"[0-9]", "digit"),
+            (r"[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]", "special character"),
         ]
 
         missing = [desc for pattern, desc in requirements if not re.search(pattern, password)]
@@ -113,7 +122,7 @@ class EmailValidator(Validator):
 
     def __init__(self):
         # Simple email regex - in production use a library
-        self.email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        self.email_pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
     def validate(self, email: str) -> ValidationResult:
         if not email:
@@ -127,6 +136,7 @@ class EmailValidator(Validator):
 
 class UserRepository(Protocol):
     """Interface for user data access."""
+
     def save_user(self, user_data: dict) -> int:
         """Save user and return user ID."""
         ...
@@ -138,6 +148,7 @@ class UserRepository(Protocol):
 
 class MockUserRepository:
     """Mock implementation for demo purposes."""
+
     def save_user(self, user_data: dict) -> int:
         print(f"Saving user: {user_data['username']}")
         return 12345
@@ -161,11 +172,7 @@ class UserRegistrationService:
         self.min_age = 13
         self.max_age = 120
         self.initial_credits = 1000
-        self.referral_bonuses = {
-            "REF12345": 100,
-            "REF67890": 100,
-            "REF11111": 100
-        }
+        self.referral_bonuses = {"REF12345": 100, "REF67890": 100, "REF11111": 100}
         self.default_referral_bonus = 50
 
     def register_user(self, data: UserRegistrationData) -> dict:
@@ -174,7 +181,7 @@ class UserRegistrationService:
         validations = [
             self.username_validator.validate(data.username),
             self.password_validator.validate(data.password),
-            self.email_validator.validate(data.email)
+            self.email_validator.validate(data.email),
         ]
 
         for result in validations:
@@ -183,7 +190,10 @@ class UserRegistrationService:
 
         # Validate age
         if not self.min_age <= data.age <= self.max_age:
-            return {"success": False, "error": f"Age must be between {self.min_age} and {self.max_age}"}
+            return {
+                "success": False,
+                "error": f"Age must be between {self.min_age} and {self.max_age}",
+            }
 
         # Validate country
         if data.country not in self.valid_countries:
@@ -203,11 +213,7 @@ class UserRegistrationService:
         # Save user
         user_id = self.repository.save_user(user_data)
 
-        return {
-            "success": True,
-            "user_id": user_id,
-            "data": user_data
-        }
+        return {"success": True, "user_id": user_id, "data": user_data}
 
     def _build_user_data(self, data: UserRegistrationData) -> dict:
         """Build user data dictionary from registration data."""
@@ -221,8 +227,10 @@ class UserRegistrationService:
             "credits": self._calculate_credits(data.referral_code),
             "phone": self._format_phone(data.phone),
             "address_verified": self._is_address_complete(data),
-            "language": data.preferred_language if data.preferred_language in self.valid_languages else "en",
-            "timezone": data.timezone or "UTC"
+            "language": data.preferred_language
+            if data.preferred_language in self.valid_languages
+            else "en",
+            "timezone": data.timezone or "UTC",
         }
 
     def _calculate_credits(self, referral_code: Optional[str]) -> int:
@@ -242,7 +250,7 @@ class UserRegistrationService:
         if not phone:
             return None
 
-        digits = ''.join(c for c in phone if c.isdigit())
+        digits = "".join(c for c in phone if c.isdigit())
 
         if len(digits) == 10:
             return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
@@ -261,7 +269,7 @@ class UserRegistrationService:
             return False
 
         # Simple zipcode validation
-        return bool(re.match(r'^\d{5}(-\d{4})?$', data.zipcode))
+        return bool(re.match(r"^\d{5}(-\d{4})?$", data.zipcode))
 
 
 # Example usage
@@ -281,7 +289,7 @@ def main():
         terms_accepted=True,
         referral_code="REF12345",
         newsletter=True,
-        phone="555-123-4567"
+        phone="555-123-4567",
     )
 
     # Process registration

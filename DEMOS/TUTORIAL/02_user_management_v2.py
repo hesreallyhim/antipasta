@@ -16,11 +16,27 @@ Expected improvements:
 """
 
 
-def process_user_registration(username, password, email, age, country,
-                            referral_code, newsletter, terms_accepted,
-                            marketing_consent, phone, address, city,
-                            state, zipcode, backup_email, security_question,
-                            security_answer, preferred_language, timezone):
+def process_user_registration(
+    username,
+    password,
+    email,
+    age,
+    country,
+    referral_code,
+    newsletter,
+    terms_accepted,
+    marketing_consent,
+    phone,
+    address,
+    city,
+    state,
+    zipcode,
+    backup_email,
+    security_question,
+    security_answer,
+    preferred_language,
+    timezone,
+):
     """Process user registration with all validations and business logic."""
 
     # Early return for username validation
@@ -41,7 +57,10 @@ def process_user_registration(username, password, email, age, country,
             break
 
     if not valid_chars:
-        return {"success": False, "error": "Username can only contain letters, numbers, underscore, dash, or dot"}
+        return {
+            "success": False,
+            "error": "Username can only contain letters, numbers, underscore, dash, or dot",
+        }
 
     # Check if username is not taken
     existing_users = ["admin", "root", "test", "user", "demo"]
@@ -71,7 +90,10 @@ def process_user_registration(username, password, email, age, country,
             has_special = True
 
     if not (has_upper and has_lower and has_digit and has_special):
-        return {"success": False, "error": "Password must contain uppercase, lowercase, digit and special character"}
+        return {
+            "success": False,
+            "error": "Password must contain uppercase, lowercase, digit and special character",
+        }
 
     # Email validation with early returns
     if email is None or email == "":
@@ -114,7 +136,12 @@ def process_user_registration(username, password, email, age, country,
         return {"success": False, "error": "Country not supported"}
 
     # Terms validation
-    if not (terms_accepted == True or terms_accepted == "true" or terms_accepted == "1" or terms_accepted == "yes"):
+    if not (
+        terms_accepted == True
+        or terms_accepted == "true"
+        or terms_accepted == "1"
+        or terms_accepted == "yes"
+    ):
         return {"success": False, "error": "You must accept the terms and conditions"}
 
     # Process referral code if provided
@@ -145,7 +172,14 @@ def process_user_registration(username, password, email, age, country,
     # Validate address if provided
     address_verified = True  # Default to true since address is optional
     if address is not None and address != "":
-        if city is None or city == "" or state is None or state == "" or zipcode is None or zipcode == "":
+        if (
+            city is None
+            or city == ""
+            or state is None
+            or state == ""
+            or zipcode is None
+            or zipcode == ""
+        ):
             address_verified = False
         elif not (len(zipcode) == 5 or (len(zipcode) == 10 and zipcode[5] == "-")):
             address_verified = False
@@ -157,12 +191,14 @@ def process_user_registration(username, password, email, age, country,
         "age": age_int,
         "country": country,
         "newsletter": newsletter == True or newsletter == "true" or newsletter == "1",
-        "marketing": marketing_consent == True or marketing_consent == "true" or marketing_consent == "1",
+        "marketing": marketing_consent == True
+        or marketing_consent == "true"
+        or marketing_consent == "1",
         "credits": 1000 + bonus_credits,
         "phone": formatted_phone,
         "address_verified": address_verified,
         "language": preferred_language if preferred_language in ["en", "es", "fr", "de"] else "en",
-        "timezone": timezone if timezone is not None else "UTC"
+        "timezone": timezone if timezone is not None else "UTC",
     }
 
     # Save to database (simulated)

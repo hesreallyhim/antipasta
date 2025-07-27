@@ -16,7 +16,7 @@ def extract_metrics(output: str) -> dict:
         "cognitive": None,
         "maintainability": None,
         "halstead_volume": None,
-        "violations": 0
+        "violations": 0,
     }
 
     # Count violations
@@ -29,7 +29,7 @@ def extract_metrics(output: str) -> dict:
         "cyclomatic": r"Cyclomatic Complexity is ([\d.]+)",
         "cognitive": r"Cognitive Complexity is ([\d.]+)",
         "maintainability": r"Maintainability Index is ([\d.]+)",
-        "halstead_volume": r"Halstead Volume is ([\d.]+)"
+        "halstead_volume": r"Halstead Volume is ([\d.]+)",
     }
 
     for metric, pattern in patterns.items():
@@ -54,30 +54,26 @@ def main():
     for file in version_files:
         # Run code-cop on each file
         result = subprocess.run(
-            ["code-cop", "metrics", "--files", str(file)],
-            capture_output=True,
-            text=True
+            ["code-cop", "metrics", "--files", str(file)], capture_output=True, text=True
         )
 
         metrics = extract_metrics(result.stderr)
         version = file.stem.split("_")[-1]
 
-        results.append({
-            "version": version,
-            "file": file.name,
-            **metrics
-        })
+        results.append({"version": version, "file": file.name, **metrics})
 
     # Display results in a table
-    print(f"{'Version':<10} {'Cyclomatic':<12} {'Cognitive':<12} {'Maintain.':<12} {'Volume':<12} {'Status'}")
+    print(
+        f"{'Version':<10} {'Cyclomatic':<12} {'Cognitive':<12} {'Maintain.':<12} {'Volume':<12} {'Status'}"
+    )
     print("-" * 70)
 
     for r in results:
-        cyc = f"{r['cyclomatic']:.0f}" if r['cyclomatic'] else "✓"
-        cog = f"{r['cognitive']:.0f}" if r['cognitive'] else "✓"
-        mai = f"{r['maintainability']:.1f}" if r['maintainability'] else "✓"
-        vol = f"{r['halstead_volume']:.0f}" if r['halstead_volume'] else "✓"
-        status = "❌ FAIL" if r['violations'] > 0 else "✅ PASS"
+        cyc = f"{r['cyclomatic']:.0f}" if r["cyclomatic"] else "✓"
+        cog = f"{r['cognitive']:.0f}" if r["cognitive"] else "✓"
+        mai = f"{r['maintainability']:.1f}" if r["maintainability"] else "✓"
+        vol = f"{r['halstead_volume']:.0f}" if r["halstead_volume"] else "✓"
+        status = "❌ FAIL" if r["violations"] > 0 else "✅ PASS"
 
         print(f"{r['version']:<10} {cyc:<12} {cog:<12} {mai:<12} {vol:<12} {status}")
 
