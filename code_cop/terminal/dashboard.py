@@ -52,33 +52,32 @@ class TerminalDashboard(App):
         """Create the application layout."""
         yield Header(show_clock=True)
 
-        with Container():
-            with Horizontal():
-                # Left panel - File tree
-                with Vertical(classes="file-tree", id="file-tree-panel"):
-                    yield FileTreeWidget(id="file-tree-widget")
+        with Container(), Horizontal():
+            # Left panel - File tree
+            with Vertical(classes="file-tree", id="file-tree-panel"):
+                yield FileTreeWidget(id="file-tree-widget")
 
-                # Right side - Main content area
-                with Vertical(id="main-content"):
-                    # Top - Metrics overview
-                    yield MetricsOverviewWidget(
-                        id="metrics-widget",
-                        classes="metrics-overview"
+            # Right side - Main content area
+            with Vertical(id="main-content"):
+                # Top - Metrics overview
+                yield MetricsOverviewWidget(
+                    id="metrics-widget",
+                    classes="metrics-overview"
+                )
+
+                # Bottom panels
+                with Horizontal():
+                    # Heatmap visualization
+                    yield HeatmapWidget(
+                        id="heatmap-widget",
+                        classes="heatmap"
                     )
 
-                    # Bottom panels
-                    with Horizontal():
-                        # Heatmap visualization
-                        yield HeatmapWidget(
-                            id="heatmap-widget",
-                            classes="heatmap"
-                        )
-
-                        # Detail view
-                        yield DetailViewWidget(
-                            id="detail-widget",
-                            classes="detail-view"
-                        )
+                    # Detail view
+                    yield DetailViewWidget(
+                        id="detail-widget",
+                        classes="detail-view"
+                    )
 
         yield Footer()
 
@@ -97,7 +96,10 @@ class TerminalDashboard(App):
     def action_help(self) -> None:
         """Show help information."""
         # TODO: Implement help dialog
-        self.notify("Help: Use number keys to switch views, 'r' to refresh, 'q' to quit")
+        self.notify(
+            "Help: Use number keys to switch views, "
+            "'r' to refresh, 'q' to quit"
+            )
 
     def action_refresh(self) -> None:
         """Refresh the metrics."""
