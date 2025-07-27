@@ -1,5 +1,12 @@
 /* Terminal Dashboard Styling */
 
+/* Define color variables */
+$accent: #3498db;
+$primary: #2ecc71;
+$surface: #1e1e1e;
+$panel: #2d2d2d;
+$text: #ffffff;
+
 /* Main Application */
 TerminalDashboard {
     layout: grid;
@@ -45,6 +52,35 @@ TerminalDashboard {
     text-style: bold;
     color: #ffffff;
     margin-bottom: 1;
+}
+
+/* Focus Styles */
+*:focus {
+    border: thick $accent !important;
+}
+
+*:focus > .panel-title,
+*:focus > .metrics-title,
+*:focus > .heatmap-title,
+*:focus > .detail-title {
+    color: $accent;
+}
+
+/* Widget specific focus styles */
+FileTreeWidget:focus {
+    border: thick $accent;
+}
+
+MetricsOverviewWidget:focus {
+    border: thick $accent;
+}
+
+HeatmapWidget:focus {
+    border: thick $accent;
+}
+
+DetailViewWidget:focus {
+    border: thick $accent;
 }
 
 /* Metrics Overview Styles */
