@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Unit tests for main.py (code_cop)"""
+"""Unit tests for main.py hook implementation.
+
+NOTE: This test file is for the original main.py hook implementation
+that works with Claude Code. The main code-cop tool has been refactored
+into a modular package structure. This test may need updating to work
+with the current implementation.
+
+Original purpose: Test the hook functionality for complexity analysis.
+"""
 
 import json
 import os

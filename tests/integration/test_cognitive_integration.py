@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Test script for debugging cognitive complexity integration.
+"""Integration test for cognitive complexity feature.
 
-This temporary test file was created to debug why cognitive complexity
-violations aren't appearing in the code-cop output despite the runner
-being integrated.
+This test file verifies the complete integration of cognitive complexity
+metrics including:
+- Runner availability and initialization
+- Metric collection from Complexipy
+- Violation detection with configured thresholds
+- Integration with the aggregator
 
 Created during Complexipy integration debugging on 2025-01-27.
+Useful for verifying the full cognitive complexity pipeline works end-to-end.
 """
 
 from pathlib import Path

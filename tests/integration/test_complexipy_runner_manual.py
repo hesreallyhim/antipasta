@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Test script for ComplexipyRunner.
+"""Manual test script for ComplexipyRunner.
 
-This temporary test file was created to verify the ComplexipyRunner implementation
-works correctly with real demo files. It tests:
+This test file provides a simple way to manually test the ComplexipyRunner
+implementation with real demo files. It tests:
 - Runner availability detection
 - Cognitive complexity analysis on demo files
 - Output format and metric extraction
 
 Created during Complexipy integration implementation on 2025-01-27.
 Useful for debugging runner issues or understanding how Complexipy output is parsed.
+
+To run: python tests/integration/test_complexipy_runner_manual.py
 """
 
 from pathlib import Path
