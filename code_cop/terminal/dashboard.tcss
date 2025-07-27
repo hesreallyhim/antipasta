@@ -67,7 +67,6 @@ TerminalDashboard {
 .stat-value {
     color: #ffffff;
     text-style: bold;
-    font-size: 20;
 }
 
 .distribution-container {
@@ -155,7 +154,6 @@ Tree {
 .file-name {
     text-style: bold;
     color: #ffffff;
-    font-size: 18;
 }
 
 .file-path {
