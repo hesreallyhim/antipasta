@@ -65,6 +65,25 @@ code-cop metrics --quiet --directory src/
 code-cop validate-config .code_cop.yaml
 ```
 
+### Collect Statistics
+
+```bash
+# Get overall statistics for Python files
+code-cop stats --pattern "**/*.py"
+
+# Statistics grouped by directory
+code-cop stats --pattern "**/*.py" --by-directory
+
+# Include complexity metrics in statistics
+code-cop stats --pattern "**/*.py" --metric cyclomatic_complexity --metric cognitive_complexity
+
+# Export statistics as CSV
+code-cop stats --pattern "**/*.py" --format csv > metrics.csv
+
+# Export as JSON for further processing
+code-cop stats --pattern "**/*.py" --format json > metrics.json
+```
+
 ## Configuration
 
 code-cop uses YAML configuration files. By default, it looks for `.code_cop.yaml` in the current directory.
@@ -289,6 +308,74 @@ The tutorial includes 5 progressive versions of the same code, demonstrating tec
 5. **Enterprise patterns** - When and how to use advanced patterns
 
 Perfect for developers who want to write more maintainable code or teams establishing code quality standards.
+
+## Statistics Collection
+
+The `code-cop stats` command provides comprehensive statistical analysis of your codebase:
+
+### Features
+
+- **File-level statistics**: Average, min, max lines of code per file
+- **Directory grouping**: See metrics broken down by folder
+- **Module grouping**: Group by Python packages
+- **Multiple metrics**: Include any supported metric in the analysis
+- **Export formats**: Table (human-readable), JSON, CSV
+
+### Examples
+
+```bash
+# Basic statistics for all Python files
+code-cop stats --pattern "**/*.py"
+
+# Group by directory to find large folders
+code-cop stats --pattern "**/*.py" --by-directory
+
+# Group by Python module
+code-cop stats --pattern "**/*.py" --by-module
+
+# Include complexity metrics
+code-cop stats --pattern "**/*.py" \
+    --metric cyclomatic_complexity \
+    --metric cognitive_complexity \
+    --metric maintainability_index
+
+# Multiple file patterns
+code-cop stats --pattern "src/**/*.py" --pattern "tests/**/*.py"
+
+# Export for further analysis
+code-cop stats --pattern "**/*.py" --format csv > metrics.csv
+code-cop stats --pattern "**/*.py" --format json | jq '.files.avg_loc'
+```
+
+### Output Example
+
+```
+============================================================
+CODE METRICS STATISTICS
+============================================================
+
+FILE STATISTICS:
+  Total files: 23
+  Total LOC: 1,947
+  Average LOC per file: 114.5
+  Min LOC: 4
+  Max LOC: 456
+  Standard deviation: 123.3
+
+CYCLOMATIC COMPLEXITY STATISTICS:
+  Count: 81
+  Average: 4.21
+  Min: 1.00
+  Max: 22.00
+```
+
+### Use Cases
+
+1. **Track codebase growth**: Monitor total LOC over time
+2. **Identify large files**: Find files that exceed size thresholds
+3. **Compare modules**: See which parts of your code are most complex
+4. **Team metrics**: Compare complexity across different team areas
+5. **Refactoring targets**: Find directories with high average complexity
 
 ## Development
 
