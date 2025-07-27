@@ -35,7 +35,7 @@ languages:
       - type: cognitive_complexity
         threshold: 15
         comparison: "<="
-        enabled: false  # Requires complexipy
+        enabled: true  # Requires complexipy
 
 ignore_patterns:
   - "**/test_*.py"

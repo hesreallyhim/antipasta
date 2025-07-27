@@ -97,9 +97,10 @@ def hello():
         assert file_path in files_by_language[Language.PYTHON]
 
         # Verify runner availability
-        runner = aggregator.runners.get(Language.PYTHON)
-        assert runner is not None
-        assert runner.is_available()
+        runners = aggregator.runners.get(Language.PYTHON)
+        assert runners is not None
+        assert len(runners) > 0
+        assert all(runner.is_available() for runner in runners)
 
         # Verify analysis works
         reports = aggregator.analyze_files([file_path])

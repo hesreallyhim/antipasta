@@ -38,6 +38,7 @@ pip install -e ".[dev]"
 
 -   Python 3.11 or higher
 -   Radon (automatically installed as a dependency)
+-   Complexipy (optional, for cognitive complexity metrics)
 
 ## Basic Usage
 
@@ -107,7 +108,7 @@ languages:
           - type: cognitive_complexity
             threshold: 15
             comparison: "<="
-            enabled: false # Requires complexipy (not yet implemented)
+            enabled: true # Requires complexipy to be installed
 
 ignore_patterns:
     - "**/test_*.py"
@@ -189,6 +190,21 @@ Based on the number of operators and operands in code:
 -   **Effort**: Mental effort required to understand the code
 -   **Time**: Estimated time to implement (in seconds)
 -   **Bugs**: Estimated number of bugs (Volume / 3000)
+
+### Cognitive Complexity
+
+Measures how difficult code is to understand, focusing on human comprehension rather than execution paths. Unlike cyclomatic complexity, it penalizes nested structures more heavily.
+
+-   **Good**: 1-15 (easy to understand)
+-   **Moderate**: 16-30 (requires careful reading)
+-   **High**: 31+ (difficult to understand, consider refactoring)
+
+Key differences from cyclomatic complexity:
+-   Heavily penalizes nested control structures
+-   Considers break/continue statements in loops
+-   Better represents actual cognitive load
+
+**Note**: Requires `complexipy` to be installed (`pip install complexipy`)
 
 ### Lines of Code Metrics
 

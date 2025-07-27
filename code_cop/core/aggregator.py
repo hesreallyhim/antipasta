@@ -11,6 +11,7 @@ from code_cop.core.detector import Language, LanguageDetector
 from code_cop.core.metrics import FileMetrics, MetricType
 from code_cop.core.violations import FileReport, Violation, check_metric_violation
 from code_cop.runners.base import BaseRunner
+from code_cop.runners.python.complexipy_runner import ComplexipyRunner
 from code_cop.runners.python.radon import RadonRunner
 
 
@@ -32,8 +33,9 @@ class MetricAggregator:
             if gitignore_path.exists():
                 self.detector.add_gitignore(gitignore_path)
 
-        self.runners: dict[Language, BaseRunner] = {
-            Language.PYTHON: RadonRunner(),
+        # Initialize runners for each language
+        self.runners: dict[Language, list[BaseRunner]] = {
+            Language.PYTHON: [RadonRunner(), ComplexipyRunner()],
         }
 
     def analyze_files(self, file_paths: list[Path]) -> list[FileReport]:
@@ -51,9 +53,9 @@ class MetricAggregator:
         files_by_language = self.detector.group_by_language(file_paths)
 
         for language, files in files_by_language.items():
-            # Get the runner for this language
-            runner = self.runners.get(language)
-            if not runner or not runner.is_available():
+            # Get the runners for this language
+            runners = self.runners.get(language, [])
+            if not runners:
                 # Skip unsupported languages
                 continue
 
@@ -65,7 +67,7 @@ class MetricAggregator:
 
             # Analyze each file
             for file_path in files:
-                report = self._analyze_file(file_path, language, runner, lang_config.metrics)
+                report = self._analyze_file(file_path, language, runners, lang_config.metrics)
                 reports.append(report)
 
         return reports
@@ -74,34 +76,58 @@ class MetricAggregator:
         self,
         file_path: Path,
         language: Language,
-        runner: BaseRunner,
+        runners: list[BaseRunner],
         metric_configs: list[MetricConfig],
     ) -> FileReport:
-        """Analyze a single file.
+        """Analyze a single file with multiple runners.
 
         Args:
             file_path: Path to the file
             language: Detected language
-            runner: Runner to use for analysis
+            runners: List of runners to use for analysis
             metric_configs: Metric configurations to check
 
         Returns:
             FileReport with metrics and violations
         """
-        # Run the analysis
-        file_metrics = runner.analyze(file_path)
+        # Collect metrics from all available runners
+        all_metrics = []
+        errors = []
+
+        for runner in runners:
+            if runner.is_available():
+                # Run the analysis
+                file_metrics = runner.analyze(file_path)
+
+                if file_metrics.error:
+                    errors.append(file_metrics.error)
+                else:
+                    all_metrics.extend(file_metrics.metrics)
+
+        # Combine errors if any
+        error = None
+        if errors and not all_metrics:
+            # Only report errors if no metrics were collected
+            error = "; ".join(errors)
 
         # Check for violations
         violations = []
-        if not file_metrics.error:
-            violations = self._check_violations(file_metrics, metric_configs)
+        if all_metrics:
+            # Create a temporary FileMetrics object for violation checking
+            combined_metrics = FileMetrics(
+                file_path=file_path,
+                language=language.value,
+                metrics=all_metrics,
+                error=error,
+            )
+            violations = self._check_violations(combined_metrics, metric_configs)
 
         return FileReport(
             file_path=file_path,
             language=language.value,
-            metrics=file_metrics.metrics,
+            metrics=all_metrics,
             violations=violations,
-            error=file_metrics.error,
+            error=error,
         )
 
     def _check_violations(
@@ -172,6 +198,11 @@ class MetricAggregator:
                 MetricConfig(
                     type=MetricType.HALSTEAD_EFFORT,
                     threshold=self.config.defaults.max_halstead_effort,
+                    comparison=ComparisonOperator.LE,
+                ),
+                MetricConfig(
+                    type=MetricType.COGNITIVE_COMPLEXITY,
+                    threshold=self.config.defaults.max_cognitive_complexity,
                     comparison=ComparisonOperator.LE,
                 ),
             ]
