@@ -7,7 +7,7 @@ The project will be structured as a Python package with clear separation between
 ```
 cc-code-cop/
 ├── pyproject.toml              # Modern Python packaging
-├── setup.py                    # Backwards compatibility
+# (setup.py removed - using pyproject.toml only)
 ├── README.md
 ├── LICENSE
 ├── requirements.txt            # Python dependencies
@@ -34,8 +34,8 @@ cc-code-cop/
 │   │   ├── base.py            # Abstract base runner
 │   │   ├── python/
 │   │   │   ├── __init__.py
-│   │   │   ├── radon.py       # Radon integration
-│   │   │   └── complexipy.py  # Complexipy integration
+│   │   │   ├── radon_runner.py       # Radon integration
+│   │   │   └── complexipy_runner.py  # Complexipy integration
 │   │   ├── javascript/
 │   │   │   ├── __init__.py
 │   │   │   └── tscomplex.py   # ts-complex integration
@@ -47,7 +47,8 @@ cc-code-cop/
 │   │   ├── __init__.py
 │   │   ├── main.py            # Main CLI entry point
 │   │   ├── validate.py        # Config validation command
-│   │   └── metrics.py         # Metrics analysis command
+│   │   ├── metrics.py         # Metrics analysis command
+│   │   └── stats.py           # Statistics collection command
 │   │
 │   ├── hooks/                 # Hook integrations
 │   │   ├── __init__.py

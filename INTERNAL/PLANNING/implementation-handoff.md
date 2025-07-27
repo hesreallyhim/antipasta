@@ -16,11 +16,12 @@
 - Has comprehensive unit tests in `test_main.py`
 
 **Target State:**
-- Modular Python package structure under `code_cop/`
-- CLI tool: `code-cop` with subcommands
-- YAML configuration: `.code_cop.yaml`
-- Python-only for initial implementation
-- Modern Python tooling (pyproject.toml, ruff, black, mypy)
+- Modular Python package structure under `code_cop/` ✓ COMPLETED
+- CLI tool: `code-cop` with subcommands ✓ COMPLETED
+- YAML configuration: `.code_cop.yaml` ✓ COMPLETED
+- Python-only for initial implementation ✓ COMPLETED
+- Modern Python tooling (pyproject.toml, ruff, black, mypy) ✓ COMPLETED
+- Additional features added: statistics command, multiple runners per language
 
 ### Implementation Priority (CRITICAL)
 
@@ -31,11 +32,11 @@
 4. Set up GitHub Actions for CI
 
 **Phase 2 - Core Implementation** (In this order):
-1. T-01: Config schema with YAML and Pydantic validation
-2. T-02: Language detector with pathspec for .gitignore
-3. T-03: Python runner wrapping Radon
-4. T-06: Aggregator and decision engine
-5. T-04: Complexipy integration (lower priority)
+1. T-01: Config schema with YAML and Pydantic validation ✓ COMPLETED
+2. T-02: Language detector with pathspec for .gitignore ✓ COMPLETED
+3. T-03: Python runner wrapping Radon ✓ COMPLETED
+4. T-06: Aggregator and decision engine ✓ COMPLETED
+5. T-04: Complexipy integration ✓ COMPLETED
 
 **Deferred:** T-05 (JS/TS support), T-07 (pre-commit), T-08 (docs), T-09 (CI examples)
 
@@ -64,9 +65,10 @@
 3. **CLI Design**: Single entry point with subcommands
    - `code-cop metrics --files src/*.py`
    - `code-cop validate-config .code_cop.yaml`
+   - `code-cop stats --pattern "**/*.py"` (added feature)
 
 4. **Dependencies**:
-   - Production: `radon`, `complexipy`, `pydantic`, `pyyaml`, `pathspec`, CLI framework (TBD - Click or argparse)
+   - Production: `radon`, `complexipy`, `pydantic`, `pyyaml`, `pathspec`, `click` (chosen CLI framework)
    - Development: `pytest`, `ruff`, `black`, `mypy`, `pytest-cov`
 
 ### Critical Implementation Details

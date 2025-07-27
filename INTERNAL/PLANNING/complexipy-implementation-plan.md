@@ -52,14 +52,16 @@ class ComplexipyRunner:
 3. Update YAML schema documentation
 4. Add to default config generation
 
-### Task 3: Integrate Runner into Detector
-**File**: `code_cop/core/detector.py`
+### Task 3: Integrate Runner into Aggregator
+**File**: `code_cop/core/aggregator.py`
 
 **Steps**:
 1. Import ComplexipyRunner
-2. Add to runner initialization logic
+2. Add to runner initialization logic (changed to support multiple runners per language)
 3. Handle optional import (complexipy might not be installed)
 4. Add cognitive complexity to supported metrics list
+
+**Note**: The architecture was changed to support multiple runners per language in the aggregator, not the detector.
 
 ### Task 4: Test Complexipy Output Format
 **Manual Testing First**:
@@ -136,22 +138,22 @@ result = cognitive_complexity.calculate(code)
    - Understand output format
    - Review complexipy documentation
 
-2. **Basic Implementation** (1 hour)
+2. **Basic Implementation** (1 hour) ✓ COMPLETED
    - Create ComplexipyRunner class
    - Implement basic subprocess calling
    - Parse JSON output
 
-3. **Integration** (45 min)
+3. **Integration** (45 min) ✓ COMPLETED
    - Update config schema
    - Integrate into detector
    - Test with existing CLI
 
-4. **Testing** (1 hour)
+4. **Testing** (1 hour) ✓ COMPLETED
    - Unit tests for runner
    - Integration tests
    - Demo file validation
 
-5. **Documentation** (30 min)
+5. **Documentation** (30 min) ✓ COMPLETED
    - Update all docs
    - Add examples
    - Document thresholds
@@ -203,12 +205,12 @@ result = cognitive_complexity.calculate(code)
 
 ## Success Criteria
 
-- [ ] Cognitive complexity appears in `code-cop metrics` output
-- [ ] Demo file 5 shows high cognitive complexity (>15)
-- [ ] All existing tests still pass
-- [ ] New metric can be configured in YAML
-- [ ] Graceful handling when complexipy not installed
-- [ ] Unit tests achieve >90% coverage for new code
+- [x] Cognitive complexity appears in `code-cop metrics` output
+- [x] Demo file 5 shows high cognitive complexity (>15)
+- [x] All existing tests still pass
+- [x] New metric can be configured in YAML
+- [x] Graceful handling when complexipy not installed
+- [x] Unit tests achieve >90% coverage for new code
 
 ## Example Expected Output
 
