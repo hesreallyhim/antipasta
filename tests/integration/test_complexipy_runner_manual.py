@@ -14,7 +14,9 @@ To run: python tests/integration/test_complexipy_runner_manual.py
 """
 
 from pathlib import Path
+
 from code_cop.runners.python.complexipy_runner import ComplexipyRunner
+
 
 def main():
     runner = ComplexipyRunner()
@@ -39,8 +41,11 @@ def main():
                 print(f"  Error: {result.error}")
             else:
                 for metric in result.metrics:
-                    print(f"  {metric.function_name or 'File'}: {metric.value} "
-                          f"(type: {metric.details.get('type', 'function') if metric.details else 'function'})")
+                    print(
+                        f"  {metric.function_name or 'File'}: {metric.value} "
+                        f"(type: {metric.details.get('type', 'function') if metric.details else 'function'})"
+                    )
+
 
 if __name__ == "__main__":
     main()

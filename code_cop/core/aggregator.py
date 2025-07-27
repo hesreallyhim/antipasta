@@ -244,4 +244,3 @@ class MetricAggregator:
             "files_by_language": dict(files_by_language),
             "success": total_violations == 0,
         }
-

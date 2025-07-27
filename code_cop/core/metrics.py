@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class MetricType(str, Enum):
@@ -57,7 +57,7 @@ class FileMetrics:
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
 
-    def get_metric(self, metric_type: MetricType) -> Optional[MetricResult]:
+    def get_metric(self, metric_type: MetricType) -> MetricResult | None:
         """Get a specific metric result."""
         for metric in self.metrics:
             if metric.metric_type == metric_type:

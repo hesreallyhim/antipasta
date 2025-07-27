@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections import defaultdict
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 import pathspec
 
@@ -64,7 +63,7 @@ class LanguageDetector:
             gitignore_path: Path to .gitignore file
         """
         if gitignore_path.exists():
-            with open(gitignore_path, "r") as f:
+            with open(gitignore_path) as f:
                 patterns = [line.strip() for line in f if line.strip() and not line.startswith("#")]
                 self._gitignore_patterns.extend(patterns)
                 self._pathspec = None  # Reset to rebuild with new patterns
@@ -146,8 +145,4 @@ class LanguageDetector:
         Returns:
             List of file paths for the specified language
         """
-        return [
-            path
-            for path in file_paths
-            if self.detect_language(path) == language
-        ]
+        return [path for path in file_paths if self.detect_language(path) == language]

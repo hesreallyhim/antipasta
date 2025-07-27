@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from code_cop.core.metrics import MetricType
 from code_cop.runners.python.radon import RadonRunner
 
@@ -42,7 +40,8 @@ class TestRadonRunner:
         """Test analyzing a simple Python file."""
         # Create a simple Python file
         file_path = tmp_path / "simple.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def hello():
     \"\"\"Say hello.\"\"\"
     print("Hello, World!")
@@ -50,7 +49,8 @@ def hello():
 def add(a, b):
     \"\"\"Add two numbers.\"\"\"
     return a + b
-""")
+"""
+        )
 
         runner = RadonRunner()
         result = runner.analyze(file_path)
@@ -61,7 +61,9 @@ def add(a, b):
         assert len(result.metrics) > 0
 
         # Check cyclomatic complexity
-        cc_metrics = [m for m in result.metrics if m.metric_type == MetricType.CYCLOMATIC_COMPLEXITY]
+        cc_metrics = [
+            m for m in result.metrics if m.metric_type == MetricType.CYCLOMATIC_COMPLEXITY
+        ]
         assert len(cc_metrics) >= 2  # At least 2 functions
         for m in cc_metrics:
             if m.function_name in ["hello", "add"]:
@@ -80,7 +82,8 @@ def add(a, b):
     def test_analyze_complex_file(self, tmp_path):
         """Test analyzing a file with complex functions."""
         file_path = tmp_path / "complex.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def complex_function(x, y, z):
     \"\"\"A function with higher complexity.\"\"\"
     result = 0
@@ -99,15 +102,18 @@ def complex_function(x, y, z):
             if i % 2 == 0:
                 result += i
     return result
-""")
+"""
+        )
 
         runner = RadonRunner()
         result = runner.analyze(file_path)
 
         # Find the complex function's CC
         cc_metrics = [
-            m for m in result.metrics
-            if m.metric_type == MetricType.CYCLOMATIC_COMPLEXITY and m.function_name == "complex_function"
+            m
+            for m in result.metrics
+            if m.metric_type == MetricType.CYCLOMATIC_COMPLEXITY
+            and m.function_name == "complex_function"
         ]
         assert len(cc_metrics) == 1
         assert cc_metrics[0].value > 5  # Should have higher complexity
@@ -145,10 +151,12 @@ def test():
     def test_analyze_syntax_error(self, tmp_path):
         """Test analyzing a file with syntax errors."""
         file_path = tmp_path / "syntax_error.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def broken(:
     pass
-""")
+"""
+        )
 
         runner = RadonRunner()
         result = runner.analyze(file_path)
@@ -160,13 +168,15 @@ def broken(:
     def test_halstead_metrics(self, tmp_path):
         """Test that Halstead metrics are calculated correctly."""
         file_path = tmp_path / "halstead.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def calculate(a, b, c):
     x = a + b
     y = b * c
     z = x / y
     return z if z > 0 else -z
-""")
+"""
+        )
 
         runner = RadonRunner()
         result = runner.analyze(file_path)
@@ -188,7 +198,8 @@ def calculate(a, b, c):
     def test_class_methods(self, tmp_path):
         """Test analyzing a file with class methods."""
         file_path = tmp_path / "class_example.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 class Calculator:
     def add(self, a, b):
         return a + b
@@ -201,14 +212,16 @@ class Calculator:
             return a / b
         else:
             raise ValueError("Division by zero")
-""")
+"""
+        )
 
         runner = RadonRunner()
         result = runner.analyze(file_path)
 
         # Check that methods are detected
         cc_metrics = [
-            m for m in result.metrics
+            m
+            for m in result.metrics
             if m.metric_type == MetricType.CYCLOMATIC_COMPLEXITY and m.function_name
         ]
 

@@ -21,7 +21,7 @@ def validate_config(config_file: Path) -> None:
         click.echo(f"✅ Configuration file is valid: {config_file}")
 
         # Print summary
-        click.echo(f"\nConfiguration summary:")
+        click.echo("\nConfiguration summary:")
         click.echo(f"  Languages: {len(config.languages)}")
         for lang in config.languages:
             click.echo(f"    - {lang.name}: {len(lang.metrics)} metrics")
@@ -30,7 +30,7 @@ def validate_config(config_file: Path) -> None:
         sys.exit(0)
     except ValidationError as e:
         click.echo(f"❌ Configuration validation failed: {config_file}", err=True)
-        click.echo(f"\nValidation errors:", err=True)
+        click.echo("\nValidation errors:", err=True)
         for error in e.errors():
             loc = " -> ".join(str(x) for x in error["loc"])
             click.echo(f"  - {loc}: {error['msg']}", err=True)

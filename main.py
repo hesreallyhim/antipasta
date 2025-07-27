@@ -94,17 +94,18 @@ import json
 import math
 import os
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 try:
     # Import radon modules if available
-    from radon.complexity import cc_visit  # type: ignore
-    from radon.metrics import mi_visit  # type: ignore
-    from radon.raw import analyze  # type: ignore
-    from radon.metrics import h_visit  # type: ignore
+    from radon.complexity import cc_visit
+    from radon.metrics import (
+        h_visit,
+        mi_visit,
+    )
+    from radon.raw import analyze
 
     RADON_AVAILABLE = True
 except Exception:
@@ -122,8 +123,9 @@ class Metrics:
     classes: int
 
 
-def load_config() -> Dict[str, float]:
-    """Load metric thresholds from the config file, returning defaults if not found."""
+def load_config() -> dict[str, float]:
+    """Load metric thresholds from the config file,
+    returning defaults if not found."""
     defaults = {
         "max_cyclomatic_increase": 0.0,
         "max_halstead_volume_increase": 0.0,
@@ -135,11 +137,11 @@ def load_config() -> Dict[str, float]:
     config_path = os.path.join(project_dir, ".code_cop.config.json")
     if os.path.exists(config_path):
         try:
-            with open(config_path, "r", encoding="utf-8") as fh:
+            with open(config_path, encoding="utf-8") as fh:
                 data = json.load(fh)
             thresholds = data.get("thresholds", {})
             for key, value in thresholds.items():
-                if key in defaults and isinstance(value, (int, float)):
+                if key in defaults and isinstance(value, int | float):
                     defaults[key] = float(value)
         except Exception:
             # Ignore config errors and use defaults
@@ -147,7 +149,7 @@ def load_config() -> Dict[str, float]:
     return defaults
 
 
-def detect_language(file_path: Optional[str]) -> str:
+def detect_language(file_path: str | None) -> str:
     """Infer the language from the file extension."""
     if not file_path:
         return "unknown"
@@ -176,7 +178,8 @@ def radon_metrics(source: str) -> Metrics:
             # comments percent, comments lines)
             raw = analyze(source)
             loc = raw.loc
-            # Halstead metrics: h_visit returns a Halstead namedtuple with total and functions
+            # Halstead metrics: h_visit returns a Halstead namedtuple
+            # with total and functions
             halstead_result = h_visit(source)
             # Use the total metrics for the entire file
             total_volume = halstead_result.total.volume
@@ -201,14 +204,27 @@ def radon_metrics(source: str) -> Metrics:
 
 
 def heuristic_metrics(source: str) -> Metrics:
-    """Approximate metrics for non-Python languages or when radon is unavailable."""
-    lines = [line for line in source.split("\n")
-             if line.strip() and not line.strip().startswith("//")]
+    """Approximate metrics for non-Python languages
+    or when radon is unavailable."""
+    lines = [
+        line for line in source.split("\n") if line.strip() and not line.strip().startswith("//")
+    ]
     loc = len(lines)
     # Approximate cyclomatic complexity: 1 + count of decision points
     cyclomatic = 1.0
-    decision_keywords = ["if", "for", "while", "switch", "case", "catch",
-                        "&&", "||", "?", "elif", "except"]
+    decision_keywords = [
+        "if",
+        "for",
+        "while",
+        "switch",
+        "case",
+        "catch",
+        "&&",
+        "||",
+        "?",
+        "elif",
+        "except",
+    ]
     for line in lines:
         # Remove string literals to avoid counting keywords inside strings
         stripped = re.sub(r"(['\"]).*?\1", "", line)
@@ -225,10 +241,14 @@ def heuristic_metrics(source: str) -> Metrics:
     else:
         halstead_volume = halstead_difficulty = 0.0
     halstead_effort = halstead_volume * halstead_difficulty
-    # Maintainability index (approximate using original formula with natural log)
+    # Maintainability index (uses original formula with natural log)
     # Avoid log(0) by using max()
-    MI = (171.0 - 5.2 * math.log(max(halstead_volume, 1e-8))
-          - 0.23 * cyclomatic - 16.2 * math.log(max(loc, 1)))
+    MI = (
+        171.0
+        - 5.2 * math.log(max(halstead_volume, 1e-8))
+        - 0.23 * cyclomatic
+        - 16.2 * math.log(max(loc, 1))
+    )
     maintainability_index = max(0.0, 100.0 * MI / 171.0)
     # Structural metric: count classes and extends keywords
     class_count = len(re.findall(r"\bclass\b", source))
@@ -243,7 +263,7 @@ def heuristic_metrics(source: str) -> Metrics:
     )
 
 
-def compute_diff(old: Metrics, new: Metrics) -> Dict[str, float]:
+def compute_diff(old: Metrics, new: Metrics) -> dict[str, float]:
     """Compute differences between new and old metrics."""
     return {
         "cyclomatic": new.cyclomatic - old.cyclomatic,
@@ -255,10 +275,8 @@ def compute_diff(old: Metrics, new: Metrics) -> Dict[str, float]:
 
 
 def evaluate_operation(
-        tool_name: str,
-        tool_input: Dict[str, Any],
-        thresholds: Dict[str, float]
-     ) -> Tuple[str, str]:
+    tool_name: str, tool_input: dict[str, Any], thresholds: dict[str, float]
+) -> tuple[str, str]:
     """
     Evaluate the change implied by an operation and return a (decision, reason)
     tuple.  The decision is either "approve" or "block".
@@ -273,8 +291,7 @@ def evaluate_operation(
     def compute_metrics_for_snippet(source: str) -> Metrics:
         if language == "python":
             return radon_metrics(source)
-        else:
-            return heuristic_metrics(source)
+        return heuristic_metrics(source)
 
     total_diff = {
         "cyclomatic": 0.0,
@@ -324,9 +341,7 @@ def evaluate_operation(
             f"exceeds allowed {thresholds['max_cyclomatic_increase']}"
         )
     # Halstead volume increase
-    if total_diff["halstead_volume"] > (
-        thresholds["max_halstead_volume_increase"]
-    ):
+    if total_diff["halstead_volume"] > (thresholds["max_halstead_volume_increase"]):
         decision = "block"
         reasons.append(
             f"Halstead volume increase {total_diff['halstead_volume']:.2f} "
@@ -361,8 +376,11 @@ def evaluate_operation(
             f"Class declarations increase {total_diff['class_count']} "
             f"exceeds allowed {thresholds['max_class_count']}"
         )
-    reason = ("Operation approved" if decision == "approve"
-              else "Operation blocked: " + "; ".join(reasons))
+    reason = (
+        "Operation approved"
+        if decision == "approve"
+        else "Operation blocked: " + "; ".join(reasons)
+    )
     # Append summary of diffs
     summary_parts = []
     for k, v in total_diff.items():
@@ -385,8 +403,7 @@ def main():
     tool_input = hook_data.get("tool_input", {}) or {}
     # Only act on PreToolUse events
     if event != "PreToolUse":
-        print(json.dumps({"decision": "approve",
-                         "reason": "Not a PreToolUse event"}))
+        print(json.dumps({"decision": "approve", "reason": "Not a PreToolUse event"}))
         return
     # Load thresholds
     thresholds = load_config()

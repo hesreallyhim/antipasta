@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from code_cop.core.detector import Language, LanguageDetector
 
 
@@ -129,7 +127,8 @@ class TestLanguageDetector:
         """Test adding patterns from a .gitignore file."""
         # Create a .gitignore file
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text("""
+        gitignore.write_text(
+            """
 # Python
 __pycache__/
 *.pyc
@@ -138,7 +137,8 @@ __pycache__/
 # Node
 node_modules/
 *.log
-""")
+"""
+        )
 
         detector = LanguageDetector()
         detector.add_gitignore(gitignore)

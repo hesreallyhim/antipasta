@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import (
     CodeCopConfig,
@@ -30,10 +28,12 @@ class TestMetricAggregator:
         """Test analyzing a simple Python file."""
         # Create a simple Python file
         file_path = tmp_path / "simple.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def hello():
     print("Hello, World!")
-""")
+"""
+        )
 
         config = CodeCopConfig.generate_default()
         aggregator = MetricAggregator(config)
@@ -51,7 +51,8 @@ def hello():
         """Test analyzing a file that violates thresholds."""
         # Create a complex Python file
         file_path = tmp_path / "complex.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def complex_function(a, b, c, d):
     if a > 0:
         if b > 0:
@@ -78,7 +79,8 @@ def complex_function(a, b, c, d):
                     return a
     else:
         return 0
-""")
+"""
+        )
 
         # Create config with low complexity threshold
         config = CodeCopConfig(
@@ -199,7 +201,8 @@ def complex_function(a, b, c, d):
         """Test generating summary with violations."""
         # Create a file that violates maintainability index
         file_path = tmp_path / "unmaintainable.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 # Very complex and unmaintainable code
 def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
     if a:
@@ -220,7 +223,8 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
                                                                 if p:
                                                                     return 1
     return 0
-""")
+"""
+        )
 
         config = CodeCopConfig(
             languages=[

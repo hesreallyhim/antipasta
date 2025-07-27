@@ -36,9 +36,7 @@ from code_cop.core.config import CodeCopConfig
     is_flag=True,
     help="Only show violations, suppress other output",
 )
-def metrics(
-    config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool
-) -> None:
+def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool) -> None:
     """Analyze code metrics for specified files.
 
     Exits with code 0 if all metrics pass, 2 if violations found.

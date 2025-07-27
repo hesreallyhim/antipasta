@@ -63,7 +63,7 @@ class TestComplexipyRunner:
         mock_unlink: MagicMock,
         mock_exists: MagicMock,
         mock_run: MagicMock,
-        runner: ComplexipyRunner
+        runner: ComplexipyRunner,
     ) -> None:
         """Test analyzing a simple function."""
         # Mock subprocess output
@@ -76,7 +76,7 @@ class TestComplexipyRunner:
                 "complexity": 5,
                 "file_name": "test.py",
                 "function_name": "simple_function",
-                "path": "test.py"
+                "path": "test.py",
             }
         ]
 
@@ -108,31 +108,16 @@ class TestComplexipyRunner:
         mock_unlink: MagicMock,
         mock_exists: MagicMock,
         mock_run: MagicMock,
-        runner: ComplexipyRunner
+        runner: ComplexipyRunner,
     ) -> None:
         """Test analyzing multiple functions."""
         mock_run.return_value.returncode = 0
         mock_exists.return_value = True
 
         mock_json_data = [
-            {
-                "complexity": 3,
-                "file_name": "test.py",
-                "function_name": "func1",
-                "path": "test.py"
-            },
-            {
-                "complexity": 10,
-                "file_name": "test.py",
-                "function_name": "func2",
-                "path": "test.py"
-            },
-            {
-                "complexity": 7,
-                "file_name": "test.py",
-                "function_name": "func3",
-                "path": "test.py"
-            }
+            {"complexity": 3, "file_name": "test.py", "function_name": "func1", "path": "test.py"},
+            {"complexity": 10, "file_name": "test.py", "function_name": "func2", "path": "test.py"},
+            {"complexity": 7, "file_name": "test.py", "function_name": "func3", "path": "test.py"},
         ]
 
         with patch("builtins.open", mock_open(read_data=json.dumps(mock_json_data))):
@@ -148,10 +133,7 @@ class TestComplexipyRunner:
     @patch("subprocess.run")
     @patch("pathlib.Path.exists")
     def test_analyze_json_parse_error(
-        self,
-        mock_exists: MagicMock,
-        mock_run: MagicMock,
-        runner: ComplexipyRunner
+        self, mock_exists: MagicMock, mock_run: MagicMock, runner: ComplexipyRunner
     ) -> None:
         """Test handling of JSON parse errors."""
         mock_run.return_value.returncode = 0
@@ -166,10 +148,7 @@ class TestComplexipyRunner:
     @patch("subprocess.run")
     @patch("pathlib.Path.exists")
     def test_analyze_no_json_file(
-        self,
-        mock_exists: MagicMock,
-        mock_run: MagicMock,
-        runner: ComplexipyRunner
+        self, mock_exists: MagicMock, mock_run: MagicMock, runner: ComplexipyRunner
     ) -> None:
         """Test when complexipy doesn't create JSON file."""
         mock_run.return_value.returncode = 0
@@ -181,16 +160,12 @@ class TestComplexipyRunner:
         assert result.error is None
 
     @patch("subprocess.run")
-    def test_analyze_subprocess_error(
-        self,
-        mock_run: MagicMock,
-        runner: ComplexipyRunner
-    ) -> None:
+    def test_analyze_subprocess_error(self, mock_run: MagicMock, runner: ComplexipyRunner) -> None:
         """Test handling of subprocess errors."""
         # First call is for is_available check, second is for analyze
         mock_run.side_effect = [
             MagicMock(returncode=0),  # is_available check
-            subprocess.SubprocessError("Command failed")  # analyze call
+            subprocess.SubprocessError("Command failed"),  # analyze call
         ]
 
         result = runner.analyze(Path("test.py"))
@@ -206,7 +181,7 @@ class TestComplexipyRunner:
         mock_unlink: MagicMock,
         mock_exists: MagicMock,
         mock_run: MagicMock,
-        runner: ComplexipyRunner
+        runner: ComplexipyRunner,
     ) -> None:
         """Test that non-zero exit code doesn't prevent processing."""
         # Mock is_available check first, then complexipy command
@@ -221,7 +196,7 @@ class TestComplexipyRunner:
                 "complexity": 50,
                 "file_name": "test.py",
                 "function_name": "complex_function",
-                "path": "test.py"
+                "path": "test.py",
             }
         ]
 

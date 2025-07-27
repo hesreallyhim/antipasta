@@ -13,9 +13,11 @@ Useful for verifying the full cognitive complexity pipeline works end-to-end.
 """
 
 from pathlib import Path
-from code_cop.core.config import CodeCopConfig
+
 from code_cop.core.aggregator import MetricAggregator
+from code_cop.core.config import CodeCopConfig
 from code_cop.core.detector import Language
+
 
 def main():
     # Load config
@@ -54,19 +56,22 @@ def main():
         for v in report.violations:
             print(f"    - {v.metric_type.value}: {v.message}")
 
-        cog_violations = [v for v in report.violations if v.metric_type.value == "cognitive_complexity"]
+        cog_violations = [
+            v for v in report.violations if v.metric_type.value == "cognitive_complexity"
+        ]
         print(f"\n  Cognitive complexity violations: {len(cog_violations)}")
         for v in cog_violations:
             print(f"    - {v}")
 
         # Debug: Check if cognitive complexity is in the metric configs
-        print(f"\n  Checking metric configs...")
+        print("\n  Checking metric configs...")
         lang_config = config.get_language_config("python")
         if lang_config:
             cog_config = [m for m in lang_config.metrics if m.type.value == "cognitive_complexity"]
             print(f"    Language config has cognitive complexity: {len(cog_config) > 0}")
         else:
-            print(f"    No language config - using defaults")
+            print("    No language config - using defaults")
+
 
 if __name__ == "__main__":
     main()

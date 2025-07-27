@@ -1,6 +1,5 @@
 """Tests for configuration loading and validation."""
 
-from pathlib import Path
 
 import pytest
 from pydantic import ValidationError

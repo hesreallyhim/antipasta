@@ -1,8 +1,6 @@
 """Tests for .gitignore integration."""
 
-from pathlib import Path
 
-import pytest
 
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
@@ -28,7 +26,8 @@ class TestGitignoreIntegration:
 
         # Create a .gitignore file
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text("""
+        gitignore.write_text(
+            """
 # Python
 __pycache__/
 *.pyc
@@ -38,7 +37,8 @@ dist/
 # IDE
 .vscode/
 .idea/
-""")
+"""
+        )
 
         # Create test files
         main_file = tmp_path / "main.py"
@@ -108,10 +108,7 @@ dist/
         build_file.write_text("def output(): pass")
 
         # Create config with both .gitignore and ignore_patterns
-        config = CodeCopConfig(
-            use_gitignore=True,
-            ignore_patterns=["test_*.py"]
-        )
+        config = CodeCopConfig(use_gitignore=True, ignore_patterns=["test_*.py"])
         aggregator = MetricAggregator(config)
 
         # Analyze files
@@ -143,12 +140,14 @@ dist/
     def test_from_yaml_preserves_use_gitignore(self, tmp_path):
         """Test that loading from YAML preserves use_gitignore setting."""
         config_file = tmp_path / "config.yaml"
-        config_file.write_text("""
+        config_file.write_text(
+            """
 use_gitignore: false
 
 defaults:
   max_cyclomatic_complexity: 10
-""")
+"""
+        )
 
         config = CodeCopConfig.from_yaml(config_file)
         assert config.use_gitignore is False

@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from code_cop.core.config import ComparisonOperator, MetricConfig
 from code_cop.core.metrics import MetricResult, MetricType
 from code_cop.core.violations import FileReport, Violation, check_metric_violation
@@ -43,7 +41,9 @@ class TestViolation:
             function_name="complex_function",
         )
 
-        expected = "test.py:42 (complex_function): Cyclomatic Complexity is 15.00 (threshold: <= 10.0)"
+        expected = (
+            "test.py:42 (complex_function): Cyclomatic Complexity is 15.00 (threshold: <= 10.0)"
+        )
         assert violation.message == expected
 
     def test_violation_message_without_location(self):

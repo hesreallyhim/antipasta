@@ -16,8 +16,6 @@ the file is outside the project directory.
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
 from code_cop.core.detector import Language, LanguageDetector
@@ -45,10 +43,12 @@ class TestTempFileHandling:
         """Test that files in pytest's tmp_path are analyzed correctly."""
         # Create a Python file in pytest's temp directory
         file_path = tmp_path / "simple.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def hello():
     print("Hello, World!")
-""")
+"""
+        )
 
         config = CodeCopConfig.generate_default()
         aggregator = MetricAggregator(config)
@@ -79,10 +79,12 @@ def hello():
         temporary files are now properly handled.
         """
         file_path = tmp_path / "example.py"
-        file_path.write_text("""
+        file_path.write_text(
+            """
 def hello():
     return "Hello from temp file!"
-""")
+"""
+        )
 
         config = CodeCopConfig.generate_default()
         aggregator = MetricAggregator(config)

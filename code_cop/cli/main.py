@@ -1,6 +1,5 @@
 """Main CLI entry point for code-cop."""
 
-from typing import Optional
 
 import click
 
@@ -21,6 +20,6 @@ cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(validate_config_cmd, name="validate-config")
 
 
-def main(argv: Optional[list[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """Main entry point for the CLI."""
     cli(argv)

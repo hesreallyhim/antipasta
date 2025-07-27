@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Literal, Optional, Union
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -85,13 +84,13 @@ class CodeCopConfig(BaseModel):
     use_gitignore: bool = Field(default=True)
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> CodeCopConfig:
+    def from_yaml(cls, path: str | Path) -> CodeCopConfig:
         """Load configuration from YAML file."""
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Configuration file not found: {path}")
 
-        with open(path, "r") as f:
+        with open(path) as f:
             data = yaml.safe_load(f) or {}
 
         return cls(**data)
@@ -143,7 +142,7 @@ class CodeCopConfig(BaseModel):
             ignore_patterns=["**/test_*.py", "**/*_test.py", "**/tests/**"],
         )
 
-    def to_yaml(self, path: Union[str, Path]) -> None:
+    def to_yaml(self, path: str | Path) -> None:
         """Save configuration to YAML file."""
         path = Path(path)
         # Convert to dict and ensure enums are serialized as strings
@@ -151,7 +150,7 @@ class CodeCopConfig(BaseModel):
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
-    def get_language_config(self, language: str) -> Optional[LanguageConfig]:
+    def get_language_config(self, language: str) -> LanguageConfig | None:
         """Get configuration for a specific language."""
         for lang_config in self.languages:
             if lang_config.name.lower() == language.lower():

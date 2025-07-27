@@ -72,9 +72,7 @@ class FileReport:
         return len(self.violations)
 
 
-def check_metric_violation(
-    metric: MetricResult, config: MetricConfig
-) -> Violation | None:
+def check_metric_violation(metric: MetricResult, config: MetricConfig) -> Violation | None:
     """Check if a metric violates its configured threshold.
 
     Args:

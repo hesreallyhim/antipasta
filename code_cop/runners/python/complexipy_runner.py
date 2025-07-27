@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -78,8 +77,9 @@ class ComplexipyRunner(BaseRunner):
             Parsed JSON output or None on error
         """
         import os
+
         env = os.environ.copy()
-        env['COVERAGE_CORE'] = ''  # Disable coverage in subprocess
+        env["COVERAGE_CORE"] = ""  # Disable coverage in subprocess
 
         try:
             # Run complexipy with JSON output
@@ -101,12 +101,12 @@ class ComplexipyRunner(BaseRunner):
             json_file = Path("complexipy.json")
             if json_file.exists():
                 try:
-                    with open(json_file, 'r') as f:
+                    with open(json_file) as f:
                         data = json.load(f)
                     # Clean up the output file
                     json_file.unlink()
                     return data
-                except (json.JSONDecodeError, IOError):
+                except (OSError, json.JSONDecodeError):
                     return None
 
             return None
