@@ -267,6 +267,29 @@ VIOLATIONS FOUND:
 ✗ Code quality check FAILED
 ```
 
+## Learning Resources
+
+### Code Complexity Reduction Tutorial
+
+If you're new to code complexity metrics or want to learn how to reduce complexity in your code, check out our comprehensive tutorial:
+
+📚 **[Code Complexity Reduction Tutorial](DEMOS/TUTORIAL/README.md)**
+
+This hands-on tutorial walks you through:
+- Understanding what makes code complex
+- Step-by-step techniques to reduce complexity
+- Real examples showing a 90% reduction in cognitive complexity
+- When to stop refactoring (perfect metrics vs practical code)
+
+The tutorial includes 5 progressive versions of the same code, demonstrating techniques like:
+1. **Early returns** - The simplest and most effective technique
+2. **Function extraction** - Breaking down large functions
+3. **Data classes** - Reducing parameter lists
+4. **Configuration objects** - Eliminating magic numbers
+5. **Enterprise patterns** - When and how to use advanced patterns
+
+Perfect for developers who want to write more maintainable code or teams establishing code quality standards.
+
 ## Development
 
 ### Running Tests
@@ -314,18 +337,19 @@ code_cop/
 ## Current Limitations
 
 1. **Python Only**: Currently only Python is supported. JavaScript and TypeScript support is planned.
-2. **Cognitive Complexity**: This metric is defined but not yet implemented (requires complexipy integration).
-3. **Function-Level Only**: Some metrics are only available at the function level, not class or module level.
+2. **Function-Level Only**: Some metrics are only available at the function level, not class or module level.
+3. **Cognitive Complexity Requires Complexipy**: The cognitive complexity metric requires the optional `complexipy` package to be installed.
 
 ## Future Enhancements
 
 -   JavaScript/TypeScript support via ts-complex
--   Cognitive complexity for Python via complexipy
 -   Pre-commit hook integration
 -   Git hook support
 -   HTML report generation
 -   Baseline file support (ignore existing violations)
 -   Trend analysis over time
+-   GitHub Actions integration
+-   VS Code extension
 
 ## Contributing
 
