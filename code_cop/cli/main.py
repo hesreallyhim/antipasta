@@ -6,6 +6,7 @@ import click
 from code_cop import __version__
 from code_cop.cli.metrics import metrics as metrics_cmd
 from code_cop.cli.stats import stats as stats_cmd
+from code_cop.cli.tui import tui as tui_cmd
 from code_cop.cli.validate import validate_config as validate_config_cmd
 
 
@@ -19,6 +20,7 @@ def cli() -> None:
 # Add commands
 cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(stats_cmd, name="stats")
+cli.add_command(tui_cmd, name="tui")
 cli.add_command(validate_config_cmd, name="validate-config")
 
 

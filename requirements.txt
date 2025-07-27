@@ -1,3 +1,4 @@
 radon
 pytest
 complexipy>=3.3.0
+textual>=0.70.0

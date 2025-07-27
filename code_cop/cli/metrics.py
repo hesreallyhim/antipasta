@@ -1,5 +1,6 @@
 """Metrics analysis command."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -7,6 +8,7 @@ import click
 
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
+from code_cop.terminal import TerminalDashboard
 
 
 @click.command()
@@ -36,11 +38,25 @@ from code_cop.core.config import CodeCopConfig
     is_flag=True,
     help="Only show violations, suppress other output",
 )
-def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool) -> None:
+@click.option(
+    "--format",
+    type=click.Choice(["text", "terminal", "json"], case_sensitive=False),
+    default="text",
+    help="Output format (text, terminal for TUI, or json)",
+)
+def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool, format: str) -> None:
     """Analyze code metrics for specified files.
 
     Exits with code 0 if all metrics pass, 2 if violations found.
     """
+    # Launch terminal UI if requested
+    if format == "terminal":
+        # For terminal UI, use directory if specified, otherwise current directory
+        project_path = directory if directory else Path.cwd()
+        app = TerminalDashboard(project_path=str(project_path))
+        app.run()
+        return
+
     # Load configuration
     cfg = _load_configuration(config, quiet)
 
@@ -61,9 +77,37 @@ def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet
     # Generate summary
     summary = aggregator.generate_summary(reports)
 
-    # Print results
-    if not quiet or not summary["success"]:
-        _print_results(reports, summary, quiet)
+    # Print results based on format
+    if format == "json":
+        # Output JSON format
+        output = {
+            "summary": summary,
+            "reports": [
+                {
+                    "file": str(report.file_path),
+                    "language": report.language,
+                    "metrics": report.metrics,
+                    "violations": [
+                        {
+                            "type": v.metric_type.value,
+                            "message": v.message,
+                            "line_number": v.line_number,
+                            "function": v.function_name,
+                            "value": v.value,
+                            "threshold": v.threshold,
+                            "comparison": v.comparison.value,
+                        }
+                        for v in report.violations
+                    ],
+                }
+                for report in reports
+            ],
+        }
+        click.echo(json.dumps(output, indent=2))
+    else:
+        # Default text format
+        if not quiet or not summary["success"]:
+            _print_results(reports, summary, quiet)
 
     # Exit with appropriate code
     sys.exit(0 if summary["success"] else 2)
