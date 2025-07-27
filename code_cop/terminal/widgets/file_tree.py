@@ -1,0 +1,210 @@
+"""Interactive file tree widget for terminal dashboard."""
+
+from typing import Any, Optional
+
+from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.containers import ScrollableContainer
+from textual.message import Message
+from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import Static, Tree
+from textual.widgets.tree import TreeNode
+
+from code_cop.core.violations import FileReport
+
+
+class FileSelected(Message):
+    """Message sent when a file is selected in the tree."""
+
+    def __init__(self, file_path: str, report: Optional[FileReport] = None) -> None:
+        """Initialize the message.
+
+        Args:
+            file_path: Path to the selected file
+            report: FileReport if available
+        """
+        super().__init__()
+        self.file_path = file_path
+        self.report = report
+
+
+class FileTreeWidget(Widget):
+    """Interactive file tree with complexity indicators."""
+
+    COMPONENT_CLASSES = {"file-tree-widget"}
+
+    BINDINGS = [
+        Binding("enter", "select_node", "Select", show=False),
+        Binding("space", "toggle_node", "Expand/Collapse", show=False),
+        Binding("/", "search", "Search"),
+        Binding("n", "next_match", "Next match", show=False),
+        Binding("N", "prev_match", "Previous match", show=False),
+    ]
+
+    tree_data: reactive[dict[str, Any]] = reactive({})
+    search_query: reactive[str] = reactive("")
+
+    def __init__(self, tree_data: Optional[dict[str, Any]] = None, **kwargs) -> None:
+        """Initialize the file tree widget.
+
+        Args:
+            tree_data: Hierarchical tree data from DashboardDataBridge
+        """
+        super().__init__(**kwargs)
+        if tree_data:
+            self.tree_data = tree_data
+        self._tree: Optional[Tree[dict[str, Any]]] = None
+        self._search_matches: list[TreeNode[dict[str, Any]]] = []
+        self._current_match_index = 0
+
+    def compose(self) -> ComposeResult:
+        """Create the widget layout."""
+        with ScrollableContainer():
+            tree = Tree[dict[str, Any]]("Project Files")
+            tree.show_root = False
+            tree.guide_depth = 3
+            self._tree = tree
+            yield tree
+
+    def on_mount(self) -> None:
+        """Initialize the tree when mounted."""
+        if self.tree_data:
+            self._populate_tree()
+
+    def watch_tree_data(self, old_data: dict[str, Any], new_data: dict[str, Any]) -> None:
+        """React to tree data changes."""
+        if self._tree and new_data:
+            self._populate_tree()
+
+    def _populate_tree(self) -> None:
+        """Populate the tree with file data."""
+        if not self._tree or not self.tree_data:
+            return
+
+        # Clear existing tree
+        self._tree.clear()
+
+        # Add root node
+        root = self._tree.root
+        root.data = self.tree_data
+
+        # Recursively add nodes
+        self._add_tree_nodes(root, self.tree_data)
+
+        # Expand the first few levels
+        self._expand_to_depth(root, 2)
+
+    def _add_tree_nodes(self, parent: TreeNode[dict[str, Any]], node_data: dict[str, Any]) -> None:
+        """Recursively add nodes to the tree."""
+        if node_data["type"] == "directory" and "children" in node_data:
+            # Sort children: directories first, then files
+            children = sorted(
+                node_data["children"].items(),
+                key=lambda x: (x[1]["type"] != "directory", x[0].lower())
+            )
+
+            for name, child_data in children:
+                label = self._create_node_label(name, child_data)
+                child_node = parent.add(label, data=child_data)
+
+                # Add expand/collapse indicator for directories
+                if child_data["type"] == "directory":
+                    child_node.allow_expand = True
+                    if child_data.get("children"):
+                        self._add_tree_nodes(child_node, child_data)
+                    else:
+                        # Empty directory
+                        child_node.add_leaf("(empty)")
+
+    def _create_node_label(self, name: str, node_data: dict[str, Any]) -> str:
+        """Create a label for a tree node with indicators."""
+        if node_data["type"] == "directory":
+            return f"📁 {name}"
+        else:
+            # File with complexity indicator
+            complexity = node_data.get("complexity", 0)
+            violations = node_data.get("violations", 0)
+
+            # Choose indicator based on complexity
+            if complexity > 20:
+                indicator = "🔴"
+            elif complexity > 10:
+                indicator = "🟠"
+            elif complexity > 5:
+                indicator = "🟡"
+            else:
+                indicator = "🟢"
+
+            # Add violation count if any
+            suffix = f" ({violations}❗)" if violations > 0 else ""
+
+            return f"📄 {name} {indicator}{suffix}"
+
+    def _expand_to_depth(self, node: TreeNode[dict[str, Any]], depth: int) -> None:
+        """Expand tree nodes up to a certain depth."""
+        if depth <= 0:
+            return
+
+        node.expand()
+        for child in node.children:
+            if child.allow_expand:
+                self._expand_to_depth(child, depth - 1)
+
+    def action_select_node(self) -> None:
+        """Handle node selection."""
+        if not self._tree:
+            return
+
+        node = self._tree.cursor_node
+        if node and node.data:
+            if node.data["type"] == "file":
+                # Emit file selected message
+                report = node.data.get("report")
+                file_path = node.data.get("name", "")
+                self.post_message(FileSelected(file_path, report))
+            elif node.data["type"] == "directory":
+                # Toggle expand/collapse
+                node.toggle()
+
+    def action_toggle_node(self) -> None:
+        """Toggle node expansion."""
+        if not self._tree:
+            return
+
+        node = self._tree.cursor_node
+        if node and node.allow_expand:
+            node.toggle()
+
+    def action_search(self) -> None:
+        """Initiate search mode."""
+        # TODO: Implement search dialog
+        self.app.notify("Search not yet implemented")
+
+    def action_next_match(self) -> None:
+        """Navigate to next search match."""
+        if not self._search_matches:
+            return
+
+        self._current_match_index = (self._current_match_index + 1) % len(self._search_matches)
+        match_node = self._search_matches[self._current_match_index]
+
+        if self._tree:
+            self._tree.cursor_line = match_node.line
+            self._tree.scroll_to_node(match_node)
+
+    def action_prev_match(self) -> None:
+        """Navigate to previous search match."""
+        if not self._search_matches:
+            return
+
+        self._current_match_index = (self._current_match_index - 1) % len(self._search_matches)
+        match_node = self._search_matches[self._current_match_index]
+
+        if self._tree:
+            self._tree.cursor_line = match_node.line
+            self._tree.scroll_to_node(match_node)
+
+    def update_tree_data(self, tree_data: dict[str, Any]) -> None:
+        """Update the tree with new data."""
+        self.tree_data = tree_data

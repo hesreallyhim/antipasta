@@ -10,6 +10,14 @@ from textual.css.query import NoMatches
 from textual.widgets import Footer, Header, Static
 
 from code_cop.terminal.data_bridge import DashboardDataBridge
+from code_cop.terminal.widgets import (
+    DetailViewWidget,
+    DirectorySelected,
+    FileSelected,
+    FileTreeWidget,
+    HeatmapWidget,
+    MetricsOverviewWidget,
+)
 
 
 class TerminalDashboard(App):
@@ -48,27 +56,29 @@ class TerminalDashboard(App):
             with Horizontal():
                 # Left panel - File tree
                 with Vertical(classes="file-tree", id="file-tree-panel"):
-                    yield Static("📁 File Explorer", classes="panel-title")
-                    yield Static("Loading files...", id="file-tree-content")
+                    yield FileTreeWidget(id="file-tree-widget")
 
                 # Right side - Main content area
                 with Vertical(id="main-content"):
                     # Top - Metrics overview
-                    with Container(classes="metrics-overview", id="metrics-panel"):
-                        yield Static("📊 Metrics Overview", classes="panel-title")
-                        yield Static("Analyzing...", id="metrics-content")
+                    yield MetricsOverviewWidget(
+                        id="metrics-widget",
+                        classes="metrics-overview"
+                    )
 
                     # Bottom panels
                     with Horizontal():
                         # Heatmap visualization
-                        with Container(classes="heatmap", id="heatmap-panel"):
-                            yield Static("🔥 Complexity Heatmap", classes="panel-title")
-                            yield Static("Generating heatmap...", id="heatmap-content")
+                        yield HeatmapWidget(
+                            id="heatmap-widget",
+                            classes="heatmap"
+                        )
 
                         # Detail view
-                        with Container(classes="detail-view", id="detail-panel"):
-                            yield Static("📋 Detail View", classes="panel-title")
-                            yield Static("Select a file to view details", id="detail-content")
+                        yield DetailViewWidget(
+                            id="detail-widget",
+                            classes="detail-view"
+                        )
 
         yield Footer()
 
@@ -120,87 +130,25 @@ class TerminalDashboard(App):
             # Analyze the project
             reports, summary = self.data_bridge.analyze_all()
 
-            # Update metrics overview
-            metrics_content = self.query_one("#metrics-content", Static)
+            # Update metrics overview widget
+            metrics_widget = self.query_one("#metrics-widget", MetricsOverviewWidget)
             metrics_summary = self.data_bridge.get_metrics_summary()
+            metrics_widget.update_metrics(metrics_summary)
 
-            complexity_dist = metrics_summary.get("complexity_distribution", {})
-            metrics_text = f"""📊 Analysis complete!
-
-Files analyzed: {summary['total_files']}
-🔴 Critical (>20): {complexity_dist.get('critical', 0)}
-🟠 High (11-20): {complexity_dist.get('high', 0)}
-🟡 Medium (6-10): {complexity_dist.get('medium', 0)}
-🟢 Low (≤5): {complexity_dist.get('low', 0)}
-
-Total violations: {summary['total_violations']}"""
-            metrics_content.update(metrics_text)
-
-            # Update file tree
-            file_tree_content = self.query_one("#file-tree-content", Static)
+            # Update file tree widget
+            file_tree_widget = self.query_one("#file-tree-widget", FileTreeWidget)
             tree_data = self.data_bridge.get_file_tree()
-            tree_text = self._render_file_tree(tree_data)
-            file_tree_content.update(tree_text)
+            file_tree_widget.update_tree_data(tree_data)
 
-            # Update heatmap
-            heatmap_content = self.query_one("#heatmap-content", Static)
+            # Update heatmap widget
+            heatmap_widget = self.query_one("#heatmap-widget", HeatmapWidget)
             heatmap_data = self.data_bridge.get_heatmap_data()
-            heatmap_text = self._render_heatmap(heatmap_data[:5])  # Top 5 directories
-            heatmap_content.update(heatmap_text)
+            heatmap_widget.update_heatmap(heatmap_data)
 
         except NoMatches:
             self.log.error("Could not find UI elements to update")
         except Exception as e:
             self.notify(f"Error refreshing metrics: {e}", severity="error")
-
-    def _render_file_tree(self, tree: dict, level: int = 0) -> str:
-        """Render file tree as text."""
-        lines = []
-        indent = "  " * level
-
-        if tree["type"] == "directory" and tree["children"]:
-            for name, node in sorted(tree["children"].items()):
-                if node["type"] == "directory":
-                    lines.append(f"{indent}▼ {name}/")
-                    lines.append(self._render_file_tree(node, level + 1))
-                else:
-                    # File with complexity indicator
-                    complexity = node.get("complexity", 0)
-                    if complexity > 20:
-                        indicator = "🔴"
-                    elif complexity > 10:
-                        indicator = "🟠"
-                    elif complexity > 5:
-                        indicator = "🟡"
-                    else:
-                        indicator = "🟢"
-
-                    violations = node.get("violations", 0)
-                    suffix = f" ({violations} issues)" if violations > 0 else ""
-                    lines.append(f"{indent}• {name} {indicator}{suffix}")
-
-        return "\n".join(lines)
-
-    def _render_heatmap(self, data: list[dict]) -> str:
-        """Render heatmap data as text."""
-        if not data:
-            return "No data to display"
-
-        lines = []
-        max_complexity = max(item["avg_complexity"] for item in data)
-
-        for item in data:
-            path = item["path"] if item["path"] != "." else "root"
-            avg_complexity = item["avg_complexity"]
-            percentage = (avg_complexity / max_complexity * 100) if max_complexity > 0 else 0
-
-            # Create bar
-            bar_length = int(percentage / 10)
-            bar = "█" * bar_length + "░" * (10 - bar_length)
-
-            lines.append(f"{path:<20} {bar} {percentage:.0f}% ({item['files']} files)")
-
-        return "\n".join(lines)
 
     def on_key(self, event: events.Key) -> None:
         """Handle keyboard shortcuts."""
@@ -209,6 +157,20 @@ Total violations: {summary['total_violations']}"""
             self.action_focus_next()
         elif event.key == "k":
             self.action_focus_previous()
+
+    def on_file_selected(self, message: FileSelected) -> None:
+        """Handle file selection from the file tree."""
+        # Update detail view with selected file
+        detail_widget = self.query_one("#detail-widget", DetailViewWidget)
+        detail_widget.update_file_report(message.report, message.file_path)
+
+        # Show notification
+        self.notify(f"Selected: {message.file_path}")
+
+    def on_directory_selected(self, message: DirectorySelected) -> None:
+        """Handle directory selection from the heatmap."""
+        # Could navigate file tree to this directory or show details
+        self.notify(f"Selected directory: {message.directory_path}")
 
 
 if __name__ == "__main__":
