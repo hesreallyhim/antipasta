@@ -11,7 +11,7 @@ This demonstrates overly complex nested logic that should be refactored.
 
 
 def validate_password(
-    password: str, username: str = None, old_passwords: list = None
+    password: str, username: str = "", old_passwords: list[str] | None = None
 ) -> tuple[bool, str]:
     """Validate password with multiple rules (overly complex version)."""
     if password is None or password == "":
@@ -79,7 +79,13 @@ def validate_password(
             if similarity / len(password) > 0.8:
                 return False, "Password too similar to recent password"
 
-    common_passwords = ["password", "12345678", "qwerty", "abc123", "password123"]
+    common_passwords = [
+        "password",
+        "12345678",
+        "qwerty",
+        "abc123",
+        "password123",
+    ]
     for common in common_passwords:
         if common in password.lower():
             return False, "Password contains common pattern"

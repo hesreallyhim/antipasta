@@ -1,2 +1,3 @@
 radon
 pytest
+complexipy>=3.3.0

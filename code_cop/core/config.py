@@ -1,4 +1,8 @@
-"""Configuration models and loading for code-cop."""
+"""Configuration models and loading for code-cop.
+
+This module provides Pydantic models for code-cop configuration,
+including metric thresholds, language settings, and project defaults.
+"""
 
 from __future__ import annotations
 
@@ -100,45 +104,7 @@ class CodeCopConfig(BaseModel):
         """Generate default configuration with sensible values."""
         return cls(
             defaults=DefaultsConfig(),
-            languages=[
-                LanguageConfig(
-                    name="python",
-                    extensions=[".py"],
-                    metrics=[
-                        MetricConfig(
-                            type=MetricType.CYCLOMATIC_COMPLEXITY,
-                            threshold=10,
-                            comparison=ComparisonOperator.LE,
-                        ),
-                        MetricConfig(
-                            type=MetricType.MAINTAINABILITY_INDEX,
-                            threshold=50,
-                            comparison=ComparisonOperator.GE,
-                        ),
-                        MetricConfig(
-                            type=MetricType.HALSTEAD_VOLUME,
-                            threshold=1000,
-                            comparison=ComparisonOperator.LE,
-                        ),
-                        MetricConfig(
-                            type=MetricType.HALSTEAD_DIFFICULTY,
-                            threshold=10,
-                            comparison=ComparisonOperator.LE,
-                        ),
-                        MetricConfig(
-                            type=MetricType.HALSTEAD_EFFORT,
-                            threshold=10000,
-                            comparison=ComparisonOperator.LE,
-                        ),
-                        MetricConfig(
-                            type=MetricType.COGNITIVE_COMPLEXITY,
-                            threshold=15,
-                            comparison=ComparisonOperator.LE,
-                            enabled=False,  # Disabled by default since it requires complexipy
-                        ),
-                    ],
-                ),
-            ],
+            languages=[_get_default_python_config()],
             ignore_patterns=["**/test_*.py", "**/*_test.py", "**/tests/**"],
         )
 
@@ -156,3 +122,49 @@ class CodeCopConfig(BaseModel):
             if lang_config.name.lower() == language.lower():
                 return lang_config
         return None
+
+
+def _get_default_python_config() -> LanguageConfig:
+    """Get default Python language configuration."""
+    return LanguageConfig(
+        name="python",
+        extensions=[".py"],
+        metrics=_get_default_python_metrics(),
+    )
+
+
+def _get_default_python_metrics() -> list[MetricConfig]:
+    """Get default Python metric configurations."""
+    return [
+        MetricConfig(
+            type=MetricType.CYCLOMATIC_COMPLEXITY,
+            threshold=10,
+            comparison=ComparisonOperator.LE,
+        ),
+        MetricConfig(
+            type=MetricType.MAINTAINABILITY_INDEX,
+            threshold=50,
+            comparison=ComparisonOperator.GE,
+        ),
+        MetricConfig(
+            type=MetricType.HALSTEAD_VOLUME,
+            threshold=1000,
+            comparison=ComparisonOperator.LE,
+        ),
+        MetricConfig(
+            type=MetricType.HALSTEAD_DIFFICULTY,
+            threshold=10,
+            comparison=ComparisonOperator.LE,
+        ),
+        MetricConfig(
+            type=MetricType.HALSTEAD_EFFORT,
+            threshold=10000,
+            comparison=ComparisonOperator.LE,
+        ),
+        MetricConfig(
+            type=MetricType.COGNITIVE_COMPLEXITY,
+            threshold=15,
+            comparison=ComparisonOperator.LE,
+            enabled=False,  # Disabled by default since it requires complexipy
+        ),
+    ]

@@ -1,4 +1,8 @@
-"""Metric data models and types."""
+"""Metric data models and types.
+
+This module defines the core data structures for representing
+code quality metrics and analysis results.
+"""
 
 from __future__ import annotations
 

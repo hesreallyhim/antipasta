@@ -42,33 +42,14 @@ def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet
     Exits with code 0 if all metrics pass, 2 if violations found.
     """
     # Load configuration
-    try:
-        if config.exists():
-            cfg = CodeCopConfig.from_yaml(config)
-            if not quiet:
-                click.echo(f"Using configuration: {config}")
-        else:
-            cfg = CodeCopConfig.generate_default()
-            if not quiet:
-                click.echo("Using default configuration")
-    except Exception as e:
-        click.echo(f"Error loading configuration: {e}", err=True)
-        sys.exit(1)
+    cfg = _load_configuration(config, quiet)
 
     # Collect files to analyze
-    file_paths = list(files)
-
-    # Add files from directory if specified
-    if directory:
-        for pattern in ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]:
-            file_paths.extend(directory.glob(pattern))
+    file_paths = _collect_files(files, directory)
 
     if not file_paths:
         click.echo("No files specified to analyze", err=True)
         sys.exit(1)
-
-    # Remove duplicates
-    file_paths = list(set(file_paths))
 
     if not quiet:
         click.echo(f"Analyzing {len(file_paths)} files...")
@@ -86,6 +67,37 @@ def metrics(config: Path, files: tuple[Path, ...], directory: Path | None, quiet
 
     # Exit with appropriate code
     sys.exit(0 if summary["success"] else 2)
+
+
+def _load_configuration(config: Path, quiet: bool) -> CodeCopConfig:
+    """Load configuration from file or generate default."""
+    try:
+        if config.exists():
+            cfg = CodeCopConfig.from_yaml(config)
+            if not quiet:
+                click.echo(f"Using configuration: {config}")
+        else:
+            cfg = CodeCopConfig.generate_default()
+            if not quiet:
+                click.echo("Using default configuration")
+        return cfg
+    except Exception as e:
+        click.echo(f"Error loading configuration: {e}", err=True)
+        sys.exit(1)
+
+
+def _collect_files(files: tuple[Path, ...], directory: Path | None) -> list[Path]:
+    """Collect all files to analyze."""
+    file_paths = list(files)
+
+    # Add files from directory if specified
+    if directory:
+        patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+        for pattern in patterns:
+            file_paths.extend(directory.glob(pattern))
+
+    # Remove duplicates
+    return list(set(file_paths))
 
 
 def _print_results(reports, summary, quiet):
