@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from code_cop.core.config import ComparisonOperator, MetricConfig
-from code_cop.core.metrics import MetricResult, MetricType
+
+if TYPE_CHECKING:
+    from code_cop.core.metrics import MetricResult, MetricType
 
 
 @dataclass
@@ -72,7 +75,10 @@ class FileReport:
         return len(self.violations)
 
 
-def check_metric_violation(metric: MetricResult, config: MetricConfig) -> Violation | None:
+def check_metric_violation(
+    metric: MetricResult,
+    config: MetricConfig
+) -> Violation | None:
     """Check if a metric violates its configured threshold.
 
     Args:

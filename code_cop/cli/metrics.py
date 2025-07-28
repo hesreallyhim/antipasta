@@ -3,11 +3,13 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import click
 
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
+from code_cop.core.violations import FileReport
 from code_cop.terminal import TerminalDashboard
 
 
@@ -88,7 +90,16 @@ def metrics(
                 {
                     "file": str(report.file_path),
                     "language": report.language,
-                    "metrics": report.metrics,
+                    "metrics": [
+                        {
+                            "type": metric.metric_type.value,
+                            "value": metric.value,
+                            "details": metric.details,
+                            "line_number": metric.line_number,
+                            "function_name": metric.function_name,
+                        }
+                        for metric in report.metrics
+                    ],
                     "violations": [
                         {
                             "type": v.metric_type.value,
@@ -146,14 +157,20 @@ def _collect_files(files: tuple[Path, ...], directory: Path | None) -> list[Path
     return list(set(file_paths))
 
 
-def _print_results(reports, summary, quiet):
+def _print_results(
+    reports: list[FileReport],
+    summary: dict[str, Any],
+    quiet: bool
+) -> None:
     """Print analysis results."""
     if not quiet:
         click.echo("\n" + "=" * 70)
         click.echo("METRICS ANALYSIS SUMMARY")
         click.echo("=" * 70)
         click.echo(f"Total files analyzed: {summary['total_files']}")
-        click.echo(f"Files with violations: {summary['files_with_violations']}")
+        click.echo(
+            f"Files with violations: {summary['files_with_violations']}"
+        )
         click.echo(f"Total violations: {summary['total_violations']}")
 
         if summary["violations_by_type"]:

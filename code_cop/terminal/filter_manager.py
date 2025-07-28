@@ -2,9 +2,11 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from code_cop.core.models import MetricResult, ViolationType
+from code_cop.core.metrics import MetricResult
+
+# from code_cop.core.models import MetricResult, ViolationType
 
 
 class FilterType(Enum):
@@ -33,7 +35,7 @@ class FilterPreset:
 
     name: str
     description: str
-    filters: List[Filter] = field(default_factory=list)
+    filters: list[Filter] = field(default_factory=list)
 
 
 class FilterManager:
@@ -41,10 +43,10 @@ class FilterManager:
 
     def __init__(self):
         """Initialize the filter manager."""
-        self.filters: List[Filter] = []
-        self.presets: Dict[str, FilterPreset] = self._init_presets()
+        self.filters: list[Filter] = []
+        self.presets: dict[str, FilterPreset] = self._init_presets()
 
-    def _init_presets(self) -> Dict[str, FilterPreset]:
+    def _init_presets(self) -> dict[str, FilterPreset]:
         """Initialize default filter presets.
 
         Returns:
@@ -151,7 +153,7 @@ class FilterManager:
             filters=self.filters.copy(),
         )
 
-    def filter_results(self, results: List[MetricResult]) -> List[MetricResult]:
+    def filter_results(self, results: list[MetricResult]) -> list[MetricResult]:
         """Apply filters to metric results.
 
         Args:
@@ -229,21 +231,21 @@ class FilterManager:
         try:
             if comparison == "=":
                 return actual == expected
-            elif comparison == "<":
+            if comparison == "<":
                 return actual < expected
-            elif comparison == ">":
+            if comparison == ">":
                 return actual > expected
-            elif comparison == "<=":
+            if comparison == "<=":
                 return actual <= expected
-            elif comparison == ">=":
+            if comparison == ">=":
                 return actual >= expected
-            elif comparison == "contains":
+            if comparison == "contains":
                 return expected in str(actual)
-            elif comparison == "matches":
+            if comparison == "matches":
                 import re
 
                 return bool(re.match(expected, str(actual)))
-            elif comparison == "exists":
+            if comparison == "exists":
                 if isinstance(actual, list):
                     return len(actual) > 0
                 return actual is not None
@@ -273,8 +275,8 @@ class FilterManager:
         return " AND ".join(summaries)
 
     def get_filter_stats(
-        self, original: List[MetricResult], filtered: List[MetricResult]
-    ) -> Dict[str, int]:
+        self, original: list[MetricResult], filtered: list[MetricResult]
+    ) -> dict[str, int]:
         """Get statistics about filter results.
 
         Args:
