@@ -102,7 +102,7 @@ class ComplexipyRunner(BaseRunner):
             if json_file.exists():
                 try:
                     with open(json_file) as f:
-                        data = json.load(f)
+                        data: list[dict[str, Any]] = json.load(f)
                     # Clean up the output file
                     json_file.unlink()
                     return data

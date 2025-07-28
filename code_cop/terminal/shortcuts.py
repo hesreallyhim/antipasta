@@ -21,7 +21,7 @@ class Shortcut:
 class ShortcutManager:
     """Manages keyboard shortcuts and vim-style navigation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the shortcut manager."""
         self.vim_mode = False
         self.shortcuts: Dict[str, Shortcut] = {}

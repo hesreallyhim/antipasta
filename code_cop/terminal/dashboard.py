@@ -1,9 +1,10 @@
 """Terminal Dashboard Application for code-cop."""
 
-from typing import Optional
+from typing import Any, Optional, cast
 
 from textual import events
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.widgets import Footer, Header
@@ -27,7 +28,7 @@ from code_cop.terminal.widgets import (
 )
 
 
-class TerminalDashboard(App):
+class TerminalDashboard(App[None]):
     """Main terminal dashboard application."""
 
     CSS_PATH = "dashboard.tcss"
@@ -44,12 +45,17 @@ class TerminalDashboard(App):
         self.data_bridge = DashboardDataBridge(self.project_path)
         self.shortcut_manager = ShortcutManager()
         self.filter_manager = FilterManager()
+        self.focus_manager = FocusManager()
         self.last_key = ""
         self._update_bindings()
 
     def _update_bindings(self) -> None:
         """Update app bindings from shortcut manager."""
-        type(self).BINDINGS = self.shortcut_manager.get_bindings()
+        bindings: list[Binding | tuple[str, str] | tuple[str, str, str]] = cast(
+            list[Binding | tuple[str, str] | tuple[str, str, str]],
+            self.shortcut_manager.get_bindings()
+        )
+        type(self).BINDINGS = bindings
 
     def compose(self) -> ComposeResult:
         """Create the application layout."""
@@ -103,7 +109,7 @@ class TerminalDashboard(App):
         except Exception:
             pass
 
-    def action_quit(self) -> None:
+    async def action_quit(self) -> None:
         """Quit the application."""
         self.exit()
 
@@ -309,13 +315,14 @@ class TerminalDashboard(App):
         """
         if self.focused and hasattr(self.focused, "id"):
             current_id = self.focused.id
-            target_id = self.focus_manager.get_directional_target(current_id, direction)
-            if target_id:
-                try:
-                    target_widget = self.query_one(f"#{target_id}")
-                    target_widget.focus()
-                except Exception:
-                    pass
+            if current_id:
+                target_id = self.focus_manager.get_directional_target(current_id, direction)
+                if target_id:
+                    try:
+                        target_widget = self.query_one(f"#{target_id}")
+                        target_widget.focus()
+                    except Exception:
+                        pass
 
     def refresh_metrics(self) -> None:
         """Refresh metrics from the core engine."""
@@ -393,7 +400,7 @@ class TerminalDashboard(App):
         self.notify(f"Filters applied: {summary}")
         self.refresh_metrics()
 
-    def on_focus(self, event) -> None:
+    def on_focus(self, event: Any) -> None:
         """Handle focus changes."""
         if hasattr(event.widget, "id"):
             widget_id = event.widget.id

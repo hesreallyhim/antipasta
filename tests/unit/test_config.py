@@ -1,5 +1,7 @@
 """Tests for configuration loading and validation."""
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -127,7 +129,7 @@ class TestCodeCopConfig:
         js_config = config.get_language_config("javascript")
         assert js_config is None
 
-    def test_from_yaml_valid(self, tmp_path):
+    def test_from_yaml_valid(self, tmp_path: Path) -> None:
         """Test loading valid YAML configuration."""
         yaml_content = """
 defaults:
@@ -156,7 +158,7 @@ languages:
         with pytest.raises(FileNotFoundError):
             CodeCopConfig.from_yaml("non_existent.yaml")
 
-    def test_to_yaml(self, tmp_path):
+    def test_to_yaml(self, tmp_path: Path) -> None:
         """Test saving configuration to YAML."""
         config = CodeCopConfig.generate_default()
         output_file = tmp_path / "output.yaml"
@@ -167,7 +169,7 @@ languages:
         assert loaded_config.defaults.max_cyclomatic_complexity == 10
         assert len(loaded_config.languages) == 1
 
-    def test_empty_yaml_uses_defaults(self, tmp_path):
+    def test_empty_yaml_uses_defaults(self, tmp_path: Path) -> None:
         """Test that empty YAML file results in default configuration."""
         config_file = tmp_path / ".code_cop.yaml"
         config_file.write_text("")

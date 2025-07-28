@@ -2,11 +2,12 @@
 
 import json
 from pathlib import Path
+from typing import Any
 
 from code_cop.core.config import CodeCopConfig
 
 
-def generate_config_schema(output_path: Path | None = None) -> dict:
+def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:
     """Generate JSON schema for the configuration."""
     schema = CodeCopConfig.model_json_schema()
 

@@ -45,7 +45,7 @@ class FileTreeWidget(Widget):
     tree_data: reactive[dict[str, Any]] = reactive({})
     search_query: reactive[str] = reactive("")
 
-    def __init__(self, tree_data: Optional[dict[str, Any]] = None, **kwargs) -> None:
+    def __init__(self, tree_data: Optional[dict[str, Any]] = None, **kwargs: Any) -> None:
         """Initialize the file tree widget.
 
         Args:

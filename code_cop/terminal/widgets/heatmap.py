@@ -33,7 +33,7 @@ class HeatmapWidget(Widget):
     heatmap_data: reactive[list[dict[str, Any]]] = reactive([])
     selected_index: reactive[int] = reactive(-1)
 
-    def __init__(self, heatmap_data: Optional[list[dict[str, Any]]] = None, **kwargs) -> None:
+    def __init__(self, heatmap_data: Optional[list[dict[str, Any]]] = None, **kwargs: Any) -> None:
         """Initialize the heatmap widget.
 
         Args:
@@ -141,7 +141,7 @@ class HeatmapWidget(Widget):
             container.mount(Static(stats_text, classes="heatmap-stats"))
 
         # Store data on the widget for click handling
-        container.data = {"index": index, "item": item}
+        setattr(container, "_heatmap_data", {"index": index, "item": item})
 
         return container
 

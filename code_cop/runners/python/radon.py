@@ -80,7 +80,7 @@ class RadonRunner(BaseRunner):
                     error=f"Failed to read file: {e}",
                 )
 
-        metrics = []
+        metrics: list[MetricResult] = []
 
         # Get cyclomatic complexity
         cc_metrics = self._get_cyclomatic_complexity(file_path)
@@ -127,7 +127,8 @@ class RadonRunner(BaseRunner):
                 check=True,
                 env=env,
             )
-            return json.loads(result.stdout)
+            data: dict[str, Any] = json.loads(result.stdout)
+            return data
         except (subprocess.CalledProcessError, json.JSONDecodeError):
             return None
 
@@ -136,7 +137,7 @@ class RadonRunner(BaseRunner):
         command = [sys.executable, "-m", "radon", "cc", "-j", str(file_path)]
         data = self._run_radon_command(command)
 
-        metrics = []
+        metrics: list[MetricResult] = []
         if data and str(file_path) in data:
             file_data = data[str(file_path)]
             # Handle error response from radon
@@ -199,7 +200,7 @@ class RadonRunner(BaseRunner):
         command = [sys.executable, "-m", "radon", "hal", "-j", str(file_path)]
         data = self._run_radon_command(command)
 
-        metrics = []
+        metrics: list[MetricResult] = []
         if data and str(file_path) in data:
             file_data = data[str(file_path)]
             # Check if this is an error response or has expected structure
@@ -242,7 +243,7 @@ class RadonRunner(BaseRunner):
         command = [sys.executable, "-m", "radon", "raw", "-j", str(file_path)]
         data = self._run_radon_command(command)
 
-        metrics = []
+        metrics: list[MetricResult] = []
         if data and str(file_path) in data:
             raw_data = data[str(file_path)]
             # Check if this is a valid response with expected fields

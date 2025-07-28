@@ -3,7 +3,7 @@
 import statistics
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import click
 
@@ -76,7 +76,7 @@ def stats(
         pattern = ("**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx")
 
     # Collect files
-    files = []
+    files: list[Path] = []
     for pat in pattern:
         files.extend(directory.glob(pat))
 
@@ -109,7 +109,7 @@ def stats(
         _display_table(stats_data)
 
 
-def _collect_overall_stats(reports, metrics_to_include):
+def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
     """Collect overall statistics across all files."""
     stats = {
         "files": {
@@ -175,9 +175,9 @@ def _collect_overall_stats(reports, metrics_to_include):
     return stats
 
 
-def _collect_directory_stats(reports, metrics_to_include):
+def _collect_directory_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
     """Collect statistics grouped by directory."""
-    dir_stats = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
+    dir_stats: dict[Any, dict[str, Any]] = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
 
     # Group reports by directory
     for report in reports:
@@ -233,14 +233,14 @@ def _collect_directory_stats(reports, metrics_to_include):
     return results
 
 
-def _collect_module_stats(reports, metrics_to_include):
+def _collect_module_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
     """Collect statistics grouped by Python module."""
-    module_stats = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
+    module_stats: dict[str, dict[str, Any]] = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
 
     # Group reports by module
     for report in reports:
         # Determine module from file path
-        module_parts = []
+        module_parts: list[str] = []
         current_path = report.file_path.parent
 
         # Walk up looking for __init__.py files
@@ -301,7 +301,7 @@ def _collect_module_stats(reports, metrics_to_include):
     return results
 
 
-def _collect_metric_stats(reports, metric_name):
+def _collect_metric_stats(reports: list[Any], metric_name: str) -> dict[str, Any]:
     """Collect statistics for a specific metric."""
     values = []
 
@@ -327,7 +327,7 @@ def _collect_metric_stats(reports, metric_name):
     }
 
 
-def _display_table(stats_data):
+def _display_table(stats_data: dict[str, Any]) -> None:
     """Display statistics as a formatted table."""
     if isinstance(stats_data, dict) and "files" in stats_data:
         # Overall statistics
@@ -403,7 +403,7 @@ def _display_table(stats_data):
             click.echo(_format_table_row(row))
 
 
-def _format_table_row(values):
+def _format_table_row(values: list[Any]) -> str:
     """Format a row for table display."""
     widths = [30, 8, 10, 12, 12, 10] + [15] * (len(values) - 6)
     formatted = []
@@ -415,21 +415,21 @@ def _format_table_row(values):
     return " ".join(formatted)
 
 
-def _truncate_path(path, max_length):
+def _truncate_path(path: str, max_length: int) -> str:
     """Truncate long paths for display."""
     if len(path) <= max_length:
         return path
     return "..." + path[-(max_length - 3) :]
 
 
-def _display_json(stats_data):
+def _display_json(stats_data: dict[str, Any]) -> None:
     """Display statistics as JSON."""
     import json
 
     click.echo(json.dumps(stats_data, indent=2))
 
 
-def _display_csv(stats_data):
+def _display_csv(stats_data: dict[str, Any]) -> None:
     """Display statistics as CSV."""
     import csv
     import sys

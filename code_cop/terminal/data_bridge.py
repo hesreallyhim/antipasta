@@ -22,7 +22,7 @@ class DashboardDataBridge:
         self.config = self._load_config()
         self.aggregator = MetricAggregator(self.config)
         self._cache: dict[str, Any] = {}
-        self._update_callbacks: list[Callable] = []
+        self._update_callbacks: list[Callable[[], None]] = []
 
     def _load_config(self) -> CodeCopConfig:
         """Load configuration from project directory."""
@@ -48,7 +48,7 @@ class DashboardDataBridge:
     def collect_files(self) -> list[Path]:
         """Collect all files to analyze in the project."""
         patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-        files = []
+        files: list[Path] = []
 
         for pattern in patterns:
             files.extend(self.project_path.glob(pattern))
@@ -196,7 +196,8 @@ class DashboardDataBridge:
                 complexity_bins["critical"] += 1
 
         summary["complexity_distribution"] = complexity_bins
-        return summary
+        result: dict[str, Any] = summary
+        return result
 
     def _get_max_complexity(self, report: FileReport) -> float:
         """Get maximum complexity from a file report."""
@@ -223,7 +224,7 @@ class DashboardDataBridge:
 
         return max(complexities) if complexities else 0
 
-    def register_update_callback(self, callback: Callable) -> None:
+    def register_update_callback(self, callback: Callable[[], None]) -> None:
         """Register a callback for data updates."""
         self._update_callbacks.append(callback)
 

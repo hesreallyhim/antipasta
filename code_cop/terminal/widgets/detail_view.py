@@ -19,10 +19,10 @@ class DetailViewWidget(Widget):
     file_report: reactive[Optional[FileReport]] = reactive(None)
     selected_file: reactive[str] = reactive("")
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the detail view widget."""
         super().__init__(**kwargs)
-        self._function_table: Optional[DataTable] = None
+        self._function_table: Optional[DataTable[str]] = None
 
     def compose(self) -> ComposeResult:
         """Create the widget layout."""
@@ -43,7 +43,7 @@ class DetailViewWidget(Widget):
                 # Function breakdown
                 with Container(classes="function-breakdown"):
                     yield Static("Function Complexity", classes="section-title")
-                    table = DataTable(show_cursor=False)
+                    table: DataTable[str] = DataTable(show_cursor=False)
                     table.add_columns("Function", "CC", "Cognitive", "Lines")
                     self._function_table = table
                     yield table

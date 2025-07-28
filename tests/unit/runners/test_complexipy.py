@@ -95,7 +95,7 @@ class TestComplexipyRunner:
         file_metric = result.metrics[1]
         assert file_metric.metric_type == MetricType.COGNITIVE_COMPLEXITY
         assert file_metric.value == 5.0
-        assert file_metric.details["type"] == "file_maximum"
+        assert file_metric.details and file_metric.details["type"] == "file_maximum"
 
         # Verify cleanup
         mock_unlink.assert_called_once()
@@ -128,7 +128,7 @@ class TestComplexipyRunner:
         # Check maximum is correct
         file_metric = result.metrics[-1]
         assert file_metric.value == 10.0  # Maximum complexity
-        assert file_metric.details["function_count"] == 3
+        assert file_metric.details and file_metric.details["function_count"] == 3
 
     @patch("subprocess.run")
     @patch("pathlib.Path.exists")

@@ -8,7 +8,7 @@ from textual.widget import Widget
 class FocusManager:
     """Manages focus state and navigation between widgets."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the focus manager."""
         self.focus_history: List[str] = []
         self.focus_groups: dict[str, List[str]] = {

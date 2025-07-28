@@ -1,6 +1,6 @@
 """Command palette widget for quick actions and navigation."""
 
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from textual import on
 from textual.app import ComposeResult
@@ -93,7 +93,7 @@ class CommandPalette(Container):
     search_query = reactive("")
     selected_index = reactive(0)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the command palette."""
         super().__init__(**kwargs)
         self.commands = self._get_available_commands()
@@ -214,7 +214,7 @@ class CommandPalette(Container):
 
         results_container.update("\n".join(results))
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: Any) -> None:
         """Handle key events."""
         if event.key == "escape":
             self.remove()

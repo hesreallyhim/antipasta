@@ -1,5 +1,7 @@
 """Help dialog widget for displaying keyboard shortcuts."""
 
+from typing import Any
+
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
@@ -66,7 +68,7 @@ class HelpDialog(Container):
 
     help_text = reactive("")
 
-    def __init__(self, help_text: str = "", **kwargs):
+    def __init__(self, help_text: str = "", **kwargs: Any) -> None:
         """Initialize the help dialog.
 
         Args:
@@ -89,7 +91,7 @@ class HelpDialog(Container):
         if event.button.id == "close-help":
             self.remove()
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: Any) -> None:
         """Handle key press."""
         if event.key == "escape":
             self.remove()

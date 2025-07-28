@@ -16,7 +16,7 @@ class MetricsOverviewWidget(Widget):
 
     metrics_summary: reactive[dict[str, Any]] = reactive({})
 
-    def __init__(self, metrics_summary: Optional[dict[str, Any]] = None, **kwargs) -> None:
+    def __init__(self, metrics_summary: Optional[dict[str, Any]] = None, **kwargs: Any) -> None:
         """Initialize the metrics overview widget.
 
         Args:
@@ -169,7 +169,7 @@ class MetricsOverviewWidget(Widget):
 class MetricsSparkline(Widget):
     """A simple sparkline widget for showing trends."""
 
-    def __init__(self, data: list[float], **kwargs) -> None:
+    def __init__(self, data: list[float], **kwargs: Any) -> None:
         """Initialize the sparkline widget."""
         super().__init__(**kwargs)
         self.data = data

@@ -1,6 +1,7 @@
 """Tests for Python metric runners."""
 
 from pathlib import Path
+from typing import Any
 
 from code_cop.core.metrics import MetricType
 from code_cop.runners.python.radon import RadonRunner
@@ -9,12 +10,12 @@ from code_cop.runners.python.radon import RadonRunner
 class TestRadonRunner:
     """Tests for RadonRunner."""
 
-    def test_is_available(self):
+    def test_is_available(self) -> None:
         """Test that Radon is available in test environment."""
         runner = RadonRunner()
         assert runner.is_available() is True
 
-    def test_supported_metrics(self):
+    def test_supported_metrics(self) -> None:
         """Test that runner reports correct supported metrics."""
         runner = RadonRunner()
         supported = runner.supported_metrics
@@ -36,7 +37,7 @@ class TestRadonRunner:
 
         assert set(supported) == set(expected_metrics)
 
-    def test_analyze_simple_file(self, tmp_path):
+    def test_analyze_simple_file(self, tmp_path: Path) -> None:
         """Test analyzing a simple Python file."""
         # Create a simple Python file
         file_path = tmp_path / "simple.py"
@@ -79,7 +80,7 @@ def add(a, b):
         assert loc_metric is not None
         assert loc_metric.value == 8  # Total lines in file
 
-    def test_analyze_complex_file(self, tmp_path):
+    def test_analyze_complex_file(self, tmp_path: Path) -> None:
         """Test analyzing a file with complex functions."""
         file_path = tmp_path / "complex.py"
         file_path.write_text(
@@ -123,7 +124,7 @@ def complex_function(x, y, z):
         assert mi_metric is not None
         assert mi_metric.value < 100  # Complex code has lower MI
 
-    def test_analyze_with_content(self, tmp_path):
+    def test_analyze_with_content(self, tmp_path: Path) -> None:
         """Test analyzing with content provided."""
         file_path = tmp_path / "test.py"
         content = """
@@ -139,7 +140,7 @@ def test():
         assert result.error is None
         assert len(result.metrics) > 0
 
-    def test_analyze_nonexistent_file(self):
+    def test_analyze_nonexistent_file(self) -> None:
         """Test analyzing a file that doesn't exist."""
         runner = RadonRunner()
         result = runner.analyze(Path("/nonexistent/file.py"))
@@ -148,7 +149,7 @@ def test():
         assert "Failed to read file" in result.error
         assert len(result.metrics) == 0
 
-    def test_analyze_syntax_error(self, tmp_path):
+    def test_analyze_syntax_error(self, tmp_path: Path) -> None:
         """Test analyzing a file with syntax errors."""
         file_path = tmp_path / "syntax_error.py"
         file_path.write_text(
@@ -165,7 +166,7 @@ def broken(:
         # but certain metrics like CC might be missing
         assert result.file_path == file_path
 
-    def test_halstead_metrics(self, tmp_path):
+    def test_halstead_metrics(self, tmp_path: Path) -> None:
         """Test that Halstead metrics are calculated correctly."""
         file_path = tmp_path / "halstead.py"
         file_path.write_text(
@@ -195,7 +196,7 @@ def calculate(a, b, c):
             assert metric is not None
             assert metric.value >= 0
 
-    def test_class_methods(self, tmp_path):
+    def test_class_methods(self, tmp_path: Path) -> None:
         """Test analyzing a file with class methods."""
         file_path = tmp_path / "class_example.py"
         file_path.write_text(

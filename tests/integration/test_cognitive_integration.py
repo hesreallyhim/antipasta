@@ -19,7 +19,7 @@ from code_cop.core.config import CodeCopConfig
 from code_cop.core.detector import Language
 
 
-def main():
+def main() -> None:
     # Load config
     config_path = Path(".code_cop.yaml")
     if config_path.exists():

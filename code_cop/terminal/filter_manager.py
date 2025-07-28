@@ -2,11 +2,9 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Union
 
-from code_cop.core.metrics import MetricResult
-
-# from code_cop.core.models import MetricResult, ViolationType
+from code_cop.core.violations import FileReport
 
 
 class FilterType(Enum):
@@ -41,7 +39,7 @@ class FilterPreset:
 class FilterManager:
     """Manages filtering of metrics data."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the filter manager."""
         self.filters: list[Filter] = []
         self.presets: dict[str, FilterPreset] = self._init_presets()
@@ -153,7 +151,7 @@ class FilterManager:
             filters=self.filters.copy(),
         )
 
-    def filter_results(self, results: list[MetricResult]) -> list[MetricResult]:
+    def filter_results(self, results: list[FileReport]) -> list[FileReport]:
         """Apply filters to metric results.
 
         Args:
@@ -172,7 +170,7 @@ class FilterManager:
 
         return filtered
 
-    def _matches_filters(self, result: MetricResult) -> bool:
+    def _matches_filters(self, result: FileReport) -> bool:
         """Check if a result matches all active filters.
 
         Args:
@@ -190,7 +188,7 @@ class FilterManager:
 
         return True
 
-    def _matches_single_filter(self, result: MetricResult, filter: Filter) -> bool:
+    def _matches_single_filter(self, result: FileReport, filter: Filter) -> bool:
         """Check if a result matches a single filter.
 
         Args:
@@ -201,16 +199,21 @@ class FilterManager:
             True if result matches filter
         """
         # Get the value to compare based on filter type
+        value: Union[float, int, str, list[str]] = 0
         if filter.type == FilterType.COMPLEXITY:
-            value = result.metrics.get("cyclomatic_complexity", 0)
+            # Get max cyclomatic complexity from metrics
+            cc_metrics = [m for m in result.metrics if m.metric_type.value == "cyclomatic_complexity"]
+            value = max([m.value for m in cc_metrics], default=0) if cc_metrics else 0
         elif filter.type == FilterType.MAINTAINABILITY:
-            value = result.metrics.get("maintainability_index", 100)
+            # Get maintainability index from metrics
+            mi_metrics = [m for m in result.metrics if m.metric_type.value == "maintainability_index"]
+            value = mi_metrics[0].value if mi_metrics else 100
         elif filter.type == FilterType.FILE_PATTERN:
-            value = result.file_path
+            value = str(result.file_path)
         elif filter.type == FilterType.VIOLATION_TYPE:
-            value = [v.type for v in result.violations]
+            value = [v.metric_type.value for v in result.violations]
         elif filter.type == FilterType.METRIC_TYPE:
-            value = list(result.metrics.keys())
+            value = list(set(m.metric_type.value for m in result.metrics))
         else:
             return True
 
@@ -230,15 +233,15 @@ class FilterManager:
         """
         try:
             if comparison == "=":
-                return actual == expected
+                return bool(actual == expected)
             if comparison == "<":
-                return actual < expected
+                return bool(actual < expected)
             if comparison == ">":
-                return actual > expected
+                return bool(actual > expected)
             if comparison == "<=":
-                return actual <= expected
+                return bool(actual <= expected)
             if comparison == ">=":
-                return actual >= expected
+                return bool(actual >= expected)
             if comparison == "contains":
                 return expected in str(actual)
             if comparison == "matches":
@@ -275,7 +278,7 @@ class FilterManager:
         return " AND ".join(summaries)
 
     def get_filter_stats(
-        self, original: list[MetricResult], filtered: list[MetricResult]
+        self, original: list[FileReport], filtered: list[FileReport]
     ) -> dict[str, int]:
         """Get statistics about filter results.
 

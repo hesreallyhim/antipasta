@@ -1,6 +1,6 @@
 """Filter dialog widget for configuring metric filters."""
 
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from textual import on
 from textual.app import ComposeResult
@@ -115,7 +115,7 @@ class FilterDialog(Container):
     }
     """
 
-    def __init__(self, filter_manager: Optional[FilterManager] = None, **kwargs):
+    def __init__(self, filter_manager: Optional[FilterManager] = None, **kwargs: Any) -> None:
         """Initialize the filter dialog.
 
         Args:
@@ -248,12 +248,13 @@ class FilterDialog(Container):
 
             # Parse value based on type
             filter_type = FilterType(type_select.value)
-            value = value_input.value
+            value_str = value_input.value
+            value: Any = value_str
 
             # Convert numeric values for numeric filters
             if filter_type in [FilterType.COMPLEXITY, FilterType.MAINTAINABILITY]:
                 try:
-                    value = float(value)
+                    value = float(value_str)
                 except ValueError:
                     self.notify("Please enter a numeric value", severity="error")
                     return
@@ -262,7 +263,7 @@ class FilterDialog(Container):
             new_filter = Filter(
                 type=filter_type,
                 value=value,
-                comparison=comparison_select.value,
+                comparison=str(comparison_select.value) if comparison_select.value else "=",
                 enabled=True,
             )
 
@@ -286,7 +287,9 @@ class FilterDialog(Container):
 
         # Display each filter
         for i, filter in enumerate(self.temp_filters):
-            with container.mount(Container(classes="filter-row")):
+            row_container = Container(classes="filter-row")
+            container.mount(row_container)
+            with row_container:
                 # Filter description
                 type_name = filter.type.value.replace("_", " ").title()
                 desc = f"{type_name} {filter.comparison} {filter.value}"
@@ -310,7 +313,7 @@ class FilterDialog(Container):
             except ValueError:
                 pass
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: Any) -> None:
         """Handle key events."""
         if event.key == "escape":
             self.remove()

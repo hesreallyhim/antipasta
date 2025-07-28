@@ -10,7 +10,7 @@ from code_cop.core.violations import FileReport, Violation, check_metric_violati
 class TestViolation:
     """Tests for Violation class."""
 
-    def test_violation_creation(self):
+    def test_violation_creation(self) -> None:
         """Test creating a violation."""
         violation = Violation(
             file_path=Path("test.py"),
@@ -29,7 +29,7 @@ class TestViolation:
         assert violation.line_number == 42
         assert violation.function_name == "complex_function"
 
-    def test_violation_message_generation(self):
+    def test_violation_message_generation(self) -> None:
         """Test automatic message generation."""
         violation = Violation(
             file_path=Path("test.py"),
@@ -46,7 +46,7 @@ class TestViolation:
         )
         assert violation.message == expected
 
-    def test_violation_message_without_location(self):
+    def test_violation_message_without_location(self) -> None:
         """Test message generation without line number or function."""
         violation = Violation(
             file_path=Path("test.py"),
@@ -63,7 +63,7 @@ class TestViolation:
 class TestFileReport:
     """Tests for FileReport class."""
 
-    def test_file_report_creation(self):
+    def test_file_report_creation(self) -> None:
         """Test creating a file report."""
         metrics = [
             MetricResult(
@@ -72,7 +72,7 @@ class TestFileReport:
                 value=5.0,
             )
         ]
-        violations = []
+        violations: list[Violation] = []
 
         report = FileReport(
             file_path=Path("test.py"),
@@ -87,7 +87,7 @@ class TestFileReport:
         assert not report.has_violations
         assert report.violation_count == 0
 
-    def test_file_report_with_violations(self):
+    def test_file_report_with_violations(self) -> None:
         """Test file report with violations."""
         violations = [
             Violation(
@@ -116,7 +116,7 @@ class TestFileReport:
         assert report.has_violations
         assert report.violation_count == 2
 
-    def test_file_report_with_error(self):
+    def test_file_report_with_error(self) -> None:
         """Test file report with error."""
         report = FileReport(
             file_path=Path("test.py"),
@@ -133,7 +133,7 @@ class TestFileReport:
 class TestCheckMetricViolation:
     """Tests for check_metric_violation function."""
 
-    def test_check_violation_le_operator(self):
+    def test_check_violation_le_operator(self) -> None:
         """Test <= operator violation checking."""
         metric = MetricResult(
             file_path=Path("test.py"),
@@ -156,7 +156,7 @@ class TestCheckMetricViolation:
         violation = check_metric_violation(metric, config)
         assert violation is None
 
-    def test_check_violation_ge_operator(self):
+    def test_check_violation_ge_operator(self) -> None:
         """Test >= operator violation checking."""
         metric = MetricResult(
             file_path=Path("test.py"),
@@ -179,7 +179,7 @@ class TestCheckMetricViolation:
         violation = check_metric_violation(metric, config)
         assert violation is None
 
-    def test_check_violation_all_operators(self):
+    def test_check_violation_all_operators(self) -> None:
         """Test all comparison operators."""
         metric = MetricResult(
             file_path=Path("test.py"),
@@ -207,7 +207,7 @@ class TestCheckMetricViolation:
         config.comparison = ComparisonOperator.NE
         assert check_metric_violation(metric, config) is not None  # 10 != 10 is false
 
-    def test_check_violation_disabled_metric(self):
+    def test_check_violation_disabled_metric(self) -> None:
         """Test that disabled metrics don't create violations."""
         metric = MetricResult(
             file_path=Path("test.py"),
@@ -224,7 +224,7 @@ class TestCheckMetricViolation:
         violation = check_metric_violation(metric, config)
         assert violation is None  # Disabled metrics never violate
 
-    def test_check_violation_preserves_metadata(self):
+    def test_check_violation_preserves_metadata(self) -> None:
         """Test that violation preserves metric metadata."""
         metric = MetricResult(
             file_path=Path("test.py"),
