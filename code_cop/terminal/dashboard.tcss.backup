@@ -4,6 +4,7 @@
 $accent: #3498db;
 $primary: #2ecc71;
 $surface: #1e1e1e;
+$panel: #2d2d2d;
 $text: #ffffff;
 
 /* Main Application */

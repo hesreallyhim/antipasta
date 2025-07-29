@@ -40,7 +40,9 @@ class ComplexipyRunner(BaseRunner):
                 self._available = False
         return self._available
 
-    def analyze(self, file_path: Path, content: str | None = None) -> FileMetrics:
+    def analyze(
+        self, file_path: Path, content: str | None = None
+    ) -> FileMetrics:
         """Analyze a Python file using Complexipy.
 
         Args:
@@ -55,7 +57,8 @@ class ComplexipyRunner(BaseRunner):
                 file_path=file_path,
                 language=Language.PYTHON.value,
                 metrics=[],
-                error="Complexipy is not installed. Install with: pip install complexipy",
+                error="Complexipy is not installed. "
+                      "Install with: pip install complexipy",
             )
 
         # Run complexipy and get results
@@ -67,7 +70,9 @@ class ComplexipyRunner(BaseRunner):
             metrics=metrics,
         )
 
-    def _run_complexipy_command(self, file_path: Path) -> list[dict[str, Any]] | None:
+    def _run_complexipy_command(
+        self, file_path: Path
+    ) -> list[dict[str, Any]] | None:
         """Run complexipy command and return JSON output.
 
         Args:
@@ -93,7 +98,8 @@ class ComplexipyRunner(BaseRunner):
 
             if result.returncode != 0:
                 # Complexipy returns non-zero for files with high complexity
-                # but still outputs valid JSON, so we don't treat this as an error
+                # but still outputs valid JSON,
+                # so we don't treat this as an error
                 pass
 
             # Complexipy writes JSON to a file, not stdout
@@ -131,7 +137,7 @@ class ComplexipyRunner(BaseRunner):
             for item in data:
                 if isinstance(item, dict) and "complexity" in item:
                     # Extract line number from the function if possible
-                    # Note: Complexipy doesn't provide line numbers in JSON output
+                    # Note: Complexipy doesn't provide line numbers in JSON
                     metrics.append(
                         MetricResult(
                             file_path=file_path,
@@ -148,7 +154,7 @@ class ComplexipyRunner(BaseRunner):
         # Also add file-level maximum if there are functions
         if metrics:
             max_complexity = max(m.value for m in metrics)
-            function_count = len(metrics)  # Count before adding the file maximum
+            function_count = len(metrics)  # Count before adding file maximum
             metrics.append(
                 MetricResult(
                     file_path=file_path,

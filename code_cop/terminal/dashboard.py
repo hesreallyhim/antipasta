@@ -1,5 +1,6 @@
 """Terminal Dashboard Application for code-cop."""
 
+from pathlib import Path
 from typing import Any, Optional, cast
 
 from textual import events
@@ -31,7 +32,7 @@ from code_cop.terminal.widgets import (
 class TerminalDashboard(App[None]):
     """Main terminal dashboard application."""
 
-    CSS_PATH = "dashboard.tcss"
+    CSS_PATH = Path(__file__).parent / "dashboard.tcss"
 
     def __init__(self, project_path: str | None = None):
         """Initialize the dashboard.
@@ -50,9 +51,13 @@ class TerminalDashboard(App[None]):
         self._update_bindings()
 
     def _update_bindings(self) -> None:
-        """Update app bindings from shortcut manager."""
-        bindings: list[Binding | tuple[str, str] | tuple[str, str, str]] = cast(
-            list[Binding | tuple[str, str] | tuple[str, str, str]],
+        """
+        Update app bindings from shortcut manager.
+        """
+        bindings: list[
+            Binding | tuple[str, str] | tuple[str, str, str]
+        ] = cast(
+            "list[Binding | tuple[str, str] | tuple[str, str, str]]",
             self.shortcut_manager.get_bindings()
         )
         type(self).BINDINGS = bindings
@@ -391,7 +396,9 @@ class TerminalDashboard(App[None]):
         if hasattr(self, action_method):
             getattr(self, action_method)()
         else:
-            self.notify(f"Command: {message.command} (action: {message.action})")
+            self.notify(
+                f"Command: {message.command} (action: {message.action})"
+            )
 
     def on_filters_applied(self, message: FiltersApplied) -> None:
         """Handle filters being applied."""
