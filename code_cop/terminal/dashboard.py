@@ -25,6 +25,7 @@ from code_cop.terminal.widgets import (
     FiltersApplied,
     HeatmapWidget,
     HelpDialog,
+    LoadingScreen,
     MetricsOverviewWidget,
 )
 
@@ -66,7 +67,7 @@ class TerminalDashboard(App[None]):
         """Create the application layout."""
         yield Header(show_clock=True)
 
-        with Horizontal():
+        with Horizontal(id="main-layout"):
             # Left panel - File tree
             with Vertical(classes="file-tree", id="file-tree-panel"):
                 yield FileTreeWidget(id="file-tree-widget")
@@ -84,8 +85,6 @@ class TerminalDashboard(App[None]):
                     # Detail view
                     yield DetailViewWidget(id="detail-widget", classes="detail-view")
 
-        yield Footer()
-
     def on_mount(self) -> None:
         """Initialize the dashboard when mounted."""
         self.title = f"Code-Cop Dashboard - {self.project_path}"
@@ -94,8 +93,18 @@ class TerminalDashboard(App[None]):
         # Set up widget titles for focus indicators
         self._setup_widget_titles()
 
-        # Start initial analysis
-        self.refresh_metrics()
+        # Show loading screen and start initial analysis
+        loading = LoadingScreen("Analyzing project files...")
+        self.mount(loading)
+
+        # Schedule the analysis to run after the UI is ready
+        self.call_after_refresh(self._start_initial_analysis, loading)
+
+    def _start_initial_analysis(self, loading_screen: LoadingScreen) -> None:
+        """Start the initial analysis (non-async wrapper)."""
+        import asyncio
+        # Create a task for the async analysis
+        asyncio.create_task(self._initial_analysis(loading_screen))
 
     def _setup_widget_titles(self) -> None:
         """Set up widget titles for focus indication."""
@@ -113,6 +122,34 @@ class TerminalDashboard(App[None]):
             detail.border_title = "Details"
         except Exception:
             pass
+
+    async def _initial_analysis(self, loading_screen: LoadingScreen) -> None:
+        """Perform initial analysis with loading screen."""
+        try:
+            # Update loading message
+            loading_screen.update_message("Collecting files...")
+
+            # Small delay to allow UI to update
+            import asyncio
+            await asyncio.sleep(0.1)
+
+            # Perform the analysis
+            self.refresh_metrics()
+
+            # Remove loading screen
+            loading_screen.remove()
+
+            # Add footer after loading is complete
+            self.mount(Footer())
+
+            # Force a refresh of the metrics after everything is mounted
+            await asyncio.sleep(0.1)
+            self.refresh_metrics()
+
+        except Exception as e:
+            loading_screen.remove()
+            self.mount(Footer())  # Ensure footer is added even on error
+            self.notify(f"Error during initial analysis: {e}", severity="error")
 
     async def action_quit(self) -> None:
         """Quit the application."""
@@ -351,6 +388,7 @@ class TerminalDashboard(App[None]):
             try:
                 metrics_widget = self.query_one("#metrics-widget", MetricsOverviewWidget)
                 metrics_summary = self.data_bridge.get_metrics_summary()
+                self.log.info(f"Updating metrics widget with summary: total_files={metrics_summary.get('total_files', 0)}")
                 metrics_widget.update_metrics(metrics_summary)
             except Exception as e:
                 self.log.error(f"Failed to update metrics widget: {e}")

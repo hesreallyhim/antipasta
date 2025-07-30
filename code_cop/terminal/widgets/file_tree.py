@@ -64,6 +64,7 @@ class FileTreeWidget(Widget):
             tree = Tree[dict[str, Any]]("Project Files")
             tree.show_root = True  # Show root to ensure content is visible
             tree.guide_depth = 3
+            tree.auto_expand = False  # Don't auto-expand on selection
             self._tree = tree
             yield tree
 
@@ -193,6 +194,8 @@ class FileTreeWidget(Widget):
 
         node = self._tree.cursor_node
         if node and node.data:
+            self.app.log.info(f"Selected node: {node.data.get('name')}, type: {node.data.get('type')}")
+
             if node.data["type"] == "file":
                 # Emit file selected message
                 report = node.data.get("report")
@@ -201,6 +204,10 @@ class FileTreeWidget(Widget):
                 self.post_message(FileSelected(file_path, report))
             elif node.data["type"] == "directory":
                 # Toggle expand/collapse
+                self.app.log.info(f"Toggling directory: {node.data.get('name')}")
+                node.toggle()
+            else:
+                # Root node or other
                 node.toggle()
 
     def action_toggle_node(self) -> None:
