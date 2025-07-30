@@ -14,12 +14,20 @@ TerminalDashboard {
 }
 
 /* File Tree Panel */
+#file-tree-panel {
+    border: round #424242;
+    background: #1e1e1e;
+    padding: 1;
+    width: 30%;
+    height: 100%;
+}
+
 .file-tree {
     border: round #424242;
     background: #1e1e1e;
     padding: 1;
-    dock: left;
     width: 30%;
+    height: 100%;
 }
 
 /* Metrics Overview Panel */
@@ -44,6 +52,12 @@ TerminalDashboard {
     background: #1e1e1e;
     padding: 1;
     overflow-y: scroll;
+}
+
+/* Tree Widget */
+Tree {
+    width: 100%;
+    height: 100%;
 }
 
 /* Widget Titles */

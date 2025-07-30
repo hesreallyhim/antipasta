@@ -207,10 +207,13 @@ class CommandPalette(Container):
         results = []
         for i, (name, _, desc) in enumerate(self.filtered_commands):
             is_selected = i == self.selected_index
-            item_class = "selected" if is_selected else ""
             prefix = "▶ " if is_selected else "  "
 
-            results.append(f"[{item_class}]{prefix}[bold]{name}[/bold] [dim]{desc}[/dim][/]")
+            if is_selected:
+                # Use proper markup for selected items
+                results.append(f"[bold]{prefix}{name}[/bold] [dim]{desc}[/dim]")
+            else:
+                results.append(f"{prefix}[bold]{name}[/bold] [dim]{desc}[/dim]")
 
         results_container.update("\n".join(results))
 

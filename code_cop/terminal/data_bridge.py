@@ -47,17 +47,50 @@ class DashboardDataBridge:
 
     def collect_files(self) -> list[Path]:
         """Collect all files to analyze in the project."""
-        patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+        # Extended patterns to include more file types
+        patterns = [
+            "*.py",           # Python
+            "*.js", "*.jsx",  # JavaScript
+            "*.ts", "*.tsx",  # TypeScript
+            "*.mjs", "*.cjs", # Modern JS modules
+            "*.vue",          # Vue.js
+            "*.svelte",       # Svelte
+        ]
         files: list[Path] = []
 
+        # Check if project path exists
+        if not self.project_path.exists():
+            print(f"Warning: Project path does not exist: {self.project_path}")
+            return []
+
+        if not self.project_path.is_dir():
+            print(f"Warning: Project path is not a directory: {self.project_path}")
+            return []
+
+        # Use rglob to include hidden directories
         for pattern in patterns:
-            files.extend(self.project_path.glob(pattern))
+            files.extend(self.project_path.rglob(pattern))
 
-        # Filter out common directories to ignore
-        ignore_dirs = {"node_modules", "venv", "__pycache__", ".git", "dist", "build"}
-        files = [f for f in files if not any(part in f.parts for part in ignore_dirs)]
+        # Filter out common directories to ignore (but don't filter out all hidden dirs)
+        # Only filter out specific known problematic directories
+        ignore_dirs = {"node_modules", "venv", "__pycache__", ".git", "dist", "build", ".venv", ".env"}
+        filtered_files = [f for f in files if not any(part in f.parts for part in ignore_dirs)]
 
-        return sorted(files)
+        # Debug output if no files found
+        if not filtered_files and files:
+            print(f"Warning: All {len(files)} files were filtered out by ignore patterns")
+        elif not files:
+            print(f"Warning: No files found matching patterns: {patterns}")
+            print(f"  in directory: {self.project_path.absolute()}")
+
+            # Additional debug: show what directories exist
+            subdirs = [d for d in self.project_path.iterdir() if d.is_dir()]
+            if subdirs:
+                print(f"  Found {len(subdirs)} directories:")
+                for d in subdirs[:10]:
+                    print(f"    - {d.name}")
+
+        return sorted(filtered_files)
 
     def analyze_all(self) -> tuple[list[FileReport], dict[str, Any]]:
         """Analyze all files in the project.
@@ -118,6 +151,8 @@ class DashboardDataBridge:
                     current["children"][part] = {
                         "type": "file",
                         "name": part,
+                        "path": str(report.file_path),
+                        "relative_path": str(report.file_path.relative_to(self.project_path)),
                         "report": report,
                         "complexity": self._get_max_complexity(report),
                         "violations": len(report.violations),

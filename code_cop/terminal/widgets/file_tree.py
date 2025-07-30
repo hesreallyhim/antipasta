@@ -35,7 +35,7 @@ class FileTreeWidget(Widget):
     COMPONENT_CLASSES = {"file-tree-widget"}
 
     BINDINGS = [
-        Binding("enter", "select_node", "Select", show=False),
+        Binding("enter", "select_node", "Select", show=True),
         Binding("space", "toggle_node", "Expand/Collapse", show=False),
         Binding("/", "search", "Search"),
         Binding("n", "next_match", "Next match", show=False),
@@ -62,7 +62,7 @@ class FileTreeWidget(Widget):
         """Create the widget layout."""
         with ScrollableContainer():
             tree = Tree[dict[str, Any]]("Project Files")
-            tree.show_root = False
+            tree.show_root = True  # Show root to ensure content is visible
             tree.guide_depth = 3
             self._tree = tree
             yield tree
@@ -88,12 +88,46 @@ class FileTreeWidget(Widget):
         # Add root node
         root = self._tree.root
         root.data = self.tree_data
+        root.set_label("📁 Project Files")
 
-        # Recursively add nodes
-        self._add_tree_nodes(root, self.tree_data)
+        # Check if we have any children (files/folders)
+        if not self.tree_data.get("children"):
+            # No files found - show helpful message
+            root.add_leaf("📭 No Python/JS/TS files found")
+            root.add_leaf("")
+            root.add_leaf("This could be because:")
+            root.add_leaf("• The directory has no .py/.js/.ts files")
+            root.add_leaf("• All files are in ignored directories")
+            root.add_leaf("  (node_modules, venv, __pycache__, etc.)")
+            root.add_leaf("• You're in the wrong directory")
+            root.add_leaf("")
+            root.add_leaf("Try running from a project root with")
+            root.add_leaf("Python, JavaScript, or TypeScript files")
+            return
+
+        # Recursively add nodes directly to root's children
+        children = self.tree_data.get("children", {})
+
+        # Sort children: directories first, then files
+        sorted_children = sorted(
+            children.items(),
+            key=lambda x: (x[1]["type"] != "directory", x[0].lower()),
+        )
+
+        for name, child_data in sorted_children:
+            label = self._create_node_label(name, child_data)
+
+            if child_data["type"] == "directory":
+                child_node = root.add(label, data=child_data, allow_expand=True)
+                if child_data.get("children"):
+                    self._add_tree_nodes(child_node, child_data)
+            else:
+                # Files should not be expandable
+                child_node = root.add_leaf(label, data=child_data)
 
         # Expand the first few levels
-        self._expand_to_depth(root, 2)
+        root.expand()
+        self._expand_to_depth(root, 1)
 
     def _add_tree_nodes(self, parent: TreeNode[dict[str, Any]], node_data: dict[str, Any]) -> None:
         """Recursively add nodes to the tree."""
@@ -106,16 +140,17 @@ class FileTreeWidget(Widget):
 
             for name, child_data in children:
                 label = self._create_node_label(name, child_data)
-                child_node = parent.add(label, data=child_data)
 
-                # Add expand/collapse indicator for directories
                 if child_data["type"] == "directory":
-                    child_node.allow_expand = True
+                    child_node = parent.add(label, data=child_data, allow_expand=True)
                     if child_data.get("children"):
                         self._add_tree_nodes(child_node, child_data)
                     else:
                         # Empty directory
                         child_node.add_leaf("(empty)")
+                else:
+                    # Files should not be expandable
+                    parent.add_leaf(label, data=child_data)
 
     def _create_node_label(self, name: str, node_data: dict[str, Any]) -> str:
         """Create a label for a tree node with indicators."""
@@ -161,7 +196,8 @@ class FileTreeWidget(Widget):
             if node.data["type"] == "file":
                 # Emit file selected message
                 report = node.data.get("report")
-                file_path = node.data.get("name", "")
+                # Use relative path if available, otherwise fall back to name
+                file_path = node.data.get("relative_path") or node.data.get("path") or node.data.get("name", "")
                 self.post_message(FileSelected(file_path, report))
             elif node.data["type"] == "directory":
                 # Toggle expand/collapse

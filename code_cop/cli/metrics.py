@@ -9,6 +9,7 @@ import click
 
 from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
+from code_cop.core.detector import LanguageDetector
 from code_cop.core.violations import FileReport
 from code_cop.terminal import TerminalDashboard
 
@@ -65,10 +66,16 @@ def metrics(
     cfg = _load_configuration(config, quiet)
 
     # Collect files to analyze
-    file_paths = _collect_files(files, directory)
+    file_paths = _collect_files(files, directory, cfg)
+
+    # If no files or directory specified, default to current directory
+    if not file_paths and not files and not directory:
+        if not quiet:
+            click.echo("No files or directory specified, analyzing current directory...")
+        file_paths = _collect_files(tuple(), Path.cwd(), cfg)
 
     if not file_paths:
-        click.echo("No files specified to analyze", err=True)
+        click.echo("No files found to analyze", err=True)
         sys.exit(1)
 
     if not quiet:
@@ -143,15 +150,30 @@ def _load_configuration(config: Path, quiet: bool) -> CodeCopConfig:
         sys.exit(1)
 
 
-def _collect_files(files: tuple[Path, ...], directory: Path | None) -> list[Path]:
-    """Collect all files to analyze."""
+def _collect_files(files: tuple[Path, ...], directory: Path | None, config: CodeCopConfig) -> list[Path]:
+    """Collect all files to analyze, respecting gitignore patterns."""
+    # Create a detector with config's ignore patterns
+    detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
+
+    # Load .gitignore if enabled
+    if config.use_gitignore:
+        gitignore_path = Path(".gitignore")
+        if gitignore_path.exists():
+            detector.add_gitignore(gitignore_path)
+
     file_paths = list(files)
 
     # Add files from directory if specified
     if directory:
         patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+        all_files = []
         for pattern in patterns:
-            file_paths.extend(directory.glob(pattern))
+            all_files.extend(directory.glob(pattern))
+
+        # Filter out ignored files
+        for file_path in all_files:
+            if not detector.should_ignore(file_path):
+                file_paths.append(file_path)
 
     # Remove duplicates
     return list(set(file_paths))

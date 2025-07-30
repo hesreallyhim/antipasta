@@ -66,7 +66,7 @@ class TerminalDashboard(App[None]):
         """Create the application layout."""
         yield Header(show_clock=True)
 
-        with Container(), Horizontal():
+        with Horizontal():
             # Left panel - File tree
             with Vertical(classes="file-tree", id="file-tree-panel"):
                 yield FileTreeWidget(id="file-tree-widget")
@@ -117,6 +117,18 @@ class TerminalDashboard(App[None]):
     async def action_quit(self) -> None:
         """Quit the application."""
         self.exit()
+
+    def on_unmount(self) -> None:
+        """Clean up when the app is about to close."""
+        # Ensure mouse tracking is disabled
+        from code_cop.terminal.cleanup import disable_mouse_tracking
+        disable_mouse_tracking()
+
+    def _on_exit_app(self) -> None:
+        """Handle app exit."""
+        from code_cop.terminal.cleanup import disable_mouse_tracking
+        disable_mouse_tracking()
+        super()._on_exit_app()
 
     def action_show_help(self) -> None:
         """Show help information."""
@@ -336,19 +348,29 @@ class TerminalDashboard(App[None]):
             reports, summary = self.data_bridge.analyze_all()
 
             # Update metrics overview widget
-            metrics_widget = self.query_one("#metrics-widget", MetricsOverviewWidget)
-            metrics_summary = self.data_bridge.get_metrics_summary()
-            metrics_widget.update_metrics(metrics_summary)
+            try:
+                metrics_widget = self.query_one("#metrics-widget", MetricsOverviewWidget)
+                metrics_summary = self.data_bridge.get_metrics_summary()
+                metrics_widget.update_metrics(metrics_summary)
+            except Exception as e:
+                self.log.error(f"Failed to update metrics widget: {e}")
 
             # Update file tree widget
-            file_tree_widget = self.query_one("#file-tree-widget", FileTreeWidget)
-            tree_data = self.data_bridge.get_file_tree()
-            file_tree_widget.update_tree_data(tree_data)
+            try:
+                file_tree_widget = self.query_one("#file-tree-widget", FileTreeWidget)
+                tree_data = self.data_bridge.get_file_tree()
+                self.log.info(f"Tree data has {len(tree_data.get('children', {}))} root items")
+                file_tree_widget.update_tree_data(tree_data)
+            except Exception as e:
+                self.log.error(f"Failed to update file tree: {e}")
 
             # Update heatmap widget
-            heatmap_widget = self.query_one("#heatmap-widget", HeatmapWidget)
-            heatmap_data = self.data_bridge.get_heatmap_data()
-            heatmap_widget.update_heatmap(heatmap_data)
+            try:
+                heatmap_widget = self.query_one("#heatmap-widget", HeatmapWidget)
+                heatmap_data = self.data_bridge.get_heatmap_data()
+                heatmap_widget.update_heatmap(heatmap_data)
+            except Exception as e:
+                self.log.error(f"Failed to update heatmap: {e}")
 
         except NoMatches:
             self.log.error("Could not find UI elements to update")
@@ -377,12 +399,18 @@ class TerminalDashboard(App[None]):
 
     def on_file_selected(self, message: FileSelected) -> None:
         """Handle file selection from the file tree."""
-        # Update detail view with selected file
-        detail_widget = self.query_one("#detail-widget", DetailViewWidget)
-        detail_widget.update_file_report(message.report, message.file_path)
+        self.log.info(f"File selected: {message.file_path}, has report: {message.report is not None}")
 
-        # Show notification
-        self.notify(f"Selected: {message.file_path}")
+        # Update detail view with selected file
+        try:
+            detail_widget = self.query_one("#detail-widget", DetailViewWidget)
+            detail_widget.update_file_report(message.report, message.file_path)
+
+            # Show notification
+            self.notify(f"Selected: {message.file_path}")
+        except Exception as e:
+            self.log.error(f"Failed to update detail view: {e}")
+            self.notify(f"Error showing file details: {e}", severity="error")
 
     def on_directory_selected(self, message: DirectorySelected) -> None:
         """Handle directory selection from the heatmap."""
