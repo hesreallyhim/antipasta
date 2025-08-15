@@ -560,13 +560,15 @@ class TerminalDashboard(App[None]):
         """Toggle expand/collapse in focused widget."""
         focused = self.focused
         if isinstance(focused, CanToggle):
-            focused.toggle()
+            # Type checker knows focused is CanToggle here
+            cast("CanToggle", focused).toggle()
 
     def action_select(self) -> None:
         """Select item in focused widget."""
         focused = self.focused
         if isinstance(focused, CanSelect):
-            focused.action_select()
+            # Type checker knows focused is CanSelect here
+            cast("CanSelect", focused).action_select()
 
 
 if __name__ == "__main__":
