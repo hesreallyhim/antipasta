@@ -11,7 +11,6 @@ from code_cop.core.aggregator import MetricAggregator
 from code_cop.core.config import CodeCopConfig
 from code_cop.core.detector import LanguageDetector
 from code_cop.core.violations import FileReport
-from code_cop.terminal import TerminalDashboard
 
 
 @click.command()
@@ -48,9 +47,9 @@ from code_cop.terminal import TerminalDashboard
 )
 @click.option(
     "--format",
-    type=click.Choice(["text", "terminal", "json"], case_sensitive=False),
+    type=click.Choice(["text", "json"], case_sensitive=False),
     default="text",
-    help="Output format (text, terminal for TUI, or json)",
+    help="Output format (text or json)",
 )
 def metrics(
     config: Path,
@@ -62,16 +61,9 @@ def metrics(
     """Analyze code metrics for specified files.
 
     Exits with code 0 if all metrics pass, 2 if violations found.
-    """
-    # Launch terminal UI if requested
-    if format == "terminal":
-        # For terminal UI, use directory if specified,
-        # otherwise current directory
-        project_path = directory if directory else Path.cwd()
-        app = TerminalDashboard(project_path=str(project_path))
-        app.run()
-        return
 
+    For an interactive terminal UI, use 'code-cop tui' instead.
+    """
     # Load configuration
     cfg = _load_configuration(config, quiet)
 
