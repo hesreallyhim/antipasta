@@ -426,7 +426,7 @@ class TerminalDashboard(App[None]):
         """Refresh metrics from the core engine."""
         try:
             # Analyze the project
-            reports, summary = self.data_bridge.analyze_all()
+            _ = self.data_bridge.analyze_all()
 
             # Update metrics overview widget
             try:
