@@ -1,0 +1,30 @@
+
+============================================================
+CODE METRICS STATISTICS
+============================================================
+
+FILE STATISTICS:
+  Total files: 62
+  Total LOC: 9,226.0
+  Average LOC per file: 164.8
+  Min LOC: 1.0
+  Max LOC: 577.0
+  Standard deviation: 132.2
+
+FUNCTION STATISTICS:
+  Total functions: 638
+  Average complexity: 4.1
+  Min complexity: 1.0
+  Max complexity: 68.0
+
+CYCLOMATIC COMPLEXITY STATISTICS:
+  Count: 413
+  Average: 4.54
+  Min: 1.00
+  Max: 68.00
+
+COGNITIVE COMPLEXITY STATISTICS:
+  Count: 413
+  Average: 7.77
+  Min: 0.00
+  Max: 589.00

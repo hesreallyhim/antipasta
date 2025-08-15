@@ -1,0 +1,102 @@
+{
+  "<root>": {
+    "file_count": 18,
+    "function_count": 149,
+    "avg_file_loc": 196.61111111111111,
+    "total_loc": 3539.0,
+    "avg_cyclomatic_complexity": 7.192926496414868,
+    "avg_cognitive_complexity": 17.100775193798448
+  },
+  "code_cop": {
+    "file_count": 2,
+    "function_count": 0,
+    "avg_file_loc": 4.5,
+    "total_loc": 9.0
+  },
+  "code_cop.core": {
+    "file_count": 6,
+    "function_count": 57,
+    "avg_file_loc": 152.0,
+    "total_loc": 760.0,
+    "avg_cyclomatic_complexity": 3.1332046332046333,
+    "avg_cognitive_complexity": 2.5405405405405403
+  },
+  "code_cop.terminal": {
+    "file_count": 8,
+    "function_count": 206,
+    "avg_file_loc": 204.375,
+    "total_loc": 1635.0,
+    "avg_cyclomatic_complexity": 2.4696025956801817,
+    "avg_cognitive_complexity": 2.060344827586207
+  },
+  "code_cop.terminal.utils": {
+    "file_count": 1,
+    "function_count": 0,
+    "avg_file_loc": 1.0,
+    "total_loc": 1.0
+  },
+  "code_cop.terminal.themes": {
+    "file_count": 1,
+    "function_count": 0,
+    "avg_file_loc": 1.0,
+    "total_loc": 1.0
+  },
+  "code_cop.terminal.widgets": {
+    "file_count": 9,
+    "function_count": 120,
+    "avg_file_loc": 185.88888888888889,
+    "total_loc": 1673.0,
+    "avg_cyclomatic_complexity": 3.0771510283558476,
+    "avg_cognitive_complexity": 3.3012048192771086
+  },
+  "code_cop.utils": {
+    "file_count": 2,
+    "function_count": 1,
+    "avg_file_loc": 32.0,
+    "total_loc": 32.0,
+    "avg_cyclomatic_complexity": 2.0,
+    "avg_cognitive_complexity": 1.0
+  },
+  "code_cop.cli": {
+    "file_count": 7,
+    "function_count": 19,
+    "avg_file_loc": 153.57142857142858,
+    "total_loc": 1075.0,
+    "avg_cyclomatic_complexity": 8.802,
+    "avg_cognitive_complexity": 12.84
+  },
+  "code_cop.hooks": {
+    "file_count": 1,
+    "function_count": 0,
+    "avg_file_loc": 0,
+    "total_loc": 0
+  },
+  "code_cop.runners": {
+    "file_count": 2,
+    "function_count": 6,
+    "avg_file_loc": 44.0,
+    "total_loc": 44.0,
+    "avg_cyclomatic_complexity": 1.0,
+    "avg_cognitive_complexity": 0.0
+  },
+  "code_cop.runners.python": {
+    "file_count": 3,
+    "function_count": 26,
+    "avg_file_loc": 152.33333333333334,
+    "total_loc": 457.0,
+    "avg_cyclomatic_complexity": 3.7222222222222223,
+    "avg_cognitive_complexity": 4.411764705882353
+  },
+  "code_cop.runners.typescript": {
+    "file_count": 1,
+    "function_count": 0,
+    "avg_file_loc": 0,
+    "total_loc": 0
+  },
+  "code_cop.runners.javascript": {
+    "file_count": 1,
+    "function_count": 0,
+    "avg_file_loc": 0,
+    "total_loc": 0
+  }
+}

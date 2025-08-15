@@ -1,0 +1,15 @@
+location,avg_cognitive_complexity,avg_cyclomatic_complexity,avg_file_loc,file_count,function_count,total_loc
+<root>,17.100775193798448,7.192926496414868,196.61111111111111,18,149,3539.0
+code_cop,0,0,4.5,2,0,9.0
+code_cop.cli,12.84,8.802,153.57142857142858,7,19,1075.0
+code_cop.core,2.5405405405405403,3.1332046332046333,152.0,6,57,760.0
+code_cop.hooks,0,0,0,1,0,0
+code_cop.runners,0.0,1.0,44.0,2,6,44.0
+code_cop.runners.javascript,0,0,0,1,0,0
+code_cop.runners.python,4.411764705882353,3.7222222222222223,152.33333333333334,3,26,457.0
+code_cop.runners.typescript,0,0,0,1,0,0
+code_cop.terminal,2.060344827586207,2.4696025956801817,204.375,8,206,1635.0
+code_cop.terminal.themes,0,0,1.0,1,0,1.0
+code_cop.terminal.utils,0,0,1.0,1,0,1.0
+code_cop.terminal.widgets,3.3012048192771086,3.0771510283558476,185.88888888888889,9,120,1673.0
+code_cop.utils,1.0,2.0,32.0,2,1,32.0
