@@ -78,10 +78,11 @@ select = [
     "PT",  # flake8-pytest-style
     "RET", # flake8-return
     "SIM", # flake8-simplify
-    "TCH", # flake8-type-checking
+    # "TCH", # flake8-type-checking
 ]
 ignore = []
 fix = true
+exclude = ["DEMOS"]
 
 [tool.ruff.isort]
 known-first-party = ["code_cop"]

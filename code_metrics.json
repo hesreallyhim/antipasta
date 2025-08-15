@@ -1,0 +1,18 @@
+Analyzing 2315 files...
+{
+  "files": {
+    "count": 61,
+    "total_loc": 8986.0,
+    "avg_loc": 163.38181818181818,
+    "min_loc": 1.0,
+    "max_loc": 577.0,
+    "std_dev": 132.1121144120053
+  },
+  "functions": {
+    "count": 0,
+    "total_loc": 0,
+    "avg_loc": 0.0,
+    "min_loc": 0,
+    "max_loc": 0
+  }
+}

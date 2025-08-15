@@ -28,10 +28,17 @@ class MetricsAnalyzer:
     """Analyze code metrics with complex nested logic."""
 
     def analyze_project_metrics(
-        self, files: list[dict[str, str | dict[str, float]]], config: dict[str, Any]
+        self,
+        files: list[dict[str, str | dict[str, float]]],
+        config: dict[str, Any],
     ) -> dict[str, Any]:
         """Analyze metrics for entire project with nested analysis logic."""
-        results = {"summary": {}, "files": [], "violations": [], "statistics": {}}
+        results: dict[str, Any] = {
+            "summary": {},
+            "files": [],
+            "violations": [],
+            "statistics": {},
+        }
 
         all_complexities = []
         all_volumes = []
@@ -41,8 +48,13 @@ class MetricsAnalyzer:
             if isinstance(file_data, dict) and "path" in file_data:
                 file_path = file_data["path"]
 
-                if "metrics" in file_data and isinstance(file_data["metrics"], dict):
-                    file_result = {"path": file_path, "issues": []}
+                if "metrics" in file_data and isinstance(
+                    file_data["metrics"], dict
+                ):
+                    file_result: dict[str, Any] = {
+                        "path": file_path,
+                        "issues": [],
+                    }
 
                     # Nested complexity analysis
                     if "complexity" in file_data["metrics"]:
@@ -58,11 +70,18 @@ class MetricsAnalyzer:
                                         "type": "complexity",
                                         "severity": "error",
                                         "value": complexity,
-                                        "message": f"Complexity {complexity} exceeds error threshold",
+                                        "message": (
+                                            f"Complexity {complexity} "
+                                            "exceeds error threshold"
+                                        ),
                                     }
                                 )
                                 results["violations"].append(
-                                    {"file": file_path, "metric": "complexity", "severity": "error"}
+                                    {
+                                        "file": file_path,
+                                        "metric": "complexity",
+                                        "severity": "error",
+                                    }
                                 )
                             elif complexity > thresholds.get("warning", 10):
                                 file_result["issues"].append(
@@ -70,26 +89,43 @@ class MetricsAnalyzer:
                                         "type": "complexity",
                                         "severity": "warning",
                                         "value": complexity,
-                                        "message": f"Complexity {complexity} exceeds warning threshold",
+                                        "message": (
+                                            f"Complexity {complexity} "
+                                            "exceeds warning threshold"
+                                        ),
                                     }
                                 )
 
                                 # Additional nested check for hotspots
-                                if "hotspots" in config and config["hotspots"].get("enabled"):
-                                    if complexity > thresholds.get("warning", 10) * 1.5:
-                                        file_result["is_hotspot"] = True
+                                if (
+                                    "hotspots" in config
+                                    and config["hotspots"].get("enabled")
+                                    and complexity
+                                    > thresholds.get("warning", 10) * 1.5
+                                ):
+                                    file_result["is_hotspot"] = True
                             else:
                                 # Check trend if history available
                                 if "history" in file_data:
                                     history = file_data["history"]
-                                    if isinstance(history, list) and len(history) > 0:
-                                        previous = history[-1].get("complexity", 0)
-                                        if complexity > previous * 1.2:  # 20% increase
+                                    if (
+                                        isinstance(history, list)
+                                        and len(history) > 0
+                                    ):
+                                        previous = history[-1].get(
+                                            "complexity", 0
+                                        )
+                                        if (
+                                            complexity > previous * 1.2
+                                        ):  # 20% increase
                                             file_result["issues"].append(
                                                 {
                                                     "type": "trend",
                                                     "severity": "info",
-                                                    "message": "Complexity increased by >20%",
+                                                    "message": (
+                                                        "Complexity "
+                                                        "increased by >20%"
+                                                    ),
                                                 }
                                             )
 
@@ -99,38 +135,54 @@ class MetricsAnalyzer:
                         all_volumes.append(volume)
 
                         # Complex nested logic for volume analysis
-                        if volume > 1000:
-                            if "functions" in file_data:
-                                func_count = len(file_data["functions"])
-                                avg_volume = volume / func_count if func_count > 0 else volume
+                        if volume > 1000 and "functions" in file_data:
+                            func_count = len(file_data["functions"])
+                            avg_volume = (
+                                volume / func_count
+                                if func_count > 0
+                                else volume
+                            )
 
-                                if avg_volume > 500:
-                                    file_result["issues"].append(
-                                        {
-                                            "type": "volume",
-                                            "severity": "warning",
-                                            "message": "High average function volume",
-                                        }
-                                    )
-                                elif avg_volume > 300 and complexity > 10:
-                                    file_result["issues"].append(
-                                        {
-                                            "type": "combined",
-                                            "severity": "info",
-                                            "message": "Moderate volume with high complexity",
-                                        }
-                                    )
-
-                        # Special handling for test files
-                        if "test" in file_path.lower() or "spec" in file_path.lower():
-                            if volume > 2000:
+                            if avg_volume > 500:
                                 file_result["issues"].append(
                                     {
-                                        "type": "test_volume",
-                                        "severity": "info",
-                                        "message": "Consider splitting large test file",
+                                        "type": "volume",
+                                        "severity": "warning",
+                                        "message": (
+                                            "High average function volume"
+                                        ),
                                     }
                                 )
+                            elif avg_volume > 300 and complexity > 10:
+                                file_result["issues"].append(
+                                    {
+                                        "type": "combined",
+                                        "severity": "info",
+                                        "message": (
+                                            "Moderate volume "
+                                            "with high complexity"
+                                        ),
+                                    }
+                                )
+
+                        # Special handling for test files
+                        if (
+                            isinstance(file_path, str)
+                            and (
+                                "test" in file_path.lower()
+                                or "spec" in file_path.lower()
+                            )
+                            and volume > 2000
+                        ):
+                            file_result["issues"].append(
+                                {
+                                    "type": "test_volume",
+                                    "severity": "info",
+                                    "message": (
+                                        "Consider splitting large test file"
+                                    ),
+                                }
+                            )
 
                     # Maintainability index with multiple decision points
                     if "maintainability_index" in file_data["metrics"]:
@@ -182,7 +234,9 @@ class MetricsAnalyzer:
             results["statistics"]["complexity"] = {
                 "mean": statistics.mean(all_complexities),
                 "median": statistics.median(all_complexities),
-                "stdev": statistics.stdev(all_complexities) if len(all_complexities) > 1 else 0,
+                "stdev": statistics.stdev(all_complexities)
+                if len(all_complexities) > 1
+                else 0,
                 "percentiles": {
                     "75": self._percentile(all_complexities, 0.75),
                     "90": self._percentile(all_complexities, 0.90),
@@ -197,9 +251,12 @@ class MetricsAnalyzer:
                 outliers = []
 
                 for i, c in enumerate(all_complexities):
-                    if c > mean + 2 * stdev:
-                        if i < len(files) and "path" in files[i]:
-                            outliers.append(files[i]["path"])
+                    if (
+                        c > mean + 2 * stdev
+                        and i < len(files)
+                        and "path" in files[i]
+                    ):
+                        outliers.append(files[i]["path"])
 
                 if outliers:
                     results["statistics"]["complexity"]["outliers"] = outliers
@@ -209,13 +266,22 @@ class MetricsAnalyzer:
 
         return results
 
-    def _is_critical_file(self, file_path: str, config: dict[str, Any]) -> bool:
+    def _is_critical_file(
+        self, file_path: str, config: dict[str, Any]
+    ) -> bool:
         """Check if file is marked as critical in config."""
         critical_patterns = config.get("critical_files", [])
 
         if not critical_patterns:
             # Default critical patterns
-            critical_patterns = ["main.", "app.", "server.", "database.", "auth.", "security."]
+            critical_patterns = [
+                "main.",
+                "app.",
+                "server.",
+                "database.",
+                "auth.",
+                "security.",
+            ]
 
         for pattern in critical_patterns:
             if pattern in file_path.lower():
@@ -236,7 +302,9 @@ class MetricsAnalyzer:
 
         return sorted_data[index]
 
-    def _generate_summary(self, results: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    def _generate_summary(
+        self, results: dict[str, Any], config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate summary with health score calculation."""
         summary = {
             "total_files": len(results["files"]),
@@ -304,7 +372,11 @@ def analyze_codebase(
     files = [
         {
             "path": "main.py",
-            "metrics": {"complexity": 12, "halstead_volume": 1500, "maintainability_index": 45},
+            "metrics": {
+                "complexity": 12,
+                "halstead_volume": 1500,
+                "maintainability_index": 45,
+            },
             "functions": ["main", "setup", "run"],
         }
     ]

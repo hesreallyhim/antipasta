@@ -87,9 +87,37 @@ def stats(
     # Load config (use defaults)
     config = CodeCopConfig.generate_default()
 
-    # Analyze files
-    click.echo(f"Analyzing {len(files)} files...")
+    # Create aggregator and detector to preview what will be analyzed
     aggregator = MetricAggregator(config)
+
+    # Group files by language to see what will actually be analyzed
+    from code_cop.core.detector import LanguageDetector
+    detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
+    if config.use_gitignore:
+        gitignore_path = Path(".gitignore")
+        if gitignore_path.exists():
+            detector.add_gitignore(gitignore_path)
+
+    files_by_language = detector.group_by_language(files)
+
+    # Count analyzable files (currently only Python is supported)
+    analyzable_files = sum(len(f) for lang, f in files_by_language.items() if lang.value == "python")
+    ignored_files = len(files) - sum(len(f) for f in files_by_language.values())
+
+    # Show file breakdown
+    click.echo(f"Found {len(files)} files matching patterns")
+    if ignored_files > 0:
+        click.echo(f"  - {ignored_files} ignored (matching .gitignore or ignore patterns)")
+    for lang, lang_files in files_by_language.items():
+        status = "✓" if lang.value == "python" else "✗ (not supported)"
+        click.echo(f"  - {len(lang_files)} {lang.value} files {status}")
+
+    if analyzable_files == 0:
+        click.echo("\nNo analyzable files found (only Python is currently supported).", err=True)
+        return
+
+    # Analyze files
+    click.echo(f"\nAnalyzing {analyzable_files} Python files...")
     reports = aggregator.analyze_files(files)
 
     # Collect statistics

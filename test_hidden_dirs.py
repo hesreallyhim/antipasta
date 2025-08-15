@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Test script to check file discovery including hidden directories."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 
-def test_file_discovery(project_path: str = ".") -> None:
+def test_file_discovery(project_path: str) -> None:
     """Test file discovery with different approaches."""
     path = Path(project_path).absolute()
     print(f"Testing file discovery in: {path}")

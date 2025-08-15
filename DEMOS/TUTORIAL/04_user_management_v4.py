@@ -21,8 +21,7 @@ Expected improvements:
 """
 
 from dataclasses import dataclass
-from typing import Optional
-
+from typing import Any
 
 # Configuration constants
 VALID_COUNTRIES = ["US", "UK", "CA", "AU", "DE", "FR", "IT", "ES", "JP", "CN"]
@@ -48,22 +47,22 @@ class UserRegistrationData:
     age: int
     country: str
     terms_accepted: bool
-    referral_code: Optional[str] = None
-    newsletter: Optional[bool] = False
-    marketing_consent: Optional[bool] = False
-    phone: Optional[str] = None
-    preferred_language: Optional[str] = "en"
-    timezone: Optional[str] = "UTC"
+    referral_code: str | None = None
+    newsletter: bool | None = False
+    marketing_consent: bool | None = False
+    phone: str | None = None
+    preferred_language: str | None = "en"
+    timezone: str | None = "UTC"
 
 
 @dataclass
 class AddressData:
     """User address information."""
 
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    zipcode: Optional[str] = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zipcode: str | None = None
 
 
 class ValidationError(Exception):
@@ -98,7 +97,9 @@ def validate_password(password: str) -> None:
         raise ValidationError("Password is required")
 
     if len(password) < MIN_PASSWORD_LENGTH:
-        raise ValidationError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters")
+        raise ValidationError(
+            f"Password must be at least {MIN_PASSWORD_LENGTH} characters"
+        )
 
     checks = {
         "uppercase": any(c.isupper() for c in password),
@@ -149,9 +150,13 @@ def validate_registration_data(data: UserRegistrationData) -> None:
         raise ValidationError("You must accept the terms and conditions")
 
 
-def calculate_bonus_credits(referral_code: Optional[str]) -> int:
+def calculate_bonus_credits(referral_code: str | None) -> int:
     """Calculate bonus credits from referral code."""
-    if not referral_code or len(referral_code) != 8 or not referral_code.startswith("REF"):
+    if (
+        not referral_code
+        or len(referral_code) != 8
+        or not referral_code.startswith("REF")
+    ):
         return 0
 
     return (
@@ -161,7 +166,7 @@ def calculate_bonus_credits(referral_code: Optional[str]) -> int:
     )
 
 
-def format_phone_number(phone: Optional[str]) -> Optional[str]:
+def format_phone_number(phone: str | None) -> str | None:
     """Format phone number to standard format."""
     if not phone:
         return None
@@ -170,7 +175,7 @@ def format_phone_number(phone: Optional[str]) -> Optional[str]:
 
     if len(digits) == 10:
         return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
-    elif len(digits) == 11 and digits[0] == "1":
+    if len(digits) == 11 and digits[0] == "1":
         return f"+1 ({digits[1:4]}) {digits[4:7]}-{digits[7:]}"
 
     return None
@@ -184,13 +189,16 @@ def is_address_complete(address: AddressData) -> bool:
     # If address is provided, all fields must be filled
     if not all([address.city, address.state, address.zipcode]):
         return False
+    assert address.zipcode is not None, "Zipcode should not be None"
 
     # Validate zipcode format
     zip_str = address.zipcode
     return len(zip_str) == 5 or (len(zip_str) == 10 and zip_str[5] == "-")
 
 
-def create_user_account(data: UserRegistrationData, address: AddressData) -> dict:
+def create_user_account(
+    data: UserRegistrationData, address: AddressData
+) -> dict[str, Any]:
     """Create user account after validation."""
     return {
         "username": data.username,
@@ -199,17 +207,20 @@ def create_user_account(data: UserRegistrationData, address: AddressData) -> dic
         "country": data.country,
         "newsletter": bool(data.newsletter),
         "marketing": bool(data.marketing_consent),
-        "credits": INITIAL_CREDITS + calculate_bonus_credits(data.referral_code),
+        "credits": INITIAL_CREDITS
+        + calculate_bonus_credits(data.referral_code),
         "phone": format_phone_number(data.phone),
         "address_verified": is_address_complete(address),
-        "language": data.preferred_language if data.preferred_language in VALID_LANGUAGES else "en",
+        "language": data.preferred_language
+        if data.preferred_language in VALID_LANGUAGES
+        else "en",
         "timezone": data.timezone or "UTC",
     }
 
 
 def process_user_registration(
     registration_data: UserRegistrationData, address_data: AddressData
-) -> dict:
+) -> dict[str, Any]:
     """Process user registration with all validations and business logic."""
     try:
         # Validate all data
