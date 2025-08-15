@@ -14,10 +14,10 @@ This final version shows enterprise-level patterns:
 This version maintains low complexity while being production-ready.
 """
 
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Protocol
-import re
+from typing import Any, Protocol
 
 
 @dataclass
@@ -30,22 +30,22 @@ class UserRegistrationData:
     age: int
     country: str
     terms_accepted: bool
-    referral_code: Optional[str] = None
-    newsletter: Optional[bool] = False
-    marketing_consent: Optional[bool] = False
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    zipcode: Optional[str] = None
-    preferred_language: Optional[str] = "en"
-    timezone: Optional[str] = "UTC"
+    referral_code: str | None = None
+    newsletter: bool | None = False
+    marketing_consent: bool | None = False
+    phone: str | None = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zipcode: str | None = None
+    preferred_language: str | None = "en"
+    timezone: str | None = "UTC"
 
 
 class ValidationResult:
     """Result of a validation check."""
 
-    def __init__(self, is_valid: bool, error: Optional[str] = None):
+    def __init__(self, is_valid: bool, error: str | None = None):
         self.is_valid = is_valid
         self.error = error
 
@@ -54,7 +54,7 @@ class Validator(ABC):
     """Base validator interface."""
 
     @abstractmethod
-    def validate(self, value: any) -> ValidationResult:
+    def validate(self, value: Any) -> ValidationResult:
         pass
 
 
@@ -73,12 +73,15 @@ class UsernameValidator(Validator):
 
         if not self.min_length <= len(username) <= self.max_length:
             return ValidationResult(
-                False, f"Username must be {self.min_length}-{self.max_length} characters"
+                False,
+                f"Username must be {self.min_length}-"
+                f"{self.max_length} characters",
             )
 
         if not self.valid_pattern.match(username):
             return ValidationResult(
-                False, "Username can only contain letters, numbers, underscore, dash, or dot"
+                False, "Username can only contain letters, "
+                "numbers, underscore, dash, or dot"
             )
 
         if username.lower() in self.reserved_names:
@@ -99,7 +102,8 @@ class PasswordValidator(Validator):
 
         if len(password) < self.min_length:
             return ValidationResult(
-                False, f"Password must be at least {self.min_length} characters"
+                False,
+                f"Password must be at least {self.min_length} characters",
             )
 
         requirements = [
@@ -109,10 +113,16 @@ class PasswordValidator(Validator):
             (r"[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]", "special character"),
         ]
 
-        missing = [desc for pattern, desc in requirements if not re.search(pattern, password)]
+        missing = [
+            desc
+            for pattern, desc in requirements
+            if not re.search(pattern, password)
+        ]
 
         if missing:
-            return ValidationResult(False, f"Password must contain: {', '.join(missing)}")
+            return ValidationResult(
+                False, f"Password must contain: {', '.join(missing)}"
+            )
 
         return ValidationResult(True)
 
@@ -120,9 +130,11 @@ class PasswordValidator(Validator):
 class EmailValidator(Validator):
     """Validates email addresses."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Simple email regex - in production use a library
-        self.email_pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+        self.email_pattern = re.compile(
+            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        )
 
     def validate(self, email: str) -> ValidationResult:
         if not email:
@@ -137,7 +149,7 @@ class EmailValidator(Validator):
 class UserRepository(Protocol):
     """Interface for user data access."""
 
-    def save_user(self, user_data: dict) -> int:
+    def save_user(self, user_data: dict[str, Any]) -> int:
         """Save user and return user ID."""
         ...
 
@@ -149,7 +161,7 @@ class UserRepository(Protocol):
 class MockUserRepository:
     """Mock implementation for demo purposes."""
 
-    def save_user(self, user_data: dict) -> int:
+    def save_user(self, user_data: dict[str, Any]) -> int:
         print(f"Saving user: {user_data['username']}")
         return 12345
 
@@ -167,15 +179,21 @@ class UserRegistrationService:
         self.email_validator = EmailValidator()
 
         # Configuration
-        self.valid_countries = {"US", "UK", "CA", "AU", "DE", "FR", "IT", "ES", "JP", "CN"}
+        self.valid_countries = {
+            "US", "UK", "CA", "AU", "DE", "FR", "IT", "ES", "JP", "CN"
+        }
         self.valid_languages = {"en", "es", "fr", "de"}
         self.min_age = 13
         self.max_age = 120
         self.initial_credits = 1000
-        self.referral_bonuses = {"REF12345": 100, "REF67890": 100, "REF11111": 100}
+        self.referral_bonuses = {
+            "REF12345": 100,
+            "REF67890": 100,
+            "REF11111": 100,
+        }
         self.default_referral_bonus = 50
 
-    def register_user(self, data: UserRegistrationData) -> dict:
+    def register_user(self, data: UserRegistrationData) -> dict[str, Any]:
         """Process user registration."""
         # Validate basic fields
         validations = [
@@ -192,7 +210,9 @@ class UserRegistrationService:
         if not self.min_age <= data.age <= self.max_age:
             return {
                 "success": False,
-                "error": f"Age must be between {self.min_age} and {self.max_age}",
+                "error": (
+                    f"Age must be between {self.min_age} and {self.max_age}"
+                ),
             }
 
         # Validate country
@@ -201,7 +221,9 @@ class UserRegistrationService:
 
         # Validate terms
         if not data.terms_accepted:
-            return {"success": False, "error": "You must accept the terms and conditions"}
+            return {"success": False, "error": (
+                "You must accept the terms and conditions"
+            )}
 
         # Check username availability (in real app)
         if self.repository.username_exists(data.username):
@@ -215,7 +237,7 @@ class UserRegistrationService:
 
         return {"success": True, "user_id": user_id, "data": user_data}
 
-    def _build_user_data(self, data: UserRegistrationData) -> dict:
+    def _build_user_data(self, data: UserRegistrationData) -> dict[str, Any]:
         """Build user data dictionary from registration data."""
         return {
             "username": data.username,
@@ -233,19 +255,23 @@ class UserRegistrationService:
             "timezone": data.timezone or "UTC",
         }
 
-    def _calculate_credits(self, referral_code: Optional[str]) -> int:
+    def _calculate_credits(self, referral_code: str | None) -> int:
         """Calculate total credits including referral bonus."""
-        if not referral_code or not self._is_valid_referral_format(referral_code):
+        if not referral_code or not (
+            self._is_valid_referral_format(referral_code)
+        ):
             return self.initial_credits
 
-        bonus = self.referral_bonuses.get(referral_code, self.default_referral_bonus)
+        bonus = self.referral_bonuses.get(
+            referral_code, self.default_referral_bonus
+        )
         return self.initial_credits + bonus
 
     def _is_valid_referral_format(self, code: str) -> bool:
         """Check if referral code has valid format."""
         return len(code) == 8 and code.startswith("REF")
 
-    def _format_phone(self, phone: Optional[str]) -> Optional[str]:
+    def _format_phone(self, phone: str | None) -> str | None:
         """Format phone number."""
         if not phone:
             return None
@@ -254,7 +280,7 @@ class UserRegistrationService:
 
         if len(digits) == 10:
             return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
-        elif len(digits) == 11 and digits[0] == "1":
+        if len(digits) == 11 and digits[0] == "1":
             return f"+1 ({digits[1:4]}) {digits[4:7]}-{digits[7:]}"
 
         return None
@@ -262,18 +288,22 @@ class UserRegistrationService:
     def _is_address_complete(self, data: UserRegistrationData) -> bool:
         """Check if address is complete."""
         if not data.address:
-            return True
+            return False
 
         has_all_fields = all([data.city, data.state, data.zipcode])
         if not has_all_fields:
             return False
+
+        assert data.zipcode is not None, (
+            "Zipcode should not be None"  # Ensure zipcode is not None
+        )
 
         # Simple zipcode validation
         return bool(re.match(r"^\d{5}(-\d{4})?$", data.zipcode))
 
 
 # Example usage
-def main():
+def main() -> None:
     """Example of how to use the registration service."""
     # Create repository and service
     repository = MockUserRepository()

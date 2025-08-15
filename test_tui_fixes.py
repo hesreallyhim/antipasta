@@ -2,11 +2,11 @@
 """Test script to verify TUI fixes."""
 
 import subprocess
-import time
 import sys
+import time
 
 
-def test_mouse_tracking():
+def test_mouse_tracking() -> None:
     """Test that mouse tracking is properly disabled after TUI exits."""
     print("Testing mouse tracking cleanup...")
 
@@ -22,8 +22,9 @@ def test_mouse_tracking():
     time.sleep(1)
 
     # Send quit command
-    proc.stdin.write(b"q")
-    proc.stdin.flush()
+    if proc.stdin:
+        proc.stdin.write(b"q")
+        proc.stdin.flush()
 
     # Wait for exit
     proc.wait(timeout=2)
@@ -31,10 +32,12 @@ def test_mouse_tracking():
     print("TUI exited. Move your mouse - if you see output, cleanup failed.")
     print("Waiting 3 seconds...")
     time.sleep(3)
-    print("Test complete. If no mouse tracking output appeared, the fix worked!")
+    print(
+        "Test complete. If no mouse tracking output appeared, the fix worked!"
+    )
 
 
-def test_command_palette():
+def test_command_palette() -> None:
     """Test command palette markup fix."""
     print("\nTo test command palette:")
     print("1. Run: code-cop tui")

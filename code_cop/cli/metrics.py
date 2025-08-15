@@ -32,7 +32,12 @@ from code_cop.terminal import TerminalDashboard
 @click.option(
     "--directory",
     "-d",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    type=click.Path(
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        path_type=Path
+    ),
     help="Directory to analyze recursively",
 )
 @click.option(
@@ -48,7 +53,11 @@ from code_cop.terminal import TerminalDashboard
     help="Output format (text, terminal for TUI, or json)",
 )
 def metrics(
-    config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool, format: str
+    config: Path,
+    files: tuple[Path, ...],
+    directory: Path | None,
+    quiet: bool,
+    format: str
 ) -> None:
     """Analyze code metrics for specified files.
 
@@ -56,7 +65,8 @@ def metrics(
     """
     # Launch terminal UI if requested
     if format == "terminal":
-        # For terminal UI, use directory if specified, otherwise current directory
+        # For terminal UI, use directory if specified,
+        # otherwise current directory
         project_path = directory if directory else Path.cwd()
         app = TerminalDashboard(project_path=str(project_path))
         app.run()
@@ -71,8 +81,11 @@ def metrics(
     # If no files or directory specified, default to current directory
     if not file_paths and not files and not directory:
         if not quiet:
-            click.echo("No files or directory specified, analyzing current directory...")
-        file_paths = _collect_files(tuple(), Path.cwd(), cfg)
+            click.echo(
+                "No files or directory specified, "
+                "analyzing current directory..."
+            )
+        file_paths = _collect_files((), Path.cwd(), cfg)
 
     if not file_paths:
         click.echo("No files found to analyze", err=True)
@@ -150,7 +163,11 @@ def _load_configuration(config: Path, quiet: bool) -> CodeCopConfig:
         sys.exit(1)
 
 
-def _collect_files(files: tuple[Path, ...], directory: Path | None, config: CodeCopConfig) -> list[Path]:
+def _collect_files(
+    files: tuple[Path, ...],
+    directory: Path | None,
+    config: CodeCopConfig
+) -> list[Path]:
     """Collect all files to analyze, respecting gitignore patterns."""
     # Create a detector with config's ignore patterns
     detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
@@ -166,7 +183,7 @@ def _collect_files(files: tuple[Path, ...], directory: Path | None, config: Code
     # Add files from directory if specified
     if directory:
         patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-        all_files = []
+        all_files: list[Path] = []
         for pattern in patterns:
             all_files.extend(directory.glob(pattern))
 

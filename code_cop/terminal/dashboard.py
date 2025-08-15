@@ -1,12 +1,11 @@
 """Terminal Dashboard Application for code-cop."""
 
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
 
 from textual import events
 from textual.app import App, ComposeResult
-from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.widgets import Footer, Header
 
@@ -28,6 +27,38 @@ from code_cop.terminal.widgets import (
     LoadingScreen,
     MetricsOverviewWidget,
 )
+
+if TYPE_CHECKING:
+    from textual.binding import Binding
+
+
+# Protocols for widget actions
+@runtime_checkable
+class CanScroll(Protocol):
+    def action_scroll_down(self) -> None: ...
+    def action_scroll_up(self) -> None: ...
+
+
+@runtime_checkable
+class CanJump(Protocol):
+    def action_first(self) -> None: ...
+    def action_last(self) -> None: ...
+
+
+@runtime_checkable
+class CanPage(Protocol):
+    def action_page_up(self) -> None: ...
+    def action_page_down(self) -> None: ...
+
+
+@runtime_checkable
+class CanToggle(Protocol):
+    def toggle(self) -> None: ...
+
+
+@runtime_checkable
+class CanSelect(Protocol):
+    def action_select(self) -> None: ...
 
 
 class TerminalDashboard(App[None]):
@@ -75,15 +106,24 @@ class TerminalDashboard(App[None]):
             # Right side - Main content area
             with Vertical(id="main-content"):
                 # Top - Metrics overview
-                yield MetricsOverviewWidget(id="metrics-widget", classes="metrics-overview")
+                yield MetricsOverviewWidget(
+                    id="metrics-widget",
+                    classes="metrics-overview"
+                )
 
                 # Bottom panels
                 with Horizontal():
                     # Heatmap visualization
-                    yield HeatmapWidget(id="heatmap-widget", classes="heatmap")
+                    yield HeatmapWidget(
+                        id="heatmap-widget",
+                        classes="heatmap"
+                    )
 
                     # Detail view
-                    yield DetailViewWidget(id="detail-widget", classes="detail-view")
+                    yield DetailViewWidget(
+                        id="detail-widget",
+                        classes="detail-view"
+                    )
 
     def on_mount(self) -> None:
         """Initialize the dashboard when mounted."""
@@ -149,7 +189,9 @@ class TerminalDashboard(App[None]):
         except Exception as e:
             loading_screen.remove()
             self.mount(Footer())  # Ensure footer is added even on error
-            self.notify(f"Error during initial analysis: {e}", severity="error")
+            self.notify(
+                f"Error during initial analysis: {e}", severity="error"
+            )
 
     async def action_quit(self) -> None:
         """Quit the application."""
@@ -161,11 +203,11 @@ class TerminalDashboard(App[None]):
         from code_cop.terminal.cleanup import disable_mouse_tracking
         disable_mouse_tracking()
 
-    def _on_exit_app(self) -> None:
+    async def _on_exit_app(self) -> None:
         """Handle app exit."""
         from code_cop.terminal.cleanup import disable_mouse_tracking
         disable_mouse_tracking()
-        super()._on_exit_app()
+        await super()._on_exit_app()
 
     def action_show_help(self) -> None:
         """Show help information."""
@@ -303,14 +345,14 @@ class TerminalDashboard(App[None]):
     def action_move_down(self) -> None:
         """Move focus down (vim j)."""
         focused = self.focused
-        if focused and hasattr(focused, "action_cursor_down"):
-            focused.action_cursor_down()
+        if isinstance(focused, CanScroll):
+            focused.action_scroll_down()
 
     def action_move_up(self) -> None:
         """Move focus up (vim k)."""
         focused = self.focused
-        if focused and hasattr(focused, "action_cursor_up"):
-            focused.action_cursor_up()
+        if isinstance(focused, CanScroll):
+            focused.action_scroll_up()
 
     def action_move_left(self) -> None:
         """Move focus left (vim h)."""
@@ -323,25 +365,25 @@ class TerminalDashboard(App[None]):
     def action_move_top(self) -> None:
         """Move to top (vim gg)."""
         focused = self.focused
-        if focused and hasattr(focused, "action_first"):
+        if isinstance(focused, CanJump):
             focused.action_first()
 
     def action_move_bottom(self) -> None:
         """Move to bottom (vim G)."""
         focused = self.focused
-        if focused and hasattr(focused, "action_last"):
+        if isinstance(focused, CanJump):
             focused.action_last()
 
     def action_page_up(self) -> None:
         """Page up (vim ctrl+u)."""
         focused = self.focused
-        if focused and hasattr(focused, "action_page_up"):
+        if isinstance(focused, CanPage):
             focused.action_page_up()
 
     def action_page_down(self) -> None:
         """Page down (vim ctrl+d)."""
         focused = self.focused
-        if focused and hasattr(focused, "action_page_down"):
+        if isinstance(focused, CanPage):
             focused.action_page_down()
 
     # Focus navigation actions
@@ -370,7 +412,9 @@ class TerminalDashboard(App[None]):
         if self.focused and hasattr(self.focused, "id"):
             current_id = self.focused.id
             if current_id:
-                target_id = self.focus_manager.get_directional_target(current_id, direction)
+                target_id = self.focus_manager.get_directional_target(
+                    current_id, direction
+                )
                 if target_id:
                     try:
                         target_widget = self.query_one(f"#{target_id}")
@@ -386,25 +430,37 @@ class TerminalDashboard(App[None]):
 
             # Update metrics overview widget
             try:
-                metrics_widget = self.query_one("#metrics-widget", MetricsOverviewWidget)
+                metrics_widget = self.query_one(
+                    "#metrics-widget", MetricsOverviewWidget
+                )
                 metrics_summary = self.data_bridge.get_metrics_summary()
-                self.log.info(f"Updating metrics widget with summary: total_files={metrics_summary.get('total_files', 0)}")
+                self.log.info(
+                    f"Updating metrics widget with summary: "
+                    f"total_files={metrics_summary.get('total_files', 0)}"
+                )
                 metrics_widget.update_metrics(metrics_summary)
             except Exception as e:
                 self.log.error(f"Failed to update metrics widget: {e}")
 
             # Update file tree widget
             try:
-                file_tree_widget = self.query_one("#file-tree-widget", FileTreeWidget)
+                file_tree_widget = self.query_one(
+                    "#file-tree-widget", FileTreeWidget
+                )
                 tree_data = self.data_bridge.get_file_tree()
-                self.log.info(f"Tree data has {len(tree_data.get('children', {}))} root items")
+                self.log.info(
+                    f"Tree data has {len(tree_data.get('children', {}))} "
+                    f"root items"
+                )
                 file_tree_widget.update_tree_data(tree_data)
             except Exception as e:
                 self.log.error(f"Failed to update file tree: {e}")
 
             # Update heatmap widget
             try:
-                heatmap_widget = self.query_one("#heatmap-widget", HeatmapWidget)
+                heatmap_widget = self.query_one(
+                    "#heatmap-widget", HeatmapWidget
+                )
                 heatmap_data = self.data_bridge.get_heatmap_data()
                 heatmap_widget.update_heatmap(heatmap_data)
             except Exception as e:
@@ -437,7 +493,10 @@ class TerminalDashboard(App[None]):
 
     def on_file_selected(self, message: FileSelected) -> None:
         """Handle file selection from the file tree."""
-        self.log.info(f"File selected: {message.file_path}, has report: {message.report is not None}")
+        self.log.info(
+            f"File selected: {message.file_path}, "
+            f"has report: {message.report is not None}"
+        )
 
         # Update detail view with selected file
         try:
@@ -500,13 +559,13 @@ class TerminalDashboard(App[None]):
     def action_toggle_expand(self) -> None:
         """Toggle expand/collapse in focused widget."""
         focused = self.focused
-        if focused and hasattr(focused, "toggle"):
+        if isinstance(focused, CanToggle):
             focused.toggle()
 
     def action_select(self) -> None:
         """Select item in focused widget."""
         focused = self.focused
-        if focused and hasattr(focused, "action_select"):
+        if isinstance(focused, CanSelect):
             focused.action_select()
 
 
