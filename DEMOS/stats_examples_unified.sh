@@ -1,0 +1,44 @@
+#!/bin/bash
+# Examples of the unified stats command - efficient single analysis
+
+echo "=== UNIFIED STATS COMMAND ==="
+echo "The stats command now analyzes files only once!"
+echo
+
+echo "=== Basic Statistics (displayed to terminal) ==="
+code-cop stats --pattern "**/*.py"
+
+echo -e "\n=== Save to file ==="
+code-cop stats --pattern "**/*.py" --output stats.txt
+echo "Saved to stats.txt"
+
+echo -e "\n=== Export as JSON ==="
+code-cop stats --pattern "**/*.py" --format json --output stats.json
+echo "Saved to stats.json"
+
+echo -e "\n=== Export as CSV ==="
+code-cop stats --pattern "**/*.py" --format csv --output stats.csv
+echo "Saved to stats.csv"
+
+echo -e "\n=== Statistics by Directory ==="
+code-cop stats --pattern "**/*.py" --by-directory
+
+echo -e "\n=== Statistics by Module ==="
+code-cop stats --pattern "**/*.py" --by-module
+
+echo -e "\n=== Generate ALL reports at once (9 files from 1 analysis!) ==="
+code-cop stats --pattern "**/*.py" --format all --output ./all_reports/
+echo
+ls -la ./all_reports/
+
+echo -e "\n=== Include additional metrics ==="
+code-cop stats --pattern "**/*.py" \
+    --metric cyclomatic_complexity \
+    --metric cognitive_complexity \
+    --metric maintainability_index
+
+echo -e "\n=== Key Features ==="
+echo "✓ Single analysis for any output format"
+echo "✓ Save to file with --output"
+echo "✓ Generate all 9 report combinations with --format all"
+echo "✓ Efficient performance - no redundant analysis!"

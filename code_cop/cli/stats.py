@@ -1,5 +1,6 @@
 """Statistics command for code metrics analysis."""
 
+import json
 import statistics
 from collections import defaultdict
 from pathlib import Path
@@ -44,9 +45,15 @@ from code_cop.core.metrics import MetricType
 )
 @click.option(
     "--format",
-    type=click.Choice(["table", "json", "csv"]),
+    type=click.Choice(["table", "json", "csv", "all"]),
     default="table",
-    help="Output format",
+    help="Output format (use 'all' to generate all formats)",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(file_okay=True, dir_okay=True, path_type=Path),
+    help="Output file or directory (for 'all' format)",
 )
 def stats(
     pattern: tuple[str, ...],
@@ -55,6 +62,7 @@ def stats(
     by_module: bool,
     metric: tuple[str, ...],
     format: str,
+    output: Path | None,
 ) -> None:
     """Collect and display code metrics statistics.
 
@@ -120,21 +128,29 @@ def stats(
     click.echo(f"\nAnalyzing {analyzable_files} Python files...")
     reports = aggregator.analyze_files(files)
 
-    # Collect statistics
-    if by_directory:
-        stats_data = _collect_directory_stats(reports, metric)
-    elif by_module:
-        stats_data = _collect_module_stats(reports, metric)
+    # Handle 'all' format - generate all reports
+    if format == "all":
+        _generate_all_reports(reports, metric, output or Path("."))
     else:
-        stats_data = _collect_overall_stats(reports, metric)
+        # Collect statistics based on grouping
+        if by_directory:
+            stats_data = _collect_directory_stats(reports, metric)
+        elif by_module:
+            stats_data = _collect_module_stats(reports, metric)
+        else:
+            stats_data = _collect_overall_stats(reports, metric)
 
-    # Display results
-    if format == "json":
-        _display_json(stats_data)
-    elif format == "csv":
-        _display_csv(stats_data)
-    else:
-        _display_table(stats_data)
+        # Display or save results
+        if output:
+            _save_stats(stats_data, format, output)
+            click.echo(f"✓ Saved to {output}")
+        else:
+            if format == "json":
+                _display_json(stats_data)
+            elif format == "csv":
+                _display_csv(stats_data)
+            else:
+                _display_table(stats_data)
 
 
 def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
@@ -491,3 +507,89 @@ def _display_csv(stats_data: dict[str, Any]) -> None:
             for key in sorted(all_keys):
                 row.append(data.get(key, 0))
             writer.writerow(row)
+
+
+def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> None:
+    """Save statistics to a file."""
+    if format == "json":
+        with open(output_path, "w") as f:
+            json.dump(stats_data, f, indent=2)
+    elif format == "csv":
+        import csv
+        with open(output_path, "w") as f:
+            if isinstance(stats_data, dict) and "files" in stats_data:
+                # Overall statistics
+                writer = csv.writer(f)
+                writer.writerow(["Metric", "Value"])
+                writer.writerow(["Total Files", stats_data["files"]["count"]])
+                writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
+                writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
+                writer.writerow(["Total Functions", stats_data["functions"]["count"]])
+                if "avg_complexity" in stats_data["functions"]:
+                    writer.writerow(["Average Function Complexity", stats_data["functions"]["avg_complexity"]])
+            else:
+                # Directory/module statistics
+                if stats_data:
+                    all_keys = set()
+                    for data in stats_data.values():
+                        all_keys.update(data.keys())
+
+                    writer = csv.writer(f)
+                    headers = ["location"] + sorted(all_keys)
+                    writer.writerow(headers)
+
+                    for location, data in sorted(stats_data.items()):
+                        row = [location]
+                        for key in sorted(all_keys):
+                            row.append(data.get(key, 0))
+                        writer.writerow(row)
+    else:  # table format
+        import contextlib
+        import io
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            _display_table(stats_data)
+        with open(output_path, "w") as f:
+            f.write(buffer.getvalue())
+
+
+def _generate_all_reports(reports: list[Any], metrics: tuple[str, ...], output_dir: Path) -> None:
+    """Generate all report formats from a single analysis."""
+    # Create output directory if needed
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    click.echo(f"\nGenerating all reports in {output_dir}...")
+
+    # Generate all three groupings
+    overall_stats = _collect_overall_stats(reports, metrics)
+    dir_stats = _collect_directory_stats(reports, metrics)
+    module_stats = _collect_module_stats(reports, metrics)
+
+    # Save each grouping in each format
+    formats_saved = 0
+
+    # Overall statistics
+    for fmt, ext in [("json", "json"), ("csv", "csv"), ("table", "txt")]:
+        output_file = output_dir / f"stats_overall.{ext}"
+        _save_stats(overall_stats, fmt, output_file)
+        click.echo(f"  ✓ Overall statistics ({fmt.upper()}): {output_file}")
+        formats_saved += 1
+
+    # Directory statistics
+    for fmt, ext in [("json", "json"), ("csv", "csv"), ("table", "txt")]:
+        output_file = output_dir / f"stats_by_directory.{ext}"
+        _save_stats(dir_stats, fmt, output_file)
+        click.echo(f"  ✓ Directory statistics ({fmt.upper()}): {output_file}")
+        formats_saved += 1
+
+    # Module statistics
+    for fmt, ext in [("json", "json"), ("csv", "csv"), ("table", "txt")]:
+        output_file = output_dir / f"stats_by_module.{ext}"
+        _save_stats(module_stats, fmt, output_file)
+        click.echo(f"  ✓ Module statistics ({fmt.upper()}): {output_file}")
+        formats_saved += 1
+
+    click.echo(f"\n✅ Generated {formats_saved} report files from a single analysis!")
+    click.echo(f"   Total files analyzed: {len(reports)}")
+    click.echo(f"   Total functions found: {overall_stats['functions']['count']}")
+    click.echo(f"   Total LOC: {overall_stats['files']['total_loc']:,.0f}")
