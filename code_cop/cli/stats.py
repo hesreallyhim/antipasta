@@ -3,7 +3,7 @@
 import statistics
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 
@@ -159,7 +159,8 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ..
 
     # Collect LOC per file
     file_locs = []
-    function_locs = []
+    function_names = set()  # Track unique function names
+    function_complexities = []  # Use complexity as proxy for function size
 
     for report in reports:
         # File LOC
@@ -174,11 +175,14 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ..
         if file_loc > 0:
             file_locs.append(file_loc)
 
-        # Function LOCs
+        # Collect function-level metrics
+        # Since LOC per function isn't available, use cyclomatic complexity
         for metric in report.metrics:
-            if metric.metric_type == MetricType.LINES_OF_CODE and metric.function_name:
-                function_locs.append(metric.value)
-                stats["functions"]["count"] += 1
+            if metric.function_name:  # Any metric with a function name
+                function_names.add((report.file_path, metric.function_name))
+                # Use cyclomatic complexity as a proxy for function complexity
+                if metric.metric_type == MetricType.CYCLOMATIC_COMPLEXITY:
+                    function_complexities.append(metric.value)
 
     # Calculate file statistics
     if file_locs:
@@ -190,11 +194,13 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ..
             stats["files"]["std_dev"] = statistics.stdev(file_locs)
 
     # Calculate function statistics
-    if function_locs:
-        stats["functions"]["total_loc"] = sum(function_locs)
-        stats["functions"]["avg_loc"] = statistics.mean(function_locs)
-        stats["functions"]["min_loc"] = min(function_locs)
-        stats["functions"]["max_loc"] = max(function_locs)
+    stats["functions"]["count"] = len(function_names)
+    if function_complexities:
+        # Since we don't have LOC per function, report complexity instead
+        stats["functions"]["avg_complexity"] = statistics.mean(function_complexities)
+        stats["functions"]["min_complexity"] = min(function_complexities)
+        stats["functions"]["max_complexity"] = max(function_complexities)
+        # Note: We're not setting LOC metrics for functions since they're not available
 
     # Add additional metrics if requested
     for metric_name in metrics_to_include:
@@ -205,17 +211,17 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ..
 
 def _collect_directory_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
     """Collect statistics grouped by directory."""
-    dir_stats: dict[Any, dict[str, Any]] = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
+    dir_stats: dict[Any, dict[str, Any]] = defaultdict(lambda: {"files": [], "function_names": set(), "metrics": defaultdict(list)})
 
     # Group reports by directory
     for report in reports:
         dir_path = report.file_path.parent
         dir_stats[dir_path]["files"].append(report)
 
-        # Collect function-level metrics
+        # Collect unique function names
         for metric in report.metrics:
             if metric.function_name:
-                dir_stats[dir_path]["functions"].append(metric)
+                dir_stats[dir_path]["function_names"].add(metric.function_name)
 
             # Collect additional metrics
             if metric.metric_type.value in metrics_to_include:
@@ -238,18 +244,10 @@ def _collect_directory_stats(reports: list[Any], metrics_to_include: tuple[str, 
             if file_loc > 0:
                 file_locs.append(file_loc)
 
-        # Function LOCs in this directory
-        function_locs = [
-            m.value for m in data["functions"] if m.metric_type == MetricType.LINES_OF_CODE
-        ]
-
         results[str(dir_path)] = {
             "file_count": len(data["files"]),
-            "function_count": len(
-                set(m.function_name for m in data["functions"] if m.function_name)
-            ),
+            "function_count": len(data["function_names"]),
             "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
-            "avg_function_loc": statistics.mean(function_locs) if function_locs else 0,
             "total_loc": sum(file_locs),
         }
 
@@ -263,7 +261,7 @@ def _collect_directory_stats(reports: list[Any], metrics_to_include: tuple[str, 
 
 def _collect_module_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
     """Collect statistics grouped by Python module."""
-    module_stats: dict[str, dict[str, Any]] = defaultdict(lambda: {"files": [], "functions": [], "metrics": defaultdict(list)})
+    module_stats: dict[str, dict[str, Any]] = defaultdict(lambda: {"files": [], "function_names": set(), "metrics": defaultdict(list)})
 
     # Group reports by module
     for report in reports:
@@ -282,10 +280,10 @@ def _collect_module_stats(reports: list[Any], metrics_to_include: tuple[str, ...
         module_name = ".".join(module_parts) if module_parts else "<root>"
         module_stats[module_name]["files"].append(report)
 
-        # Collect metrics
+        # Collect unique function names
         for metric in report.metrics:
             if metric.function_name:
-                module_stats[module_name]["functions"].append(metric)
+                module_stats[module_name]["function_names"].add(metric.function_name)
 
             if metric.metric_type.value in metrics_to_include:
                 module_stats[module_name]["metrics"][metric.metric_type.value].append(metric.value)
@@ -307,17 +305,10 @@ def _collect_module_stats(reports: list[Any], metrics_to_include: tuple[str, ...
             if file_loc > 0:
                 file_locs.append(file_loc)
 
-        function_locs = [
-            m.value for m in data["functions"] if m.metric_type == MetricType.LINES_OF_CODE
-        ]
-
         results[module_name] = {
             "file_count": len(data["files"]),
-            "function_count": len(
-                set(m.function_name for m in data["functions"] if m.function_name)
-            ),
+            "function_count": len(data["function_names"]),
             "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
-            "avg_function_loc": statistics.mean(function_locs) if function_locs else 0,
             "total_loc": sum(file_locs),
         }
 
@@ -377,9 +368,15 @@ def _display_table(stats_data: dict[str, Any]) -> None:
         click.echo("\nFUNCTION STATISTICS:")
         click.echo(f"  Total functions: {stats_data['functions']['count']}")
         if stats_data["functions"]["count"] > 0:
-            click.echo(f"  Average LOC per function: {stats_data['functions']['avg_loc']:.1f}")
-            click.echo(f"  Min LOC: {stats_data['functions']['min_loc']}")
-            click.echo(f"  Max LOC: {stats_data['functions']['max_loc']}")
+            if "avg_complexity" in stats_data["functions"]:
+                click.echo(f"  Average complexity: {stats_data['functions']['avg_complexity']:.1f}")
+                click.echo(f"  Min complexity: {stats_data['functions']['min_complexity']:.1f}")
+                click.echo(f"  Max complexity: {stats_data['functions']['max_complexity']:.1f}")
+            elif "avg_loc" in stats_data["functions"]:
+                # Fallback to LOC if available (for backward compatibility)
+                click.echo(f"  Average LOC per function: {stats_data['functions']['avg_loc']:.1f}")
+                click.echo(f"  Min LOC: {stats_data['functions']['min_loc']}")
+                click.echo(f"  Max LOC: {stats_data['functions']['max_loc']}")
 
         # Additional metrics
         for key, value in stats_data.items():
@@ -404,7 +401,7 @@ def _display_table(stats_data: dict[str, Any]) -> None:
             all_keys.update(data.keys())
 
         # Create header
-        headers = ["Location", "Files", "Functions", "Avg File LOC", "Avg Func LOC", "Total LOC"]
+        headers = ["Location", "Files", "Functions", "Avg File LOC", "Total LOC"]
         for key in sorted(all_keys):
             if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
                 headers.append(key.replace("avg_", "Avg ").replace("_", " ").title())
@@ -420,7 +417,6 @@ def _display_table(stats_data: dict[str, Any]) -> None:
                 str(data.get("file_count", 0)),
                 str(data.get("function_count", 0)),
                 f"{data.get('avg_file_loc', 0):.1f}",
-                f"{data.get('avg_function_loc', 0):.1f}",
                 f"{data.get('total_loc', 0):,}",
             ]
 
@@ -433,7 +429,7 @@ def _display_table(stats_data: dict[str, Any]) -> None:
 
 def _format_table_row(values: list[Any]) -> str:
     """Format a row for table display."""
-    widths = [30, 8, 10, 12, 12, 10] + [15] * (len(values) - 6)
+    widths = [30, 8, 10, 12, 10] + [15] * (len(values) - 5)
     formatted = []
     for i, value in enumerate(values):
         if i < len(widths):
@@ -470,7 +466,10 @@ def _display_csv(stats_data: dict[str, Any]) -> None:
         writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
         writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
         writer.writerow(["Total Functions", stats_data["functions"]["count"]])
-        writer.writerow(["Average LOC per Function", stats_data["functions"]["avg_loc"]])
+        if "avg_complexity" in stats_data["functions"]:
+            writer.writerow(["Average Function Complexity", stats_data["functions"]["avg_complexity"]])
+        elif "avg_loc" in stats_data["functions"]:
+            writer.writerow(["Average LOC per Function", stats_data["functions"]["avg_loc"]])
     else:
         # Directory/module statistics
         if not stats_data:

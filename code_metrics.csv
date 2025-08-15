@@ -1,10 +1,14 @@
-Analyzing 2315 files...
+Found 2315 files matching patterns
+  - 2254 ignored (matching .gitignore or ignore patterns)
+  - 61 python files ✓
+
+Analyzing 61 Python files...
 location,avg_file_loc,avg_function_loc,file_count,function_count,total_loc
 .,141.4,0,5,10,707.0
 DEMOS,185.8,0,5,62,929.0
 DEMOS/TUTORIAL,237.875,0,8,83,1903.0
 code_cop,4.5,0,2,0,9.0
-code_cop/cli,139.16666666666666,0,6,18,835.0
+code_cop/cli,143.83333333333334,0,6,18,863.0
 code_cop/core,152.0,0,6,57,760.0
 code_cop/hooks,0,0,1,0,0
 code_cop/runners,44.0,0,2,6,44.0
