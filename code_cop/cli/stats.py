@@ -66,18 +66,25 @@ def stats(
 ) -> None:
     """Collect and display code metrics statistics.
 
+    Performs analysis once and can output in multiple formats.
+
     Examples:
-        # Average LOC for all Python files
+        # Display overall statistics in terminal
         code-cop stats -p "**/*.py"
 
-        # Stats by directory for specific folders
+        # Stats by directory
         code-cop stats -p "src/**/*.py" -p "tests/**/*.py" --by-directory
 
-        # Include complexity metrics
+        # Include additional metrics
         code-cop stats -p "**/*.py" -m cyclomatic_complexity -m cognitive_complexity
 
-        # Export as CSV
-        code-cop stats -p "**/*.py" --format csv > metrics.csv
+        # Save to file
+        code-cop stats -p "**/*.py" --output report.txt
+        code-cop stats -p "**/*.py" --format json --output report.json
+        code-cop stats -p "**/*.py" --format csv --output report.csv
+
+        # Generate ALL formats at once (9 files from 1 analysis!)
+        code-cop stats -p "**/*.py" --format all --output ./reports/
     """
     # Default patterns if none specified
     if not pattern:

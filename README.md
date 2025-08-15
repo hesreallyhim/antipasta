@@ -74,14 +74,23 @@ code-cop stats --pattern "**/*.py"
 # Statistics grouped by directory
 code-cop stats --pattern "**/*.py" --by-directory
 
-# Include complexity metrics in statistics
+# Statistics grouped by module (Python packages)
+code-cop stats --pattern "**/*.py" --by-module
+
+# Include additional metrics in statistics
 code-cop stats --pattern "**/*.py" --metric cyclomatic_complexity --metric cognitive_complexity
 
-# Export statistics as CSV
-code-cop stats --pattern "**/*.py" --format csv > metrics.csv
+# Save results to a file
+code-cop stats --pattern "**/*.py" --output report.txt
+code-cop stats --pattern "**/*.py" --format json --output report.json
+code-cop stats --pattern "**/*.py" --format csv --output report.csv
 
-# Export as JSON for further processing
-code-cop stats --pattern "**/*.py" --format json > metrics.json
+# Generate ALL report formats at once (9 files from 1 analysis!)
+code-cop stats --pattern "**/*.py" --format all --output ./reports/
+# This creates:
+#   - stats_overall.{json,csv,txt}
+#   - stats_by_directory.{json,csv,txt}
+#   - stats_by_module.{json,csv,txt}
 ```
 
 ## Configuration

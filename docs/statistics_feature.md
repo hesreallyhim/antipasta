@@ -70,14 +70,35 @@ code-cop stats --pattern "**/*.py"
 ### JSON
 Machine-readable format for further processing:
 ```bash
-code-cop stats --pattern "**/*.py" --format json > metrics.json
+code-cop stats --pattern "**/*.py" --format json
 ```
 
 ### CSV
 For spreadsheet analysis:
 ```bash
-code-cop stats --pattern "**/*.py" --by-directory --format csv > metrics.csv
+code-cop stats --pattern "**/*.py" --by-directory --format csv
 ```
+
+### Saving to Files
+Save any format to a file instead of stdout:
+```bash
+code-cop stats --pattern "**/*.py" --output report.txt
+code-cop stats --pattern "**/*.py" --format json --output metrics.json
+code-cop stats --pattern "**/*.py" --format csv --output metrics.csv
+```
+
+### Generate All Formats (New!)
+Analyze once and generate all 9 report combinations:
+```bash
+code-cop stats --pattern "**/*.py" --format all --output ./reports/
+```
+
+This creates:
+- `stats_overall.json`, `stats_overall.csv`, `stats_overall.txt`
+- `stats_by_directory.json`, `stats_by_directory.csv`, `stats_by_directory.txt`
+- `stats_by_module.json`, `stats_by_module.csv`, `stats_by_module.txt`
+
+Perfect for comprehensive reporting with a single analysis pass!
 
 ## Metrics Explained
 
@@ -89,7 +110,9 @@ code-cop stats --pattern "**/*.py" --by-directory --format csv > metrics.csv
 
 ### Function Statistics
 - **Total functions**: Number of functions/methods analyzed
-- **Average LOC per function**: Mean function size (when available)
+- **Average complexity**: Mean cyclomatic complexity of functions
+- **Min/Max complexity**: Range of function complexities
+(Note: Function-level LOC is not currently available from analyzers)
 
 ### Additional Metrics
 When included with `--metric` flag:
