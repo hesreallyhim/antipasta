@@ -60,7 +60,7 @@ test-cov: install-dev  ## Run tests with coverage report
 	@mkdir -p .coverage
 	# Set up trap to clean up on interrupt (Ctrl+C) and preserve final .coverage file if it exists
 	@trap 'mv .coverage/.coverage .coverage.tmp 2>/dev/null; rm -rf .coverage 2>/dev/null; mv .coverage.tmp .coverage 2>/dev/null || true' EXIT INT TERM; \
-	$(VENV_DIR)/bin/pytest --cov=code_cop --cov-branch --cov-report=term-missing --cov-report=html -p no:cacheprovider; \
+	$(VENV_DIR)/bin/pytest --cov=antipasta --cov-branch --cov-report=term-missing --cov-report=html -p no:cacheprovider; \
 	mv .coverage/.coverage .coverage 2>/dev/null || true
 
 check: lint type-check test  ## Run all quality checks (lint, type-check, test)

@@ -127,7 +127,7 @@
       "type": "string"
     }
   },
-  "description": "Schema for .code_cop.yaml configuration files",
+  "description": "Schema for .antipasta.yaml configuration files",
   "properties": {
     "defaults": {
       "$ref": "#/$defs/DefaultsConfig"

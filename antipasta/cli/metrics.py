@@ -62,7 +62,7 @@ def metrics(
 
     Exits with code 0 if all metrics pass, 2 if violations found.
 
-    For an interactive terminal UI, use 'code-cop tui' instead.
+    For an interactive terminal UI, use 'antipasta tui' instead.
     """
     # Load configuration
     cfg = _load_configuration(config, quiet)

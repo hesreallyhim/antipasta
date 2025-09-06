@@ -1,6 +1,6 @@
-"""Configuration models and loading for code-cop.
+"""Configuration models and loading for antipasta.
 
-This module provides Pydantic models for code-cop configuration,
+This module provides Pydantic models for antipasta configuration,
 including metric thresholds, language settings, and project defaults.
 """
 

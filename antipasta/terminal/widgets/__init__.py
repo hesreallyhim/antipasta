@@ -1,4 +1,4 @@
-"""Terminal UI widgets for code-cop dashboard."""
+"""Terminal UI widgets for antipasta dashboard."""
 
 __all__ = [
     "FileTreeWidget",

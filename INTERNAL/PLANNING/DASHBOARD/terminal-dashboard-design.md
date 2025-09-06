@@ -28,7 +28,7 @@ The terminal dashboard provides a rich, interactive TUI (Terminal User Interface
 └────────────────────┬────────────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────────────┐
-│                    Code-Cop Core Engine                         │
+│                    antipasta Core Engine                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

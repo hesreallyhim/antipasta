@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def extract_metrics(output: str) -> dict:
-    """Extract key metrics from code-cop output."""
+    """Extract key metrics from antipasta output."""
     metrics = {
         "cyclomatic": None,
         "cognitive": None,
@@ -52,9 +52,9 @@ def main():
     results = []
 
     for file in version_files:
-        # Run code-cop on each file
+        # Run antipasta on each file
         result = subprocess.run(
-            ["code-cop", "metrics", "--files", str(file)], capture_output=True, text=True
+            ["antipasta", "metrics", "--files", str(file)], capture_output=True, text=True
         )
 
         metrics = extract_metrics(result.stderr)

@@ -1,8 +1,8 @@
-# Code-Cop Project State Overview
+# antipasta Project State Overview
 
 ## Executive Summary
 
-Code-Cop has evolved from a simple Claude Code hook into a comprehensive code quality enforcement tool with a modular Python package architecture. The project has successfully implemented its core functionality (Phase 1 & 2) and made significant progress on the terminal dashboard feature (Phases 1-3), with some components still in development.
+antipasta has evolved from a simple Claude Code hook into a comprehensive code quality enforcement tool with a modular Python package architecture. The project has successfully implemented its core functionality (Phase 1 & 2) and made significant progress on the terminal dashboard feature (Phases 1-3), with some components still in development.
 
 ## Project Vision vs Current State
 

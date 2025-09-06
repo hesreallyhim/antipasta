@@ -40,7 +40,7 @@ def test_mouse_tracking() -> None:
 def test_command_palette() -> None:
     """Test command palette markup fix."""
     print("\nTo test command palette:")
-    print("1. Run: code-cop tui")
+    print("1. Run: antipasta tui")
     print("2. Press Ctrl+P to open command palette")
     print("3. Verify no markup errors appear")
     print("4. Press Escape to close palette")
@@ -48,7 +48,7 @@ def test_command_palette() -> None:
 
 
 if __name__ == "__main__":
-    print("=== Code-Cop TUI Fix Verification ===\n")
+    print("=== antipasta TUI Fix Verification ===\n")
 
     test_mouse_tracking()
     test_command_palette()

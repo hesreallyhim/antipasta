@@ -1,4 +1,4 @@
-"""Terminal UI command for code-cop."""
+"""Terminal UI command for antipasta."""
 
 import sys
 from pathlib import Path
@@ -47,9 +47,9 @@ def tui(
     view complexity heatmaps, and analyze trends in your codebase.
 
     Examples:
-        code-cop tui
-        code-cop tui --path ./src
-        code-cop tui --watch --theme solarized
+        antipasta tui
+        antipasta tui --path ./src
+        antipasta tui --watch --theme solarized
     """
     # Set up cleanup handlers to ensure terminal is restored
     setup_cleanup_handlers()

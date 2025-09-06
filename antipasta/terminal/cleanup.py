@@ -1,4 +1,4 @@
-"""Terminal cleanup utilities for code-cop TUI."""
+"""Terminal cleanup utilities for antipasta TUI."""
 
 import atexit
 import signal

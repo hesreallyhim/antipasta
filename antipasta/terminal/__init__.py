@@ -1,4 +1,4 @@
-"""Terminal UI components for code-cop dashboard."""
+"""Terminal UI components for antipasta dashboard."""
 
 __all__ = ["TerminalDashboard", "setup_cleanup_handlers", "disable_mouse_tracking"]
 

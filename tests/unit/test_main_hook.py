@@ -2,7 +2,7 @@
 """Unit tests for main.py hook implementation.
 
 NOTE: This test file is for the original main.py hook implementation
-that works with Claude Code. The main code-cop tool has been refactored
+that works with Claude Code. The main antipasta tool has been refactored
 into a modular package structure. This test may need updating to work
 with the current implementation.
 

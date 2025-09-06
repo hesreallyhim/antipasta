@@ -1,4 +1,4 @@
-"""code-cop: A code quality enforcement tool that analyzes code complexity metrics."""
+"""antipasta: A code quality enforcement tool that analyzes code complexity metrics."""
 
 from antipasta.__version__ import __version__, __version_info__
 

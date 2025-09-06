@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Diagnose why a repository might not show files in code-cop TUI."""
+"""Diagnose why a repository might not show files in antipasta TUI."""
 
 from pathlib import Path
 import sys
@@ -7,7 +7,7 @@ from antipasta.terminal.data_bridge import DashboardDataBridge
 
 
 def diagnose_repository(repo_path: str = "."):
-    """Diagnose repository for code-cop compatibility."""
+    """Diagnose repository for antipasta compatibility."""
     path = Path(repo_path).absolute()
     print(f"Diagnosing repository: {path}")
     print("=" * 70)
@@ -44,7 +44,7 @@ def diagnose_repository(repo_path: str = "."):
     bridge = DashboardDataBridge(repo_path)
     collected_files = bridge.collect_files()
 
-    print(f"\nFiles collected by code-cop: {len(collected_files)}")
+    print(f"\nFiles collected by antipasta: {len(collected_files)}")
 
     if collected_files:
         print("\nSample files found:")
@@ -65,7 +65,7 @@ def diagnose_repository(repo_path: str = "."):
                 count = len(list(path.rglob(f"*{ext}")))
                 print(f"  {ext}: {count} files")
 
-        print(f"\nCode-cop currently supports:")
+        print(f"\nantipasta currently supports:")
         print("  - Python: .py")
         print("  - JavaScript: .js, .jsx, .mjs, .cjs")
         print("  - TypeScript: .ts, .tsx")

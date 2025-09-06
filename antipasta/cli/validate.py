@@ -12,7 +12,7 @@ from antipasta.core.config import CodeCopConfig
 @click.command()
 @click.argument("config_file", type=click.Path(exists=True, path_type=Path))
 def validate_config(config_file: Path) -> None:
-    """Validate a code-cop configuration file.
+    """Validate a antipasta configuration file.
 
     Exits with code 0 if valid, 1 if invalid.
     """

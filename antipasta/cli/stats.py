@@ -70,21 +70,21 @@ def stats(
 
     Examples:
         # Display overall statistics in terminal
-        code-cop stats -p "**/*.py"
+        antipasta stats -p "**/*.py"
 
         # Stats by directory
-        code-cop stats -p "src/**/*.py" -p "tests/**/*.py" --by-directory
+        antipasta stats -p "src/**/*.py" -p "tests/**/*.py" --by-directory
 
         # Include additional metrics
-        code-cop stats -p "**/*.py" -m cyclomatic_complexity -m cognitive_complexity
+        antipasta stats -p "**/*.py" -m cyclomatic_complexity -m cognitive_complexity
 
         # Save to file
-        code-cop stats -p "**/*.py" --output report.txt
-        code-cop stats -p "**/*.py" --format json --output report.json
-        code-cop stats -p "**/*.py" --format csv --output report.csv
+        antipasta stats -p "**/*.py" --output report.txt
+        antipasta stats -p "**/*.py" --format json --output report.json
+        antipasta stats -p "**/*.py" --format csv --output report.csv
 
         # Generate ALL formats at once (9 files from 1 analysis!)
-        code-cop stats -p "**/*.py" --format all --output ./reports/
+        antipasta stats -p "**/*.py" --format all --output ./reports/
     """
     # Default patterns if none specified
     if not pattern:

@@ -21,7 +21,7 @@ The antipasta dashboard provides a web-based interface for visualizing code qual
 └────────────────────┬────────────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────────────┐
-│                    Code-Cop Core Engine                         │
+│                    antipasta Core Engine                         │
 │  MetricCollector, Analyzers, Configuration                     │
 └─────────────────────────────────────────────────────────────────┘
 ```

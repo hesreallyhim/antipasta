@@ -6,33 +6,33 @@ echo "The stats command now analyzes files only once!"
 echo
 
 echo "=== Basic Statistics (displayed to terminal) ==="
-code-cop stats --pattern "**/*.py"
+antipasta stats --pattern "**/*.py"
 
 echo -e "\n=== Save to file ==="
-code-cop stats --pattern "**/*.py" --output stats.txt
+antipasta stats --pattern "**/*.py" --output stats.txt
 echo "Saved to stats.txt"
 
 echo -e "\n=== Export as JSON ==="
-code-cop stats --pattern "**/*.py" --format json --output stats.json
+antipasta stats --pattern "**/*.py" --format json --output stats.json
 echo "Saved to stats.json"
 
 echo -e "\n=== Export as CSV ==="
-code-cop stats --pattern "**/*.py" --format csv --output stats.csv
+antipasta stats --pattern "**/*.py" --format csv --output stats.csv
 echo "Saved to stats.csv"
 
 echo -e "\n=== Statistics by Directory ==="
-code-cop stats --pattern "**/*.py" --by-directory
+antipasta stats --pattern "**/*.py" --by-directory
 
 echo -e "\n=== Statistics by Module ==="
-code-cop stats --pattern "**/*.py" --by-module
+antipasta stats --pattern "**/*.py" --by-module
 
 echo -e "\n=== Generate ALL reports at once (9 files from 1 analysis!) ==="
-code-cop stats --pattern "**/*.py" --format all --output ./all_reports/
+antipasta stats --pattern "**/*.py" --format all --output ./all_reports/
 echo
 ls -la ./all_reports/
 
 echo -e "\n=== Include additional metrics ==="
-code-cop stats --pattern "**/*.py" \
+antipasta stats --pattern "**/*.py" \
     --metric cyclomatic_complexity \
     --metric cognitive_complexity \
     --metric maintainability_index

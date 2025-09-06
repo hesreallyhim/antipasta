@@ -1,4 +1,4 @@
-"""Terminal Dashboard Application for code-cop."""
+"""Terminal Dashboard Application for antipasta."""
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
@@ -127,7 +127,7 @@ class TerminalDashboard(App[None]):
 
     def on_mount(self) -> None:
         """Initialize the dashboard when mounted."""
-        self.title = f"Code-Cop Dashboard - {self.project_path}"
+        self.title = f"antipasta Dashboard - {self.project_path}"
         self.sub_title = "Code Quality Metrics Visualization"
 
         # Set up widget titles for focus indicators
