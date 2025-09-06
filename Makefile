@@ -13,7 +13,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: help venv install install-dev install-prod format lint type-check test test-cov clean clean-venv clean-cov
+.PHONY: help venv install install-dev install-prod format lint type-check test test-cov check clean clean-venv clean-cov
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -39,20 +39,20 @@ install-dev: venv  ## Install the package in development mode with all dev depen
 install-prod: venv  ## Install the package in production mode
 	$(PIP) install .
 
-format: venv  ## Format code with black and ruff
+format: install-dev  ## Format code with black and ruff
 	$(VENV_DIR)/bin/black code_cop tests
 	$(VENV_DIR)/bin/ruff check --fix code_cop tests
 
-lint: venv  ## Run linting checks with ruff
+lint: install-dev  ## Run linting checks with ruff
 	$(VENV_DIR)/bin/ruff check code_cop tests
 
-type-check: venv  ## Run type checking with mypy
+type-check: install-dev  ## Run type checking with mypy
 	$(VENV_DIR)/bin/mypy code_cop tests
 
-test: venv  ## Run tests with pytest
+test: install-dev  ## Run tests with pytest
 	$(VENV_DIR)/bin/pytest --no-cov
 
-test-cov: venv  ## Run tests with coverage report
+test-cov: install-dev  ## Run tests with coverage report
 	# Clean up any existing coverage data
 	@rm -rf .coverage htmlcov
 	# Create .coverage/ directory to contain temporary parallel coverage files during execution
@@ -62,6 +62,8 @@ test-cov: venv  ## Run tests with coverage report
 	@trap 'mv .coverage/.coverage .coverage.tmp 2>/dev/null; rm -rf .coverage 2>/dev/null; mv .coverage.tmp .coverage 2>/dev/null || true' EXIT INT TERM; \
 	$(VENV_DIR)/bin/pytest --cov=code_cop --cov-branch --cov-report=term-missing --cov-report=html -p no:cacheprovider; \
 	mv .coverage/.coverage .coverage 2>/dev/null || true
+
+check: lint type-check test  ## Run all quality checks (lint, type-check, test)
 
 clean:  ## Clean up build artifacts and cache files
 	rm -rf build dist *.egg-info
