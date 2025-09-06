@@ -116,12 +116,17 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = ["-ra", "--strict-markers"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--no-cov-on-fail",
+]
 
 [tool.coverage.run]
 branch = true
 source = ["code_cop"]
 parallel = false
+concurrency = []
 disable_warnings = ["module-not-measured"]
 
 [tool.coverage.report]

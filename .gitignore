@@ -141,3 +141,4 @@ target/
 !claude/
 
 # INTERNAL
+.coverage/

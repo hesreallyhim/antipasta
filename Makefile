@@ -13,7 +13,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: help venv install install-dev install-prod format lint type-check test test-cov clean clean-venv
+.PHONY: help venv install install-dev install-prod format lint type-check test test-cov clean clean-venv clean-cov
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -53,15 +53,26 @@ test: venv  ## Run tests with pytest
 	$(VENV_DIR)/bin/pytest --no-cov
 
 test-cov: venv  ## Run tests with coverage report
-	rm -rf .coverage* htmlcov
-	COVERAGE_CORE=sysmon COVERAGE_DISABLE_SUBPROCESS=1 $(VENV_DIR)/bin/pytest --cov=code_cop --cov-branch --cov-report=term-missing --cov-report=html
+	# Clean up any existing coverage data
+	@rm -rf .coverage htmlcov
+	# Create .coverage/ directory to contain temporary parallel coverage files during execution
+	# This prevents dozens of .coverage.* files from polluting the root directory
+	@mkdir -p .coverage
+	# Set up trap to clean up on interrupt (Ctrl+C) and preserve final .coverage file if it exists
+	@trap 'mv .coverage/.coverage .coverage.tmp 2>/dev/null; rm -rf .coverage 2>/dev/null; mv .coverage.tmp .coverage 2>/dev/null || true' EXIT INT TERM; \
+	$(VENV_DIR)/bin/pytest --cov=code_cop --cov-branch --cov-report=term-missing --cov-report=html -p no:cacheprovider; \
+	mv .coverage/.coverage .coverage 2>/dev/null || true
 
 clean:  ## Clean up build artifacts and cache files
 	rm -rf build dist *.egg-info
 	rm -rf .pytest_cache .mypy_cache .ruff_cache
-	rm -rf htmlcov .coverage .coverage.* coverage.xml
+	rm -rf htmlcov coverage.xml
+	rm -rf .coverage
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
 clean-venv:  ## Remove virtual environment
 	rm -rf $(VENV_DIR)
+
+clean-cov:  ## Clean up coverage files
+	rm -rf .coverage htmlcov
