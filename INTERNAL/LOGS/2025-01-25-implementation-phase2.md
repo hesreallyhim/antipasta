@@ -9,7 +9,7 @@ Beginning core implementation with tickets T-01, T-02, T-03, and T-06.
 ### T-01: Config Schema Implementation
 
 Implementing configuration system with:
-- YAML format using `.code_cop.yaml`
+- YAML format using `.antipasta.yaml`
 - Pydantic models for validation
 - Hierarchical structure: defaults + language-specific metrics
 - JSON Schema generation for IDE support
@@ -27,14 +27,14 @@ Implemented comprehensive configuration system:
 - Added YAML loading/saving functionality  
 - Created `validate-config` CLI command
 - Generated JSON schema for IDE support
-- Added example `.code_cop.yaml` configuration
+- Added example `.antipasta.yaml` configuration
 - Wrote comprehensive unit tests (13 tests, all passing)
 
 Key files:
-- `code_cop/core/config.py` - Configuration models
-- `code_cop/core/metrics.py` - Metric type definitions
-- `code_cop/cli/validate.py` - Validation command
-- `code_cop/schemas/metrics-config.schema.json` - JSON schema
+- `antipasta/core/config.py` - Configuration models
+- `antipasta/core/metrics.py` - Metric type definitions
+- `antipasta/cli/validate.py` - Validation command
+- `antipasta/schemas/metrics-config.schema.json` - JSON schema
 - Tests: `test_config.py`, `test_validate_command.py`
 
 ### T-02: Language Detector Implementation
@@ -57,7 +57,7 @@ Implemented comprehensive language detection system:
 - Comprehensive unit tests (12 tests, all passing)
 
 Key files:
-- `code_cop/core/detector.py` - Language detection implementation
+- `antipasta/core/detector.py` - Language detection implementation
 - `tests/unit/test_detector.py` - Comprehensive test suite
 
 ### T-03: Python Metric Runner Implementation
@@ -82,8 +82,8 @@ Implemented Radon-based Python metric runner:
 - Comprehensive unit tests (9 tests, all passing)
 
 Key files:
-- `code_cop/runners/base.py` - Abstract base runner
-- `code_cop/runners/python/radon.py` - Radon runner implementation
+- `antipasta/runners/base.py` - Abstract base runner
+- `antipasta/runners/python/radon.py` - Radon runner implementation
 - `tests/unit/runners/test_python.py` - Comprehensive test suite
 
 ### T-06: Aggregator & Decision Engine Implementation
@@ -109,8 +109,8 @@ Implemented comprehensive aggregation system:
 - Comprehensive unit tests (21 tests, all passing)
 
 Key files:
-- `code_cop/core/violations.py` - Violation and report models
-- `code_cop/core/aggregator.py` - Main aggregation logic
+- `antipasta/core/violations.py` - Violation and report models
+- `antipasta/core/aggregator.py` - Main aggregation logic
 - `tests/unit/test_violations.py` - Violation tests
 - `tests/unit/test_aggregator.py` - Aggregator tests
 
@@ -125,14 +125,14 @@ Implementing the main CLI command for running metrics analysis:
 ### CLI Complete
 
 Implemented the metrics CLI command:
-- Created `code_cop/cli/metrics.py` with full metrics command
+- Created `antipasta/cli/metrics.py` with full metrics command
 - Options for config file, individual files, directories
 - Quiet mode suppresses non-violation output
 - Pretty-printed results with emojis
 - Exit code 0 for success, 2 for violations
 - Integrated with main CLI entry point
 
-The code-cop tool is now fully functional for Phase 1!
+The antipasta tool is now fully functional for Phase 1!
 
 ## Phase 2 Summary
 

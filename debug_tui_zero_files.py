@@ -2,9 +2,9 @@
 """Debug why TUI shows 0 files."""
 
 from pathlib import Path
-from code_cop.terminal.data_bridge import DashboardDataBridge
-from code_cop.core.config import CodeCopConfig
-from code_cop.core.detector import LanguageDetector
+from antipasta.terminal.data_bridge import DashboardDataBridge
+from antipasta.core.config import CodeCopConfig
+from antipasta.core.detector import LanguageDetector
 
 print("=== Debugging TUI Zero Files Issue ===\n")
 

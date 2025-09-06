@@ -14,14 +14,14 @@ Useful for verifying the full cognitive complexity pipeline works end-to-end.
 
 from pathlib import Path
 
-from code_cop.core.aggregator import MetricAggregator
-from code_cop.core.config import CodeCopConfig
-from code_cop.core.detector import Language
+from antipasta.core.aggregator import MetricAggregator
+from antipasta.core.config import CodeCopConfig
+from antipasta.core.detector import Language
 
 
 def main() -> None:
     # Load config
-    config_path = Path(".code_cop.yaml")
+    config_path = Path(".antipasta.yaml")
     if config_path.exists():
         config = CodeCopConfig.from_yaml(config_path)
     else:

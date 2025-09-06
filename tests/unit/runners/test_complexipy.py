@@ -9,9 +9,9 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from code_cop.core.detector import Language
-from code_cop.core.metrics import MetricType
-from code_cop.runners.python.complexipy_runner import ComplexipyRunner
+from antipasta.core.detector import Language
+from antipasta.core.metrics import MetricType
+from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 
 
 class TestComplexipyRunner:

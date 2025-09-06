@@ -2,7 +2,7 @@
 
 ## System Design Overview
 
-The code-cop dashboard provides a web-based interface for visualizing code quality metrics across a codebase. It's designed as a standalone web application that can be launched from the CLI and connects to the code-cop core analysis engine.
+The antipasta dashboard provides a web-based interface for visualizing code quality metrics across a codebase. It's designed as a standalone web application that can be launched from the CLI and connects to the antipasta core analysis engine.
 
 ### Architecture
 
@@ -43,7 +43,7 @@ The code-cop dashboard provides a web-based interface for visualizing code quali
 **Priority**: P0
 **Effort**: 3 points
 **Description**: Implement basic web server using FastAPI or Flask
-- Create `code_cop/dashboard/server.py`
+- Create `antipasta/dashboard/server.py`
 - Set up routing for API endpoints
 - Configure static file serving
 - Add CORS handling for development
@@ -52,7 +52,7 @@ The code-cop dashboard provides a web-based interface for visualizing code quali
 #### DASH-002: Create CLI command to launch dashboard
 **Priority**: P0
 **Effort**: 2 points
-**Description**: Add `code-cop dashboard` command
+**Description**: Add `antipasta dashboard` command
 - Add click command in CLI module
 - Auto-open browser on launch
 - Support --port and --no-browser flags
@@ -151,7 +151,7 @@ The code-cop dashboard provides a web-based interface for visualizing code quali
 - Language-specific settings
 - Save/load config profiles
 - Preview impact of changes
-- Export to .code_cop.yaml
+- Export to .antipasta.yaml
 
 #### DASH-012: Build report generator
 **Priority**: P2
@@ -261,7 +261,7 @@ The code-cop dashboard provides a web-based interface for visualizing code quali
 - Native async support
 - Auto-generated API docs
 - WebSocket support built-in
-- Type hints alignment with code-cop
+- Type hints alignment with antipasta
 
 ### Visualization Libraries
 - **D3.js**: Complex custom visualizations

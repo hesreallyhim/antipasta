@@ -12,7 +12,7 @@ def test_mouse_tracking() -> None:
 
     # Run TUI briefly
     proc = subprocess.Popen(
-        [sys.executable, "-m", "code_cop.cli.main", "tui"],
+        [sys.executable, "-m", "antipasta.cli.main", "tui"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

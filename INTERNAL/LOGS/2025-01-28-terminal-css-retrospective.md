@@ -8,12 +8,12 @@
 
 The user encountered an error when running:
 ```bash
-code-cop metrics -f ./DEMOS/05_metrics_analyzer_cognitive.py --format terminal
+antipasta metrics -f ./DEMOS/05_metrics_analyzer_cognitive.py --format terminal
 ```
 
 The command failed with a CSS parsing error that referenced content not present in our codebase:
 ```
-╭─ Error at /Users/hesreallyhim/coding/projects/cc-code-cop/code_cop/terminal/─╮
+╭─ Error at /Users/hesreallyhim/coding/projects/cc-antipasta/antipasta/terminal/─╮
 │   38 │   │   Screen.-maximized-view {                                        │
 │   39 │   │   │   layout: vertical !important;                                │
 │ ❱ 40 │   │   │   hatch: right $panel;                                        │
@@ -27,7 +27,7 @@ The command failed with a CSS parsing error that referenced content not present 
 
 1. **Initial Verification**
    - Confirmed the target file existed
-   - Reproduced the error with `python -m code_cop metrics`
+   - Reproduced the error with `python -m antipasta metrics`
    - Found that JSON format worked fine, isolating the issue to terminal format
 
 2. **CSS File Analysis**
@@ -97,7 +97,7 @@ def test_css_files_valid():
     from textual.app import App
     from pathlib import Path
 
-    css_files = Path("code_cop/terminal").glob("*.tcss")
+    css_files = Path("antipasta/terminal").glob("*.tcss")
     for css_file in css_files:
         app = App(css_path=str(css_file))
         # This will raise if CSS is invalid
@@ -149,7 +149,7 @@ Add a pre-commit hook that validates CSS files before commit:
   hooks:
     - id: validate-css
       name: Validate Textual CSS
-      entry: python -m code_cop.utils.validate_css
+      entry: python -m antipasta.utils.validate_css
       language: system
       files: \.tcss$
 ```

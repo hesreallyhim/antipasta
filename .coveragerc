@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = code_cop
+source = antipasta
 parallel = True
 concurrency =
 disable_warnings = module-not-measured

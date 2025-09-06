@@ -3,7 +3,7 @@
 
 import sys
 from pathlib import Path
-from code_cop.terminal.data_bridge import DashboardDataBridge
+from antipasta.terminal.data_bridge import DashboardDataBridge
 import json
 
 

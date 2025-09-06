@@ -334,20 +334,20 @@ class ComplexityReducer(ast.NodeTransformer):
 1. **Start with Early Returns** - Biggest bang for buck
 2. **Focus on Measurable Patterns** - Use AST analysis
 3. **Preserve Semantics** - Ensure behavior doesn't change
-4. **Add as code-cop Command** - `code-cop refactor --early-returns file.py`
+4. **Add as antipasta Command** - `antipasta refactor --early-returns file.py`
 5. **Show Preview** - Let users review changes before applying
 
 ## Example Command
 
 ```bash
 # Analyze and suggest refactorings
-code-cop suggest-refactoring complex_file.py
+antipasta suggest-refactoring complex_file.py
 
 # Apply specific refactoring
-code-cop refactor --pattern early-returns complex_file.py
+antipasta refactor --pattern early-returns complex_file.py
 
 # Apply all safe refactorings
-code-cop refactor --auto complex_file.py --safe-only
+antipasta refactor --auto complex_file.py --safe-only
 ```
 
-This would make code-cop not just a complexity detector, but also a complexity reducer!
+This would make antipasta not just a complexity detector, but also a complexity reducer!

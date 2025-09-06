@@ -1,6 +1,6 @@
 # Code Statistics Feature
 
-The `code-cop stats` command provides comprehensive statistical analysis of your codebase metrics.
+The `antipasta stats` command provides comprehensive statistical analysis of your codebase metrics.
 
 ## Overview
 
@@ -10,20 +10,20 @@ Collect and analyze metrics across files, directories, and modules to understand
 
 ```bash
 # Get overall statistics for Python files
-code-cop stats --pattern "**/*.py"
+antipasta stats --pattern "**/*.py"
 
 # Statistics for multiple file types
-code-cop stats --pattern "**/*.py" --pattern "**/*.js" --pattern "**/*.ts"
+antipasta stats --pattern "**/*.py" --pattern "**/*.js" --pattern "**/*.ts"
 
 # Statistics from specific directory
-code-cop stats --pattern "src/**/*.py" --directory /path/to/project
+antipasta stats --pattern "src/**/*.py" --directory /path/to/project
 ```
 
 ## Grouping Options
 
 ### By Directory
 ```bash
-code-cop stats --pattern "**/*.py" --by-directory
+antipasta stats --pattern "**/*.py" --by-directory
 ```
 
 Shows metrics grouped by directory, useful for:
@@ -33,7 +33,7 @@ Shows metrics grouped by directory, useful for:
 
 ### By Module (Python)
 ```bash
-code-cop stats --pattern "**/*.py" --by-module
+antipasta stats --pattern "**/*.py" --by-module
 ```
 
 Groups by Python packages (directories with `__init__.py`), useful for:
@@ -44,7 +44,7 @@ Groups by Python packages (directories with `__init__.py`), useful for:
 ## Including Additional Metrics
 
 ```bash
-code-cop stats --pattern "**/*.py" \
+antipasta stats --pattern "**/*.py" \
     --metric cyclomatic_complexity \
     --metric cognitive_complexity \
     --metric maintainability_index \
@@ -64,33 +64,33 @@ Available metrics:
 ### Table (Default)
 Human-readable table format:
 ```bash
-code-cop stats --pattern "**/*.py"
+antipasta stats --pattern "**/*.py"
 ```
 
 ### JSON
 Machine-readable format for further processing:
 ```bash
-code-cop stats --pattern "**/*.py" --format json
+antipasta stats --pattern "**/*.py" --format json
 ```
 
 ### CSV
 For spreadsheet analysis:
 ```bash
-code-cop stats --pattern "**/*.py" --by-directory --format csv
+antipasta stats --pattern "**/*.py" --by-directory --format csv
 ```
 
 ### Saving to Files
 Save any format to a file instead of stdout:
 ```bash
-code-cop stats --pattern "**/*.py" --output report.txt
-code-cop stats --pattern "**/*.py" --format json --output metrics.json
-code-cop stats --pattern "**/*.py" --format csv --output metrics.csv
+antipasta stats --pattern "**/*.py" --output report.txt
+antipasta stats --pattern "**/*.py" --format json --output metrics.json
+antipasta stats --pattern "**/*.py" --format csv --output metrics.csv
 ```
 
 ### Generate All Formats (New!)
 Analyze once and generate all 9 report combinations:
 ```bash
-code-cop stats --pattern "**/*.py" --format all --output ./reports/
+antipasta stats --pattern "**/*.py" --format all --output ./reports/
 ```
 
 This creates:
@@ -125,28 +125,28 @@ When included with `--metric` flag:
 
 ### 1. Find Large Files
 ```bash
-code-cop stats --pattern "**/*.py" --by-directory | grep -E "[0-9]{3,}\.[0-9]+"
+antipasta stats --pattern "**/*.py" --by-directory | grep -E "[0-9]{3,}\.[0-9]+"
 ```
 
 ### 2. Compare Complexity Across Teams
 ```bash
 # Team A's code
-code-cop stats --pattern "team_a/**/*.py" --metric cyclomatic_complexity
+antipasta stats --pattern "team_a/**/*.py" --metric cyclomatic_complexity
 
 # Team B's code  
-code-cop stats --pattern "team_b/**/*.py" --metric cyclomatic_complexity
+antipasta stats --pattern "team_b/**/*.py" --metric cyclomatic_complexity
 ```
 
 ### 3. Track Metrics Over Time
 ```bash
 # Save weekly snapshots
-code-cop stats --pattern "**/*.py" --format json > metrics_$(date +%Y%m%d).json
+antipasta stats --pattern "**/*.py" --format json > metrics_$(date +%Y%m%d).json
 ```
 
 ### 4. Identify Refactoring Targets
 ```bash
 # Find directories with high average complexity
-code-cop stats --pattern "**/*.py" --by-directory \
+antipasta stats --pattern "**/*.py" --by-directory \
     --metric cyclomatic_complexity \
     --metric cognitive_complexity
 ```
@@ -155,11 +155,11 @@ code-cop stats --pattern "**/*.py" --by-directory \
 ```bash
 # Before PR
 git checkout main
-code-cop stats --pattern "**/*.py" --format json > before.json
+antipasta stats --pattern "**/*.py" --format json > before.json
 
 # After PR
 git checkout feature-branch
-code-cop stats --pattern "**/*.py" --format json > after.json
+antipasta stats --pattern "**/*.py" --format json > after.json
 
 # Compare (would need a diff tool)
 ```
@@ -171,7 +171,7 @@ code-cop stats --pattern "**/*.py" --format json > after.json
 # GitHub Actions example
 - name: Collect Code Metrics
   run: |
-    code-cop stats --pattern "**/*.py" --format json > metrics.json
+    antipasta stats --pattern "**/*.py" --format json > metrics.json
     # Upload or process metrics
 ```
 
@@ -180,7 +180,7 @@ code-cop stats --pattern "**/*.py" --format json > after.json
 #!/bin/bash
 # pre-commit hook
 echo "Code metrics for this commit:"
-code-cop stats --pattern "**/*.py" --metric cyclomatic_complexity
+antipasta stats --pattern "**/*.py" --metric cyclomatic_complexity
 ```
 
 ### Dashboard Integration
@@ -190,7 +190,7 @@ import json
 
 # Get metrics as JSON
 result = subprocess.run(
-    ["code-cop", "stats", "--pattern", "**/*.py", "--format", "json"],
+    ["antipasta", "stats", "--pattern", "**/*.py", "--format", "json"],
     capture_output=True,
     text=True
 )

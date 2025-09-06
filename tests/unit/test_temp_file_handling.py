@@ -16,9 +16,9 @@ the file is outside the project directory.
 import tempfile
 from pathlib import Path
 
-from code_cop.core.aggregator import MetricAggregator
-from code_cop.core.config import CodeCopConfig
-from code_cop.core.detector import Language, LanguageDetector
+from antipasta.core.aggregator import MetricAggregator
+from antipasta.core.config import CodeCopConfig
+from antipasta.core.detector import Language, LanguageDetector
 
 
 class TestTempFileHandling:

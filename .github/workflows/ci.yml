@@ -36,15 +36,15 @@ jobs:
 
     - name: Lint with ruff
       run: |
-        ruff check code_cop tests
+        ruff check antipasta tests
 
     - name: Format check with black
       run: |
-        black --check code_cop tests
+        black --check antipasta tests
 
     - name: Type check with mypy
       run: |
-        mypy code_cop tests
+        mypy antipasta tests
 
   test:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        pytest --cov=code_cop --cov-report=term-missing --cov-report=xml
+        pytest --cov=antipasta --cov-report=term-missing --cov-report=xml
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'

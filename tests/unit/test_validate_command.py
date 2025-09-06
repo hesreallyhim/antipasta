@@ -4,7 +4,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from code_cop.cli.main import cli
+from antipasta.cli.main import cli
 
 
 class TestValidateConfigCommand:
@@ -25,7 +25,7 @@ languages:
         threshold: 10
         comparison: "<="
 """
-        config_file = tmp_path / ".code_cop.yaml"
+        config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text(config_content)
 
         runner = CliRunner()
@@ -51,7 +51,7 @@ languages:
         threshold: 10
         comparison: "invalid"  # Invalid comparison operator
 """
-        config_file = tmp_path / ".code_cop.yaml"
+        config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text(config_content)
 
         runner = CliRunner()
@@ -76,7 +76,7 @@ defaults:
   max_cyclomatic_complexity: 10
   - invalid yaml syntax
 """
-        config_file = tmp_path / ".code_cop.yaml"
+        config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text(config_content)
 
         runner = CliRunner()

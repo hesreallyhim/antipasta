@@ -1,12 +1,12 @@
-# Performance Review: code-cop Project Lead
+# Performance Review: antipasta Project Lead
 
 **Review Period**: Project inception through January 25, 2025
-**Project**: code-cop - Code Quality Enforcement Tool
+**Project**: antipasta - Code Quality Enforcement Tool
 **Role**: Project Lead / Technical Decision Maker
 
 ## Executive Summary
 
-The project lead demonstrated strong technical vision and pragmatic decision-making throughout the development of code-cop. The project successfully achieved its core objectives with a well-architected solution, though there were opportunities for improved planning and complexity management.
+The project lead demonstrated strong technical vision and pragmatic decision-making throughout the development of antipasta. The project successfully achieved its core objectives with a well-architected solution, though there were opportunities for improved planning and complexity management.
 
 **Overall Rating**: **Exceeds Expectations** (4/5)
 
@@ -124,7 +124,7 @@ The project lead demonstrated strong technical vision and pragmatic decision-mak
 
 ## Summary
 
-The project lead demonstrated strong technical leadership and delivered a solid foundation for the code-cop tool. The architecture is clean, the code is well-tested, and the documentation is excellent. The main areas for growth relate to user experience design and early risk identification.
+The project lead demonstrated strong technical leadership and delivered a solid foundation for the antipasta tool. The architecture is clean, the code is well-tested, and the documentation is excellent. The main areas for growth relate to user experience design and early risk identification.
 
 The systematic debugging of the coverage/subprocess issue showed excellent problem-solving skills, though ideally this issue would have been avoided through different architectural choices or testing strategies.
 

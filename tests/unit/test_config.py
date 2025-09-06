@@ -5,14 +5,14 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from code_cop.core.config import (
+from antipasta.core.config import (
     CodeCopConfig,
     ComparisonOperator,
     DefaultsConfig,
     LanguageConfig,
     MetricConfig,
 )
-from code_cop.core.metrics import MetricType
+from antipasta.core.metrics import MetricType
 
 
 class TestMetricConfig:
@@ -145,7 +145,7 @@ languages:
         threshold: 15
         comparison: "<="
 """
-        config_file = tmp_path / ".code_cop.yaml"
+        config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text(yaml_content)
 
         config = CodeCopConfig.from_yaml(config_file)
@@ -171,7 +171,7 @@ languages:
 
     def test_empty_yaml_uses_defaults(self, tmp_path: Path) -> None:
         """Test that empty YAML file results in default configuration."""
-        config_file = tmp_path / ".code_cop.yaml"
+        config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text("")
 
         config = CodeCopConfig.from_yaml(config_file)

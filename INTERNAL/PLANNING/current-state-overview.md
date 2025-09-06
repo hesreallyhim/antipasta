@@ -7,7 +7,7 @@ Code-Cop has evolved from a simple Claude Code hook into a comprehensive code qu
 ## Project Vision vs Current State
 
 ### Original Goals (from TICKET_LIST.md)
-- **CLI-first design** with commands like `code-cop metrics`, `code-cop validate-config` ✅
+- **CLI-first design** with commands like `antipasta metrics`, `antipasta validate-config` ✅
 - **YAML configuration** with language-specific settings ✅
 - **Multi-language support** (Python, JavaScript, TypeScript) ⚠️ (Python only)
 - **Multiple metric types** (cyclomatic, cognitive, maintainability, etc.) ✅
@@ -26,7 +26,7 @@ The project has successfully transformed from a monolithic `main.py` script into
 - Implemented Pydantic V2 models for type-safe validation
 - Created `validate-config` CLI command
 - Generated JSON schema for IDE support
-- Example configuration at `.code_cop.yaml`
+- Example configuration at `.antipasta.yaml`
 
 #### Language Detection (T-02) ✅
 - Built extension-based language detector
@@ -49,10 +49,10 @@ The project has successfully transformed from a monolithic `main.py` script into
 ### 2. CLI Interface ✅
 
 Successfully implemented all planned CLI commands:
-- `code-cop metrics [FILES/DIRS]` - Analyze code metrics
-- `code-cop validate-config [CONFIG]` - Validate YAML configuration
-- `code-cop stats [PATH]` - Statistical analysis (bonus feature!)
-- `code-cop tui` - Terminal dashboard
+- `antipasta metrics [FILES/DIRS]` - Analyze code metrics
+- `antipasta validate-config [CONFIG]` - Validate YAML configuration
+- `antipasta stats [PATH]` - Statistical analysis (bonus feature!)
+- `antipasta tui` - Terminal dashboard
 
 The `stats` command was an unplanned addition that provides:
 - Average LOC per file/directory/module
@@ -64,7 +64,7 @@ The `stats` command was an unplanned addition that provides:
 #### Phase 1: Foundation ✅
 - Textual framework integration
 - Base dashboard application with layout
-- CLI entry point (`code-cop tui`)
+- CLI entry point (`antipasta tui`)
 - Data bridge to core engine
 
 #### Phase 2: Core Widgets ✅
@@ -89,7 +89,7 @@ The `stats` command was an unplanned addition that provides:
 ## Current Architecture
 
 ```
-code_cop/
+antipasta/
 ├── core/           # Language-agnostic business logic ✅
 ├── runners/        # Language-specific metric runners ✅
 │   └── python/     # Radon & Complexipy runners ✅

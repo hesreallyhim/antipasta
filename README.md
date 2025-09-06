@@ -1,14 +1,14 @@
-# code-cop
+# antipasta
 
 A code quality enforcement tool that analyzes code complexity across a number of metrics and helps maintain readable, maintainable code.
 
-## What is code-cop?
+## What is antipasta?
 
-code-cop analyzes your source code files and measures various complexity metrics, comparing them against configurable thresholds. If any metrics exceed their thresholds, code-cop reports violations and exits with a non-zero status code, making it suitable for CI/CD pipelines.
+antipasta analyzes your source code files and measures various complexity metrics, comparing them against configurable thresholds. If any metrics exceed their thresholds, antipasta reports violations and exits with a non-zero status code, making it suitable for CI/CD pipelines.
 
-Currently, code-cop supports Python code analysis with plans to add JavaScript and TypeScript support.
+Currently, antipasta supports Python code analysis with plans to add JavaScript and TypeScript support.
 
-## Why use code-cop?
+## Why use antipasta?
 
 Complex code is harder to understand, test, and maintain. By enforcing limits on complexity metrics, you can:
 
@@ -23,8 +23,8 @@ Complex code is harder to understand, test, and maintain. By enforcing limits on
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/code-cop.git
-cd code-cop
+git clone https://github.com/yourusername/antipasta.git
+cd antipasta
 
 # Create a virtual environment (recommended)
 python -m venv venv
@@ -46,47 +46,47 @@ pip install -e ".[dev]"
 
 ```bash
 # Analyze specific files
-code-cop metrics --files src/main.py src/utils.py
+antipasta metrics --files src/main.py src/utils.py
 
 # Analyze all Python files in a directory
-code-cop metrics --directory src/
+antipasta metrics --directory src/
 
 # Use a custom configuration file
-code-cop metrics --config my-config.yaml --directory .
+antipasta metrics --config my-config.yaml --directory .
 
 # Quiet mode (only show violations)
-code-cop metrics --quiet --directory src/
+antipasta metrics --quiet --directory src/
 ```
 
 ### Validate Configuration
 
 ```bash
 # Check if your configuration file is valid
-code-cop validate-config .code_cop.yaml
+antipasta validate-config .antipasta.yaml
 ```
 
 ### Collect Statistics
 
 ```bash
 # Get overall statistics for Python files
-code-cop stats --pattern "**/*.py"
+antipasta stats --pattern "**/*.py"
 
 # Statistics grouped by directory
-code-cop stats --pattern "**/*.py" --by-directory
+antipasta stats --pattern "**/*.py" --by-directory
 
 # Statistics grouped by module (Python packages)
-code-cop stats --pattern "**/*.py" --by-module
+antipasta stats --pattern "**/*.py" --by-module
 
 # Include additional metrics in statistics
-code-cop stats --pattern "**/*.py" --metric cyclomatic_complexity --metric cognitive_complexity
+antipasta stats --pattern "**/*.py" --metric cyclomatic_complexity --metric cognitive_complexity
 
 # Save results to a file
-code-cop stats --pattern "**/*.py" --output report.txt
-code-cop stats --pattern "**/*.py" --format json --output report.json
-code-cop stats --pattern "**/*.py" --format csv --output report.csv
+antipasta stats --pattern "**/*.py" --output report.txt
+antipasta stats --pattern "**/*.py" --format json --output report.json
+antipasta stats --pattern "**/*.py" --format csv --output report.csv
 
 # Generate ALL report formats at once (9 files from 1 analysis!)
-code-cop stats --pattern "**/*.py" --format all --output ./reports/
+antipasta stats --pattern "**/*.py" --format all --output ./reports/
 # This creates:
 #   - stats_overall.{json,csv,txt}
 #   - stats_by_directory.{json,csv,txt}
@@ -95,12 +95,12 @@ code-cop stats --pattern "**/*.py" --format all --output ./reports/
 
 ## Configuration
 
-code-cop uses YAML configuration files. By default, it looks for `.code_cop.yaml` in the current directory.
+antipasta uses YAML configuration files. By default, it looks for `.antipasta.yaml` in the current directory.
 
 ### Example Configuration
 
 ```yaml
-# .code_cop.yaml
+# .antipasta.yaml
 
 # Use patterns from .gitignore file (default: true)
 use_gitignore: true
@@ -248,11 +248,11 @@ Key differences from cyclomatic complexity:
 -   **1**: Error (invalid configuration, missing files, etc.)
 -   **2**: One or more metrics violate their thresholds
 
-This makes code-cop suitable for CI/CD pipelines:
+This makes antipasta suitable for CI/CD pipelines:
 
 ```bash
 # In your CI pipeline
-code-cop metrics --directory src/ --quiet || exit 1
+antipasta metrics --directory src/ --quiet || exit 1
 ```
 
 ## Example Output
@@ -260,7 +260,7 @@ code-cop metrics --directory src/ --quiet || exit 1
 ### Standard Output
 
 ```
-Using configuration: .code_cop.yaml
+Using configuration: .antipasta.yaml
 Analyzing 3 files...
 
 ======================================================================
@@ -320,7 +320,7 @@ Perfect for developers who want to write more maintainable code or teams establi
 
 ## Statistics Collection
 
-The `code-cop stats` command provides comprehensive statistical analysis of your codebase:
+The `antipasta stats` command provides comprehensive statistical analysis of your codebase:
 
 ### Features
 
@@ -334,26 +334,26 @@ The `code-cop stats` command provides comprehensive statistical analysis of your
 
 ```bash
 # Basic statistics for all Python files
-code-cop stats --pattern "**/*.py"
+antipasta stats --pattern "**/*.py"
 
 # Group by directory to find large folders
-code-cop stats --pattern "**/*.py" --by-directory
+antipasta stats --pattern "**/*.py" --by-directory
 
 # Group by Python module
-code-cop stats --pattern "**/*.py" --by-module
+antipasta stats --pattern "**/*.py" --by-module
 
 # Include complexity metrics
-code-cop stats --pattern "**/*.py" \
+antipasta stats --pattern "**/*.py" \
     --metric cyclomatic_complexity \
     --metric cognitive_complexity \
     --metric maintainability_index
 
 # Multiple file patterns
-code-cop stats --pattern "src/**/*.py" --pattern "tests/**/*.py"
+antipasta stats --pattern "src/**/*.py" --pattern "tests/**/*.py"
 
 # Export for further analysis
-code-cop stats --pattern "**/*.py" --format csv > metrics.csv
-code-cop stats --pattern "**/*.py" --format json | jq '.files.avg_loc'
+antipasta stats --pattern "**/*.py" --format csv > metrics.csv
+antipasta stats --pattern "**/*.py" --format json | jq '.files.avg_loc'
 ```
 
 ### Output Example
@@ -395,7 +395,7 @@ CYCLOMATIC COMPLEXITY STATISTICS:
 pytest
 
 # Run with coverage
-pytest --cov=code_cop --cov-report=term-missing
+pytest --cov=antipasta --cov-report=term-missing
 
 # Run specific test file
 pytest tests/unit/test_config.py -v
@@ -417,7 +417,7 @@ make type-check
 ### Project Structure
 
 ```
-code_cop/
+antipasta/
 ├── cli/              # Command-line interface
 ├── core/             # Core functionality
 │   ├── config.py     # Configuration models

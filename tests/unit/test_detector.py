@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from code_cop.core.detector import Language, LanguageDetector
+from antipasta.core.detector import Language, LanguageDetector
 
 
 class TestLanguageDetector:

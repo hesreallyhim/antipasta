@@ -31,7 +31,7 @@ This document outlines key unknowns and unresolved questions that need to be add
 - Core library providing language-agnostic APIs
 - CLI commands as the primary interface
 - Hook adapters that wrap the core functionality
-- The existing main.py becomes a thin adapter in `code_cop/hooks/claude.py`
+- The existing main.py becomes a thin adapter in `antipasta/hooks/claude.py`
 - See `PLANNING/directory-structure.md` for full details
 
 ---

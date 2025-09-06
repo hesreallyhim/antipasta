@@ -1,4 +1,4 @@
-# Next Steps Recommendation for code-cop
+# Next Steps Recommendation for antipasta
 
 **Date**: January 25, 2025
 **Context**: Project assessment and roadmap planning
@@ -30,11 +30,11 @@
 1. **Fix and Test CLI** ⭐ HIGH PRIORITY
    ```bash
    # Fix entry point in pyproject.toml
-   # Should be: code_cop.cli.main:main
+   # Should be: antipasta.cli.main:main
    pip install -e .
-   code-cop --help
-   code-cop metrics --directory src/
-   code-cop validate-config
+   antipasta --help
+   antipasta metrics --directory src/
+   antipasta validate-config
    ```
 
 2. **Implement Complexipy Runner**
@@ -72,20 +72,20 @@
 1. **Pre-commit Hook**
    ```yaml
    # .pre-commit-hooks.yaml
-   - id: code-cop
+   - id: antipasta
      name: Code Complexity Check
-     entry: code-cop metrics
+     entry: antipasta metrics
      language: python
      types: [python]
    ```
 
 2. **GitHub Actions**
    ```yaml
-   # .github/workflows/code-cop.yml
+   # .github/workflows/antipasta.yml
    - name: Check Code Complexity
      run: |
-       pip install code-cop
-       code-cop metrics --directory src/
+       pip install antipasta
+       antipasta metrics --directory src/
    ```
 
 3. **VS Code Extension**
@@ -118,13 +118,13 @@
 1. **Fix pyproject.toml**:
    ```toml
    [project.scripts]
-   code-cop = "code_cop.cli.main:main"
+   antipasta = "antipasta.cli.main:main"
    ```
 
 2. **Add to .gitignore**:
    ```
-   .code_cop_cache/
-   *.code_cop.json
+   .antipasta_cache/
+   *.antipasta.json
    ```
 
 3. **Create GitHub Issue Templates**:
@@ -134,9 +134,9 @@
 
 4. **Add Badges to README**:
    ```markdown
-   ![Tests](https://github.com/user/code-cop/workflows/tests/badge.svg)
-   ![Coverage](https://img.shields.io/codecov/c/github/user/code-cop)
-   ![PyPI](https://img.shields.io/pypi/v/code-cop)
+   ![Tests](https://github.com/user/antipasta/workflows/tests/badge.svg)
+   ![Coverage](https://img.shields.io/codecov/c/github/user/antipasta)
+   ![PyPI](https://img.shields.io/pypi/v/antipasta)
    ```
 
 ## Success Metrics
@@ -163,4 +163,4 @@ The project has a solid foundation. The immediate priority should be:
 3. Polish the user experience
 4. Create compelling documentation
 
-This positions code-cop as a production-ready tool that teams can adopt immediately while building toward broader language support.
+This positions antipasta as a production-ready tool that teams can adopt immediately while building toward broader language support.

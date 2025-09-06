@@ -3,8 +3,8 @@
 from pathlib import Path
 from typing import Any
 
-from code_cop.core.metrics import MetricType
-from code_cop.runners.python.radon import RadonRunner
+from antipasta.core.metrics import MetricType
+from antipasta.runners.python.radon import RadonRunner
 
 
 class TestRadonRunner:

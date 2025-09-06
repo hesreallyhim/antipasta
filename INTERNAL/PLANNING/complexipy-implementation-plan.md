@@ -16,7 +16,7 @@ Complexipy is a Python tool that measures cognitive complexity, which differs fr
 - **Key Difference**: Penalizes nested structures more heavily than cyclomatic
 
 ### 2. Current Architecture Review
-- Radon runner pattern in `code_cop/runners/python/radon.py`
+- Radon runner pattern in `antipasta/runners/python/radon.py`
 - Base runner interface expectations
 - Config structure for new metric types
 - How metrics are aggregated and reported
@@ -24,7 +24,7 @@ Complexipy is a Python tool that measures cognitive complexity, which differs fr
 ## Implementation Sub-Tasks
 
 ### Task 1: Create Complexipy Runner Module
-**File**: `code_cop/runners/python/complexipy_runner.py`
+**File**: `antipasta/runners/python/complexipy_runner.py`
 
 ```python
 # Skeleton structure:
@@ -43,8 +43,8 @@ class ComplexipyRunner:
 
 ### Task 2: Update Configuration Schema
 **Files**:
-- `code_cop/core/config.py`
-- `.code_cop.yaml`
+- `antipasta/core/config.py`
+- `.antipasta.yaml`
 
 **Changes Needed**:
 1. Add `cognitive_complexity` to MetricType enum
@@ -53,7 +53,7 @@ class ComplexipyRunner:
 4. Add to default config generation
 
 ### Task 3: Integrate Runner into Aggregator
-**File**: `code_cop/core/aggregator.py`
+**File**: `antipasta/core/aggregator.py`
 
 **Steps**:
 1. Import ComplexipyRunner
@@ -205,7 +205,7 @@ result = cognitive_complexity.calculate(code)
 
 ## Success Criteria
 
-- [x] Cognitive complexity appears in `code-cop metrics` output
+- [x] Cognitive complexity appears in `antipasta metrics` output
 - [x] Demo file 5 shows high cognitive complexity (>15)
 - [x] All existing tests still pass
 - [x] New metric can be configured in YAML
@@ -216,7 +216,7 @@ result = cognitive_complexity.calculate(code)
 
 ```bash
 # After implementation
-$ code-cop metrics --files DEMOS/05_metrics_analyzer_cognitive.py
+$ antipasta metrics --files DEMOS/05_metrics_analyzer_cognitive.py
 
 ❌ DEMOS/05_metrics_analyzer_cognitive.py:30 (analyze_project_metrics):
    Cognitive Complexity is 25.00 (threshold: <= 15.0)

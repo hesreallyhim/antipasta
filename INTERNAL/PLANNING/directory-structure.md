@@ -5,7 +5,7 @@
 The project will be structured as a Python package with clear separation between core functionality, language-specific implementations, and interface layers.
 
 ```
-cc-code-cop/
+cc-antipasta/
 ├── pyproject.toml              # Modern Python packaging
 # (setup.py removed - using pyproject.toml only)
 ├── README.md
@@ -13,11 +13,11 @@ cc-code-cop/
 ├── requirements.txt            # Python dependencies
 ├── requirements-dev.txt        # Development dependencies
 ├── package.json               # Node dependencies for JS/TS analysis
-├── .code_cop.yaml      # Example configuration
+├── .antipasta.yaml      # Example configuration
 ├── .gitignore
 ├── .pre-commit-config.yaml    # Pre-commit framework config
 │
-├── code_cop/                   # Main package
+├── antipasta/                   # Main package
 │   ├── __init__.py
 │   ├── __version__.py         # Single source of version
 │   │
@@ -98,24 +98,24 @@ cc-code-cop/
 
 ### 1. **Core Package Structure**
 
-- `code_cop.core`: Language-agnostic metric models and business logic
-- `code_cop.runners`: Pluggable language-specific implementations
-- `code_cop.cli`: Command-line interface
-- `code_cop.hooks`: Adapters for various hook systems
+- `antipasta.core`: Language-agnostic metric models and business logic
+- `antipasta.runners`: Pluggable language-specific implementations
+- `antipasta.cli`: Command-line interface
+- `antipasta.hooks`: Adapters for various hook systems
 
 ### 2. **API Layers**
 
 ```python
 # Low-level API (direct Python usage)
-from code_cop.core import analyze_file
-from code_cop.core.config import load_config
+from antipasta.core import analyze_file
+from antipasta.core.config import load_config
 
-config = load_config(".code_cop.yaml")
+config = load_config(".antipasta.yaml")
 metrics = analyze_file("myfile.py", config)
 
 # CLI API
-$ code-cop metrics --files src/*.py
-$ code-cop validate-config .code_cop.yaml
+$ antipasta metrics --files src/*.py
+$ antipasta validate-config .antipasta.yaml
 
 # Hook API (via adapters)
 # Pre-commit: calls CLI with specific arguments
@@ -128,10 +128,10 @@ Defined in `pyproject.toml`:
 
 ```toml
 [project.scripts]
-code-cop = "code_cop.cli.main:main"
+antipasta = "antipasta.cli.main:main"
 
 # For backwards compatibility with existing main.py
-code-cop-claude-hook = "code_cop.hooks.claude:main"
+antipasta-claude-hook = "antipasta.hooks.claude:main"
 ```
 
 ### 4. **Runner Plugin Architecture**
@@ -151,8 +151,8 @@ class BaseRunner(ABC):
 
 ### 5. **Configuration Schema Location**
 
-- JSON Schema: `code_cop/schemas/metrics-config.schema.json`
-- Pydantic models: `code_cop/core/config.py`
+- JSON Schema: `antipasta/schemas/metrics-config.schema.json`
+- Pydantic models: `antipasta/core/config.py`
 
 This structure provides:
 

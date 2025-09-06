@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-from code_cop.core.aggregator import MetricAggregator
-from code_cop.core.config import CodeCopConfig
+from antipasta.core.aggregator import MetricAggregator
+from antipasta.core.config import CodeCopConfig
 
 
 class TestGitignoreIntegration:

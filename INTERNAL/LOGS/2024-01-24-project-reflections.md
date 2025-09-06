@@ -1,10 +1,10 @@
 # Project Reflections - 2024-01-24
 
-## Thoughts on code-cop Development
+## Thoughts on antipasta Development
 
 ### The Joy of Small Scope
 
-Working on code-cop has been refreshing in its focused simplicity. This isn't trying to be the next ESLint or RuboCop - it's a targeted tool for enforcing code complexity metrics, and that constraint is liberating. The small scope allows for clear decisions and rapid progress.
+Working on antipasta has been refreshing in its focused simplicity. This isn't trying to be the next ESLint or RuboCop - it's a targeted tool for enforcing code complexity metrics, and that constraint is liberating. The small scope allows for clear decisions and rapid progress.
 
 ### From Monolith to Modular
 
@@ -34,9 +34,9 @@ Each decision simplified the project. By deferring TypeScript support and hook i
 
 ### Emotional Notes
 
-There's something satisfying about working on developer tools. Every improvement to code-cop potentially improves other codebases. It's meta-programming in the best sense - code that helps write better code.
+There's something satisfying about working on developer tools. Every improvement to antipasta potentially improves other codebases. It's meta-programming in the best sense - code that helps write better code.
 
-The project name change from "ccguard" to "code-cop" was more than cosmetic. "Guard" felt passive; "cop" implies active enforcement. It's a small thing, but names matter for developer tools. They should be memorable and convey purpose.
+The project name change from "ccguard" to "antipasta" was more than cosmetic. "Guard" felt passive; "cop" implies active enforcement. It's a small thing, but names matter for developer tools. They should be memorable and convey purpose.
 
 ### Looking Forward
 
@@ -46,4 +46,4 @@ The fact that this is "mainly for personal use" is freeing. No need to handle ev
 
 ### Final Thought
 
-Small, focused tools are undervalued in our industry. Not everything needs to be a platform or framework. Sometimes you just need a cop on the beat, keeping the code quality honest. That's code-cop, and that's enough.
+Small, focused tools are undervalued in our industry. Not everything needs to be a platform or framework. Sometimes you just need a cop on the beat, keeping the code quality honest. That's antipasta, and that's enough.

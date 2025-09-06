@@ -126,7 +126,7 @@ The terminal dashboard now provides a complete interactive experience:
 
 ```bash
 # Launch with all interactive features
-code-cop tui
+antipasta tui
 
 # Keyboard shortcuts in action:
 # ? - Show help with all shortcuts

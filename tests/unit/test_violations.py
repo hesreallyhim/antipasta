@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from code_cop.core.config import ComparisonOperator, MetricConfig
-from code_cop.core.metrics import MetricResult, MetricType
-from code_cop.core.violations import FileReport, Violation, check_metric_violation
+from antipasta.core.config import ComparisonOperator, MetricConfig
+from antipasta.core.metrics import MetricResult, MetricType
+from antipasta.core.violations import FileReport, Violation, check_metric_violation
 
 
 class TestViolation:

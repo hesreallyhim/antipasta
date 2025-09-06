@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "code-cop"
+name = "antipasta"
 version = "0.1.0"
 description = "A code quality enforcement tool that analyzes code complexity metrics"
 readme = "README.md"
@@ -51,17 +51,17 @@ dev = [
 ]
 
 [project.scripts]
-code-cop = "code_cop.cli.main:main"
+antipasta = "antipasta.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/code-cop"
-Issues = "https://github.com/yourusername/code-cop/issues"
+Homepage = "https://github.com/yourusername/antipasta"
+Issues = "https://github.com/yourusername/antipasta/issues"
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["code_cop"]
+packages = ["antipasta"]
 
 [tool.ruff]
 target-version = "py311"
@@ -85,7 +85,7 @@ fix = true
 exclude = ["DEMOS"]
 
 [tool.ruff.isort]
-known-first-party = ["code_cop"]
+known-first-party = ["antipasta"]
 
 [tool.black]
 line-length = 100
@@ -124,7 +124,7 @@ addopts = [
 
 [tool.coverage.run]
 branch = true
-source = ["code_cop"]
+source = ["antipasta"]
 parallel = false
 concurrency = []
 disable_warnings = ["module-not-measured"]

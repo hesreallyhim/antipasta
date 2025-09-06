@@ -4,19 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**code-cop** is a code quality enforcement tool that analyzes code complexity metrics. It's designed to work as a CLI tool with future support for git hooks and pre-commit integration.
+**antipasta** is a code quality enforcement tool that analyzes code complexity metrics. It's designed to work as a CLI tool with future support for git hooks and pre-commit integration.
 
 ### Current State
 
 - Working prototype in `main.py` that functions as a Claude Code hook
 - Analyzes Python code using Radon, with heuristic fallback for JS/TS
-- Uses JSON config (`.code_cop.config.json`)
+- Uses JSON config (`.antipasta.config.json`)
 
 ### Target Architecture
 
-- Modular Python package (`code_cop/`)
-- CLI-first design: `code-cop metrics`, `code-cop validate-config`
-- YAML configuration (`.code_cop.yaml`)
+- Modular Python package (`antipasta/`)
+- CLI-first design: `antipasta metrics`, `antipasta validate-config`
+- YAML configuration (`.antipasta.yaml`)
 - Extensible plugin architecture for language runners
 
 ## Development Commands
@@ -43,10 +43,10 @@ mypy .
 
 The codebase is being refactored from a monolithic script to a modular package:
 
-- `code_cop/core/` - Language-agnostic business logic
-- `code_cop/runners/` - Language-specific metric runners (Radon, Complexipy)
-- `code_cop/cli/` - Command-line interface
-- `code_cop/hooks/` - Adapters for various hook systems
+- `antipasta/core/` - Language-agnostic business logic
+- `antipasta/runners/` - Language-specific metric runners (Radon, Complexipy)
+- `antipasta/cli/` - Command-line interface
+- `antipasta/hooks/` - Adapters for various hook systems
 
 ### Configuration Format
 
@@ -80,7 +80,7 @@ TypeScript/JavaScript support is designed but deferred.
 - `TICKET_LIST.md` - Feature requirements broken into implementation tickets
 - `PLANNING/implementation-questions.md` - Architecture decisions and rationale
 - `PLANNING/directory-structure.md` - Target package structure
-- `main.py` - Current working prototype (to become `code_cop/hooks/claude.py`)
+- `main.py` - Current working prototype (to become `antipasta/hooks/claude.py`)
 
 ## Metric Definitions
 

@@ -35,19 +35,19 @@ I've created three tools to demonstrate automated refactoring:
 
 ### Phase 1: Analysis Tool
 ```bash
-code-cop analyze-patterns file.py
+antipasta analyze-patterns file.py
 ```
 Shows refactoring opportunities and potential complexity reduction.
 
 ### Phase 2: Safe Refactoring
 ```bash
-code-cop refactor --early-returns file.py --preview
+antipasta refactor --early-returns file.py --preview
 ```
 Start with early returns as they have the highest impact and are safest.
 
 ### Phase 3: Full Automation
 ```bash
-code-cop refactor --auto file.py --threshold 15
+antipasta refactor --auto file.py --threshold 15
 ```
 Automatically apply all safe refactorings to reduce complexity below threshold.
 
@@ -88,7 +88,7 @@ return process(user)
 
 ## Next Steps
 
-1. Integrate pattern analysis into code-cop
+1. Integrate pattern analysis into antipasta
 2. Build AST-based refactoring engine
 3. Add preview/diff functionality
 4. Create VS Code extension for real-time suggestions
@@ -102,4 +102,4 @@ The most impactful refactoring is converting nested if-else to early returns, wh
 - Safe to automate
 - Immediately understandable
 
-By automating these refactorings, code-cop could not only detect complexity but actively help reduce it.
+By automating these refactorings, antipasta could not only detect complexity but actively help reduce it.

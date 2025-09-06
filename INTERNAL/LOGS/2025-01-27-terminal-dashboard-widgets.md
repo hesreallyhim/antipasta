@@ -103,13 +103,13 @@ The terminal dashboard now provides:
 
 ```bash
 # Launch terminal dashboard
-code-cop tui
+antipasta tui
 
 # Launch for specific directory
-code-cop tui --path ./src
+antipasta tui --path ./src
 
 # Alternative via metrics command
-code-cop metrics --format=terminal
+antipasta metrics --format=terminal
 ```
 
 ## Known Limitations
@@ -122,7 +122,7 @@ code-cop metrics --format=terminal
 
 ## Performance Notes
 
-- Successfully tested on the code-cop project itself
+- Successfully tested on the antipasta project itself
 - Quick startup and responsive navigation
 - May need optimization for very large codebases
 - Consider virtual scrolling for huge file trees

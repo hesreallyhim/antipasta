@@ -113,18 +113,18 @@ Version 5 shows that sometimes adding proper architecture can slightly increase 
 3. **Group related data** - Reduces parameter lists
 4. **Use constants for magic values** - Improves maintainability
 5. **Consider architecture based on project size** - Don't over-engineer small scripts
-6. **Measure progress** - Use tools like code-cop to track improvements
+6. **Measure progress** - Use tools like antipasta to track improvements
 7. **Know when to stop** - Perfect metrics aren't always the goal
 
 ## Running the Examples
 
 ```bash
 # Check metrics for all versions
-code-cop metrics --files DEMOS/TUTORIAL/*.py
+antipasta metrics --files DEMOS/TUTORIAL/*.py
 
 # See the progression
-code-cop metrics --files DEMOS/TUTORIAL/01_user_management_v1.py
-code-cop metrics --files DEMOS/TUTORIAL/02_user_management_v2.py
+antipasta metrics --files DEMOS/TUTORIAL/01_user_management_v1.py
+antipasta metrics --files DEMOS/TUTORIAL/02_user_management_v2.py
 # ... and so on
 ```
 

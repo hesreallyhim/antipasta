@@ -2,14 +2,14 @@
 
 ## Overview
 
-The terminal dashboard provides a rich, interactive TUI (Terminal User Interface) for code-cop metrics visualization directly in the terminal. It complements the web dashboard by offering immediate, inline analysis during development.
+The terminal dashboard provides a rich, interactive TUI (Terminal User Interface) for antipasta metrics visualization directly in the terminal. It complements the web dashboard by offering immediate, inline analysis during development.
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLI Entry Point                          │
-│              code-cop analyze --format=terminal                 │
+│              antipasta analyze --format=terminal                 │
 └────────────────────┬────────────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────────────┐
@@ -155,7 +155,7 @@ The terminal dashboard provides a rich, interactive TUI (Terminal User Interface
 ### Component Structure
 
 ```python
-# code_cop/terminal/dashboard.py
+# antipasta/terminal/dashboard.py
 class TerminalDashboard(App):
     def compose(self):
         yield Header()
@@ -166,7 +166,7 @@ class TerminalDashboard(App):
         )
         yield Footer()
 
-# code_cop/terminal/widgets/heatmap.py  
+# antipasta/terminal/widgets/heatmap.py  
 class HeatmapWidget(Widget):
     def render(self) -> RenderableType:
         # Generate colored blocks based on metrics
@@ -192,15 +192,15 @@ class HeatmapWidget(Widget):
 
 ### 1. **CLI Arguments**
 ```bash
-code-cop analyze --format=terminal
-code-cop tui                      # Alias for terminal dashboard
-code-cop tui --watch             # Auto-refresh mode
-code-cop tui --theme=solarized   # Custom themes
+antipasta analyze --format=terminal
+antipasta tui                      # Alias for terminal dashboard
+antipasta tui --watch             # Auto-refresh mode
+antipasta tui --theme=solarized   # Custom themes
 ```
 
 ### 2. **Configuration**
 ```yaml
-# .code_cop.yaml
+# .antipasta.yaml
 terminal:
   theme: default
   colors:

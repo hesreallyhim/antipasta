@@ -1,4 +1,4 @@
-# Technical Next Steps for code-cop
+# Technical Next Steps for antipasta
 
 **Date**: 2025-01-27
 **Context**: Post-Complexipy implementation planning
@@ -17,11 +17,11 @@ all = ["complexipy>=3.3.0"]  # Include in 'all' extras
 ```
 
 ### 2. Fix Our Own Complexity Issues
-Running code-cop on itself reveals:
+Running antipasta on itself reveals:
 ```
-❌ code_cop/cli/metrics.py:30 - Cyclomatic Complexity is 12.00 (threshold: <= 10.0)
-❌ code_cop/core/metrics.py - Maintainability Index is 46.99 (threshold: >= 50.0)
-❌ code_cop/core/config.py - Maintainability Index is 48.95 (threshold: >= 50.0)
+❌ antipasta/cli/metrics.py:30 - Cyclomatic Complexity is 12.00 (threshold: <= 10.0)
+❌ antipasta/core/metrics.py - Maintainability Index is 46.99 (threshold: >= 50.0)
+❌ antipasta/core/config.py - Maintainability Index is 48.95 (threshold: >= 50.0)
 ```
 
 Refactoring targets:
@@ -33,16 +33,16 @@ Refactoring targets:
 ```toml
 # Fix in pyproject.toml
 [project.scripts]
-code-cop = "code_cop.cli.main:main"
+antipasta = "antipasta.cli.main:main"
 ```
-Then test: `pip install -e . && code-cop --help`
+Then test: `pip install -e . && antipasta --help`
 
 ## Architecture Improvements
 
 ### 1. Runner Registry Pattern
 Instead of hardcoding runners in aggregator:
 ```python
-# code_cop/runners/registry.py
+# antipasta/runners/registry.py
 class RunnerRegistry:
     _runners: dict[Language, list[Type[BaseRunner]]] = {}
 
@@ -74,10 +74,10 @@ async def analyze_file_async(self, file_path: Path, ...):
 
 ### 3. Plugin System
 ```python
-# code_cop/plugins/__init__.py
+# antipasta/plugins/__init__.py
 def load_plugins():
     """Load external runner plugins from entry points."""
-    for entry_point in importlib.metadata.entry_points(group='code_cop.runners'):
+    for entry_point in importlib.metadata.entry_points(group='antipasta.runners'):
         runner_class = entry_point.load()
         RunnerRegistry.register(runner_class.language, runner_class)
 ```
@@ -86,9 +86,9 @@ def load_plugins():
 
 ### 1. Caching Layer
 ```python
-# code_cop/core/cache.py
+# antipasta/core/cache.py
 class MetricsCache:
-    def __init__(self, cache_dir: Path = Path(".code_cop_cache")):
+    def __init__(self, cache_dir: Path = Path(".antipasta_cache")):
         self.cache_dir = cache_dir
 
     def get_cached(self, file_path: Path, mtime: float) -> Optional[FileMetrics]:
@@ -225,4 +225,4 @@ strategy:
 4. **Video Tutorials**: Setup and configuration guides
 5. **Discord/Slack**: Community support channel
 
-This roadmap balances immediate fixes with long-term vision, ensuring code-cop evolves into a comprehensive code quality platform while maintaining its core simplicity.
+This roadmap balances immediate fixes with long-term vision, ensuring antipasta evolves into a comprehensive code quality platform while maintaining its core simplicity.

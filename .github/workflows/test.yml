@@ -25,7 +25,7 @@ jobs:
 
     - name: Run quick checks
       run: |
-        ruff check code_cop tests
-        black --check code_cop tests
-        mypy code_cop tests || true  # Allow mypy to fail initially
+        ruff check antipasta tests
+        black --check antipasta tests
+        mypy antipasta tests || true  # Allow mypy to fail initially
         pytest -v || true  # Allow tests to fail initially

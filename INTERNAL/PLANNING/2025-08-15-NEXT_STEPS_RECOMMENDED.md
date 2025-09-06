@@ -12,8 +12,8 @@
 
   Make it installable via pip:
   - Create proper pyproject.toml with all metadata
-  - Publish to PyPI as code-cop
-  - Add installation instructions: pip install code-cop
+  - Publish to PyPI as antipasta
+  - Add installation instructions: pip install antipasta
   - Set up GitHub Actions for automated releases
 
   3. Fix Function-Level Metrics
@@ -29,7 +29,7 @@
 
   Track metrics over time:
   - Store historical data in SQLite or JSON
-  - Add code-cop trends command to show changes
+  - Add antipasta trends command to show changes
   - Generate charts showing complexity trends
   - Useful for tracking technical debt
 

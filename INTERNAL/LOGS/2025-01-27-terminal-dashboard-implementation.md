@@ -10,7 +10,7 @@ Implemented the foundation for the terminal dashboard feature (Phase 1: TERM-001
 
 ### TERM-001: Set up Textual framework
 - Added `textual>=0.70.0` to requirements.txt
-- Created `code_cop/terminal/` package structure with subdirectories:
+- Created `antipasta/terminal/` package structure with subdirectories:
   - `widgets/` - For reusable UI components
   - `utils/` - For utility functions
   - `themes/` - For color schemes and styling
@@ -32,13 +32,13 @@ Implemented the foundation for the terminal dashboard feature (Phase 1: TERM-001
 - Created `dashboard.tcss` for styling with color-coded complexity indicators
 
 ### TERM-003: Add CLI entry point
-- Created `code_cop/cli/tui.py` with `tui` command
+- Created `antipasta/cli/tui.py` with `tui` command
 - Added support for:
   - `--path` - Project directory to analyze
   - `--watch` - Live updates (placeholder)
   - `--theme` - Color theme selection (placeholder)
   - `--no-unicode` - ASCII-only mode (placeholder)
-- Updated `code_cop/cli/metrics.py` to support `--format=terminal` option
+- Updated `antipasta/cli/metrics.py` to support `--format=terminal` option
 - Also added `--format=json` support for machine-readable output
 
 ### TERM-004: Build data bridge to core engine

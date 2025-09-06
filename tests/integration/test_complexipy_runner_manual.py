@@ -15,7 +15,7 @@ To run: python tests/integration/test_complexipy_runner_manual.py
 
 from pathlib import Path
 
-from code_cop.runners.python.complexipy_runner import ComplexipyRunner
+from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 
 
 def main() -> None:

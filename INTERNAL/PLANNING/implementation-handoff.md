@@ -4,7 +4,7 @@
 
 ### What You're Building
 
-**code-cop** is a code quality enforcement tool that analyzes code complexity metrics. Currently, there's a working prototype in `main.py` that functions as a Claude Code hook. Your task is to refactor this into a modular Python package with a CLI interface.
+**antipasta** is a code quality enforcement tool that analyzes code complexity metrics. Currently, there's a working prototype in `main.py` that functions as a Claude Code hook. Your task is to refactor this into a modular Python package with a CLI interface.
 
 ### Current State vs Target State
 
@@ -12,13 +12,13 @@
 - `main.py` - Monolithic script (398 lines) that works as a Claude Code hook
 - Analyzes Python files using Radon library
 - Falls back to heuristic analysis for JS/TS files
-- Uses JSON config file: `.code_cop.config.json`
+- Uses JSON config file: `.antipasta.config.json`
 - Has comprehensive unit tests in `test_main.py`
 
 **Target State:**
-- Modular Python package structure under `code_cop/` ✓ COMPLETED
-- CLI tool: `code-cop` with subcommands ✓ COMPLETED
-- YAML configuration: `.code_cop.yaml` ✓ COMPLETED
+- Modular Python package structure under `antipasta/` ✓ COMPLETED
+- CLI tool: `antipasta` with subcommands ✓ COMPLETED
+- YAML configuration: `.antipasta.yaml` ✓ COMPLETED
 - Python-only for initial implementation ✓ COMPLETED
 - Modern Python tooling (pyproject.toml, ruff, black, mypy) ✓ COMPLETED
 - Additional features added: statistics command, multiple runners per language
@@ -28,7 +28,7 @@
 **Phase 1 - Project Setup** (Do this FIRST):
 1. Create `pyproject.toml` with hatchling build backend
 2. Set up development tools (ruff, black, mypy) with default configs
-3. Create the `code_cop/` package structure
+3. Create the `antipasta/` package structure
 4. Set up GitHub Actions for CI
 
 **Phase 2 - Core Implementation** (In this order):
@@ -57,15 +57,15 @@
    ```
 
 2. **Package Structure**: Follow exactly as specified in `PLANNING/directory-structure.md`
-   - `code_cop/core/` - Business logic (config, metrics, aggregator, detector, violations)
-   - `code_cop/runners/` - Language-specific runners
-   - `code_cop/cli/` - CLI commands
-   - `code_cop/utils/` - Shared utilities
+   - `antipasta/core/` - Business logic (config, metrics, aggregator, detector, violations)
+   - `antipasta/runners/` - Language-specific runners
+   - `antipasta/cli/` - CLI commands
+   - `antipasta/utils/` - Shared utilities
 
 3. **CLI Design**: Single entry point with subcommands
-   - `code-cop metrics --files src/*.py`
-   - `code-cop validate-config .code_cop.yaml`
-   - `code-cop stats --pattern "**/*.py"` (added feature)
+   - `antipasta metrics --files src/*.py`
+   - `antipasta validate-config .antipasta.yaml`
+   - `antipasta stats --pattern "**/*.py"` (added feature)
 
 4. **Dependencies**:
    - Production: `radon`, `complexipy`, `pydantic`, `pyyaml`, `pathspec`, `click` (chosen CLI framework)
@@ -133,8 +133,8 @@ class BaseRunner(ABC):
 
 2. Create the project structure:
    ```bash
-   mkdir -p code_cop/{core,runners/python,cli,utils}
-   touch code_cop/__init__.py
+   mkdir -p antipasta/{core,runners/python,cli,utils}
+   touch antipasta/__init__.py
    # ... etc
    ```
 
@@ -145,16 +145,16 @@ class BaseRunner(ABC):
    build-backend = "hatchling.build"
 
    [project]
-   name = "code-cop"
+   name = "antipasta"
    version = "0.1.0"
    # ... etc
    ```
 
 ### Configuration File Locations
 
-- Example config: `.code_cop.yaml` in project root
-- JSON Schema: `code_cop/schemas/metrics-config.schema.json`
-- Pydantic models: `code_cop/core/config.py`
+- Example config: `.antipasta.yaml` in project root
+- JSON Schema: `antipasta/schemas/metrics-config.schema.json`
+- Pydantic models: `antipasta/core/config.py`
 
 ### Final Notes
 
@@ -167,7 +167,7 @@ class BaseRunner(ABC):
 ### Questions You Might Have
 
 **Q: Should I modify main.py?**
-A: No, leave it as-is. It becomes `code_cop/hooks/claude.py` later.
+A: No, leave it as-is. It becomes `antipasta/hooks/claude.py` later.
 
 **Q: What about the JavaScript heuristic analysis in main.py?**
 A: Ignore it. Python-only for now.

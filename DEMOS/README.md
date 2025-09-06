@@ -2,7 +2,7 @@
 
 This directory contains Python demo files that exhibit varying degrees of complexity across different metrics. These files are useful for:
 
-1. Testing code-cop's metric analysis
+1. Testing antipasta's metric analysis
 2. Understanding different types of complexity
 3. Learning refactoring patterns
 
@@ -59,13 +59,13 @@ This directory contains Python demo files that exhibit varying degrees of comple
 
 ```bash
 # Analyze all demo files
-code-cop metrics --directory DEMOS/
+antipasta metrics --directory DEMOS/
 
 # Analyze specific file
-code-cop metrics --files DEMOS/02_password_validator_complex.py
+antipasta metrics --files DEMOS/02_password_validator_complex.py
 
 # Compare before/after refactoring
-code-cop metrics --files DEMOS/02_password_validator_complex.py DEMOS/03_password_validator_refactored.py
+antipasta metrics --files DEMOS/02_password_validator_complex.py DEMOS/03_password_validator_refactored.py
 ```
 
 ## Expected Results
@@ -79,10 +79,10 @@ With default thresholds:
 
 ## Using for Testing
 
-These files are designed to trigger different code-cop rules:
+These files are designed to trigger different antipasta rules:
 
 ```yaml
-# .code_cop.yaml
+# .antipasta.yaml
 defaults:
   max_cyclomatic_complexity: 10
   max_cognitive_complexity: 10
@@ -91,4 +91,4 @@ defaults:
 
 - Files 2 and 5 should fail with these defaults
 - Adjust thresholds to test different scenarios
-- Use for regression testing of code-cop itself
+- Use for regression testing of antipasta itself

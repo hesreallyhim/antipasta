@@ -2,14 +2,14 @@
 
 ## Overview
 
-The code-cop project has successfully completed its initial implementation phase. All core features have been implemented, tested, and documented.
+The antipasta project has successfully completed its initial implementation phase. All core features have been implemented, tested, and documented.
 
 ## Completed Features
 
 ### Phase 1 - Project Setup ✓ COMPLETED
 - [x] Created `pyproject.toml` with hatchling build backend
 - [x] Set up development tools (ruff, black, mypy)
-- [x] Created the `code_cop/` package structure
+- [x] Created the `antipasta/` package structure
 - [x] GitHub Actions setup deferred (not critical for POC)
 
 ### Phase 2 - Core Implementation ✓ COMPLETED
@@ -20,7 +20,7 @@ The code-cop project has successfully completed its initial implementation phase
 - [x] T-06: Aggregator and decision engine
 
 ### Additional Features Implemented
-- [x] Statistics command (`code-cop stats`) for code metrics analysis
+- [x] Statistics command (`antipasta stats`) for code metrics analysis
 - [x] Support for multiple runners per language
 - [x] Comprehensive tutorial on complexity reduction
 - [x] Analysis of automated refactoring patterns

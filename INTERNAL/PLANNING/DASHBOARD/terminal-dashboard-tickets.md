@@ -2,7 +2,7 @@
 
 ## Overview
 
-This ticket list covers the implementation of a terminal-based dashboard for code-cop, providing rich TUI visualizations directly in the terminal. The terminal dashboard complements the web dashboard for developers who prefer CLI workflows.
+This ticket list covers the implementation of a terminal-based dashboard for antipasta, providing rich TUI visualizations directly in the terminal. The terminal dashboard complements the web dashboard for developers who prefer CLI workflows.
 
 ## Ticket List
 
@@ -13,7 +13,7 @@ This ticket list covers the implementation of a terminal-based dashboard for cod
 **Effort**: 2 points
 **Description**: Initialize terminal UI framework
 - Add `textual` to requirements.txt
-- Create `code_cop/terminal/` package structure
+- Create `antipasta/terminal/` package structure
 - Set up basic app skeleton
 - Configure CSS styling system
 - Add development hot-reload setup
@@ -32,7 +32,7 @@ This ticket list covers the implementation of a terminal-based dashboard for cod
 **Priority**: P0
 **Effort**: 2 points
 **Description**: Wire up terminal dashboard to CLI
-- Add `code-cop tui` command
+- Add `antipasta tui` command
 - Add `--format=terminal` to analyze command
 - Support common flags (--watch, --theme)
 - Handle terminal capability detection

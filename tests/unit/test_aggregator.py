@@ -2,14 +2,14 @@
 
 from pathlib import Path
 
-from code_cop.core.aggregator import MetricAggregator
-from code_cop.core.config import (
+from antipasta.core.aggregator import MetricAggregator
+from antipasta.core.config import (
     CodeCopConfig,
     ComparisonOperator,
     LanguageConfig,
     MetricConfig,
 )
-from code_cop.core.metrics import MetricType
+from antipasta.core.metrics import MetricType
 
 
 class TestMetricAggregator:

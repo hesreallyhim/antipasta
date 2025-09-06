@@ -2,7 +2,7 @@
 """Test folder expansion issue in TUI."""
 
 from pathlib import Path
-from code_cop.terminal.data_bridge import DashboardDataBridge
+from antipasta.terminal.data_bridge import DashboardDataBridge
 
 # Test the data bridge directly
 bridge = DashboardDataBridge(".")

@@ -4,7 +4,7 @@
 
 ### Session Overview
 
-Today we successfully implemented Phase 1 of the code-cop prototype, transforming a monolithic script into a well-structured Python package with comprehensive test coverage. The implementation included configuration management, language detection, metric analysis, violation reporting, and a complete CLI interface.
+Today we successfully implemented Phase 1 of the antipasta prototype, transforming a monolithic script into a well-structured Python package with comprehensive test coverage. The implementation included configuration management, language detection, metric analysis, violation reporting, and a complete CLI interface.
 
 ### What Went Well
 
@@ -33,10 +33,10 @@ Today we successfully implemented Phase 1 of the code-cop prototype, transformin
 
 1. **Dogfooding Opportunity Missed**
    - Ironically, our code quality tool found violations in its own codebase:
-     - `code_cop/cli/metrics.py`: Cyclomatic complexity 12 (threshold: 10)
-     - `code_cop/core/metrics.py`: Maintainability index 46.99 (threshold: 50)
-     - `code_cop/core/config.py`: Maintainability index 48.95 (threshold: 50)
-   - We should have been running code-cop on itself during development
+     - `antipasta/cli/metrics.py`: Cyclomatic complexity 12 (threshold: 10)
+     - `antipasta/core/metrics.py`: Maintainability index 46.99 (threshold: 50)
+     - `antipasta/core/config.py`: Maintainability index 48.95 (threshold: 50)
+   - We should have been running antipasta on itself during development
 
 2. **Type Checking Underutilized**
    - While we configured mypy, we didn't run it regularly during development
@@ -45,7 +45,7 @@ Today we successfully implemented Phase 1 of the code-cop prototype, transformin
 
 3. **Testing Gaps**
    - No integration tests for the CLI commands
-   - The metrics command (`code_cop/cli/metrics.py`) has only 13% coverage
+   - The metrics command (`antipasta/cli/metrics.py`) has only 13% coverage
    - Missing tests for edge cases in path handling
    - The coverage tool issue suggests our test configuration needs adjustment
 
@@ -70,10 +70,10 @@ Today we successfully implemented Phase 1 of the code-cop prototype, transformin
            uses: actions/setup-python@v4
            with:
              python-version: "3.11"
-         - name: Install code-cop
+         - name: Install antipasta
            run: pip install -e .
-         - name: Run code-cop on itself
-           run: code-cop metrics --directory code_cop/ --config .code_cop.yaml
+         - name: Run antipasta on itself
+           run: antipasta metrics --directory antipasta/ --config .antipasta.yaml
    ```
 
    This would have caught our complexity violations immediately and forced us to refactor as we developed.
@@ -82,8 +82,8 @@ Today we successfully implemented Phase 1 of the code-cop prototype, transformin
    ```markdown
    ## Before Each Commit
    - [ ] Run tests: `pytest`
-   - [ ] Run type checker: `mypy code_cop`
-   - [ ] Run code-cop on changed files: `code-cop metrics --files <changed-files>`
+   - [ ] Run type checker: `mypy antipasta`
+   - [ ] Run antipasta on changed files: `antipasta metrics --files <changed-files>`
    - [ ] Update relevant documentation
    - [ ] Add/update tests for new functionality
    ```
@@ -92,15 +92,15 @@ Today we successfully implemented Phase 1 of the code-cop prototype, transformin
    ```makefile
    check: format lint type-check test self-check
 
-   self-check:  ## Run code-cop on itself
-       code-cop metrics --directory code_cop/
+   self-check:  ## Run antipasta on itself
+       antipasta metrics --directory antipasta/
 
    watch:  ## Watch for changes and run checks
        watchmedo shell-command \
            --patterns="*.py" \
            --recursive \
            --command='make check' \
-           code_cop tests
+           antipasta tests
    ```
 
 ### Lessons Learned

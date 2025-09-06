@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-code_cop.py - A hook script for Claude Code to enforce code quality
+antipasta.py - A hook script for Claude Code to enforce code quality
 using a variety of metrics beyond simple lines-of-code counting.
 
 This script is designed to be invoked as a `PreToolUse` hook in Claude Code.
@@ -26,7 +26,7 @@ Configuration
 -------------
 
 Thresholds can be adjusted via a JSON configuration file named
-`.code_cop.config.json` located in the project root (as defined by
+`.antipasta.config.json` located in the project root (as defined by
 the `CLAUDE_PROJECT_DIR` environment variable).  If the file is absent
 defaults are used.  A typical configuration might look like:
 
@@ -76,7 +76,7 @@ Claude Code:
         "hooks": [
           {
               "type": "command",
-              "command": "python3 $CLAUDE_PROJECT_DIR/code_cop.py"
+              "command": "python3 $CLAUDE_PROJECT_DIR/antipasta.py"
            }
         ]
       }
@@ -134,7 +134,7 @@ def load_config() -> dict[str, float]:
         "max_class_count": 9999999.0,
     }
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
-    config_path = os.path.join(project_dir, ".code_cop.config.json")
+    config_path = os.path.join(project_dir, ".antipasta.config.json")
     if os.path.exists(config_path):
         try:
             with open(config_path, encoding="utf-8") as fh:

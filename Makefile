@@ -40,14 +40,14 @@ install-prod: venv  ## Install the package in production mode
 	$(PIP) install .
 
 format: install-dev  ## Format code with black and ruff
-	$(VENV_DIR)/bin/black code_cop tests
-	$(VENV_DIR)/bin/ruff check --fix code_cop tests
+	$(VENV_DIR)/bin/black antipasta tests
+	$(VENV_DIR)/bin/ruff check --fix antipasta tests
 
 lint: install-dev  ## Run linting checks with ruff
-	$(VENV_DIR)/bin/ruff check code_cop tests
+	$(VENV_DIR)/bin/ruff check antipasta tests
 
 type-check: install-dev  ## Run type checking with mypy
-	$(VENV_DIR)/bin/mypy code_cop tests
+	$(VENV_DIR)/bin/mypy antipasta tests
 
 test: install-dev  ## Run tests with pytest
 	$(VENV_DIR)/bin/pytest --no-cov

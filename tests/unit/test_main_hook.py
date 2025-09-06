@@ -43,7 +43,7 @@ class TestLoadConfig(unittest.TestCase):
     def test_load_config_from_file(self) -> None:
         """Test that load_config loads custom values from config file"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            config_path = os.path.join(tmpdir, ".code_cop.config.json")
+            config_path = os.path.join(tmpdir, ".antipasta.config.json")
             config_data = {
                 "thresholds": {
                     "max_cyclomatic_increase": 5.0,

@@ -1,6 +1,6 @@
 # Planning Documents
 
-This directory contains all planning and design documents for the code-cop project.
+This directory contains all planning and design documents for the antipasta project.
 
 ## Documents (in reading order)
 
@@ -10,9 +10,9 @@ This directory contains all planning and design documents for the code-cop proje
 
 ## Quick Reference
 
-- **Project Name**: code-cop (Python package: `code_cop`)
-- **CLI Command**: `code-cop` with subcommands
-- **Config File**: `.code_cop.yaml` (YAML format)
+- **Project Name**: antipasta (Python package: `antipasta`)
+- **CLI Command**: `antipasta` with subcommands
+- **Config File**: `.antipasta.yaml` (YAML format)
 - **Initial Scope**: Python-only implementation
 - **Build System**: pyproject.toml with hatchling
 

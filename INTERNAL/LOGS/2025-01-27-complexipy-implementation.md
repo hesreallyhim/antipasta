@@ -6,7 +6,7 @@
 
 ## Session Overview
 
-Successfully implemented cognitive complexity analysis in code-cop using the Complexipy tool. This adds a new dimension to code quality analysis by focusing on how difficult code is to understand (cognitive load) rather than just execution paths (cyclomatic complexity).
+Successfully implemented cognitive complexity analysis in antipasta using the Complexipy tool. This adds a new dimension to code quality analysis by focusing on how difficult code is to understand (cognitive load) rather than just execution paths (cyclomatic complexity).
 
 ## What Was Accomplished
 
@@ -37,7 +37,7 @@ Successfully implemented cognitive complexity analysis in code-cop using the Com
 ### 5. Configuration Integration
 - Cognitive complexity was already defined in MetricType enum
 - Default threshold set to 15 (reasonable based on research)
-- Enabled by default in `.code_cop.yaml`
+- Enabled by default in `.antipasta.yaml`
 
 ## Key Implementation Details
 
@@ -163,7 +163,7 @@ The cognitive complexity metric is already proving valuable - it highlights diff
 ## Action Items
 
 - [ ] Add complexipy to project dependencies
-- [ ] Run code-cop on itself and address violations
+- [ ] Run antipasta on itself and address violations
 - [ ] Create integration test that runs both runners
 - [ ] Document multi-runner architecture pattern
 - [ ] Consider abstracting JSON file handling for other tools
