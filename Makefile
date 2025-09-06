@@ -55,7 +55,6 @@ test: venv  ## Run tests with pytest
 test-cov: venv  ## Run tests with coverage report
 	rm -rf .coverage* htmlcov
 	COVERAGE_CORE=sysmon $(VENV_DIR)/bin/pytest --cov=code_cop --cov-branch --cov-report=term-missing --cov-report=html
-	@if ls .coverage.* 1> /dev/null 2>&1; then $(VENV_DIR)/bin/coverage combine; fi
 
 clean:  ## Clean up build artifacts and cache files
 	rm -rf build dist *.egg-info
