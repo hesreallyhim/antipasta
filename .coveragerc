@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = antipasta
+source = src/antipasta
 parallel = True
 concurrency =
 disable_warnings = module-not-measured

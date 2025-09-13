@@ -5,7 +5,7 @@ PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 
 # Release configuration
-VERSION_FILE := antipasta/__version__.py
+VERSION_FILE := src/antipasta/__version__.py
 CURRENT_VERSION := $(shell grep -oE '[0-9]+\.[0-9]+\.[0-9]+' $(VERSION_FILE))
 
 # Detect OS for activation script
@@ -44,14 +44,14 @@ install-prod: venv  ## Install the package in production mode
 	$(PIP) install .
 
 format: install-dev  ## Format code with black and ruff
-	$(VENV_DIR)/bin/black antipasta tests
-	$(VENV_DIR)/bin/ruff check --fix antipasta tests
+	$(VENV_DIR)/bin/black src/antipasta tests
+	$(VENV_DIR)/bin/ruff check --fix src/antipasta tests
 
 lint: install-dev  ## Run linting checks with ruff
-	$(VENV_DIR)/bin/ruff check antipasta tests
+	$(VENV_DIR)/bin/ruff check src/antipasta tests
 
 type-check: install-dev  ## Run type checking with mypy
-	$(VENV_DIR)/bin/mypy antipasta tests
+	$(VENV_DIR)/bin/mypy src/antipasta tests
 
 test: install-dev  ## Run tests with pytest
 	$(VENV_DIR)/bin/pytest --no-cov
@@ -64,7 +64,7 @@ test-cov: install-dev  ## Run tests with coverage report
 	@mkdir -p .coverage
 	# Set up trap to clean up on interrupt (Ctrl+C) and preserve final .coverage file if it exists
 	@trap 'mv .coverage/.coverage .coverage.tmp 2>/dev/null; rm -rf .coverage 2>/dev/null; mv .coverage.tmp .coverage 2>/dev/null || true' EXIT INT TERM; \
-	$(VENV_DIR)/bin/pytest --cov=antipasta --cov-branch --cov-report=term-missing --cov-report=html -p no:cacheprovider; \
+	$(VENV_DIR)/bin/pytest --cov=src/antipasta --cov-branch --cov-report=term-missing --cov-report=html -p no:cacheprovider; \
 	mv .coverage/.coverage .coverage 2>/dev/null || true
 
 check: lint type-check test  ## Run all quality checks (lint, type-check, test)
