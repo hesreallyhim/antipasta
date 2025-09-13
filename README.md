@@ -23,22 +23,18 @@ Complex code is harder to understand, test, and maintain. By enforcing limits on
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/antipasta.git
+git clone https://github.com/hesreallyhim/antipasta.git
 cd antipasta
 
-# Create a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install in development mode
-pip install -e ".[dev]"
+# Run `make install` to create a venv and install the package dependencies in editable mode
+make install
+# For development dependencies
+make install-dev
 ```
 
 ### Requirements
 
 -   Python 3.11 or higher
--   Radon (automatically installed as a dependency)
--   Complexipy (optional, for cognitive complexity metrics)
 
 ## Basic Usage
 
@@ -170,6 +166,14 @@ ignore_patterns:
 
 ## Metrics Explained
 
+### Lines of Code Metrics
+
+-   **LOC**: Total lines of code
+-   **SLOC**: Source lines of code (excluding comments and blanks)
+-   **LLOC**: Logical lines of code
+-   **Comment Lines**: Number of comment lines
+-   **Blank Lines**: Number of blank lines
+
 ### Cyclomatic Complexity
 
 Measures the number of linearly independent paths through a function. Higher values indicate more complex control flow.
@@ -201,14 +205,6 @@ def process_data(data, mode, validate, transform):
     return data
 ```
 
-### Maintainability Index
-
-A composite metric (0-100) that considers cyclomatic complexity, lines of code, and Halstead volume. Higher values indicate more maintainable code.
-
--   **Good**: 50-100 (maintainable)
--   **Moderate**: 20-49 (moderately maintainable)
--   **Low**: 0-19 (difficult to maintain)
-
 ### Halstead Metrics
 
 Based on the number of operators and operands in code:
@@ -218,6 +214,14 @@ Based on the number of operators and operands in code:
 -   **Effort**: Mental effort required to understand the code
 -   **Time**: Estimated time to implement (in seconds)
 -   **Bugs**: Estimated number of bugs (Volume / 3000)
+
+### Maintainability Index
+
+A composite metric (0-100) that considers cyclomatic complexity, lines of code, and Halstead volume. Higher values indicate more maintainable code.
+
+-   **Good**: 50-100 (maintainable)
+-   **Moderate**: 20-49 (moderately maintainable)
+-   **Low**: 0-19 (difficult to maintain)
 
 ### Cognitive Complexity
 
@@ -231,16 +235,6 @@ Key differences from cyclomatic complexity:
 -   Heavily penalizes nested control structures
 -   Considers break/continue statements in loops
 -   Better represents actual cognitive load
-
-**Note**: Requires `complexipy` to be installed (`pip install complexipy`)
-
-### Lines of Code Metrics
-
--   **LOC**: Total lines of code
--   **SLOC**: Source lines of code (excluding comments and blanks)
--   **LLOC**: Logical lines of code
--   **Comment Lines**: Number of comment lines
--   **Blank Lines**: Number of blank lines
 
 ## Exit Codes
 
@@ -392,10 +386,10 @@ CYCLOMATIC COMPLEXITY STATISTICS:
 
 ```bash
 # Run all tests
-pytest
+make test
 
 # Run with coverage
-pytest --cov=antipasta --cov-report=term-missing
+make test-coverage
 
 # Run specific test file
 pytest tests/unit/test_config.py -v

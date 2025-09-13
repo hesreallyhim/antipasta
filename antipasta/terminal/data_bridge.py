@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 from antipasta.core.violations import FileReport
 
 
@@ -24,7 +24,7 @@ class DashboardDataBridge:
         self._cache: dict[str, Any] = {}
         self._update_callbacks: list[Callable[[], None]] = []
 
-    def _load_config(self) -> CodeCopConfig:
+    def _load_config(self) -> AntipastaConfig:
         """Load configuration from project directory."""
         config_paths = [
             self.project_path / ".antipasta.yaml",
@@ -37,13 +37,13 @@ class DashboardDataBridge:
                 try:
                     if config_path.suffix == ".json":
                         # TODO: Add JSON config support
-                        return CodeCopConfig.generate_default()
+                        return AntipastaConfig.generate_default()
                     else:
-                        return CodeCopConfig.from_yaml(config_path)
+                        return AntipastaConfig.from_yaml(config_path)
                 except Exception:
                     pass
 
-        return CodeCopConfig.generate_default()
+        return AntipastaConfig.generate_default()
 
     def collect_files(self) -> list[Path]:
         """Collect all files to analyze in the project."""

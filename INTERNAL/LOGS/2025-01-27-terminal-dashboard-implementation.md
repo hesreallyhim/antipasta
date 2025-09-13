@@ -83,7 +83,7 @@ The foundation is now in place. The next phase involves implementing the interac
 
 ### Integration Points
 - Successfully integrated with existing CLI structure
-- Reuses core engine components (MetricAggregator, CodeCopConfig)
+- Reuses core engine components (MetricAggregator, AntipastaConfig)
 - Compatible with existing configuration files
 
 ## Testing Recommendations

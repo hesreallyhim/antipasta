@@ -4,7 +4,7 @@ from pathlib import Path
 
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import (
-    CodeCopConfig,
+    AntipastaConfig,
     ComparisonOperator,
     LanguageConfig,
     MetricConfig,
@@ -17,7 +17,7 @@ class TestMetricAggregator:
 
     def test_aggregator_initialization(self) -> None:
         """Test creating an aggregator."""
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         assert aggregator.config == config
@@ -35,7 +35,7 @@ def hello():
 """
         )
 
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         reports = aggregator.analyze_files([file_path])
@@ -83,7 +83,7 @@ def complex_function(a, b, c, d):
         )
 
         # Create config with low complexity threshold
-        config = CodeCopConfig(
+        config = AntipastaConfig(
             languages=[
                 LanguageConfig(
                     name="python",
@@ -121,7 +121,7 @@ def complex_function(a, b, c, d):
         file2 = tmp_path / "file2.py"
         file2.write_text("def another(): return 2")
 
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         reports = aggregator.analyze_files([file1, file2])
@@ -144,7 +144,7 @@ def complex_function(a, b, c, d):
         txt_file = tmp_path / "readme.txt"
         txt_file.write_text("Hello")
 
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         reports = aggregator.analyze_files([py_file, js_file, txt_file])
@@ -162,7 +162,7 @@ def complex_function(a, b, c, d):
         test_file = tmp_path / "test_main.py"
         test_file.write_text("def test(): pass")
 
-        config = CodeCopConfig(
+        config = AntipastaConfig(
             ignore_patterns=["test_*.py"],
             languages=[
                 LanguageConfig(
@@ -185,7 +185,7 @@ def complex_function(a, b, c, d):
         file_path = tmp_path / "good.py"
         file_path.write_text("def simple(): return 42")
 
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         reports = aggregator.analyze_files([file_path])
@@ -226,7 +226,7 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
 """
         )
 
-        config = CodeCopConfig(
+        config = AntipastaConfig(
             languages=[
                 LanguageConfig(
                     name="python",
@@ -259,7 +259,7 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
 
     def test_analyze_nonexistent_file(self) -> None:
         """Test analyzing a file that doesn't exist."""
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         reports = aggregator.analyze_files([Path("/nonexistent/file.py")])
@@ -274,7 +274,7 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
         file_path.write_text("def test(): pass")
 
         # Config with no language-specific settings
-        config = CodeCopConfig(languages=[])
+        config = AntipastaConfig(languages=[])
         aggregator = MetricAggregator(config)
 
         reports = aggregator.analyze_files([file_path])

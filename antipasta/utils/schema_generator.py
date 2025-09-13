@@ -4,12 +4,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 
 
 def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:
     """Generate JSON schema for the configuration."""
-    schema = CodeCopConfig.model_json_schema()
+    schema = AntipastaConfig.model_json_schema()
 
     # Add some additional metadata
     schema["$schema"] = "http://json-schema.org/draft-07/schema#"

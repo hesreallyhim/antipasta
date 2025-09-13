@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "antipasta"
 version = "0.1.0"
-description = "A code quality enforcement tool that analyzes code complexity metrics"
+description = "A code quality monitoring and enforcement tool that analyzes code complexity metrics"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -39,8 +39,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cognitive = ["complexipy>=3.3.0"]
-all = ["complexipy>=3.3.0"]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
@@ -54,8 +52,8 @@ dev = [
 antipasta = "antipasta.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/antipasta"
-Issues = "https://github.com/yourusername/antipasta/issues"
+Homepage = "https://github.com/hesreallyhim/antipasta"
+Issues = "https://github.com/hesreallyhim/antipasta/issues"
 
 [tool.hatch.metadata]
 allow-direct-references = true

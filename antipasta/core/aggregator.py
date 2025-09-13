@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import CodeCopConfig, ComparisonOperator, MetricConfig
+from antipasta.core.config import AntipastaConfig, ComparisonOperator, MetricConfig
 from antipasta.core.detector import Language, LanguageDetector
 from antipasta.core.metrics import FileMetrics, MetricType
 from antipasta.core.violations import FileReport, Violation, check_metric_violation
@@ -18,7 +18,7 @@ from antipasta.runners.python.radon import RadonRunner
 class MetricAggregator:
     """Aggregates metrics and violations across multiple files."""
 
-    def __init__(self, config: CodeCopConfig) -> None:
+    def __init__(self, config: AntipastaConfig) -> None:
         """Initialize the aggregator with configuration.
 
         Args:

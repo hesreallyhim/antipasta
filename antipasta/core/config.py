@@ -79,7 +79,7 @@ class DefaultsConfig(BaseModel):
         return self
 
 
-class CodeCopConfig(BaseModel):
+class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
     defaults: DefaultsConfig = Field(default_factory=DefaultsConfig)
@@ -88,7 +88,7 @@ class CodeCopConfig(BaseModel):
     use_gitignore: bool = Field(default=True)
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> CodeCopConfig:
+    def from_yaml(cls, path: str | Path) -> AntipastaConfig:
         """Load configuration from YAML file."""
         path = Path(path)
         if not path.exists():
@@ -100,7 +100,7 @@ class CodeCopConfig(BaseModel):
         return cls(**data)
 
     @classmethod
-    def generate_default(cls) -> CodeCopConfig:
+    def generate_default(cls) -> AntipastaConfig:
         """Generate default configuration with sensible values."""
         return cls(
             defaults=DefaultsConfig(),

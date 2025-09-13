@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 from pydantic import ValidationError
 
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 
 
 @click.command()
@@ -17,7 +17,7 @@ def validate_config(config_file: Path) -> None:
     Exits with code 0 if valid, 1 if invalid.
     """
     try:
-        config = CodeCopConfig.from_yaml(config_file)
+        config = AntipastaConfig.from_yaml(config_file)
         click.echo(f"✅ Configuration file is valid: {config_file}")
 
         # Print summary

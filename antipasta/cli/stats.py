@@ -9,7 +9,7 @@ from typing import Any
 import click
 
 from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 from antipasta.core.metrics import MetricType
 
 
@@ -100,7 +100,7 @@ def stats(
         return
 
     # Load config (use defaults)
-    config = CodeCopConfig.generate_default()
+    config = AntipastaConfig.generate_default()
 
     # Create aggregator and detector to preview what will be analyzed
     aggregator = MetricAggregator(config)

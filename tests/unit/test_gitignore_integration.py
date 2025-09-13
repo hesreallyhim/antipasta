@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 
 
 class TestGitignoreIntegration:
@@ -13,12 +13,12 @@ class TestGitignoreIntegration:
 
     def test_use_gitignore_default_true(self) -> None:
         """Test that use_gitignore defaults to true."""
-        config = CodeCopConfig()
+        config = AntipastaConfig()
         assert config.use_gitignore is True
 
     def test_use_gitignore_can_be_disabled(self) -> None:
         """Test that use_gitignore can be disabled."""
-        config = CodeCopConfig(use_gitignore=False)
+        config = AntipastaConfig(use_gitignore=False)
         assert config.use_gitignore is False
 
     def test_aggregator_loads_gitignore_when_enabled(self, tmp_path: Any, monkeypatch: Any) -> None:
@@ -55,7 +55,7 @@ dist/
         build_file.write_text("def output(): pass")
 
         # Create config with use_gitignore=true
-        config = CodeCopConfig(use_gitignore=True)
+        config = AntipastaConfig(use_gitignore=True)
         aggregator = MetricAggregator(config)
 
         # Analyze files - gitignored files should be skipped
@@ -79,7 +79,7 @@ dist/
         main_file.write_text("def main(): pass")
 
         # Create config with use_gitignore=false
-        config = CodeCopConfig(use_gitignore=False)
+        config = AntipastaConfig(use_gitignore=False)
         aggregator = MetricAggregator(config)
 
         # Analyze files - .gitignore should be ignored
@@ -110,7 +110,7 @@ dist/
         build_file.write_text("def output(): pass")
 
         # Create config with both .gitignore and ignore_patterns
-        config = CodeCopConfig(use_gitignore=True, ignore_patterns=["test_*.py"])
+        config = AntipastaConfig(use_gitignore=True, ignore_patterns=["test_*.py"])
         aggregator = MetricAggregator(config)
 
         # Analyze files
@@ -132,7 +132,7 @@ dist/
         main_file.write_text("def main(): pass")
 
         # Create config with use_gitignore=true
-        config = CodeCopConfig(use_gitignore=True)
+        config = AntipastaConfig(use_gitignore=True)
         aggregator = MetricAggregator(config)
 
         # Should work without errors
@@ -151,10 +151,10 @@ defaults:
 """
         )
 
-        config = CodeCopConfig.from_yaml(config_file)
+        config = AntipastaConfig.from_yaml(config_file)
         assert config.use_gitignore is False
 
     def test_default_config_includes_use_gitignore(self) -> None:
         """Test that default generated config has use_gitignore=true."""
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         assert config.use_gitignore is True

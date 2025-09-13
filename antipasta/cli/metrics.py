@@ -8,7 +8,7 @@ from typing import Any
 import click
 
 from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 from antipasta.core.detector import LanguageDetector
 from antipasta.core.violations import FileReport
 
@@ -138,15 +138,15 @@ def metrics(
     sys.exit(0 if summary["success"] else 2)
 
 
-def _load_configuration(config: Path, quiet: bool) -> CodeCopConfig:
+def _load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
     """Load configuration from file or generate default."""
     try:
         if config.exists():
-            cfg = CodeCopConfig.from_yaml(config)
+            cfg = AntipastaConfig.from_yaml(config)
             if not quiet:
                 click.echo(f"Using configuration: {config}")
         else:
-            cfg = CodeCopConfig.generate_default()
+            cfg = AntipastaConfig.generate_default()
             if not quiet:
                 click.echo("Using default configuration")
         return cfg
@@ -158,7 +158,7 @@ def _load_configuration(config: Path, quiet: bool) -> CodeCopConfig:
 def _collect_files(
     files: tuple[Path, ...],
     directory: Path | None,
-    config: CodeCopConfig
+    config: AntipastaConfig
 ) -> list[Path]:
     """Collect all files to analyze, respecting gitignore patterns."""
     # Create a detector with config's ignore patterns

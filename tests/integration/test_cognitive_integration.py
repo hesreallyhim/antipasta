@@ -15,7 +15,7 @@ Useful for verifying the full cognitive complexity pipeline works end-to-end.
 from pathlib import Path
 
 from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 from antipasta.core.detector import Language
 
 
@@ -23,9 +23,9 @@ def main() -> None:
     # Load config
     config_path = Path(".antipasta.yaml")
     if config_path.exists():
-        config = CodeCopConfig.from_yaml(config_path)
+        config = AntipastaConfig.from_yaml(config_path)
     else:
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
     print(f"Config defaults: max_cognitive_complexity = {config.defaults.max_cognitive_complexity}")
 
     # Create aggregator

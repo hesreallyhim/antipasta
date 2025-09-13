@@ -3,7 +3,7 @@
 
 from pathlib import Path
 from antipasta.terminal.data_bridge import DashboardDataBridge
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 from antipasta.core.detector import LanguageDetector
 
 print("=== Debugging TUI Zero Files Issue ===\n")

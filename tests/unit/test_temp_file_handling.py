@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 
 from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import CodeCopConfig
+from antipasta.core.config import AntipastaConfig
 from antipasta.core.detector import Language, LanguageDetector
 
 
@@ -50,7 +50,7 @@ def hello():
 """
         )
 
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         # File should be detected and analyzed
@@ -86,7 +86,7 @@ def hello():
 """
         )
 
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         aggregator = MetricAggregator(config)
 
         # Verify file detection

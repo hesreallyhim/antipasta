@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from antipasta.core.config import (
-    CodeCopConfig,
+    AntipastaConfig,
     ComparisonOperator,
     DefaultsConfig,
     LanguageConfig,
@@ -101,12 +101,12 @@ class TestDefaultsConfig:
         assert "must be non-negative" in str(exc_info.value)
 
 
-class TestCodeCopConfig:
-    """Tests for CodeCopConfig model."""
+class TestAntipastaConfig:
+    """Tests for AntipastaConfig model."""
 
     def test_generate_default(self) -> None:
         """Test generating default configuration."""
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         assert isinstance(config.defaults, DefaultsConfig)
         assert len(config.languages) == 1
         assert config.languages[0].name == "python"
@@ -115,7 +115,7 @@ class TestCodeCopConfig:
 
     def test_get_language_config(self) -> None:
         """Test retrieving language-specific configuration."""
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         python_config = config.get_language_config("python")
         assert python_config is not None
         assert python_config.name == "python"
@@ -148,7 +148,7 @@ languages:
         config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text(yaml_content)
 
-        config = CodeCopConfig.from_yaml(config_file)
+        config = AntipastaConfig.from_yaml(config_file)
         assert config.defaults.max_cyclomatic_complexity == 15
         assert config.defaults.min_maintainability_index == 40
         assert len(config.languages) == 1
@@ -156,16 +156,16 @@ languages:
     def test_from_yaml_file_not_found(self) -> None:
         """Test loading from non-existent file."""
         with pytest.raises(FileNotFoundError):
-            CodeCopConfig.from_yaml("non_existent.yaml")
+            AntipastaConfig.from_yaml("non_existent.yaml")
 
     def test_to_yaml(self, tmp_path: Path) -> None:
         """Test saving configuration to YAML."""
-        config = CodeCopConfig.generate_default()
+        config = AntipastaConfig.generate_default()
         output_file = tmp_path / "output.yaml"
         config.to_yaml(output_file)
 
         # Load it back
-        loaded_config = CodeCopConfig.from_yaml(output_file)
+        loaded_config = AntipastaConfig.from_yaml(output_file)
         assert loaded_config.defaults.max_cyclomatic_complexity == 10
         assert len(loaded_config.languages) == 1
 
@@ -174,7 +174,7 @@ languages:
         config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text("")
 
-        config = CodeCopConfig.from_yaml(config_file)
+        config = AntipastaConfig.from_yaml(config_file)
         assert isinstance(config.defaults, DefaultsConfig)
         assert len(config.languages) == 0  # No languages defined
         assert len(config.ignore_patterns) == 0  # No ignore patterns
