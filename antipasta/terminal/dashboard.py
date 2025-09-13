@@ -86,11 +86,9 @@ class TerminalDashboard(App[None]):
         """
         Update app bindings from shortcut manager.
         """
-        bindings: list[
-            Binding | tuple[str, str] | tuple[str, str, str]
-        ] = cast(
+        bindings: list[Binding | tuple[str, str] | tuple[str, str, str]] = cast(
             "list[Binding | tuple[str, str] | tuple[str, str, str]]",
-            self.shortcut_manager.get_bindings()
+            self.shortcut_manager.get_bindings(),
         )
         type(self).BINDINGS = bindings
 
@@ -106,24 +104,15 @@ class TerminalDashboard(App[None]):
             # Right side - Main content area
             with Vertical(id="main-content"):
                 # Top - Metrics overview
-                yield MetricsOverviewWidget(
-                    id="metrics-widget",
-                    classes="metrics-overview"
-                )
+                yield MetricsOverviewWidget(id="metrics-widget", classes="metrics-overview")
 
                 # Bottom panels
                 with Horizontal():
                     # Heatmap visualization
-                    yield HeatmapWidget(
-                        id="heatmap-widget",
-                        classes="heatmap"
-                    )
+                    yield HeatmapWidget(id="heatmap-widget", classes="heatmap")
 
                     # Detail view
-                    yield DetailViewWidget(
-                        id="detail-widget",
-                        classes="detail-view"
-                    )
+                    yield DetailViewWidget(id="detail-widget", classes="detail-view")
 
     def on_mount(self) -> None:
         """Initialize the dashboard when mounted."""
@@ -143,6 +132,7 @@ class TerminalDashboard(App[None]):
     def _start_initial_analysis(self, loading_screen: LoadingScreen) -> None:
         """Start the initial analysis (non-async wrapper)."""
         import asyncio
+
         # Create a task for the async analysis
         asyncio.create_task(self._initial_analysis(loading_screen))
 
@@ -171,6 +161,7 @@ class TerminalDashboard(App[None]):
 
             # Small delay to allow UI to update
             import asyncio
+
             await asyncio.sleep(0.1)
 
             # Perform the analysis
@@ -189,9 +180,7 @@ class TerminalDashboard(App[None]):
         except Exception as e:
             loading_screen.remove()
             self.mount(Footer())  # Ensure footer is added even on error
-            self.notify(
-                f"Error during initial analysis: {e}", severity="error"
-            )
+            self.notify(f"Error during initial analysis: {e}", severity="error")
 
     async def action_quit(self) -> None:
         """Quit the application."""
@@ -201,11 +190,13 @@ class TerminalDashboard(App[None]):
         """Clean up when the app is about to close."""
         # Ensure mouse tracking is disabled
         from antipasta.terminal.cleanup import disable_mouse_tracking
+
         disable_mouse_tracking()
 
     async def _on_exit_app(self) -> None:
         """Handle app exit."""
         from antipasta.terminal.cleanup import disable_mouse_tracking
+
         disable_mouse_tracking()
         await super()._on_exit_app()
 
@@ -412,9 +403,7 @@ class TerminalDashboard(App[None]):
         if self.focused and hasattr(self.focused, "id"):
             current_id = self.focused.id
             if current_id:
-                target_id = self.focus_manager.get_directional_target(
-                    current_id, direction
-                )
+                target_id = self.focus_manager.get_directional_target(current_id, direction)
                 if target_id:
                     try:
                         target_widget = self.query_one(f"#{target_id}")
@@ -430,9 +419,7 @@ class TerminalDashboard(App[None]):
 
             # Update metrics overview widget
             try:
-                metrics_widget = self.query_one(
-                    "#metrics-widget", MetricsOverviewWidget
-                )
+                metrics_widget = self.query_one("#metrics-widget", MetricsOverviewWidget)
                 metrics_summary = self.data_bridge.get_metrics_summary()
                 self.log.info(
                     f"Updating metrics widget with summary: "
@@ -444,23 +431,16 @@ class TerminalDashboard(App[None]):
 
             # Update file tree widget
             try:
-                file_tree_widget = self.query_one(
-                    "#file-tree-widget", FileTreeWidget
-                )
+                file_tree_widget = self.query_one("#file-tree-widget", FileTreeWidget)
                 tree_data = self.data_bridge.get_file_tree()
-                self.log.info(
-                    f"Tree data has {len(tree_data.get('children', {}))} "
-                    f"root items"
-                )
+                self.log.info(f"Tree data has {len(tree_data.get('children', {}))} " f"root items")
                 file_tree_widget.update_tree_data(tree_data)
             except Exception as e:
                 self.log.error(f"Failed to update file tree: {e}")
 
             # Update heatmap widget
             try:
-                heatmap_widget = self.query_one(
-                    "#heatmap-widget", HeatmapWidget
-                )
+                heatmap_widget = self.query_one("#heatmap-widget", HeatmapWidget)
                 heatmap_data = self.data_bridge.get_heatmap_data()
                 heatmap_widget.update_heatmap(heatmap_data)
             except Exception as e:
@@ -494,8 +474,7 @@ class TerminalDashboard(App[None]):
     def on_file_selected(self, message: FileSelected) -> None:
         """Handle file selection from the file tree."""
         self.log.info(
-            f"File selected: {message.file_path}, "
-            f"has report: {message.report is not None}"
+            f"File selected: {message.file_path}, " f"has report: {message.report is not None}"
         )
 
         # Update detail view with selected file
@@ -521,9 +500,7 @@ class TerminalDashboard(App[None]):
         if hasattr(self, action_method):
             getattr(self, action_method)()
         else:
-            self.notify(
-                f"Command: {message.command} (action: {message.action})"
-            )
+            self.notify(f"Command: {message.command} (action: {message.action})")
 
     def on_filters_applied(self, message: FiltersApplied) -> None:
         """Handle filters being applied."""

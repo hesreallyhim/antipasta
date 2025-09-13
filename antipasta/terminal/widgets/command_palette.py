@@ -1,6 +1,6 @@
 """Command palette widget for quick actions and navigation."""
 
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from textual import on
 from textual.app import ComposeResult
@@ -97,9 +97,9 @@ class CommandPalette(Container):
         """Initialize the command palette."""
         super().__init__(**kwargs)
         self.commands = self._get_available_commands()
-        self.filtered_commands: List[Tuple[str, str, str]] = []
+        self.filtered_commands: list[tuple[str, str, str]] = []
 
-    def _get_available_commands(self) -> List[Tuple[str, str, str]]:
+    def _get_available_commands(self) -> list[tuple[str, str, str]]:
         """Get list of available commands.
 
         Returns:

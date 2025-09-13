@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Union
+from typing import Any
 
 from antipasta.core.violations import FileReport
 
@@ -199,14 +199,18 @@ class FilterManager:
             True if result matches filter
         """
         # Get the value to compare based on filter type
-        value: Union[float, int, str, list[str]] = 0
+        value: float | int | str | list[str] = 0
         if filter.type == FilterType.COMPLEXITY:
             # Get max cyclomatic complexity from metrics
-            cc_metrics = [m for m in result.metrics if m.metric_type.value == "cyclomatic_complexity"]
+            cc_metrics = [
+                m for m in result.metrics if m.metric_type.value == "cyclomatic_complexity"
+            ]
             value = max([m.value for m in cc_metrics], default=0) if cc_metrics else 0
         elif filter.type == FilterType.MAINTAINABILITY:
             # Get maintainability index from metrics
-            mi_metrics = [m for m in result.metrics if m.metric_type.value == "maintainability_index"]
+            mi_metrics = [
+                m for m in result.metrics if m.metric_type.value == "maintainability_index"
+            ]
             value = mi_metrics[0].value if mi_metrics else 100
         elif filter.type == FilterType.FILE_PATTERN:
             value = str(result.file_path)

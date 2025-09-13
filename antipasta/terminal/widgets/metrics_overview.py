@@ -1,12 +1,12 @@
 """Metrics overview panel widget for terminal dashboard."""
 
-from typing import Any, Optional
+from typing import Any
 
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Static, ProgressBar, Sparkline
+from textual.widgets import ProgressBar, Static
 
 
 class MetricsOverviewWidget(Widget):
@@ -16,7 +16,7 @@ class MetricsOverviewWidget(Widget):
 
     metrics_summary: reactive[dict[str, Any]] = reactive({})
 
-    def __init__(self, metrics_summary: Optional[dict[str, Any]] = None, **kwargs: Any) -> None:
+    def __init__(self, metrics_summary: dict[str, Any] | None = None, **kwargs: Any) -> None:
         """Initialize the metrics overview widget.
 
         Args:
@@ -150,14 +150,11 @@ class MetricsOverviewWidget(Widget):
             for metric_type, count in sorted(
                 violations_by_type.items(), key=lambda x: x[1], reverse=True
             ):
-                with violations_container:
-                    with Horizontal(classes="violation-row"):
-                        # Format metric type name
-                        type_name = metric_type.replace("_", " ").title()
-                        violations_container.mount(
-                            Static(f"• {type_name}:", classes="violation-type")
-                        )
-                        violations_container.mount(Static(str(count), classes="violation-count"))
+                with violations_container, Horizontal(classes="violation-row"):
+                    # Format metric type name
+                    type_name = metric_type.replace("_", " ").title()
+                    violations_container.mount(Static(f"• {type_name}:", classes="violation-type"))
+                    violations_container.mount(Static(str(count), classes="violation-count"))
         else:
             violations_container.mount(Static("✓ No violations found", classes="no-violations"))
 

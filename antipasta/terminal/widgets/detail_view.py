@@ -1,12 +1,12 @@
 """Detail view panel widget for terminal dashboard."""
 
-from typing import Any, Optional
+from typing import Any
 
 from textual.app import ComposeResult
 from textual.containers import Container, ScrollableContainer
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Static, DataTable
+from textual.widgets import DataTable, Static
 
 from antipasta.core.violations import FileReport
 
@@ -16,13 +16,13 @@ class DetailViewWidget(Widget):
 
     COMPONENT_CLASSES = {"detail-view-widget"}
 
-    file_report: reactive[Optional[FileReport]] = reactive(None)
+    file_report: reactive[FileReport | None] = reactive(None)
     selected_file: reactive[str] = reactive("")
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the detail view widget."""
         super().__init__(**kwargs)
-        self._function_table: Optional[DataTable[str]] = None
+        self._function_table: DataTable[str] | None = None
 
     def compose(self) -> ComposeResult:
         """Create the widget layout."""
@@ -59,7 +59,7 @@ class DetailViewWidget(Widget):
             self._update_display()
 
     def watch_file_report(
-        self, old_report: Optional[FileReport], new_report: Optional[FileReport]
+        self, old_report: FileReport | None, new_report: FileReport | None
     ) -> None:
         """React to file report changes."""
         self._update_display()
@@ -192,7 +192,7 @@ class DetailViewWidget(Widget):
                 violation_text = f"  • {location}: {violation.value:.2f} (threshold: {violation.comparison.value} {violation.threshold})"
                 violations_list.mount(Static(violation_text, classes="violation-item"))
 
-    def update_file_report(self, file_report: Optional[FileReport], file_path: str = "") -> None:
+    def update_file_report(self, file_report: FileReport | None, file_path: str = "") -> None:
         """Update the widget with a new file report."""
         self.file_report = file_report
         self.selected_file = file_path

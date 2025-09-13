@@ -2,8 +2,6 @@
 
 from typing import Any
 
-import pytest
-
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 
@@ -65,7 +63,9 @@ dist/
         assert len(reports) == 1
         assert reports[0].file_path == main_file
 
-    def test_aggregator_ignores_gitignore_when_disabled(self, tmp_path: Any, monkeypatch: Any) -> None:
+    def test_aggregator_ignores_gitignore_when_disabled(
+        self, tmp_path: Any, monkeypatch: Any
+    ) -> None:
         """Test that aggregator ignores .gitignore when disabled."""
         # Change to tmp directory
         monkeypatch.chdir(tmp_path)

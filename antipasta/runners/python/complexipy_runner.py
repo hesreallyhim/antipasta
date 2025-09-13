@@ -40,9 +40,7 @@ class ComplexipyRunner(BaseRunner):
                 self._available = False
         return self._available
 
-    def analyze(
-        self, file_path: Path, content: str | None = None
-    ) -> FileMetrics:
+    def analyze(self, file_path: Path, content: str | None = None) -> FileMetrics:
         """Analyze a Python file using Complexipy.
 
         Args:
@@ -57,8 +55,7 @@ class ComplexipyRunner(BaseRunner):
                 file_path=file_path,
                 language=Language.PYTHON.value,
                 metrics=[],
-                error="Complexipy is not installed. "
-                      "Install with: pip install complexipy",
+                error="Complexipy is not installed. " "Install with: pip install complexipy",
             )
 
         # Run complexipy and get results
@@ -70,9 +67,7 @@ class ComplexipyRunner(BaseRunner):
             metrics=metrics,
         )
 
-    def _run_complexipy_command(
-        self, file_path: Path
-    ) -> list[dict[str, Any]] | None:
+    def _run_complexipy_command(self, file_path: Path) -> list[dict[str, Any]] | None:
         """Run complexipy command and return JSON output.
 
         Args:

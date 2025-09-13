@@ -16,17 +16,18 @@ def disable_mouse_tracking() -> None:
         sys.stdout.write("\033[?1006l")  # Disable SGR mouse mode
         sys.stdout.write("\033[?1002l")  # Disable cell motion tracking
         sys.stdout.write("\033[?1005l")  # Disable UTF-8 mouse mode
-        sys.stdout.write("\033[?25h")    # Show cursor
-        sys.stdout.write("\033[?47l")    # Switch to normal screen buffer
+        sys.stdout.write("\033[?25h")  # Show cursor
+        sys.stdout.write("\033[?47l")  # Switch to normal screen buffer
         sys.stdout.write("\033[?1049l")  # Disable alternate screen buffer
         sys.stdout.write("\033[?1004l")  # Disable focus events
-        sys.stdout.write("\033[0m")      # Reset all attributes
-        sys.stdout.write("\033[2J")      # Clear screen
-        sys.stdout.write("\033[H")       # Move cursor to home
+        sys.stdout.write("\033[0m")  # Reset all attributes
+        sys.stdout.write("\033[2J")  # Clear screen
+        sys.stdout.write("\033[H")  # Move cursor to home
         sys.stdout.flush()
 
         # Also try to reset via tput if available
         import subprocess
+
         try:
             subprocess.run(["tput", "rmcup"], capture_output=True)
             subprocess.run(["tput", "cnorm"], capture_output=True)

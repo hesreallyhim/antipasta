@@ -1,7 +1,6 @@
 """Tests for Python metric runners."""
 
 from pathlib import Path
-from typing import Any
 
 from antipasta.core.metrics import MetricType
 from antipasta.runners.python.radon import RadonRunner

@@ -31,12 +31,7 @@ from antipasta.core.violations import FileReport
 @click.option(
     "--directory",
     "-d",
-    type=click.Path(
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
-        path_type=Path
-    ),
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
     help="Directory to analyze recursively",
 )
 @click.option(
@@ -52,11 +47,7 @@ from antipasta.core.violations import FileReport
     help="Output format (text or json)",
 )
 def metrics(
-    config: Path,
-    files: tuple[Path, ...],
-    directory: Path | None,
-    quiet: bool,
-    format: str
+    config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool, format: str
 ) -> None:
     """Analyze code metrics for specified files.
 
@@ -73,10 +64,7 @@ def metrics(
     # If no files or directory specified, default to current directory
     if not file_paths and not files and not directory:
         if not quiet:
-            click.echo(
-                "No files or directory specified, "
-                "analyzing current directory..."
-            )
+            click.echo("No files or directory specified, analyzing current directory...")
         file_paths = _collect_files((), Path.cwd(), cfg)
 
     if not file_paths:
@@ -156,9 +144,7 @@ def _load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
 
 
 def _collect_files(
-    files: tuple[Path, ...],
-    directory: Path | None,
-    config: AntipastaConfig
+    files: tuple[Path, ...], directory: Path | None, config: AntipastaConfig
 ) -> list[Path]:
     """Collect all files to analyze, respecting gitignore patterns."""
     # Create a detector with config's ignore patterns
@@ -188,20 +174,14 @@ def _collect_files(
     return list(set(file_paths))
 
 
-def _print_results(
-    reports: list[FileReport],
-    summary: dict[str, Any],
-    quiet: bool
-) -> None:
+def _print_results(reports: list[FileReport], summary: dict[str, Any], quiet: bool) -> None:
     """Print analysis results."""
     if not quiet:
         click.echo("\n" + "=" * 70)
         click.echo("METRICS ANALYSIS SUMMARY")
         click.echo("=" * 70)
         click.echo(f"Total files analyzed: {summary['total_files']}")
-        click.echo(
-            f"Files with violations: {summary['files_with_violations']}"
-        )
+        click.echo(f"Files with violations: {summary['files_with_violations']}")
         click.echo(f"Total violations: {summary['total_violations']}")
 
         if summary["violations_by_type"]:

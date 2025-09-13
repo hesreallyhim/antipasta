@@ -1,8 +1,9 @@
 """Data bridge between terminal UI and core engine."""
 
 import asyncio
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
@@ -38,8 +39,7 @@ class DashboardDataBridge:
                     if config_path.suffix == ".json":
                         # TODO: Add JSON config support
                         return AntipastaConfig.generate_default()
-                    else:
-                        return AntipastaConfig.from_yaml(config_path)
+                    return AntipastaConfig.from_yaml(config_path)
                 except Exception:
                     pass
 
@@ -49,12 +49,15 @@ class DashboardDataBridge:
         """Collect all files to analyze in the project."""
         # Extended patterns to include more file types
         patterns = [
-            "*.py",           # Python
-            "*.js", "*.jsx",  # JavaScript
-            "*.ts", "*.tsx",  # TypeScript
-            "*.mjs", "*.cjs", # Modern JS modules
-            "*.vue",          # Vue.js
-            "*.svelte",       # Svelte
+            "*.py",  # Python
+            "*.js",
+            "*.jsx",  # JavaScript
+            "*.ts",
+            "*.tsx",  # TypeScript
+            "*.mjs",
+            "*.cjs",  # Modern JS modules
+            "*.vue",  # Vue.js
+            "*.svelte",  # Svelte
         ]
         files: list[Path] = []
 
@@ -73,7 +76,16 @@ class DashboardDataBridge:
 
         # Filter out common directories to ignore (but don't filter out all hidden dirs)
         # Only filter out specific known problematic directories
-        ignore_dirs = {"node_modules", "venv", "__pycache__", ".git", "dist", "build", ".venv", ".env"}
+        ignore_dirs = {
+            "node_modules",
+            "venv",
+            "__pycache__",
+            ".git",
+            "dist",
+            "build",
+            ".venv",
+            ".env",
+        }
         filtered_files = [f for f in files if not any(part in f.parts for part in ignore_dirs)]
 
         # Debug output if no files found
@@ -115,7 +127,7 @@ class DashboardDataBridge:
 
         return reports, summary
 
-    def analyze_file(self, file_path: Path) -> Optional[FileReport]:
+    def analyze_file(self, file_path: Path) -> FileReport | None:
         """Analyze a single file.
 
         Args:

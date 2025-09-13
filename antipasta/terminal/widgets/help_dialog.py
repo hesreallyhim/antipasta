@@ -120,7 +120,7 @@ class HelpDialog(Container):
             if line.startswith("# "):
                 # Main title (already in title bar)
                 continue
-            elif line.startswith("## "):
+            if line.startswith("## "):
                 # Category header
                 formatted.append(f"[bold]{line[3:]}[/bold]")
             elif line.strip().startswith("🔹") or line.strip().startswith("🔸"):

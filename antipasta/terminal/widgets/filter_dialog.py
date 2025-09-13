@@ -1,12 +1,11 @@
 """Filter dialog widget for configuring metric filters."""
 
-from typing import Any, List, Optional
+from typing import Any
 
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Grid, Horizontal, Vertical
 from textual.message import Message
-from textual.reactive import reactive
 from textual.widgets import Button, Input, Label, Select, Static, Switch
 
 from antipasta.terminal.filter_manager import Filter, FilterManager, FilterType
@@ -115,7 +114,7 @@ class FilterDialog(Container):
     }
     """
 
-    def __init__(self, filter_manager: Optional[FilterManager] = None, **kwargs: Any) -> None:
+    def __init__(self, filter_manager: FilterManager | None = None, **kwargs: Any) -> None:
         """Initialize the filter dialog.
 
         Args:
@@ -124,7 +123,7 @@ class FilterDialog(Container):
         """
         super().__init__(**kwargs)
         self.filter_manager = filter_manager or FilterManager()
-        self.temp_filters: List[Filter] = self.filter_manager.filters.copy()
+        self.temp_filters: list[Filter] = self.filter_manager.filters.copy()
 
     def compose(self) -> ComposeResult:
         """Compose the filter dialog."""

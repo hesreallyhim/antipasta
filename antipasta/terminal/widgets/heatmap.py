@@ -1,6 +1,6 @@
 """Heatmap visualization widget for terminal dashboard."""
 
-from typing import Any, Optional
+from typing import Any
 
 from textual.app import ComposeResult
 from textual.containers import Container, ScrollableContainer
@@ -33,7 +33,7 @@ class HeatmapWidget(Widget):
     heatmap_data: reactive[list[dict[str, Any]]] = reactive([])
     selected_index: reactive[int] = reactive(-1)
 
-    def __init__(self, heatmap_data: Optional[list[dict[str, Any]]] = None, **kwargs: Any) -> None:
+    def __init__(self, heatmap_data: list[dict[str, Any]] | None = None, **kwargs: Any) -> None:
         """Initialize the heatmap widget.
 
         Args:
@@ -141,7 +141,7 @@ class HeatmapWidget(Widget):
             container.mount(Static(stats_text, classes="heatmap-stats"))
 
         # Store data on the widget for click handling
-        setattr(container, "_heatmap_data", {"index": index, "item": item})
+        container._heatmap_data = {"index": index, "item": item}
 
         return container
 

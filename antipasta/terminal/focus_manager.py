@@ -1,7 +1,5 @@
 """Focus management for terminal dashboard widgets."""
 
-from typing import List, Optional
-
 from textual.widget import Widget
 
 
@@ -10,8 +8,8 @@ class FocusManager:
 
     def __init__(self) -> None:
         """Initialize the focus manager."""
-        self.focus_history: List[str] = []
-        self.focus_groups: dict[str, List[str]] = {
+        self.focus_history: list[str] = []
+        self.focus_groups: dict[str, list[str]] = {
             "main": ["file-tree-widget", "metrics-widget"],
             "bottom": ["heatmap-widget", "detail-widget"],
         }
@@ -31,7 +29,7 @@ class FocusManager:
             if len(self.focus_history) > 10:
                 self.focus_history.pop(0)
 
-    def get_previous_focus(self) -> Optional[str]:
+    def get_previous_focus(self) -> str | None:
         """Get the previously focused widget ID.
 
         Returns:
@@ -41,7 +39,7 @@ class FocusManager:
             return self.focus_history[-2]
         return None
 
-    def get_next_in_group(self, current_id: str, direction: int = 1) -> Optional[str]:
+    def get_next_in_group(self, current_id: str, direction: int = 1) -> str | None:
         """Get next widget in the current focus group.
 
         Args:
@@ -58,7 +56,7 @@ class FocusManager:
                 return widgets[next_idx]
         return None
 
-    def get_directional_target(self, current_id: str, direction: str) -> Optional[str]:
+    def get_directional_target(self, current_id: str, direction: str) -> str | None:
         """Get target widget for directional navigation.
 
         Args:
@@ -92,7 +90,7 @@ class FocusManager:
             return spatial_map[current_id].get(direction)
         return None
 
-    def get_all_focusable_widgets(self) -> List[str]:
+    def get_all_focusable_widgets(self) -> list[str]:
         """Get all focusable widget IDs in order.
 
         Returns:

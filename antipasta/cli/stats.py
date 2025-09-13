@@ -107,6 +107,7 @@ def stats(
 
     # Group files by language to see what will actually be analyzed
     from antipasta.core.detector import LanguageDetector
+
     detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
     if config.use_gitignore:
         gitignore_path = Path(".gitignore")
@@ -116,7 +117,9 @@ def stats(
     files_by_language = detector.group_by_language(files)
 
     # Count analyzable files (currently only Python is supported)
-    analyzable_files = sum(len(f) for lang, f in files_by_language.items() if lang.value == "python")
+    analyzable_files = sum(
+        len(f) for lang, f in files_by_language.items() if lang.value == "python"
+    )
     ignored_files = len(files) - sum(len(f) for f in files_by_language.values())
 
     # Show file breakdown
@@ -128,7 +131,10 @@ def stats(
         click.echo(f"  - {len(lang_files)} {lang.value} files {status}")
 
     if analyzable_files == 0:
-        click.echo("\nNo analyzable files found (only Python is currently supported).", err=True)
+        click.echo(
+            "\nNo analyzable files found (only Python is currently supported).",
+            err=True,
+        )
         return
 
     # Analyze files
@@ -160,7 +166,9 @@ def stats(
                 _display_table(stats_data)
 
 
-def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
+def _collect_overall_stats(
+    reports: list[Any], metrics_to_include: tuple[str, ...]
+) -> dict[str, Any]:
     """Collect overall statistics across all files."""
     stats = {
         "files": {
@@ -232,9 +240,17 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: tuple[str, ..
     return stats
 
 
-def _collect_directory_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
+def _collect_directory_stats(
+    reports: list[Any], metrics_to_include: tuple[str, ...]
+) -> dict[str, Any]:
     """Collect statistics grouped by directory."""
-    dir_stats: dict[Any, dict[str, Any]] = defaultdict(lambda: {"files": [], "function_names": set(), "metrics": defaultdict(list)})
+    dir_stats: dict[Any, dict[str, Any]] = defaultdict(
+        lambda: {
+            "files": [],
+            "function_names": set(),
+            "metrics": defaultdict(list),
+        }
+    )
 
     # Group reports by directory
     for report in reports:
@@ -282,9 +298,17 @@ def _collect_directory_stats(reports: list[Any], metrics_to_include: tuple[str, 
     return results
 
 
-def _collect_module_stats(reports: list[Any], metrics_to_include: tuple[str, ...]) -> dict[str, Any]:
+def _collect_module_stats(
+    reports: list[Any], metrics_to_include: tuple[str, ...]
+) -> dict[str, Any]:
     """Collect statistics grouped by Python module."""
-    module_stats: dict[str, dict[str, Any]] = defaultdict(lambda: {"files": [], "function_names": set(), "metrics": defaultdict(list)})
+    module_stats: dict[str, dict[str, Any]] = defaultdict(
+        lambda: {
+            "files": [],
+            "function_names": set(),
+            "metrics": defaultdict(list),
+        }
+    )
 
     # Group reports by module
     for report in reports:
@@ -424,9 +448,18 @@ def _display_table(stats_data: dict[str, Any]) -> None:
             all_keys.update(data.keys())
 
         # Create header
-        headers = ["Location", "Files", "Functions", "Avg File LOC", "Total LOC"]
+        headers = [
+            "Location",
+            "Files",
+            "Functions",
+            "Avg File LOC",
+            "Total LOC",
+        ]
         for key in sorted(all_keys):
-            if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
+            if key.startswith("avg_") and key not in [
+                "avg_file_loc",
+                "avg_function_loc",
+            ]:
                 headers.append(key.replace("avg_", "Avg ").replace("_", " ").title())
 
         # Print header
@@ -444,7 +477,10 @@ def _display_table(stats_data: dict[str, Any]) -> None:
             ]
 
             for key in sorted(all_keys):
-                if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
+                if key.startswith("avg_") and key not in [
+                    "avg_file_loc",
+                    "avg_function_loc",
+                ]:
                     row.append(f"{data.get(key, 0):.2f}")
 
             click.echo(_format_table_row(row))
@@ -490,9 +526,19 @@ def _display_csv(stats_data: dict[str, Any]) -> None:
         writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
         writer.writerow(["Total Functions", stats_data["functions"]["count"]])
         if "avg_complexity" in stats_data["functions"]:
-            writer.writerow(["Average Function Complexity", stats_data["functions"]["avg_complexity"]])
+            writer.writerow(
+                [
+                    "Average Function Complexity",
+                    stats_data["functions"]["avg_complexity"],
+                ]
+            )
         elif "avg_loc" in stats_data["functions"]:
-            writer.writerow(["Average LOC per Function", stats_data["functions"]["avg_loc"]])
+            writer.writerow(
+                [
+                    "Average LOC per Function",
+                    stats_data["functions"]["avg_loc"],
+                ]
+            )
     else:
         # Directory/module statistics
         if not stats_data:
@@ -523,6 +569,7 @@ def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> N
             json.dump(stats_data, f, indent=2)
     elif format == "csv":
         import csv
+
         with open(output_path, "w") as f:
             if isinstance(stats_data, dict) and "files" in stats_data:
                 # Overall statistics
@@ -533,7 +580,12 @@ def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> N
                 writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
                 writer.writerow(["Total Functions", stats_data["functions"]["count"]])
                 if "avg_complexity" in stats_data["functions"]:
-                    writer.writerow(["Average Function Complexity", stats_data["functions"]["avg_complexity"]])
+                    writer.writerow(
+                        [
+                            "Average Function Complexity",
+                            stats_data["functions"]["avg_complexity"],
+                        ]
+                    )
             else:
                 # Directory/module statistics
                 if stats_data:
@@ -553,6 +605,7 @@ def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> N
     else:  # table format
         import contextlib
         import io
+
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
             _display_table(stats_data)

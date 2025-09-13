@@ -66,12 +66,12 @@ class LoadingScreen(Static):
 ║            COP                ║
 ╚═══════════════════════════════╝"""
 
-        with Middle():
-            with Center():
-                with Static(classes="loading-content"):
-                    yield Static(logo, classes="loading-title")
-                    yield Static(self._spinner_frames[0], classes="loading-spinner", id="loading-spinner")
-                    yield Static(self.message, classes="loading-message", id="loading-message")
+        with Middle(), Center(), Static(classes="loading-content"):
+            yield Static(logo, classes="loading-title")
+            yield Static(
+                self._spinner_frames[0], classes="loading-spinner", id="loading-spinner"
+            )
+            yield Static(self.message, classes="loading-message", id="loading-message")
 
     def on_mount(self) -> None:
         """Start spinner animation when mounted."""

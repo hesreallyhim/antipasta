@@ -1,6 +1,6 @@
 """Interactive file tree widget for terminal dashboard."""
 
-from typing import Any, Optional
+from typing import Any
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -8,7 +8,7 @@ from textual.containers import ScrollableContainer
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Static, Tree
+from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
 
 from antipasta.core.violations import FileReport
@@ -17,7 +17,7 @@ from antipasta.core.violations import FileReport
 class FileSelected(Message):
     """Message sent when a file is selected in the tree."""
 
-    def __init__(self, file_path: str, report: Optional[FileReport] = None) -> None:
+    def __init__(self, file_path: str, report: FileReport | None = None) -> None:
         """Initialize the message.
 
         Args:
@@ -45,7 +45,7 @@ class FileTreeWidget(Widget):
     tree_data: reactive[dict[str, Any]] = reactive({})
     search_query: reactive[str] = reactive("")
 
-    def __init__(self, tree_data: Optional[dict[str, Any]] = None, **kwargs: Any) -> None:
+    def __init__(self, tree_data: dict[str, Any] | None = None, **kwargs: Any) -> None:
         """Initialize the file tree widget.
 
         Args:
@@ -54,7 +54,7 @@ class FileTreeWidget(Widget):
         super().__init__(**kwargs)
         if tree_data:
             self.tree_data = tree_data
-        self._tree: Optional[Tree[dict[str, Any]]] = None
+        self._tree: Tree[dict[str, Any]] | None = None
         self._search_matches: list[TreeNode[dict[str, Any]]] = []
         self._current_match_index = 0
 
@@ -157,25 +157,24 @@ class FileTreeWidget(Widget):
         """Create a label for a tree node with indicators."""
         if node_data["type"] == "directory":
             return f"📁 {name}"
+        # File with complexity indicator
+        complexity = node_data.get("complexity", 0)
+        violations = node_data.get("violations", 0)
+
+        # Choose indicator based on complexity
+        if complexity > 20:
+            indicator = "🔴"
+        elif complexity > 10:
+            indicator = "🟠"
+        elif complexity > 5:
+            indicator = "🟡"
         else:
-            # File with complexity indicator
-            complexity = node_data.get("complexity", 0)
-            violations = node_data.get("violations", 0)
+            indicator = "🟢"
 
-            # Choose indicator based on complexity
-            if complexity > 20:
-                indicator = "🔴"
-            elif complexity > 10:
-                indicator = "🟠"
-            elif complexity > 5:
-                indicator = "🟡"
-            else:
-                indicator = "🟢"
+        # Add violation count if any
+        suffix = f" ({violations}❗)" if violations > 0 else ""
 
-            # Add violation count if any
-            suffix = f" ({violations}❗)" if violations > 0 else ""
-
-            return f"📄 {name} {indicator}{suffix}"
+        return f"📄 {name} {indicator}{suffix}"
 
     def _expand_to_depth(self, node: TreeNode[dict[str, Any]], depth: int) -> None:
         """Expand tree nodes up to a certain depth."""
@@ -194,13 +193,19 @@ class FileTreeWidget(Widget):
 
         node = self._tree.cursor_node
         if node and node.data:
-            self.app.log.info(f"Selected node: {node.data.get('name')}, type: {node.data.get('type')}")
+            self.app.log.info(
+                f"Selected node: {node.data.get('name')}, type: {node.data.get('type')}"
+            )
 
             if node.data["type"] == "file":
                 # Emit file selected message
                 report = node.data.get("report")
                 # Use relative path if available, otherwise fall back to name
-                file_path = node.data.get("relative_path") or node.data.get("path") or node.data.get("name", "")
+                file_path = (
+                    node.data.get("relative_path")
+                    or node.data.get("path")
+                    or node.data.get("name", "")
+                )
                 self.post_message(FileSelected(file_path, report))
             elif node.data["type"] == "directory":
                 # Toggle expand/collapse

@@ -1,7 +1,6 @@
 """Keyboard shortcut management for the terminal dashboard."""
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 from textual.binding import Binding
 
@@ -24,7 +23,7 @@ class ShortcutManager:
     def __init__(self) -> None:
         """Initialize the shortcut manager."""
         self.vim_mode = False
-        self.shortcuts: Dict[str, Shortcut] = {}
+        self.shortcuts: dict[str, Shortcut] = {}
         self._init_shortcuts()
 
     def _init_shortcuts(self) -> None:
@@ -130,7 +129,7 @@ class ShortcutManager:
             show_in_footer=show_in_footer,
         )
 
-    def get_bindings(self) -> List[Binding]:
+    def get_bindings(self) -> list[Binding]:
         """Get Textual bindings for active shortcuts.
 
         Returns:
@@ -156,13 +155,13 @@ class ShortcutManager:
             )
         return bindings
 
-    def get_shortcuts_by_category(self) -> Dict[str, List[Shortcut]]:
+    def get_shortcuts_by_category(self) -> dict[str, list[Shortcut]]:
         """Get shortcuts grouped by category.
 
         Returns:
             Dictionary mapping categories to shortcuts
         """
-        categorized: Dict[str, List[Shortcut]] = {}
+        categorized: dict[str, list[Shortcut]] = {}
         for shortcut in self.shortcuts.values():
             # Skip vim-only shortcuts if not in vim mode
             if shortcut.vim_mode and not self.vim_mode:
