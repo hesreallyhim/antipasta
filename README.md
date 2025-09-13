@@ -19,16 +19,20 @@ Complex code is harder to understand, test, and maintain. By enforcing limits on
 
 ## Installation
 
-### From Source
+### From PyPI (Recommended)
+
+```bash
+pip install antipasta
+```
+
+### Development Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/hesreallyhim/antipasta.git
 cd antipasta
 
-# Run `make install` to create a venv and install the package dependencies in editable mode
-make install
-# For development dependencies
+# Install with development dependencies
 make install-dev
 ```
 
@@ -450,6 +454,54 @@ Contributions are welcome! Please:
 3. Add tests for new functionality
 4. Ensure all tests pass
 5. Submit a pull request
+
+## Release Process
+
+antipasta supports two release workflows:
+
+### Automated Release (Recommended)
+
+Using GitHub Actions for automated PyPI deployment:
+
+```bash
+# One-command release (easiest)
+make release-patch  # For bug fixes
+make release-minor  # For new features
+make release-major  # For breaking changes
+
+# Or step-by-step for more control:
+make version-bump-patch  # Bump version
+make gh-release         # Create release & deploy
+
+# Create a draft release to review first
+make gh-release-draft   # Creates draft, publish manually on GitHub
+```
+
+### Manual Release
+
+For direct PyPI uploads from your machine:
+
+```bash
+# 1. Full release workflow
+make release-check       # Pre-flight checks
+make check               # Run all tests
+make version-bump-patch  # Bump version
+make release            # Upload to PyPI
+```
+
+### Testing Releases
+
+Test on TestPyPI before production:
+
+```bash
+# Using Makefile (recommended)
+make gh-release-test  # Triggers TestPyPI workflow
+
+# Or manually via GitHub UI
+# Go to Actions → "Publish to PyPI" → Run workflow → Choose 'testpypi'
+```
+
+See [RELEASE.md](RELEASE.md) for detailed release instructions.
 
 ## License
 
