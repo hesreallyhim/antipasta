@@ -464,17 +464,29 @@ antipasta supports two release workflows:
 Using GitHub Actions for automated PyPI deployment:
 
 ```bash
-# One-command release (easiest)
-make release-patch  # For bug fixes
-make release-minor  # For new features
-make release-major  # For breaking changes
+# Pre-flight check
+make release-doctor      # Check system health before releasing
+
+# Safe one-command release (recommended)
+make release-patch-safe  # Bug fixes with safety checks
+make release-minor-safe  # New features with safety checks
+make release-major-safe  # Breaking changes with safety checks
+
+# Test before releasing
+make release-dry-patch   # Simulate what will happen
+make gh-release-dry      # Test GitHub release creation
+
+# Standard releases (without safety checks)
+make release-patch       # For bug fixes
+make release-minor       # For new features
+make release-major       # For breaking changes
 
 # Or step-by-step for more control:
 make version-bump-patch  # Bump version
-make gh-release         # Create release & deploy
+make gh-release-safe     # Create release with safety checks
 
 # Create a draft release to review first
-make gh-release-draft   # Creates draft, publish manually on GitHub
+make gh-release-draft    # Creates draft, publish manually on GitHub
 ```
 
 ### Manual Release
@@ -482,8 +494,14 @@ make gh-release-draft   # Creates draft, publish manually on GitHub
 For direct PyPI uploads from your machine:
 
 ```bash
-# 1. Full release workflow
-make release-check       # Pre-flight checks
+# 1. Pre-release checks
+make release-doctor      # Comprehensive health check
+make release-safety-check # Validate repository state
+
+# 2. Test first
+make release-dry-patch   # Simulate the release
+
+# 3. Full release workflow
 make check               # Run all tests
 make version-bump-patch  # Bump version
 make release            # Upload to PyPI

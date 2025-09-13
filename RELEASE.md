@@ -4,7 +4,21 @@ This guide provides detailed instructions for releasing new versions of antipast
 
 ## Quick Start
 
-**One-command releases:**
+**Pre-flight check:**
+
+```bash
+make release-doctor  # Check system health and prerequisites
+```
+
+**Safe one-command releases (recommended):**
+
+```bash
+make release-patch-safe  # Bug fixes (0.0.X) with safety checks
+make release-minor-safe  # New features (0.X.0) with safety checks
+make release-major-safe  # Breaking changes (X.0.0) with safety checks
+```
+
+**Standard releases (without safety checks):**
 
 ```bash
 make release-patch  # Bug fixes (0.0.X)
@@ -14,10 +28,17 @@ make release-major  # Breaking changes (X.0.0)
 
 These commands handle everything: version bump → commit → push → GitHub release → PyPI deployment.
 
-**Pre-release testing:**
+**Testing before release:**
 
 ```bash
-make gh-release-test  # Deploy to TestPyPI first
+# Test what will happen (dry-run)
+make release-dry-patch  # Simulate patch release
+make release-dry-minor  # Simulate minor release
+make release-dry-major  # Simulate major release
+make gh-release-dry     # Simulate GitHub release creation
+
+# Deploy to TestPyPI first
+make gh-release-test    # Safe testing on TestPyPI
 ```
 
 ## Release Methods
@@ -26,6 +47,38 @@ Antipasta supports two release methods:
 
 1. **GitHub Actions (Recommended)**: Automated deployment via GitHub Releases
 2. **Manual Release**: Direct upload from your local machine
+
+## Pre-Release Health Check
+
+Before any release, run the release doctor to check your system:
+
+```bash
+make release-doctor
+```
+
+This comprehensive health check verifies:
+- ✅ GitHub CLI installation and authentication
+- ✅ Git repository state (uncommitted changes, branch)
+- ✅ Version status and available tags
+- ✅ Python environment and build tools
+- ✅ GitHub repository and workflow configuration
+
+## Testing Your Release (Dry-Run)
+
+Before making an actual release, test what will happen:
+
+```bash
+# See what a patch release would do
+make release-dry-patch
+
+# Test GitHub release creation
+make gh-release-dry
+
+# Run pre-release safety checks
+make release-safety-check
+```
+
+These commands simulate the entire release process without making any changes.
 
 ## Method 1: GitHub Actions (Recommended)
 
@@ -36,17 +89,18 @@ Antipasta supports two release methods:
 
 ### Quick Release Commands
 
-The easiest way to release is using the all-in-one commands:
+The easiest and safest way to release is using the safe all-in-one commands:
 
 ```bash
-# For bug fixes (0.0.X)
-make release-patch
+# Safe releases with automatic safety checks (recommended)
+make release-patch-safe  # Bug fixes (0.0.X)
+make release-minor-safe  # New features (0.X.0)
+make release-major-safe  # Breaking changes (X.0.0)
 
-# For new features (0.X.0)
-make release-minor
-
-# For breaking changes (X.0.0)
-make release-major
+# Or standard releases without safety checks
+make release-patch       # Bug fixes (0.0.X)
+make release-minor       # New features (0.X.0)
+make release-major       # Breaking changes (X.0.0)
 ```
 
 These commands automatically:
@@ -60,21 +114,36 @@ These commands automatically:
 
 For more control over the release process:
 
-1. **Bump Version**:
+1. **Check System Health**:
+   ```bash
+   make release-doctor      # Comprehensive pre-flight check
+   make release-safety-check  # Quick safety validation
+   ```
+
+2. **Test First (Optional but Recommended)**:
+   ```bash
+   make release-dry-patch   # Simulate the release
+   make gh-release-dry      # Check if release would succeed
+   ```
+
+3. **Bump Version**:
    ```bash
    make version-bump-patch  # or minor/major
    ```
 
-2. **Create GitHub Release**:
+4. **Create GitHub Release**:
    ```bash
-   # Automatic release (triggers PyPI deployment)
+   # Safe release with checks (recommended)
+   make gh-release-safe
+
+   # Standard release
    make gh-release
 
    # Or create a draft to review first
    make gh-release-draft
    ```
 
-3. **Monitor Deployment**:
+5. **Monitor Deployment**:
    - The command outputs links to:
      - GitHub Actions progress
      - PyPI package page
