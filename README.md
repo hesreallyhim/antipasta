@@ -94,8 +94,11 @@ antipasta metrics --quiet --directory src/
 ### Validate Configuration
 
 ```bash
-# Check if your configuration file is valid
-antipasta validate-config .antipasta.yaml
+# Check if your configuration file is valid (defaults to .antipasta.yaml)
+antipasta validate-config
+
+# Validate a specific configuration file
+antipasta validate-config my-config.yaml
 ```
 
 ### Collect Statistics

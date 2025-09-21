@@ -10,9 +10,16 @@ from antipasta.core.config import AntipastaConfig
 
 
 @click.command()
-@click.argument("config_file", type=click.Path(exists=True, path_type=Path))
+@click.argument(
+    "config_file",
+    type=click.Path(exists=True, path_type=Path),
+    default=".antipasta.yaml",
+    required=False,
+)
 def validate_config(config_file: Path) -> None:
-    """Validate a antipasta configuration file.
+    """Validate an antipasta configuration file.
+
+    CONFIG_FILE defaults to .antipasta.yaml if not specified.
 
     Exits with code 0 if valid, 1 if invalid.
     """
