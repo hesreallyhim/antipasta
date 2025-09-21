@@ -12,7 +12,6 @@ from antipasta.cli.config_generate import generate as generate_cmd
 from antipasta.cli.config_validate import validate as validate_cmd
 from antipasta.cli.metrics import metrics as metrics_cmd
 from antipasta.cli.stats import stats as stats_cmd
-from antipasta.cli.tui import tui as tui_cmd
 
 
 @click.group()
@@ -28,23 +27,26 @@ cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(stats_cmd, name="stats")
 cli.add_command(tui_cmd, name="tui")
 
+
 # Backward compatibility aliases (hidden from help)
 # These will show deprecation warnings when used
 def create_deprecated_command(new_cmd_path: str, old_function: click.Command) -> click.Command:
     """Create a deprecated command wrapper."""
+
     @click.command(hidden=True)  # Hidden from help text
     @click.pass_context
     def deprecated_wrapper(ctx: click.Context, **kwargs: Any) -> None:
         click.echo(
             f"⚠️  Warning: This command is deprecated. "
             f"Please use 'antipasta {new_cmd_path}' instead.",
-            err=True
+            err=True,
         )
         ctx.invoke(old_function, **kwargs)
 
     # Copy over options and arguments from original command
     deprecated_wrapper.params = old_function.params.copy()
     return deprecated_wrapper
+
 
 # Create deprecated aliases
 generate_config_deprecated = create_deprecated_command("config generate", generate_cmd)

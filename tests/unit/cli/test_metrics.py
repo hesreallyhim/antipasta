@@ -50,7 +50,8 @@ class TestMetricsCommandValidation:
 
             # Create a minimal config
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -61,7 +62,8 @@ languages:
       - type: cyclomatic_complexity
         threshold: 10
         comparison: "<="
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 # Mock the analyzer to avoid actual metric computation
@@ -72,7 +74,7 @@ languages:
                     "total_files": 1,
                     "files_with_violations": 0,
                     "total_violations": 0,
-                    "violations_by_type": {}
+                    "violations_by_type": {},
                 }
                 mock_aggregator.return_value = mock_instance
 
@@ -94,7 +96,8 @@ languages:
 
             # Create a minimal config
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -105,7 +108,8 @@ languages:
       - type: cyclomatic_complexity
         threshold: 10
         comparison: "<="
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 # Mock the analyzer
@@ -116,7 +120,7 @@ languages:
                     "total_files": 1,
                     "files_with_violations": 0,
                     "total_violations": 0,
-                    "violations_by_type": {}
+                    "violations_by_type": {},
                 }
                 mock_aggregator.return_value = mock_instance
 
@@ -138,7 +142,8 @@ languages:
 
             # Create config
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -149,7 +154,8 @@ languages:
       - type: cyclomatic_complexity
         threshold: 10
         comparison: "<="
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
@@ -159,13 +165,12 @@ languages:
                     "total_files": 2,
                     "files_with_violations": 0,
                     "total_violations": 0,
-                    "violations_by_type": {}
+                    "violations_by_type": {},
                 }
                 mock_aggregator.return_value = mock_instance
 
                 result = runner.invoke(
-                    metrics,
-                    ["-f", str(file1), "-f", str(file2), "-c", str(config_file)]
+                    metrics, ["-f", str(file1), "-f", str(file2), "-c", str(config_file)]
                 )
 
                 assert result.exit_code == 0
@@ -204,7 +209,8 @@ languages:
 
             # Create config
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -215,7 +221,8 @@ languages:
       - type: cyclomatic_complexity
         threshold: 10
         comparison: "<="
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
@@ -225,13 +232,12 @@ languages:
                     "total_files": 2,
                     "files_with_violations": 0,
                     "total_violations": 0,
-                    "violations_by_type": {}
+                    "violations_by_type": {},
                 }
                 mock_aggregator.return_value = mock_instance
 
                 result = runner.invoke(
-                    metrics,
-                    ["-f", str(single_file), "-d", str(test_dir), "-c", str(config_file)]
+                    metrics, ["-f", str(single_file), "-d", str(test_dir), "-c", str(config_file)]
                 )
 
                 assert result.exit_code == 0

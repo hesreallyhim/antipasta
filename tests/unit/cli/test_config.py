@@ -43,7 +43,8 @@ class TestConfigCommandGroup:
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "valid.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -59,7 +60,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(cli, ["config", "validate", str(config_file)])
 
@@ -71,7 +73,8 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "test.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 
@@ -86,7 +89,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(cli, ["config", "view", "--path", str(config_file)])
 
@@ -116,7 +120,8 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "valid.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 
@@ -131,7 +136,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(cli, ["validate-config", str(config_file)])
 

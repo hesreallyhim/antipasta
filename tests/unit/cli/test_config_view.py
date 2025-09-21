@@ -18,7 +18,8 @@ class TestConfigViewCommand:
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "test.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -37,7 +38,8 @@ ignore_patterns:
   - "**/test_*.py"
   - "**/*_test.py"
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file)])
 
@@ -70,7 +72,8 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "invalid.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: -5  # Invalid: negative value
 
@@ -79,7 +82,8 @@ languages:
     metrics:
       - type: invalid_metric_type
         threshold: 10
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file)])
 
@@ -108,7 +112,8 @@ defaults:
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "test.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -125,7 +130,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: false
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file), "--format", "json"])
 
@@ -141,7 +147,8 @@ use_gitignore: false
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "test.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 
@@ -156,7 +163,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file), "--format", "yaml"])
 
@@ -171,7 +179,8 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "test.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -197,7 +206,8 @@ ignore_patterns:
   - "**/test_*.py"
   - "**/*.test.js"
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file), "--format", "table"])
 
@@ -217,14 +227,16 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "minimal.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 
 languages: []
 ignore_patterns: []
 use_gitignore: false
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file)])
 
@@ -238,7 +250,8 @@ use_gitignore: false
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "test.yaml"
             patterns = [f"pattern_{i}" for i in range(10)]
-            config_file.write_text(f"""
+            config_file.write_text(
+                f"""
 defaults:
   max_cyclomatic_complexity: 10
 
@@ -253,7 +266,8 @@ languages:
 
 ignore_patterns: {json.dumps(patterns)}
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file), "--format", "table"])
 
@@ -267,12 +281,14 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "invalid.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: -5  # Invalid
 
 languages: []
-""")
+"""
+            )
 
             result = runner.invoke(view, ["--path", str(config_file), "--no-validate"])
 
@@ -287,7 +303,8 @@ languages: []
         with runner.isolated_filesystem():
             # Create .antipasta.yaml in the current directory
             config_file = Path(".antipasta.yaml")
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 15
 
@@ -302,7 +319,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             # Run view without --path argument
             result = runner.invoke(view)

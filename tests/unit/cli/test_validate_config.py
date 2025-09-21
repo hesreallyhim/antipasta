@@ -16,7 +16,8 @@ class TestValidateConfigCommand:
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "valid.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -32,7 +33,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(validate_config, [str(config_file)])
 
@@ -46,7 +48,8 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "invalid.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: -5  # Invalid: negative value
 
@@ -55,7 +58,8 @@ languages:
     metrics:
       - type: invalid_metric_type
         threshold: 10
-""")
+"""
+            )
 
             result = runner.invoke(validate_config, [str(config_file)])
 
@@ -69,7 +73,8 @@ languages:
         with runner.isolated_filesystem():
             # Create .antipasta.yaml in the current directory
             config_file = Path(".antipasta.yaml")
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -83,7 +88,8 @@ languages:
 
 ignore_patterns: []
 use_gitignore: true
-""")
+"""
+            )
 
             # Run validate-config without arguments
             result = runner.invoke(validate_config)
@@ -106,13 +112,15 @@ use_gitignore: true
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "malformed.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
     bad_indentation: this will fail
 languages:
   - name: python
-""")
+"""
+            )
 
             result = runner.invoke(validate_config, [str(config_file)])
 
@@ -124,7 +132,8 @@ languages:
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "multi-lang.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
   min_maintainability_index: 50
@@ -150,7 +159,8 @@ ignore_patterns:
   - "**/test_*.py"
   - "**/*.test.js"
 use_gitignore: true
-""")
+"""
+            )
 
             result = runner.invoke(validate_config, [str(config_file)])
 

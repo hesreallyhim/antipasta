@@ -67,7 +67,7 @@ def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
                 click.echo(
                     f"Warning: Unknown metric '{arg}'. "
                     f"Available prefixes: {', '.join(METRIC_PREFIXES.keys())}",
-                    err=True
+                    err=True,
                 )
 
     return metrics_to_include
@@ -230,7 +230,9 @@ def stats(
     else:
         # Collect statistics based on grouping
         if by_directory:
-            stats_data = _collect_directory_stats(reports, metrics_to_include, directory, depth, path_style)
+            stats_data = _collect_directory_stats(
+                reports, metrics_to_include, directory, depth, path_style
+            )
         elif by_module:
             stats_data = _collect_module_stats(reports, metrics_to_include)
         else:
@@ -249,9 +251,7 @@ def stats(
                 _display_table(stats_data)
 
 
-def _collect_overall_stats(
-    reports: list[Any], metrics_to_include: list[str]
-) -> dict[str, Any]:
+def _collect_overall_stats(reports: list[Any], metrics_to_include: list[str]) -> dict[str, Any]:
     """Collect overall statistics across all files."""
     stats = {
         "files": {
@@ -361,7 +361,7 @@ def _collect_directory_stats(
     dir_stats: dict[Path, dict[str, Any]] = defaultdict(
         lambda: {
             "direct_files": [],  # Files directly in this directory
-            "all_files": [],     # All files including subdirectories
+            "all_files": [],  # All files including subdirectories
             "function_names": set(),
             "metrics": defaultdict(list),
         }
@@ -411,6 +411,7 @@ def _collect_directory_stats(
 
     # Find the common base directory for cleaner display
     import os
+
     all_file_dirs = [report.file_path.parent for report in reports]
     if all_file_dirs:
         try:
@@ -487,7 +488,7 @@ def _collect_directory_stats(
 
         # Apply truncation for relative and parent styles (NOT for full)
         if path_style != "full" and len(display_path) > 30:
-            display_path = "..." + display_path[-(30-3):]
+            display_path = "..." + display_path[-(30 - 3) :]
 
         # Remove duplicate counts (a file might be counted multiple times in aggregation)
         unique_files = list({id(f): f for f in data["all_files"]}.values())
@@ -506,15 +507,13 @@ def _collect_directory_stats(
         for metric_name, values in data["metrics"].items():
             if values:
                 # Remove duplicates from aggregated metrics too
-                unique_values = values[:len(unique_files)]  # Rough deduplication
+                unique_values = values[: len(unique_files)]  # Rough deduplication
                 results[display_path][f"avg_{metric_name}"] = statistics.mean(unique_values)
 
     return results
 
 
-def _collect_module_stats(
-    reports: list[Any], metrics_to_include: list[str]
-) -> dict[str, Any]:
+def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> dict[str, Any]:
     """Collect statistics grouped by Python module."""
     module_stats: dict[str, dict[str, Any]] = defaultdict(
         lambda: {
@@ -662,10 +661,10 @@ def _display_table(stats_data: dict[str, Any]) -> None:
         # Directory or module statistics
         click.echo("\n" + "=" * 80)
         # Better detection: check if any key contains path separators or looks like a module
-        is_directory = any(("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data)
-        click.echo(
-            "CODE METRICS BY " + ("DIRECTORY" if is_directory else "MODULE")
+        is_directory = any(
+            ("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data
         )
+        click.echo("CODE METRICS BY " + ("DIRECTORY" if is_directory else "MODULE"))
         click.echo("=" * 80 + "\n")
 
         # Find all metric keys
@@ -864,7 +863,9 @@ def _generate_all_reports(reports: list[Any], metrics: list[str], output_dir: Pa
 
     # Generate all three groupings
     overall_stats = _collect_overall_stats(reports, metrics)
-    dir_stats = _collect_directory_stats(reports, metrics, Path("."), 1, "relative")  # Default to relative style
+    dir_stats = _collect_directory_stats(
+        reports, metrics, Path("."), 1, "relative"
+    )  # Default to relative style
     module_stats = _collect_module_stats(reports, metrics)
 
     # Save each grouping in each format

@@ -30,7 +30,9 @@ def temp_project_dir():
         # Level 1 - cli directory
         cli_dir = base / "cli"
         cli_dir.mkdir()
-        (cli_dir / "commands.py").write_text("def cmd():\n    for i in range(10):\n        print(i)\n")
+        (cli_dir / "commands.py").write_text(
+            "def cmd():\n    for i in range(10):\n        print(i)\n"
+        )
         (cli_dir / "options.py").write_text("OPTIONS = {}\n")
 
         # Level 1 - core directory
@@ -42,7 +44,9 @@ def temp_project_dir():
         # Level 2 - cli/subcommands
         sub_dir = cli_dir / "subcommands"
         sub_dir.mkdir()
-        (sub_dir / "analyze.py").write_text("def analyze():\n    if True:\n        return 1\n    return 0\n")
+        (sub_dir / "analyze.py").write_text(
+            "def analyze():\n    if True:\n        return 1\n    return 0\n"
+        )
 
         # Level 2 - core/modules
         mod_dir = core_dir / "modules"
@@ -68,11 +72,9 @@ class TestUnlimitedDepthFeature:
     def test_depth_zero_shows_all_levels(self, temp_project_dir):
         """Test that --depth 0 shows all directory levels."""
         runner = CliRunner()
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "0"
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "0"]
+        )
 
         assert result.exit_code == 0
         # Should show nested directories
@@ -82,14 +84,12 @@ class TestUnlimitedDepthFeature:
     def test_depth_one_shows_only_top_level(self, temp_project_dir):
         """Test that --depth 1 shows only top-level directories."""
         runner = CliRunner()
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "1"
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "1"]
+        )
 
         assert result.exit_code == 0
-        output_lines = result.output.split('\n')
+        output_lines = result.output.split("\n")
 
         # Should show only top-level directories
         for line in output_lines:
@@ -104,20 +104,20 @@ class TestUnlimitedDepthFeature:
     def test_depth_two_shows_two_levels(self, temp_project_dir):
         """Test that --depth 2 shows exactly two levels."""
         runner = CliRunner()
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "2"
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "2"]
+        )
 
         assert result.exit_code == 0
-        output_lines = result.output.split('\n')
+        output_lines = result.output.split("\n")
 
         # Extract directory names from the output
         directories = []
         for line in output_lines:
-            if line.strip() and not any(skip in line for skip in
-                ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]):
+            if line.strip() and not any(
+                skip in line
+                for skip in ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]
+            ):
                 parts = line.split()
                 if parts and any(c.isdigit() for c in line):  # Has metrics data
                     directories.append(parts[0])
@@ -135,17 +135,13 @@ class TestUnlimitedDepthFeature:
         runner = CliRunner()
 
         # depth=0 should be equivalent to depth=MAX_DEPTH
-        result_zero = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "0"
-        ])
+        result_zero = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "0"]
+        )
 
-        result_max = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", str(MAX_DEPTH)
-        ])
+        result_max = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", str(MAX_DEPTH)]
+        )
 
         # Both should succeed
         assert result_zero.exit_code == 0
@@ -154,11 +150,13 @@ class TestUnlimitedDepthFeature:
         # Output should be similar (may differ in formatting)
         # Count number of directory entries
         def count_directories(output):
-            lines = output.split('\n')
+            lines = output.split("\n")
             count = 0
             for line in lines:
-                if line.strip() and not any(skip in line for skip in
-                    ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]):
+                if line.strip() and not any(
+                    skip in line
+                    for skip in ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]
+                ):
                     if any(c.isdigit() for c in line):  # Has metrics data
                         count += 1
             return count
@@ -168,11 +166,9 @@ class TestUnlimitedDepthFeature:
     def test_depth_greater_than_max(self, temp_project_dir):
         """Test that depth > MAX_DEPTH works correctly."""
         runner = CliRunner()
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", str(MAX_DEPTH + 5)
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", str(MAX_DEPTH + 5)]
+        )
 
         # Should work without error
         assert result.exit_code == 0
@@ -191,12 +187,11 @@ class TestMetricInclusionLogic:
             cli_dir = Path("cli")
             cli_dir.mkdir()
             (cli_dir / "test1.py").write_text("def func():\n    if True:\n        return 1\n")
-            (cli_dir / "test2.py").write_text("def func2():\n    for i in range(10):\n        pass\n")
+            (cli_dir / "test2.py").write_text(
+                "def func2():\n    for i in range(10):\n        pass\n"
+            )
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "-m", "cyc"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py", "-m", "cyc"])
 
         assert result.exit_code == 0
 
@@ -218,9 +213,7 @@ class TestMetricInclusionLogic:
             cli_dir.mkdir()
             (cli_dir / "test.py").write_text("def func():\n    pass\n")
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py"])
 
         assert result.exit_code == 0
 
@@ -237,10 +230,7 @@ class TestMetricInclusionLogic:
             cli_dir.mkdir()
             (cli_dir / "test.py").write_text("def func():\n    pass\n")
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "-m", "loc"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py", "-m", "loc"])
 
         assert result.exit_code == 0
 
@@ -257,10 +247,7 @@ class TestMetricInclusionLogic:
             cli_dir.mkdir()
             (cli_dir / "test.py").write_text("def func():\n    pass\n")
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "-m", "all"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py", "-m", "all"])
 
         assert result.exit_code == 0
 
@@ -279,11 +266,7 @@ class TestMetricInclusionLogic:
             cli_dir.mkdir()
             (cli_dir / "test.py").write_text("def func():\n    if True:\n        return 1\n")
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "-m", "cyc",
-                "-m", "cog"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py", "-m", "cyc", "-m", "cog"])
 
         assert result.exit_code == 0
 
@@ -305,10 +288,7 @@ class TestMetricInclusionLogic:
             cli_dir.mkdir()
             (cli_dir / "test.py").write_text("def func():\n    pass\n")
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "-m", "loc"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py", "-m", "loc"])
 
         assert result.exit_code == 0
 
@@ -330,10 +310,7 @@ class TestMetricInclusionLogic:
             cli_dir.mkdir()
             (cli_dir / "test.py").write_text("def func():\n    return 1 + 2\n")
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "-m", "hal"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py", "-m", "hal"])
 
         assert result.exit_code == 0
 
@@ -353,19 +330,20 @@ class TestPathDisplayStyles:
         runner = CliRunner()
 
         # Don't specify --path-style, should default to relative
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "3"
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "3"]
+        )
 
         assert result.exit_code == 0
 
         # Look for truncation indicators in deep paths
-        lines = result.output.split('\n')
+        lines = result.output.split("\n")
         for line in lines:
-            if line.strip() and "/" in line and not any(skip in line for skip in
-                ["Found", "Analyzing", "CODE METRICS"]):
+            if (
+                line.strip()
+                and "/" in line
+                and not any(skip in line for skip in ["Found", "Analyzing", "CODE METRICS"])
+            ):
                 # If path is long, should be truncated with "..."
                 parts = line.split()
                 if parts:
@@ -377,24 +355,30 @@ class TestPathDisplayStyles:
         """Test that parent style shows only last 2 path components."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "3",
-            "--path-style", "parent"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "3",
+                "--path-style",
+                "parent",
+            ],
+        )
 
         assert result.exit_code == 0
 
         # For deep paths, should show only last 2 components
-        lines = result.output.split('\n')
+        lines = result.output.split("\n")
         for line in lines:
             if "modules/validators" in line:
                 # In parent style, this should appear as just "terminal/widgets"
                 # or "widgets" depending on context
                 parts = line.split()[0]
                 # Should not have more than 2 path components
-                path_parts = parts.split('/')
+                path_parts = parts.split("/")
                 if len(path_parts) > 2:
                     # If truncated, should start with ...
                     assert parts.startswith("..."), f"Parent style showing >2 components: {parts}"
@@ -403,20 +387,20 @@ class TestPathDisplayStyles:
         """Test that full style shows complete paths without truncation."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "4",
-            "--path-style", "full"
-        ])
+        result = runner.invoke(
+            stats,
+            ["-d", str(temp_project_dir), "--by-directory", "--depth", "4", "--path-style", "full"],
+        )
 
         assert result.exit_code == 0
 
         # Full paths should NOT be truncated (no "..." prefix)
-        lines = result.output.split('\n')
+        lines = result.output.split("\n")
         for line in lines:
-            if line.strip() and not any(skip in line for skip in
-                ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]):
+            if line.strip() and not any(
+                skip in line
+                for skip in ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]
+            ):
                 parts = line.split()
                 if parts:
                     path = parts[0]
@@ -427,21 +411,28 @@ class TestPathDisplayStyles:
         """Test explicitly specifying relative style."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "3",
-            "--path-style", "relative"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "3",
+                "--path-style",
+                "relative",
+            ],
+        )
 
         assert result.exit_code == 0
 
         # Should behave same as default (truncate long paths)
-        lines = result.output.split('\n')
+        lines = result.output.split("\n")
         has_nested = False
         for line in lines:
-            if "/" in line and not any(skip in line for skip in
-                ["Found", "Analyzing", "CODE METRICS"]):
+            if "/" in line and not any(
+                skip in line for skip in ["Found", "Analyzing", "CODE METRICS"]
+            ):
                 has_nested = True
                 parts = line.split()
                 if parts:
@@ -456,16 +447,16 @@ class TestPathDisplayStyles:
         # Use relative path pattern that works with pathlib glob
         # Change to the temp directory first
         import os
+
         original_cwd = os.getcwd()
         try:
             os.chdir(temp_project_dir)
 
             # Try with --by-module (should not affect output)
-            result = runner.invoke(stats, [
-                "-p", "**/*.py",
-                "--by-module",
-                "--path-style", "full"  # This should be ignored
-            ])
+            result = runner.invoke(
+                stats,
+                ["-p", "**/*.py", "--by-module", "--path-style", "full"],  # This should be ignored
+            )
 
             # Should work without error
             assert result.exit_code == 0
@@ -474,14 +465,14 @@ class TestPathDisplayStyles:
 
         # Try without any grouping
         import os
+
         original_cwd = os.getcwd()
         try:
             os.chdir(temp_project_dir)
 
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py",
-                "--path-style", "parent"  # This should be ignored
-            ])
+            result = runner.invoke(
+                stats, ["-p", "cli/*.py", "--path-style", "parent"]  # This should be ignored
+            )
 
             # Should work without error
             assert result.exit_code == 0
@@ -493,16 +484,22 @@ class TestPathDisplayStyles:
         runner = CliRunner()
 
         # Test with relative
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "4",
-            "--path-style", "relative"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "4",
+                "--path-style",
+                "relative",
+            ],
+        )
 
         assert result.exit_code == 0
 
-        lines = result.output.split('\n')
+        lines = result.output.split("\n")
         for line in lines:
             if line.strip() and line.startswith("..."):
                 parts = line.split()
@@ -519,13 +516,20 @@ class TestFeatureInteractions:
         """Test --depth 0 --path-style full -m cyc."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "0",
-            "--path-style", "full",
-            "-m", "cyc"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "0",
+                "--path-style",
+                "full",
+                "-m",
+                "cyc",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -550,13 +554,20 @@ class TestFeatureInteractions:
         """Test --depth 2 --path-style parent -m cog."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "2",
-            "--path-style", "parent",
-            "-m", "cog"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "2",
+                "--path-style",
+                "parent",
+                "-m",
+                "cog",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -568,19 +579,30 @@ class TestFeatureInteractions:
 
         # Should show cognitive - check in column headers
         # The header might be abbreviated as "Avg Cognitiv" or similar
-        assert "Cognitiv" in result.output or "cognitiv" in result.output.lower() or "cog" in result.output.lower()
+        assert (
+            "Cognitiv" in result.output
+            or "cognitiv" in result.output.lower()
+            or "cog" in result.output.lower()
+        )
 
     def test_all_metrics_with_unlimited_depth_and_relative(self, temp_project_dir):
         """Test -m all --depth 0 --path-style relative."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "0",
-            "--path-style", "relative",
-            "-m", "all"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "0",
+                "--path-style",
+                "relative",
+                "-m",
+                "all",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -592,7 +614,7 @@ class TestFeatureInteractions:
         # Should show all depth levels
         # Should have some truncated paths (relative style with deep nesting)
         has_truncation = False
-        for line in result.output.split('\n'):
+        for line in result.output.split("\n"):
             if line.startswith("..."):
                 has_truncation = True
                 break
@@ -601,25 +623,34 @@ class TestFeatureInteractions:
         """Test JSON output format with all three features."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "0",
-            "--path-style", "full",
-            "-m", "cyc",
-            "--format", "json"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "0",
+                "--path-style",
+                "full",
+                "-m",
+                "cyc",
+                "--format",
+                "json",
+            ],
+        )
 
         assert result.exit_code == 0
 
         # Should produce valid JSON
         import json
+
         try:
-            data = json.loads(result.output.split('\n')[-2])  # Last non-empty line
+            data = json.loads(result.output.split("\n")[-2])  # Last non-empty line
             assert isinstance(data, dict)
 
             # Should have directory data
-            assert any('/' in key for key in data.keys())
+            assert any("/" in key for key in data.keys())
 
             # Should have cyclomatic data but not LOC
             for key, value in data.items():
@@ -634,15 +665,24 @@ class TestFeatureInteractions:
         """Test CSV output with feature combination."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "3",
-            "--path-style", "parent",
-            "-m", "loc",
-            "-m", "cyc",
-            "--format", "csv"
-        ])
+        result = runner.invoke(
+            stats,
+            [
+                "-d",
+                str(temp_project_dir),
+                "--by-directory",
+                "--depth",
+                "3",
+                "--path-style",
+                "parent",
+                "-m",
+                "loc",
+                "-m",
+                "cyc",
+                "--format",
+                "csv",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -650,7 +690,7 @@ class TestFeatureInteractions:
         assert "Location" in result.output or "location" in result.output.lower()
 
         # Should have both requested metrics
-        lines = result.output.split('\n')
+        lines = result.output.split("\n")
         header_line = None
         for line in lines:
             if "Location" in line or "location" in line.lower():
@@ -672,9 +712,7 @@ class TestFeatureInteractions:
             (cli_dir / "test.py").write_text("def func():\n    pass\n")
 
             # This should default to LOC metrics
-            result = runner.invoke(stats, [
-                "-p", "cli/*.py"
-            ])
+            result = runner.invoke(stats, ["-p", "cli/*.py"])
 
         assert result.exit_code == 0
         assert "LOC" in result.output or "loc" in result.output.lower()
@@ -687,11 +725,7 @@ class TestEdgeCasesAndErrors:
         """Test that invalid path style is rejected."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", ".",
-            "--by-directory",
-            "--path-style", "invalid"
-        ])
+        result = runner.invoke(stats, ["-d", ".", "--by-directory", "--path-style", "invalid"])
 
         assert result.exit_code != 0
         assert "Invalid value" in result.output or "invalid" in result.output.lower()
@@ -700,11 +734,9 @@ class TestEdgeCasesAndErrors:
         """Test that negative depth values are handled."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "-1"
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "-1"]
+        )
 
         # Should either error or treat as 0/1
         # Implementation might vary
@@ -714,11 +746,9 @@ class TestEdgeCasesAndErrors:
         """Test extremely large depth values."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", str(temp_project_dir),
-            "--by-directory",
-            "--depth", "999999"
-        ])
+        result = runner.invoke(
+            stats, ["-d", str(temp_project_dir), "--by-directory", "--depth", "999999"]
+        )
 
         # Should work (capped by actual directory depth)
         assert result.exit_code == 0
@@ -727,11 +757,9 @@ class TestEdgeCasesAndErrors:
         """Test with non-existent directory."""
         runner = CliRunner()
 
-        result = runner.invoke(stats, [
-            "-d", "/nonexistent/directory/path",
-            "--by-directory",
-            "--depth", "2"
-        ])
+        result = runner.invoke(
+            stats, ["-d", "/nonexistent/directory/path", "--by-directory", "--depth", "2"]
+        )
 
         assert result.exit_code != 0
 
@@ -742,11 +770,7 @@ class TestEdgeCasesAndErrors:
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
 
-        result = runner.invoke(stats, [
-            "-d", str(empty_dir),
-            "--by-directory",
-            "--depth", "1"
-        ])
+        result = runner.invoke(stats, ["-d", str(empty_dir), "--by-directory", "--depth", "1"])
 
         # Should handle gracefully
         assert "No files found" in result.output or "No analyzable files" in result.output
@@ -763,11 +787,7 @@ class TestEdgeCasesAndErrors:
         (mixed_dir / "readme.md").write_text("# README")
         (mixed_dir / "data.json").write_text("{}")
 
-        result = runner.invoke(stats, [
-            "-d", str(mixed_dir),
-            "--by-directory",
-            "--depth", "1"
-        ])
+        result = runner.invoke(stats, ["-d", str(mixed_dir), "--by-directory", "--depth", "1"])
 
         assert result.exit_code == 0
         # Should only analyze Python files

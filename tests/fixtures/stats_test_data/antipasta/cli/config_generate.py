@@ -205,7 +205,9 @@ def generate(output: Path, non_interactive: bool) -> None:
         click.echo("  ✓ Added default test patterns")
 
     # Collect additional patterns one at a time
-    click.echo("\nEnter additional patterns to ignore (one per line, press Enter with no input to finish):")
+    click.echo(
+        "\nEnter additional patterns to ignore (one per line, press Enter with no input to finish):"
+    )
     while True:
         try:
             pattern = click.prompt(
@@ -246,9 +248,7 @@ def generate(output: Path, non_interactive: bool) -> None:
     click.echo(f"\nConfiguration will be saved to: {output}")
 
     # Check if file exists
-    if output.exists() and not click.confirm(
-        "File already exists. Overwrite?", default=False
-    ):
+    if output.exists() and not click.confirm("File already exists. Overwrite?", default=False):
         click.echo("Aborted.")
         sys.exit(0)
 
@@ -260,44 +260,56 @@ def _create_python_config(defaults: dict[str, Any]) -> dict[str, Any]:
     metrics = []
 
     # Cyclomatic complexity
-    metrics.append({
-        "type": "cyclomatic_complexity",
-        "threshold": defaults["max_cyclomatic_complexity"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "cyclomatic_complexity",
+            "threshold": defaults["max_cyclomatic_complexity"],
+            "comparison": "<=",
+        }
+    )
 
     # Cognitive complexity
-    metrics.append({
-        "type": "cognitive_complexity",
-        "threshold": defaults["max_cognitive_complexity"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "cognitive_complexity",
+            "threshold": defaults["max_cognitive_complexity"],
+            "comparison": "<=",
+        }
+    )
 
     # Maintainability index
-    metrics.append({
-        "type": "maintainability_index",
-        "threshold": defaults["min_maintainability_index"],
-        "comparison": ">=",
-    })
+    metrics.append(
+        {
+            "type": "maintainability_index",
+            "threshold": defaults["min_maintainability_index"],
+            "comparison": ">=",
+        }
+    )
 
     # Halstead metrics
-    metrics.append({
-        "type": "halstead_volume",
-        "threshold": defaults["max_halstead_volume"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "halstead_volume",
+            "threshold": defaults["max_halstead_volume"],
+            "comparison": "<=",
+        }
+    )
 
-    metrics.append({
-        "type": "halstead_difficulty",
-        "threshold": defaults["max_halstead_difficulty"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "halstead_difficulty",
+            "threshold": defaults["max_halstead_difficulty"],
+            "comparison": "<=",
+        }
+    )
 
-    metrics.append({
-        "type": "halstead_effort",
-        "threshold": defaults["max_halstead_effort"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "halstead_effort",
+            "threshold": defaults["max_halstead_effort"],
+            "comparison": "<=",
+        }
+    )
 
     return {
         "name": "python",
@@ -315,17 +327,21 @@ def _create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
     # For JS/TS, we only support cyclomatic and cognitive complexity currently
     metrics = []
 
-    metrics.append({
-        "type": "cyclomatic_complexity",
-        "threshold": defaults["max_cyclomatic_complexity"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "cyclomatic_complexity",
+            "threshold": defaults["max_cyclomatic_complexity"],
+            "comparison": "<=",
+        }
+    )
 
-    metrics.append({
-        "type": "cognitive_complexity",
-        "threshold": defaults["max_cognitive_complexity"],
-        "comparison": "<=",
-    })
+    metrics.append(
+        {
+            "type": "cognitive_complexity",
+            "threshold": defaults["max_cognitive_complexity"],
+            "comparison": "<=",
+        }
+    )
 
     return {
         "name": "javascript",
@@ -348,9 +364,9 @@ def _save_config(config: AntipastaConfig, output: Path, force: bool = False) -> 
     yaml_lines.append("defaults:")
 
     defaults = data.get("defaults", {})
-    cyclo_max = defaults.get('max_cyclomatic_complexity', 10)
-    cog_max = defaults.get('max_cognitive_complexity', 15)
-    maint_min = defaults.get('min_maintainability_index', 50)
+    cyclo_max = defaults.get("max_cyclomatic_complexity", 10)
+    cog_max = defaults.get("max_cognitive_complexity", 15)
+    maint_min = defaults.get("min_maintainability_index", 50)
     yaml_lines.append(f"  max_cyclomatic_complexity: {cyclo_max}")
     yaml_lines.append(f"  max_cognitive_complexity: {cog_max}")
     yaml_lines.append(f"  min_maintainability_index: {maint_min}")
@@ -383,7 +399,7 @@ def _save_config(config: AntipastaConfig, output: Path, force: bool = False) -> 
     if patterns:
         yaml_lines.append("ignore_patterns:")
         for pattern in patterns:
-            yaml_lines.append(f"  - \"{pattern}\"")
+            yaml_lines.append(f'  - "{pattern}"')
     else:
         yaml_lines.append("ignore_patterns: []")
 

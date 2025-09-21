@@ -19,10 +19,7 @@ class TestGenerateConfigCommand:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "test-config.yaml"
 
-            result = runner.invoke(
-                generate,
-                ["--non-interactive", "--output", str(output_file)]
-            )
+            result = runner.invoke(generate, ["--non-interactive", "--output", str(output_file)])
 
             assert result.exit_code == 0
             assert output_file.exists()
@@ -43,10 +40,7 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "existing-config.yaml"
             output_file.write_text("existing content\n")
 
-            result = runner.invoke(
-                generate,
-                ["--non-interactive", "--output", str(output_file)]
-            )
+            result = runner.invoke(generate, ["--non-interactive", "--output", str(output_file)])
 
             assert result.exit_code == 0
             assert "✅ Configuration saved to" in result.output
@@ -63,22 +57,20 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "interactive-config.yaml"
 
             # Simulate user input: accept all defaults
-            user_input = "\n".join([
-                "10",      # max cyclomatic complexity
-                "15",      # max cognitive complexity
-                "50",      # min maintainability index
-                "n",       # no advanced metrics
-                "y",       # include Python
-                "y",       # use gitignore
-                "y",       # use default test patterns
-                "",        # no additional patterns (press Enter to continue)
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "10",  # max cyclomatic complexity
+                    "15",  # max cognitive complexity
+                    "50",  # min maintainability index
+                    "n",  # no advanced metrics
+                    "y",  # include Python
+                    "y",  # use gitignore
+                    "y",  # use default test patterns
+                    "",  # no additional patterns (press Enter to continue)
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert result.exit_code == 0
             assert "Welcome to antipasta configuration generator!" in result.output
@@ -96,27 +88,25 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "custom-config.yaml"
 
             # Simulate user input: custom values
-            user_input = "\n".join([
-                "20",      # max cyclomatic complexity
-                "25",      # max cognitive complexity
-                "40",      # min maintainability index
-                "y",       # yes to advanced metrics
-                "2000",    # max halstead volume
-                "15",      # max halstead difficulty
-                "20000",   # max halstead effort
-                "y",       # include Python
-                "n",       # don't use gitignore
-                "n",       # don't use default test patterns
-                "*.pyc",   # first custom pattern
-                "__pycache__",  # second custom pattern
-                "",        # empty to finish patterns
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "20",  # max cyclomatic complexity
+                    "25",  # max cognitive complexity
+                    "40",  # min maintainability index
+                    "y",  # yes to advanced metrics
+                    "2000",  # max halstead volume
+                    "15",  # max halstead difficulty
+                    "20000",  # max halstead effort
+                    "y",  # include Python
+                    "n",  # don't use gitignore
+                    "n",  # don't use default test patterns
+                    "*.pyc",  # first custom pattern
+                    "__pycache__",  # second custom pattern
+                    "",  # empty to finish patterns
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert result.exit_code == 0
             assert output_file.exists()
@@ -142,23 +132,21 @@ class TestGenerateConfigCommand:
             output_file.write_text("existing content\n")
 
             # Simulate user input: decline overwrite
-            user_input = "\n".join([
-                "10",      # max cyclomatic complexity
-                "15",      # max cognitive complexity
-                "50",      # min maintainability index
-                "n",       # no advanced metrics
-                "y",       # include Python
-                "y",       # use gitignore
-                "y",       # use default test patterns
-                "",        # no additional patterns
-                "n",       # don't overwrite
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "10",  # max cyclomatic complexity
+                    "15",  # max cognitive complexity
+                    "50",  # min maintainability index
+                    "n",  # no advanced metrics
+                    "y",  # include Python
+                    "y",  # use gitignore
+                    "y",  # use default test patterns
+                    "",  # no additional patterns
+                    "n",  # don't overwrite
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert result.exit_code == 0
             assert "File already exists. Overwrite?" in result.output
@@ -176,23 +164,21 @@ class TestGenerateConfigCommand:
             output_file.write_text("old content\n")
 
             # Simulate user input: confirm overwrite
-            user_input = "\n".join([
-                "10",      # max cyclomatic complexity
-                "15",      # max cognitive complexity
-                "50",      # min maintainability index
-                "n",       # no advanced metrics
-                "y",       # include Python
-                "y",       # use gitignore
-                "y",       # use default test patterns
-                "",        # no additional patterns
-                "y",       # yes, overwrite
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "10",  # max cyclomatic complexity
+                    "15",  # max cognitive complexity
+                    "50",  # min maintainability index
+                    "n",  # no advanced metrics
+                    "y",  # include Python
+                    "y",  # use gitignore
+                    "y",  # use default test patterns
+                    "",  # no additional patterns
+                    "y",  # yes, overwrite
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert result.exit_code == 0
             assert "✅ Configuration saved to" in result.output
@@ -206,10 +192,7 @@ class TestGenerateConfigCommand:
         """Test that default output path is .antipasta.yaml."""
         runner = CliRunner()
         with runner.isolated_filesystem():
-            result = runner.invoke(
-                generate,
-                ["--non-interactive"]
-            )
+            result = runner.invoke(generate, ["--non-interactive"])
 
             assert result.exit_code == 0
             assert Path(".antipasta.yaml").exists()
@@ -221,10 +204,7 @@ class TestGenerateConfigCommand:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "commented-config.yaml"
 
-            result = runner.invoke(
-                generate,
-                ["--non-interactive", "--output", str(output_file)]
-            )
+            result = runner.invoke(generate, ["--non-interactive", "--output", str(output_file)])
 
             assert result.exit_code == 0
 
@@ -244,23 +224,21 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "config.yaml"
 
             # Try to configure without Python (to see JS message clearly)
-            user_input = "\n".join([
-                "10",      # max cyclomatic complexity
-                "15",      # max cognitive complexity
-                "50",      # min maintainability index
-                "n",       # no advanced metrics
-                "y",       # yes Python (at least one language needed)
-                # No JavaScript prompt anymore - just shows "coming soon"
-                "y",       # use gitignore
-                "y",       # use default test patterns
-                "",        # no additional patterns
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "10",  # max cyclomatic complexity
+                    "15",  # max cognitive complexity
+                    "50",  # min maintainability index
+                    "n",  # no advanced metrics
+                    "y",  # yes Python (at least one language needed)
+                    # No JavaScript prompt anymore - just shows "coming soon"
+                    "y",  # use gitignore
+                    "y",  # use default test patterns
+                    "",  # no additional patterns
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert result.exit_code == 0
             assert "JavaScript/TypeScript (coming soon)" in result.output
@@ -275,8 +253,7 @@ class TestGenerateConfigCommand:
         runner = CliRunner()
         with patch("builtins.open", side_effect=PermissionError("Permission denied")):
             result = runner.invoke(
-                generate,
-                ["--non-interactive", "--output", "/protected/config.yaml"]
+                generate, ["--non-interactive", "--output", "/protected/config.yaml"]
             )
 
             assert result.exit_code == 1
@@ -289,25 +266,23 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "test-config.yaml"
 
             # First attempt invalid, then valid values
-            user_input = "\n".join([
-                "-5",       # Invalid: negative cyclomatic
-                "10",       # Valid cyclomatic
-                "200",      # Invalid: cognitive > 100
-                "15",       # Valid cognitive
-                "150",      # Invalid: maintainability > 100
-                "50",       # Valid maintainability
-                "n",        # No advanced metrics
-                "y",        # Include Python
-                "y",        # Use gitignore
-                "y",        # Use default test patterns
-                "",         # No additional patterns
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "-5",  # Invalid: negative cyclomatic
+                    "10",  # Valid cyclomatic
+                    "200",  # Invalid: cognitive > 100
+                    "15",  # Valid cognitive
+                    "150",  # Invalid: maintainability > 100
+                    "50",  # Valid maintainability
+                    "n",  # No advanced metrics
+                    "y",  # Include Python
+                    "y",  # Use gitignore
+                    "y",  # Use default test patterns
+                    "",  # No additional patterns
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert "Invalid input" in result.output
             assert "Please try again" in result.output
@@ -321,24 +296,22 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "test-ranges.yaml"
 
             # Just provide one invalid input to see the prompts
-            user_input = "\n".join([
-                "q",  # Invalid input to trigger error and see range
-                "10",  # Then valid input
-                "15",
-                "50",
-                "n",
-                "y",
-                "n",
-                "y",
-                "y",        # Use default test patterns
-                "",         # No additional patterns
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "q",  # Invalid input to trigger error and see range
+                    "10",  # Then valid input
+                    "15",
+                    "50",
+                    "n",
+                    "y",
+                    "n",
+                    "y",
+                    "y",  # Use default test patterns
+                    "",  # No additional patterns
+                ]
             )
+
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert "Range: 1-50" in result.output  # Cyclomatic
             assert "Range: 1-100" in result.output  # Cognitive
@@ -351,31 +324,29 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "test-halstead.yaml"
 
             # Test invalid Halstead metric values
-            user_input = "\n".join([
-                "10",        # Valid cyclomatic
-                "15",        # Valid cognitive
-                "50",        # Valid maintainability
-                "y",         # Yes to advanced metrics
-                "-100",      # Invalid: negative volume
-                "1000",      # Valid volume
-                "0",         # Invalid: difficulty too low
-                "10",        # Valid difficulty
-                "-5000",     # Invalid: negative effort
-                "10000",     # Valid effort
-                "y",         # Include Python
-                "y",         # Use gitignore
-                "y",        # Use default test patterns
-                "",         # No additional patterns
-            ])
-
-            result = runner.invoke(
-                generate,
-                ["--output", str(output_file)],
-                input=user_input
+            user_input = "\n".join(
+                [
+                    "10",  # Valid cyclomatic
+                    "15",  # Valid cognitive
+                    "50",  # Valid maintainability
+                    "y",  # Yes to advanced metrics
+                    "-100",  # Invalid: negative volume
+                    "1000",  # Valid volume
+                    "0",  # Invalid: difficulty too low
+                    "10",  # Valid difficulty
+                    "-5000",  # Invalid: negative effort
+                    "10000",  # Valid effort
+                    "y",  # Include Python
+                    "y",  # Use gitignore
+                    "y",  # Use default test patterns
+                    "",  # No additional patterns
+                ]
             )
 
+            result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
+
             assert "Range: 1-100000" in result.output  # Volume range
-            assert "Range: 0.1-100" in result.output   # Difficulty range
+            assert "Range: 0.1-100" in result.output  # Difficulty range
             assert "Range: 1-1000000" in result.output  # Effort range
             assert "Invalid input" in result.output
             assert result.exit_code == 0
