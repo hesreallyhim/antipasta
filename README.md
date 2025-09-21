@@ -60,7 +60,7 @@ antipasta config generate --output my-config.yaml
 The interactive mode will guide you through setting up:
 - Complexity thresholds (cyclomatic, cognitive, maintainability)
 - Advanced Halstead metrics (optional)
-- Language support (Python, JavaScript/TypeScript)
+- Language support (currently Python only, JavaScript/TypeScript coming soon)
 - Ignore patterns (enter one at a time, with default test patterns optional)
 - Gitignore integration settings
 
@@ -585,7 +585,7 @@ antipasta/
 
 ## Current Limitations
 
-1. **Python Only**: Currently only Python is supported. JavaScript and TypeScript support is planned.
+1. **Python Only**: Currently only Python is supported. JavaScript and TypeScript support is coming soon.
 2. **Function-Level Only**: Some metrics are only available at the function level, not class or module level.
 3. **Cognitive Complexity Requires Complexipy**: The cognitive complexity metric requires the optional `complexipy` package to be installed.
 

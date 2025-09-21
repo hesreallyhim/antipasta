@@ -64,7 +64,12 @@
 
   9. Performance Optimizations
 
-  - Parallel file analysis
+  - **Parallel file analysis (HIGH PRIORITY)**
+    - Current implementation processes files sequentially in aggregator.py
+    - Use multiprocessing.Pool or concurrent.futures.ProcessPoolExecutor
+    - Each file analysis is independent, perfect for parallelization
+    - Could provide 4-8x speedup on multi-core machines
+    - Implementation location: src/antipasta/core/aggregator.py:69-71
   - Incremental analysis (only changed files)
   - Caching layer for large codebases
 

@@ -174,9 +174,8 @@ def generate(output: Path, non_interactive: bool) -> None:
     if include_python:
         languages.append(_create_python_config(defaults_dict))
 
-    include_js = click.confirm("[ ] JavaScript/TypeScript", default=False)
-    if include_js:
-        languages.append(_create_javascript_config(defaults_dict))
+    # JavaScript/TypeScript support coming soon
+    click.echo("[ ] JavaScript/TypeScript (coming soon)")
 
     config_dict["languages"] = languages
 
@@ -308,7 +307,11 @@ def _create_python_config(defaults: dict[str, Any]) -> dict[str, Any]:
 
 
 def _create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
-    """Create JavaScript/TypeScript language configuration."""
+    """Create JavaScript/TypeScript language configuration.
+
+    Note: This function is ready for when JavaScript/TypeScript support is added.
+    Currently not used but kept for future implementation.
+    """
     # For JS/TS, we only support cyclomatic and cognitive complexity currently
     metrics = []
 
