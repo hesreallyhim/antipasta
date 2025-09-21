@@ -137,10 +137,6 @@ target/
 .lock-wscript
 .eslintcache
 
-
 .coverage/
 
 test.csv
-
-# TUI Backup (deferred for post-v1.0.0)
-TUI_BAK/
