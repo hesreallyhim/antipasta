@@ -4,8 +4,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-import yaml
 from click.testing import CliRunner
 
 from antipasta.cli.config_generate import generate

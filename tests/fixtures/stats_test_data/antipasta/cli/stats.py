@@ -662,7 +662,7 @@ def _display_table(stats_data: dict[str, Any]) -> None:
         # Directory or module statistics
         click.echo("\n" + "=" * 80)
         # Better detection: check if any key contains path separators or looks like a module
-        is_directory = any(("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data.keys())
+        is_directory = any(("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data)
         click.echo(
             "CODE METRICS BY " + ("DIRECTORY" if is_directory else "MODULE")
         )

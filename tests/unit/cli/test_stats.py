@@ -6,16 +6,13 @@ Tests cover:
 3. TICKET-STATS-003: Path display styles (relative, parent, full)
 """
 
-import re
-import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
 
-from antipasta.cli.stats import stats, MAX_DEPTH
+from antipasta.cli.stats import MAX_DEPTH, stats
 
 
 @pytest.fixture
