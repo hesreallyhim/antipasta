@@ -112,9 +112,14 @@ antipasta stats -d src --by-directory --depth 2
 
 ### Edge Cases to Consider
 - Empty directories at various depths
-- Symbolic links that might create cycles
-- Very deep directory structures (>20 levels)
+- Symbolic links that might create cycles - **NOTE: MAX_DEPTH is sufficient protection, no special handling needed**
+- Very deep directory structures (>20 levels) - **NOTE: No warning message needed, silent truncation at MAX_DEPTH is acceptable**
 - Single file at root with no directories
+
+### Additional Clarifications
+- **Depth comparison**: Keep the current `>=` logic. This is correct: depth=1 shows 1 level, depth=2 shows 2 levels, etc.
+- **Testing**: Manual testing with provided commands is sufficient. No new test files needed at this time.
+- **Symbolic links**: The MAX_DEPTH boundary provides sufficient protection against cycles. No additional logic needed.
 
 ---
 
@@ -257,6 +262,13 @@ After implementation, this command MUST NOT show LOC:
 antipasta stats -p "src/antipasta/cli/*.py" -m cyc | grep -i "loc"
 # Should return NOTHING (no matches)
 ```
+
+### Additional Clarifications
+- **File/Function Counts**: Yes, always show file count (e.g., "Total files: 5") and function count, but NOT LOC statistics when using `-m cyc`
+- **Empty metrics list**: Use `METRIC_PREFIXES["loc"]` as shown in the implementation details (this ensures consistency)
+- **Backward compatibility**: Maintain exact same display format when LOC is shown - no reformatting
+- **Error handling**: Use `.get()` with defaults for missing LOC data. Example: `stats_data["files"].get("total_loc", 0)`
+- **Test files**: No test file updates needed at this time. Focus on implementation only.
 
 ---
 
@@ -418,6 +430,13 @@ antipasta stats -d src --by-module
 - Very deep nesting with parent style
 - Interaction with depth parameter
 - Duplicate directory names at different levels
+
+### Additional Clarifications
+- **Root paths in parent style**: Display just the directory name without prefix (e.g., `antipasta` not `./antipasta`)
+- **Deep paths with depth=0**: Always show last 2 components for consistency (e.g., `metrics/complexity` not `complexity/py`)
+- **Path separators**: Always use forward slashes via `str(Path(...))` - Path object handles OS differences
+- **Column alignment**: Keep existing column width (30 chars) regardless of path style for consistency
+- **Invalid option combinations**: If `--path-style` used without `--by-directory`, silently ignore (no warning needed)
 
 ---
 
