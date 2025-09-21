@@ -291,12 +291,13 @@ core                           6         # This is src/antipasta/core
 ```
 
 ### Acceptance Criteria
-1. Add `--path-style` option with two choices: "full" (default) and "parent"
-2. "full": Show complete path from base directory (current behavior)
-3. "parent": Show only immediate parent + directory name
-4. Works correctly with all depth values (including 0/unlimited)
-5. Module stats (`--by-module`) not affected
-6. Clear, unambiguous output in both modes
+1. Add `--path-style` option with three choices: "relative" (default), "parent", and "full"
+2. "relative": Show path from base directory, truncated to 30 chars if needed (current behavior)
+3. "parent": Show only immediate parent + directory name, truncated to 30 chars if needed
+4. "full": Show complete path from base directory with NO truncation (may break column alignment)
+5. Works correctly with all depth values (including 0/unlimited)
+6. Module stats (`--by-module`) not affected
+7. Clear, unambiguous output in all modes
 
 ### Implementation Details
 
@@ -305,9 +306,9 @@ core                           6         # This is src/antipasta/core
    ```python
    @click.option(
        "--path-style",
-       type=click.Choice(["full", "parent"]),
-       default="full",
-       help="Path display style for directories (full: complete path, parent: immediate parent/name only)",
+       type=click.Choice(["relative", "parent", "full"]),
+       default="relative",
+       help="Path display style for directories (relative: truncated paths, parent: immediate parent/name, full: no truncation)",
    )
    ```
 
@@ -361,8 +362,15 @@ core                           6         # This is src/antipasta/core
            else:
                # For deeper paths, show last 2 components
                display_path = str(Path(*parts[-2:]))
-       else:  # full
+       elif path_style == "full":
+           # Full path with NO truncation
            display_path = str(rel_path)
+       else:  # relative (default)
+           display_path = str(rel_path)
+
+   # Apply truncation for relative and parent styles (NOT for full)
+   if path_style != "full" and len(display_path) > 30:
+       display_path = "..." + display_path[-(30-3):]
    ```
 
 5. **Update _generate_all_reports function** (Line 777)
@@ -372,7 +380,7 @@ core                           6         # This is src/antipasta/core
    ```
    - Change to:
    ```python
-   dir_stats = _collect_directory_stats(reports, metrics, Path("."), 1, "full")  # Default to full style
+   dir_stats = _collect_directory_stats(reports, metrics, Path("."), 1, "relative")  # Default to relative style
    ```
 
 6. **Important Edge Cases to Handle**
@@ -391,7 +399,7 @@ core                           6         # This is src/antipasta/core
 ### Test Commands for Validation
 
 ```bash
-# Test 1: Full style (default) - should show complete paths
+# Test 1: Relative style (default) - shows paths, truncated if >30 chars
 antipasta stats -d src/antipasta --by-directory --depth 2
 # EXPECTED Output:
 # Location                       Files    Functions
@@ -400,25 +408,33 @@ antipasta stats -d src/antipasta --by-directory --depth 2
 # antipasta/cli                  11       38
 # antipasta/core                 6        57
 
-# Test 2: Parent style - should show only parent/child
+# Test 2: Parent style - shows only parent/child, truncated if >30 chars
 antipasta stats -d src/antipasta --by-directory --depth 2 --path-style parent
 # EXPECTED Output:
 # Location                       Files    Functions
 # ----------------------------------------------------------
 # antipasta                      48       444
-# antipasta/cli                  11       38       # Note: still shows parent/
+# antipasta/cli                  11       38
 # antipasta/core                 6        57
 
-# Test 3: Parent style with deep paths (depth 3)
+# Test 3: Full style - NO truncation even for very long paths
+antipasta stats -d /very/long/path/to/project/src --by-directory --path-style full
+# EXPECTED: Shows complete paths like:
+# very/long/path/to/project/src/antipasta/terminal/widgets    9    120
+# (Note: May break column alignment but shows complete path)
+
+# Test 4: Parent style with deep paths (depth 3)
 antipasta stats -d src/antipasta --by-directory --depth 3 --path-style parent
 # EXPECTED Output should include:
 # runners/python                 3        26       # Only last 2 components
 # terminal/widgets               9        120      # Only last 2 components
 
-# Test 4: Verify it works with depth=0 (unlimited)
-antipasta stats -d src --by-directory --depth 0 --path-style parent
+# Test 5: Verify truncation works for relative style
+# Create a test with a path > 30 chars
+antipasta stats -d . --by-directory --depth 5 --path-style relative
+# Paths longer than 30 chars should show as: "...ry/long/path/to/directory"
 
-# Test 5: Ensure --by-module is NOT affected
+# Test 6: Ensure --by-module is NOT affected
 antipasta stats -d src --by-module
 # Should work exactly as before (no path_style parameter passed)
 ```
@@ -435,8 +451,8 @@ antipasta stats -d src --by-module
 - **Root paths in parent style**: Display just the directory name without prefix (e.g., `antipasta` not `./antipasta`)
 - **Deep paths with depth=0**: Always show last 2 components for consistency (e.g., `metrics/complexity` not `complexity/py`)
 - **Path separators**: Always use forward slashes via `str(Path(...))` - Path object handles OS differences
-- **Column alignment**: Keep existing column width (30 chars) regardless of path style for consistency
-- **Path truncation**: If path exceeds 30 chars, truncate from the FRONT with "..." prefix (e.g., "...ry/long/path/to/directory" NOT "very/long/path/to/direc...")
+- **Column alignment**: For "relative" and "parent" styles, keep 30-char width; for "full" style, no limit (may break alignment)
+- **Path truncation**: Only applies to "relative" and "parent" styles, NOT "full". Truncate from FRONT with "..." prefix
 - **Invalid option combinations**: If `--path-style` used without `--by-directory`, silently ignore (no warning needed)
 
 ---
