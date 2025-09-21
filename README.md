@@ -415,38 +415,6 @@ VIOLATIONS FOUND:
 ✗ Code quality check FAILED
 ```
 
-### Terminal UI Dashboard
-
-Launch an interactive terminal dashboard to explore metrics:
-
-```bash
-# Launch the TUI dashboard
-antipasta tui
-
-# Analyze a specific directory
-antipasta tui --path ./src
-
-# Enable file watching for live updates
-antipasta tui --watch
-
-# Use a different color theme
-antipasta tui --theme dark
-
-# Use ASCII characters instead of Unicode
-antipasta tui --no-unicode
-
-# Navigate with arrow keys, press Enter to view file details
-# Press 'q' to quit, '?' for help
-```
-
-The TUI provides:
-- Real-time file metrics overview
-- Interactive navigation through your codebase
-- Detailed metrics for each file
-- Visual indicators for violations
-- Sortable columns (by file, complexity, violations, etc.)
-- File watching for live updates (with --watch flag)
-- Multiple color themes (default, dark, light, solarized)
 
 ## Learning Resources
 

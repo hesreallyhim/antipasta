@@ -8,7 +8,6 @@ from antipasta import __version__
 from antipasta.cli.config import config as config_group
 from antipasta.cli.metrics import metrics as metrics_cmd
 from antipasta.cli.stats import stats as stats_cmd
-from antipasta.cli.tui import tui as tui_cmd
 
 # For backward compatibility
 from antipasta.cli.config_generate import generate as generate_cmd
@@ -26,7 +25,6 @@ def cli() -> None:
 cli.add_command(config_group, name="config")
 cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(stats_cmd, name="stats")
-cli.add_command(tui_cmd, name="tui")
 
 # Backward compatibility aliases (hidden from help)
 # These will show deprecation warnings when used
