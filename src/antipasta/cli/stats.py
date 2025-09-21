@@ -38,6 +38,12 @@ from antipasta.core.metrics import MetricType
     help="Group statistics by module (Python packages)",
 )
 @click.option(
+    "--depth",
+    type=int,
+    default=1,
+    help="Directory depth to display when using --by-directory (default: 1)",
+)
+@click.option(
     "--metric",
     "-m",
     multiple=True,
@@ -60,6 +66,7 @@ def stats(
     directory: Path,
     by_directory: bool,
     by_module: bool,
+    depth: int,
     metric: tuple[str, ...],
     format: str,
     output: Path | None,
@@ -147,7 +154,7 @@ def stats(
     else:
         # Collect statistics based on grouping
         if by_directory:
-            stats_data = _collect_directory_stats(reports, metric)
+            stats_data = _collect_directory_stats(reports, metric, directory, depth)
         elif by_module:
             stats_data = _collect_module_stats(reports, metric)
         else:
@@ -241,37 +248,108 @@ def _collect_overall_stats(
 
 
 def _collect_directory_stats(
-    reports: list[Any], metrics_to_include: tuple[str, ...]
+    reports: list[Any], metrics_to_include: tuple[str, ...], base_dir: Path, depth: int
 ) -> dict[str, Any]:
-    """Collect statistics grouped by directory."""
-    dir_stats: dict[Any, dict[str, Any]] = defaultdict(
+    """Collect statistics grouped by directory with hierarchical aggregation.
+
+    Args:
+        reports: List of metric reports
+        metrics_to_include: Additional metrics to include
+        base_dir: Base directory for relative paths
+        depth: Maximum depth of directories to display (1 = top-level only)
+    """
+    if not reports:
+        return {}
+
+    # Build a tree structure for aggregation
+    dir_stats: dict[Path, dict[str, Any]] = defaultdict(
         lambda: {
-            "files": [],
+            "direct_files": [],  # Files directly in this directory
+            "all_files": [],     # All files including subdirectories
             "function_names": set(),
             "metrics": defaultdict(list),
         }
     )
 
-    # Group reports by directory
+    # First pass: organize files by their immediate parent directory
     for report in reports:
-        dir_path = report.file_path.parent
-        dir_stats[dir_path]["files"].append(report)
+        parent_dir = report.file_path.parent
+        dir_stats[parent_dir]["direct_files"].append(report)
 
-        # Collect unique function names
+        # Collect metrics from this file
         for metric in report.metrics:
             if metric.function_name:
-                dir_stats[dir_path]["function_names"].add(metric.function_name)
-
-            # Collect additional metrics
+                dir_stats[parent_dir]["function_names"].add(metric.function_name)
             if metric.metric_type.value in metrics_to_include:
-                dir_stats[dir_path]["metrics"][metric.metric_type.value].append(metric.value)
+                dir_stats[parent_dir]["metrics"][metric.metric_type.value].append(metric.value)
 
-    # Calculate statistics for each directory
+    # Second pass: aggregate files up the directory tree
+    # This ensures parent directories include stats from all descendants
+    all_dirs = sorted(dir_stats.keys(), key=lambda p: len(p.parts), reverse=True)
+    for dir_path in all_dirs:
+        # Add this directory's files to all parent directories
+        current = dir_path
+        while current != current.parent:
+            parent = current.parent
+            if parent not in dir_stats:
+                dir_stats[parent] = {
+                    "direct_files": [],
+                    "all_files": [],
+                    "function_names": set(),
+                    "metrics": defaultdict(list),
+                }
+
+            # Add all files from child to parent's aggregated list
+            dir_stats[parent]["all_files"].extend(dir_stats[dir_path]["direct_files"])
+            dir_stats[parent]["function_names"].update(dir_stats[dir_path]["function_names"])
+
+            # Aggregate metrics
+            for metric_name, values in dir_stats[dir_path]["metrics"].items():
+                dir_stats[parent]["metrics"][metric_name].extend(values)
+
+            current = parent
+
+    # Each directory should also include its own direct files in the all_files list
+    for dir_path, data in dir_stats.items():
+        data["all_files"].extend(data["direct_files"])
+
+    # Find the common base directory for cleaner display
+    import os
+    all_file_dirs = [report.file_path.parent for report in reports]
+    if all_file_dirs:
+        try:
+            common_base = Path(os.path.commonpath([str(d) for d in all_file_dirs]))
+        except ValueError:
+            common_base = base_dir
+    else:
+        common_base = base_dir
+
+    # Build results based on depth
     results = {}
     for dir_path, data in dir_stats.items():
-        # File LOCs in this directory
+        # Skip if no files in this directory (shouldn't happen, but be safe)
+        if not data["all_files"]:
+            continue
+
+        # Calculate depth relative to common base
+        try:
+            if dir_path == common_base:
+                rel_path = Path(".")
+                dir_depth = 0
+            else:
+                rel_path = dir_path.relative_to(common_base)
+                dir_depth = len(rel_path.parts)
+        except ValueError:
+            # Directory is not under common_base, skip it
+            continue
+
+        # Skip directories deeper than requested depth
+        if dir_depth >= depth:
+            continue
+
+        # Calculate statistics for this directory
         file_locs = []
-        for report in data["files"]:
+        for report in data["all_files"]:
             file_loc = next(
                 (
                     m.value
@@ -283,8 +361,17 @@ def _collect_directory_stats(
             if file_loc > 0:
                 file_locs.append(file_loc)
 
-        results[str(dir_path)] = {
-            "file_count": len(data["files"]),
+        # Create display path
+        if rel_path == Path("."):
+            display_path = common_base.name if common_base.name else "."
+        else:
+            display_path = str(rel_path)
+
+        # Remove duplicate counts (a file might be counted multiple times in aggregation)
+        unique_files = list({id(f): f for f in data["all_files"]}.values())
+
+        results[display_path] = {
+            "file_count": len(unique_files),
             "function_count": len(data["function_names"]),
             "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
             "total_loc": sum(file_locs),
@@ -293,7 +380,9 @@ def _collect_directory_stats(
         # Add additional metrics
         for metric_name, values in data["metrics"].items():
             if values:
-                results[str(dir_path)][f"avg_{metric_name}"] = statistics.mean(values)
+                # Remove duplicates from aggregated metrics too
+                unique_values = values[:len(unique_files)]  # Rough deduplication
+                results[display_path][f"avg_{metric_name}"] = statistics.mean(unique_values)
 
     return results
 
@@ -436,9 +525,10 @@ def _display_table(stats_data: dict[str, Any]) -> None:
     else:
         # Directory or module statistics
         click.echo("\n" + "=" * 80)
+        # Better detection: check if any key contains path separators or looks like a module
+        is_directory = any(("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data.keys())
         click.echo(
-            "CODE METRICS BY "
-            + ("DIRECTORY" if "/" in str(list(stats_data.keys())[0]) else "MODULE")
+            "CODE METRICS BY " + ("DIRECTORY" if is_directory else "MODULE")
         )
         click.echo("=" * 80 + "\n")
 
@@ -622,7 +712,7 @@ def _generate_all_reports(reports: list[Any], metrics: tuple[str, ...], output_d
 
     # Generate all three groupings
     overall_stats = _collect_overall_stats(reports, metrics)
-    dir_stats = _collect_directory_stats(reports, metrics)
+    dir_stats = _collect_directory_stats(reports, metrics, Path("."), 1)  # Default depth of 1
     module_stats = _collect_module_stats(reports, metrics)
 
     # Save each grouping in each format
