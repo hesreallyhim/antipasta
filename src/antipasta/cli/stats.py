@@ -495,9 +495,12 @@ def _collect_directory_stats(
         results[display_path] = {
             "file_count": len(unique_files),
             "function_count": len(data["function_names"]),
-            "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
-            "total_loc": sum(file_locs),
         }
+
+        # Add LOC stats only if they were collected
+        if should_collect_loc:
+            results[display_path]["avg_file_loc"] = statistics.mean(file_locs) if file_locs else 0
+            results[display_path]["total_loc"] = sum(file_locs)
 
         # Add additional metrics
         for metric_name, values in data["metrics"].items():
@@ -546,29 +549,39 @@ def _collect_module_stats(
             if metric.metric_type.value in metrics_to_include:
                 module_stats[module_name]["metrics"][metric.metric_type.value].append(metric.value)
 
+    # Check if we should collect LOC metrics
+    should_collect_loc = any(
+        metric in metrics_to_include
+        for metric in ["lines_of_code", "logical_lines_of_code", "source_lines_of_code"]
+    )
+
     # Calculate statistics
     results = {}
     for module_name, data in module_stats.items():
         # Similar calculation as directory stats
         file_locs = []
-        for report in data["files"]:
-            file_loc = next(
-                (
-                    m.value
-                    for m in report.metrics
-                    if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
-                ),
-                0,
-            )
-            if file_loc > 0:
-                file_locs.append(file_loc)
+        if should_collect_loc:
+            for report in data["files"]:
+                file_loc = next(
+                    (
+                        m.value
+                        for m in report.metrics
+                        if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
+                    ),
+                    0,
+                )
+                if file_loc > 0:
+                    file_locs.append(file_loc)
 
         results[module_name] = {
             "file_count": len(data["files"]),
             "function_count": len(data["function_names"]),
-            "avg_file_loc": statistics.mean(file_locs) if file_locs else 0,
-            "total_loc": sum(file_locs),
         }
+
+        # Add LOC stats only if they were collected
+        if should_collect_loc:
+            results[module_name]["avg_file_loc"] = statistics.mean(file_locs) if file_locs else 0
+            results[module_name]["total_loc"] = sum(file_locs)
 
         # Add additional metrics
         for metric_name, values in data["metrics"].items():
@@ -615,12 +628,13 @@ def _display_table(stats_data: dict[str, Any]) -> None:
         # File statistics
         click.echo("FILE STATISTICS:")
         click.echo(f"  Total files: {stats_data['files']['count']}")
-        click.echo(f"  Total LOC: {stats_data['files']['total_loc']:,}")
-        click.echo(f"  Average LOC per file: {stats_data['files']['avg_loc']:.1f}")
-        click.echo(f"  Min LOC: {stats_data['files']['min_loc']}")
-        click.echo(f"  Max LOC: {stats_data['files']['max_loc']}")
-        if stats_data["files"]["std_dev"] > 0:
-            click.echo(f"  Standard deviation: {stats_data['files']['std_dev']:.1f}")
+        if "total_loc" in stats_data["files"]:
+            click.echo(f"  Total LOC: {stats_data['files']['total_loc']:,}")
+            click.echo(f"  Average LOC per file: {stats_data['files']['avg_loc']:.1f}")
+            click.echo(f"  Min LOC: {stats_data['files']['min_loc']}")
+            click.echo(f"  Max LOC: {stats_data['files']['max_loc']}")
+            if stats_data["files"].get("std_dev", 0) > 0:
+                click.echo(f"  Standard deviation: {stats_data['files']['std_dev']:.1f}")
 
         # Function statistics
         click.echo("\nFUNCTION STATISTICS:")
@@ -664,9 +678,13 @@ def _display_table(stats_data: dict[str, Any]) -> None:
             "Location",
             "Files",
             "Functions",
-            "Avg File LOC",
-            "Total LOC",
         ]
+
+        # Add LOC headers only if present in data
+        if any("avg_file_loc" in data for data in stats_data.values()):
+            headers.append("Avg File LOC")
+        if any("total_loc" in data for data in stats_data.values()):
+            headers.append("Total LOC")
         for key in sorted(all_keys):
             if key.startswith("avg_") and key not in [
                 "avg_file_loc",
@@ -684,9 +702,13 @@ def _display_table(stats_data: dict[str, Any]) -> None:
                 _truncate_path(location, 30),
                 str(data.get("file_count", 0)),
                 str(data.get("function_count", 0)),
-                f"{data.get('avg_file_loc', 0):.1f}",
-                f"{data.get('total_loc', 0):,}",
             ]
+
+            # Add LOC data only if present in headers
+            if "Avg File LOC" in headers:
+                row.append(f"{data.get('avg_file_loc', 0):.1f}")
+            if "Total LOC" in headers:
+                row.append(f"{data.get('total_loc', 0):,}")
 
             for key in sorted(all_keys):
                 if key.startswith("avg_") and key not in [
@@ -700,7 +722,13 @@ def _display_table(stats_data: dict[str, Any]) -> None:
 
 def _format_table_row(values: list[Any]) -> str:
     """Format a row for table display."""
-    widths = [30, 8, 10, 12, 10] + [15] * (len(values) - 5)
+    # Dynamic widths based on number of columns
+    if len(values) <= 3:
+        widths = [30, 8, 10] + [15] * (len(values) - 3)
+    elif len(values) <= 5:
+        widths = [30, 8, 10, 12, 10] + [15] * (len(values) - 5)
+    else:
+        widths = [30, 8, 10, 12, 10] + [15] * (len(values) - 5)
     formatted = []
     for i, value in enumerate(values):
         if i < len(widths):
@@ -734,8 +762,9 @@ def _display_csv(stats_data: dict[str, Any]) -> None:
         writer = csv.writer(sys.stdout)
         writer.writerow(["Metric", "Value"])
         writer.writerow(["Total Files", stats_data["files"]["count"]])
-        writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
-        writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
+        if "total_loc" in stats_data["files"]:
+            writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
+            writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
         writer.writerow(["Total Functions", stats_data["functions"]["count"]])
         if "avg_complexity" in stats_data["functions"]:
             writer.writerow(
@@ -788,8 +817,9 @@ def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> N
                 writer = csv.writer(f)
                 writer.writerow(["Metric", "Value"])
                 writer.writerow(["Total Files", stats_data["files"]["count"]])
-                writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
-                writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
+                if "total_loc" in stats_data["files"]:
+                    writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
+                    writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
                 writer.writerow(["Total Functions", stats_data["functions"]["count"]])
                 if "avg_complexity" in stats_data["functions"]:
                     writer.writerow(
