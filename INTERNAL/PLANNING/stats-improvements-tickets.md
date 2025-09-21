@@ -436,6 +436,7 @@ antipasta stats -d src --by-module
 - **Deep paths with depth=0**: Always show last 2 components for consistency (e.g., `metrics/complexity` not `complexity/py`)
 - **Path separators**: Always use forward slashes via `str(Path(...))` - Path object handles OS differences
 - **Column alignment**: Keep existing column width (30 chars) regardless of path style for consistency
+- **Path truncation**: If path exceeds 30 chars, truncate from the FRONT with "..." prefix (e.g., "...ry/long/path/to/directory" NOT "very/long/path/to/direc...")
 - **Invalid option combinations**: If `--path-style` used without `--by-directory`, silently ignore (no warning needed)
 
 ---
