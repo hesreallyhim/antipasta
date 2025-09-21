@@ -34,6 +34,9 @@ METRIC_PREFIXES = {
     "all": [metric for metric in MetricType],  # All available metrics
 }
 
+# Maximum depth for unlimited traversal (safety boundary)
+MAX_DEPTH = 20
+
 
 def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
     """Parse metric arguments, expanding prefixes to full metric names.
@@ -98,7 +101,13 @@ def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
     "--depth",
     type=int,
     default=1,
-    help="Directory depth to display when using --by-directory (default: 1)",
+    help="Directory depth to display when using --by-directory (0=unlimited, default: 1)",
+)
+@click.option(
+    "--path-style",
+    type=click.Choice(["relative", "parent", "full"]),
+    default="relative",
+    help="Path display style for directories (relative: truncated paths, parent: immediate parent/name, full: no truncation)",
 )
 @click.option(
     "--metric",
@@ -124,6 +133,7 @@ def stats(
     by_directory: bool,
     by_module: bool,
     depth: int,
+    path_style: str,
     metric: tuple[str, ...],
     format: str,
     output: Path | None,
@@ -210,13 +220,17 @@ def stats(
     # Parse metrics to include
     metrics_to_include = parse_metrics(metric)
 
+    # If no metrics specified, default to LOC metrics
+    if not metric:  # If user didn't provide ANY -m flags
+        metrics_to_include = [m.value for m in METRIC_PREFIXES["loc"]]
+
     # Handle 'all' format - generate all reports
     if format == "all":
         _generate_all_reports(reports, metrics_to_include, output or Path("."))
     else:
         # Collect statistics based on grouping
         if by_directory:
-            stats_data = _collect_directory_stats(reports, metrics_to_include, directory, depth)
+            stats_data = _collect_directory_stats(reports, metrics_to_include, directory, depth, path_style)
         elif by_module:
             stats_data = _collect_module_stats(reports, metrics_to_include)
         else:
@@ -257,23 +271,30 @@ def _collect_overall_stats(
         },
     }
 
-    # Collect LOC per file
+    # Check if we should collect LOC metrics
+    should_collect_loc = any(
+        metric in metrics_to_include
+        for metric in ["lines_of_code", "logical_lines_of_code", "source_lines_of_code"]
+    )
+
+    # Collect LOC per file (only if requested)
     file_locs = []
     function_names = set()  # Track unique function names
     function_complexities = []  # Use complexity as proxy for function size
 
     for report in reports:
-        # File LOC
-        file_loc = next(
-            (
-                m.value
-                for m in report.metrics
-                if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
-            ),
-            0,
-        )
-        if file_loc > 0:
-            file_locs.append(file_loc)
+        # File LOC (only if requested)
+        if should_collect_loc:
+            file_loc = next(
+                (
+                    m.value
+                    for m in report.metrics
+                    if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
+                ),
+                0,
+            )
+            if file_loc > 0:
+                file_locs.append(file_loc)
 
         # Collect function-level metrics
         # Since LOC per function isn't available, use cyclomatic complexity
@@ -284,14 +305,24 @@ def _collect_overall_stats(
                 if metric.metric_type == MetricType.CYCLOMATIC_COMPLEXITY:
                     function_complexities.append(metric.value)
 
-    # Calculate file statistics
-    if file_locs:
+    # Calculate file statistics (only if LOC was collected)
+    if should_collect_loc and file_locs:
         stats["files"]["total_loc"] = sum(file_locs)
         stats["files"]["avg_loc"] = statistics.mean(file_locs)
         stats["files"]["min_loc"] = min(file_locs)
         stats["files"]["max_loc"] = max(file_locs)
         if len(file_locs) > 1:
             stats["files"]["std_dev"] = statistics.stdev(file_locs)
+    elif should_collect_loc:
+        # LOC was requested but no data found, keep the default zeros
+        pass
+    else:
+        # LOC was not requested, remove the LOC-specific fields
+        del stats["files"]["total_loc"]
+        del stats["files"]["avg_loc"]
+        del stats["files"]["min_loc"]
+        del stats["files"]["max_loc"]
+        del stats["files"]["std_dev"]
 
     # Calculate function statistics
     stats["functions"]["count"] = len(function_names)
@@ -310,7 +341,7 @@ def _collect_overall_stats(
 
 
 def _collect_directory_stats(
-    reports: list[Any], metrics_to_include: list[str], base_dir: Path, depth: int
+    reports: list[Any], metrics_to_include: list[str], base_dir: Path, depth: int, path_style: str
 ) -> dict[str, Any]:
     """Collect statistics grouped by directory with hierarchical aggregation.
 
@@ -322,6 +353,9 @@ def _collect_directory_stats(
     """
     if not reports:
         return {}
+
+    # Handle unlimited depth with safety boundary
+    effective_depth = MAX_DEPTH if depth == 0 else depth
 
     # Build a tree structure for aggregation
     dir_stats: dict[Path, dict[str, Any]] = defaultdict(
@@ -406,28 +440,54 @@ def _collect_directory_stats(
             continue
 
         # Skip directories deeper than requested depth
-        if dir_depth >= depth:
+        if dir_depth >= effective_depth:
             continue
+
+        # Check if we should collect LOC metrics
+        should_collect_loc = any(
+            metric in metrics_to_include
+            for metric in ["lines_of_code", "logical_lines_of_code", "source_lines_of_code"]
+        )
 
         # Calculate statistics for this directory
         file_locs = []
-        for report in data["all_files"]:
-            file_loc = next(
-                (
-                    m.value
-                    for m in report.metrics
-                    if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
-                ),
-                0,
-            )
-            if file_loc > 0:
-                file_locs.append(file_loc)
+        if should_collect_loc:
+            for report in data["all_files"]:
+                file_loc = next(
+                    (
+                        m.value
+                        for m in report.metrics
+                        if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
+                    ),
+                    0,
+                )
+                if file_loc > 0:
+                    file_locs.append(file_loc)
 
         # Create display path
         if rel_path == Path("."):
             display_path = common_base.name if common_base.name else "."
         else:
-            display_path = str(rel_path)
+            if path_style == "parent":
+                # Show only immediate parent/name
+                parts = rel_path.parts
+                if len(parts) == 1:
+                    display_path = parts[0]
+                elif len(parts) == 2:
+                    # For two parts, show both (parent/child)
+                    display_path = str(Path(*parts))
+                else:
+                    # For deeper paths, show last 2 components
+                    display_path = str(Path(*parts[-2:]))
+            elif path_style == "full":
+                # Full path with NO truncation
+                display_path = str(rel_path)
+            else:  # relative (default)
+                display_path = str(rel_path)
+
+        # Apply truncation for relative and parent styles (NOT for full)
+        if path_style != "full" and len(display_path) > 30:
+            display_path = "..." + display_path[-(30-3):]
 
         # Remove duplicate counts (a file might be counted multiple times in aggregation)
         unique_files = list({id(f): f for f in data["all_files"]}.values())
@@ -774,7 +834,7 @@ def _generate_all_reports(reports: list[Any], metrics: list[str], output_dir: Pa
 
     # Generate all three groupings
     overall_stats = _collect_overall_stats(reports, metrics)
-    dir_stats = _collect_directory_stats(reports, metrics, Path("."), 1)  # Default depth of 1
+    dir_stats = _collect_directory_stats(reports, metrics, Path("."), 1, "relative")  # Default to relative style
     module_stats = _collect_module_stats(reports, metrics)
 
     # Save each grouping in each format
