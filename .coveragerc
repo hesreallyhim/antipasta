@@ -2,7 +2,6 @@
 branch = True
 source = src/antipasta
 parallel = True
-concurrency =
 disable_warnings = module-not-measured
 sigterm = True
 data_file = .coverage/.coverage
