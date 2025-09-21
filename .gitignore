@@ -137,10 +137,7 @@ target/
 .lock-wscript
 .eslintcache
 
-!CLAUDE.md
-!claude/
 
-INTERNAL/
 .coverage/
 
 test.csv
