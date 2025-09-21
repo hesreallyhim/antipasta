@@ -12,6 +12,63 @@ from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.metrics import MetricType
 
+# Metric prefix mappings for easier UX
+METRIC_PREFIXES = {
+    "loc": [
+        MetricType.LINES_OF_CODE,
+        MetricType.LOGICAL_LINES_OF_CODE,
+        MetricType.SOURCE_LINES_OF_CODE,
+        MetricType.COMMENT_LINES,
+        MetricType.BLANK_LINES,
+    ],
+    "cyc": [MetricType.CYCLOMATIC_COMPLEXITY],
+    "cog": [MetricType.COGNITIVE_COMPLEXITY],
+    "hal": [
+        MetricType.HALSTEAD_VOLUME,
+        MetricType.HALSTEAD_DIFFICULTY,
+        MetricType.HALSTEAD_EFFORT,
+        MetricType.HALSTEAD_TIME,
+        MetricType.HALSTEAD_BUGS,
+    ],
+    "mai": [MetricType.MAINTAINABILITY_INDEX],
+    "all": [metric for metric in MetricType],  # All available metrics
+}
+
+
+def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
+    """Parse metric arguments, expanding prefixes to full metric names.
+
+    Args:
+        metric_args: Tuple of metric arguments (prefixes or full names)
+
+    Returns:
+        List of full metric names to include
+    """
+    metrics_to_include = []
+
+    for arg in metric_args:
+        # Check if it's a known prefix
+        if arg in METRIC_PREFIXES:
+            # Add all metrics for this prefix
+            for metric_type in METRIC_PREFIXES[arg]:
+                if metric_type.value not in metrics_to_include:
+                    metrics_to_include.append(metric_type.value)
+        else:
+            # Try to interpret as a full metric name
+            try:
+                metric_type = MetricType(arg)
+                if metric_type.value not in metrics_to_include:
+                    metrics_to_include.append(metric_type.value)
+            except ValueError:
+                # Unknown metric, show warning but continue
+                click.echo(
+                    f"Warning: Unknown metric '{arg}'. "
+                    f"Available prefixes: {', '.join(METRIC_PREFIXES.keys())}",
+                    err=True
+                )
+
+    return metrics_to_include
+
 
 @click.command()
 @click.option(
@@ -47,7 +104,7 @@ from antipasta.core.metrics import MetricType
     "--metric",
     "-m",
     multiple=True,
-    help="Additional metrics to include (e.g., cyclomatic_complexity, cognitive_complexity)",
+    help="Metrics to include: loc, cyc, cog, hal, mai, all (or full names)",
 )
 @click.option(
     "--format",
@@ -82,8 +139,10 @@ def stats(
         # Stats by directory
         antipasta stats -p "src/**/*.py" -p "tests/**/*.py" --by-directory
 
-        # Include additional metrics
-        antipasta stats -p "**/*.py" -m cyclomatic_complexity -m cognitive_complexity
+        # Include metrics (using short prefixes or full names)
+        antipasta stats -p "**/*.py" -m cyc -m cog  # Cyclomatic & cognitive complexity
+        antipasta stats -p "**/*.py" -m hal          # All Halstead metrics
+        antipasta stats -p "**/*.py" -m all          # All available metrics
 
         # Save to file
         antipasta stats -p "**/*.py" --output report.txt
@@ -148,17 +207,20 @@ def stats(
     click.echo(f"\nAnalyzing {analyzable_files} Python files...")
     reports = aggregator.analyze_files(files)
 
+    # Parse metrics to include
+    metrics_to_include = parse_metrics(metric)
+
     # Handle 'all' format - generate all reports
     if format == "all":
-        _generate_all_reports(reports, metric, output or Path("."))
+        _generate_all_reports(reports, metrics_to_include, output or Path("."))
     else:
         # Collect statistics based on grouping
         if by_directory:
-            stats_data = _collect_directory_stats(reports, metric, directory, depth)
+            stats_data = _collect_directory_stats(reports, metrics_to_include, directory, depth)
         elif by_module:
-            stats_data = _collect_module_stats(reports, metric)
+            stats_data = _collect_module_stats(reports, metrics_to_include)
         else:
-            stats_data = _collect_overall_stats(reports, metric)
+            stats_data = _collect_overall_stats(reports, metrics_to_include)
 
         # Display or save results
         if output:
@@ -174,7 +236,7 @@ def stats(
 
 
 def _collect_overall_stats(
-    reports: list[Any], metrics_to_include: tuple[str, ...]
+    reports: list[Any], metrics_to_include: list[str]
 ) -> dict[str, Any]:
     """Collect overall statistics across all files."""
     stats = {
@@ -248,7 +310,7 @@ def _collect_overall_stats(
 
 
 def _collect_directory_stats(
-    reports: list[Any], metrics_to_include: tuple[str, ...], base_dir: Path, depth: int
+    reports: list[Any], metrics_to_include: list[str], base_dir: Path, depth: int
 ) -> dict[str, Any]:
     """Collect statistics grouped by directory with hierarchical aggregation.
 
@@ -388,7 +450,7 @@ def _collect_directory_stats(
 
 
 def _collect_module_stats(
-    reports: list[Any], metrics_to_include: tuple[str, ...]
+    reports: list[Any], metrics_to_include: list[str]
 ) -> dict[str, Any]:
     """Collect statistics grouped by Python module."""
     module_stats: dict[str, dict[str, Any]] = defaultdict(
@@ -703,7 +765,7 @@ def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> N
             f.write(buffer.getvalue())
 
 
-def _generate_all_reports(reports: list[Any], metrics: tuple[str, ...], output_dir: Path) -> None:
+def _generate_all_reports(reports: list[Any], metrics: list[str], output_dir: Path) -> None:
     """Generate all report formats from a single analysis."""
     # Create output directory if needed
     output_dir.mkdir(parents=True, exist_ok=True)
