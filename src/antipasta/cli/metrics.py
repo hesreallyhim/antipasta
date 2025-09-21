@@ -137,7 +137,7 @@ def _load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
             # Config file doesn't exist, show helpful message and use defaults
             if not quiet:
                 click.echo(f"Configuration file '{config}' not found.", err=True)
-                click.echo("Run 'antipasta generate-config' to create a configuration file.", err=True)
+                click.echo("Run 'antipasta config generate' to create a configuration file.", err=True)
                 click.echo("Using default configuration for now...")
             cfg = AntipastaConfig.generate_default()
         return cfg
