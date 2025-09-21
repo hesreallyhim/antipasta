@@ -894,4 +894,5 @@ def _generate_all_reports(reports: list[Any], metrics: list[str], output_dir: Pa
     click.echo(f"\n✅ Generated {formats_saved} report files from a single analysis!")
     click.echo(f"   Total files analyzed: {len(reports)}")
     click.echo(f"   Total functions found: {overall_stats['functions']['count']}")
-    click.echo(f"   Total LOC: {overall_stats['files']['total_loc']:,.0f}")
+    if "total_loc" in overall_stats["files"]:
+        click.echo(f"   Total LOC: {overall_stats['files']['total_loc']:,.0f}")
