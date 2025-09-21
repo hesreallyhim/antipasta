@@ -25,7 +25,7 @@ from antipasta.core.violations import FileReport
     "--files",
     "-f",
     multiple=True,
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
     help="Files to analyze (can be specified multiple times)",
 )
 @click.option(
