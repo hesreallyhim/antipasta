@@ -40,6 +40,39 @@ make install-dev
 
 -   Python 3.11 or higher
 
+## Quick Start
+
+### Generate Configuration
+
+If you don't have a configuration file yet, generate one with sensible defaults:
+
+```bash
+# Interactive mode - prompts for your preferences
+antipasta generate-config
+
+# Non-interactive mode - uses defaults
+antipasta generate-config --non-interactive
+
+# Generate to a custom location
+antipasta generate-config --output my-config.yaml
+```
+
+The interactive mode will guide you through setting up:
+- Complexity thresholds (cyclomatic, cognitive, maintainability)
+- Advanced Halstead metrics (optional)
+- Language support (Python, JavaScript/TypeScript)
+- Ignore patterns and gitignore integration
+
+The interactive mode validates all inputs and shows valid ranges:
+- **Cyclomatic Complexity**: 1-50 (recommended: 10)
+- **Cognitive Complexity**: 1-100 (recommended: 15)
+- **Maintainability Index**: 0-100 (recommended: 50)
+- **Halstead Volume**: 1-100000 (recommended: 1000)
+- **Halstead Difficulty**: 0.1-100 (recommended: 10)
+- **Halstead Effort**: 1-1000000 (recommended: 10000)
+
+If you enter an invalid value, you'll be prompted to try again with helpful error messages.
+
 ## Basic Usage
 
 ### Analyze Files

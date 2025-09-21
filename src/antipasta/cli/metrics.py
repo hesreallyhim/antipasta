@@ -17,7 +17,7 @@ from antipasta.core.violations import FileReport
 @click.option(
     "--config",
     "-c",
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(path_type=Path),
     default=".antipasta.yaml",
     help="Path to configuration file",
 )
@@ -134,9 +134,12 @@ def _load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
             if not quiet:
                 click.echo(f"Using configuration: {config}")
         else:
-            cfg = AntipastaConfig.generate_default()
+            # Config file doesn't exist, show helpful message and use defaults
             if not quiet:
-                click.echo("Using default configuration")
+                click.echo(f"Configuration file '{config}' not found.", err=True)
+                click.echo("Run 'antipasta generate-config' to create a configuration file.", err=True)
+                click.echo("Using default configuration for now...")
+            cfg = AntipastaConfig.generate_default()
         return cfg
     except Exception as e:
         click.echo(f"Error loading configuration: {e}", err=True)

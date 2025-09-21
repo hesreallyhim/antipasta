@@ -3,6 +3,7 @@
 import click
 
 from antipasta import __version__
+from antipasta.cli.generate_config import generate_config as generate_config_cmd
 from antipasta.cli.metrics import metrics as metrics_cmd
 from antipasta.cli.stats import stats as stats_cmd
 from antipasta.cli.tui import tui as tui_cmd
@@ -17,6 +18,7 @@ def cli() -> None:
 
 
 # Add commands
+cli.add_command(generate_config_cmd, name="generate-config")
 cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(stats_cmd, name="stats")
 cli.add_command(tui_cmd, name="tui")
