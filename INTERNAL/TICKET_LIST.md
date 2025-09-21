@@ -97,3 +97,16 @@ T-09 CI integration workflow
 • Upload summary artifact for inspection
 • Add status badge to README
 • Ensure workflow caches Node/Python deps for speed
+
+⸻
+
+T-10 Implement metrics caching system
+• Design cache strategy for unchanged files (hash/mtime based)
+• Store metric results with file fingerprint (SHA256 or mtime+size)
+• Cache location: .antipasta-cache/ or user cache dir
+• Invalidate cache entry when file modified
+• CLI flag --no-cache to force reanalysis
+• Significant performance gain for large codebases
+• Unit test: second run with unchanged files uses cache
+• Unit test: modified file triggers reanalysis
+• Integration test: verify cache speeds up pre-commit hooks
