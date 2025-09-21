@@ -110,3 +110,16 @@ T-10 Implement metrics caching system
 • Unit test: second run with unchanged files uses cache
 • Unit test: modified file triggers reanalysis
 • Integration test: verify cache speeds up pre-commit hooks
+
+⸻
+
+T-11 Enhanced stats output with config targets
+• Add --show-targets flag to stats command
+• Load config file to extract metric thresholds
+• Modify output format to include target column (current vs target)
+• Color code values based on proximity to threshold (green/yellow/red)
+• Support showing targets for specific metrics when --metrics specified
+• Handle missing config gracefully (show N/A for targets)
+• Unit test: stats with targets shows threshold values
+• Unit test: values near threshold shown in yellow
+• Unit test: missing config doesn't crash, shows N/A
