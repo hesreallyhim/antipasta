@@ -491,7 +491,7 @@ def _collect_directory_stats(
 
         # Apply truncation for relative and parent styles (NOT for full)
         if path_style != "full" and len(display_path) > 30:
-            display_path = "..." + display_path[-(30 - 3) :]
+            display_path = "..." + display_path[-(30 - 3):]
 
         # Remove duplicate counts (a file might be counted multiple times in aggregation)
         unique_files = list({id(f): f for f in data["all_files"]}.values())
@@ -748,7 +748,7 @@ def _truncate_path(path: str, max_length: int) -> str:
     """Truncate long paths for display."""
     if len(path) <= max_length:
         return path
-    return "..." + path[-(max_length - 3) :]
+    return "..." + path[-(max_length - 3):]
 
 
 def _display_json(stats_data: dict[str, Any]) -> None:
