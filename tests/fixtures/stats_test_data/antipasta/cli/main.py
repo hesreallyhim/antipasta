@@ -25,7 +25,6 @@ def cli() -> None:
 cli.add_command(config_group, name="config")
 cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(stats_cmd, name="stats")
-cli.add_command(tui_cmd, name="tui")
 
 
 # Backward compatibility aliases (hidden from help)
@@ -34,8 +33,8 @@ def create_deprecated_command(new_cmd_path: str, old_function: click.Command) ->
     """Create a deprecated command wrapper."""
 
     @click.command(hidden=True)  # Hidden from help text
-    @click.pass_context
-    def deprecated_wrapper(ctx: click.Context, **kwargs: Any) -> None:
+    def deprecated_wrapper(**kwargs: Any) -> None:
+        ctx = click.get_current_context()
         click.echo(
             f"⚠️  Warning: This command is deprecated. "
             f"Please use 'antipasta {new_cmd_path}' instead.",

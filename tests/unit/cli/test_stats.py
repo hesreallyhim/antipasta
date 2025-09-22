@@ -7,6 +7,7 @@ Tests cover:
 """
 
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -16,7 +17,7 @@ from antipasta.cli.stats import MAX_DEPTH, stats
 
 
 @pytest.fixture
-def temp_project_dir():
+def temp_project_dir() -> Generator[Path, None, None]:
     """Create a temporary project directory with nested Python files."""
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir) / "test_project"
@@ -69,7 +70,7 @@ def temp_project_dir():
 class TestUnlimitedDepthFeature:
     """Test suite for TICKET-STATS-001: --depth 0 for unlimited traversal."""
 
-    def test_depth_zero_shows_all_levels(self, temp_project_dir):
+    def test_depth_zero_shows_all_levels(self, temp_project_dir: Path) -> None:
         """Test that --depth 0 shows all directory levels."""
         runner = CliRunner()
         result = runner.invoke(
@@ -81,7 +82,7 @@ class TestUnlimitedDepthFeature:
         assert "modules/validators" in result.output or "validators" in result.output
         assert "validators/builtin" in result.output or "builtin" in result.output
 
-    def test_depth_one_shows_only_top_level(self, temp_project_dir):
+    def test_depth_one_shows_only_top_level(self, temp_project_dir: Path) -> None:
         """Test that --depth 1 shows only top-level directories."""
         runner = CliRunner()
         result = runner.invoke(
@@ -101,7 +102,7 @@ class TestUnlimitedDepthFeature:
                 if parts not in ["test_project", "."]:
                     assert "/" not in parts, f"Found nested path {parts} in depth=1 output"
 
-    def test_depth_two_shows_two_levels(self, temp_project_dir):
+    def test_depth_two_shows_two_levels(self, temp_project_dir: Path) -> None:
         """Test that --depth 2 shows exactly two levels."""
         runner = CliRunner()
         result = runner.invoke(
@@ -130,7 +131,7 @@ class TestUnlimitedDepthFeature:
         # Note: depth=2 shows dirs up to 2 levels deep from base
         # The exact subdirectories shown depend on aggregation
 
-    def test_max_depth_boundary(self, temp_project_dir):
+    def test_max_depth_boundary(self, temp_project_dir: Path) -> None:
         """Test that unlimited depth respects MAX_DEPTH boundary."""
         runner = CliRunner()
 
@@ -149,21 +150,20 @@ class TestUnlimitedDepthFeature:
 
         # Output should be similar (may differ in formatting)
         # Count number of directory entries
-        def count_directories(output):
+        def count_directories(output: str) -> int:
             lines = output.split("\n")
             count = 0
             for line in lines:
                 if line.strip() and not any(
                     skip in line
                     for skip in ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]
-                ):
-                    if any(c.isdigit() for c in line):  # Has metrics data
-                        count += 1
+                ) and any(c.isdigit() for c in line):  # Has metrics data
+                    count += 1
             return count
 
         assert count_directories(result_zero.output) == count_directories(result_max.output)
 
-    def test_depth_greater_than_max(self, temp_project_dir):
+    def test_depth_greater_than_max(self, temp_project_dir: Path) -> None:
         """Test that depth > MAX_DEPTH works correctly."""
         runner = CliRunner()
         result = runner.invoke(
@@ -177,7 +177,7 @@ class TestUnlimitedDepthFeature:
 class TestMetricInclusionLogic:
     """Test suite for TICKET-STATS-002: Fix LOC always showing bug."""
 
-    def test_loc_not_shown_when_other_metric_requested(self, temp_project_dir):
+    def test_loc_not_shown_when_other_metric_requested(self, temp_project_dir: Path) -> None:
         """Test that LOC is NOT shown when only other metrics are requested."""
         runner = CliRunner()
 
@@ -203,7 +203,7 @@ class TestMetricInclusionLogic:
         # But cyclomatic should appear
         assert "Cyclomat" in result.output or "cyclomat" in result.output.lower()
 
-    def test_loc_shown_by_default_no_flags(self, temp_project_dir):
+    def test_loc_shown_by_default_no_flags(self, temp_project_dir: Path) -> None:
         """Test that LOC IS shown by default when no -m flags."""
         runner = CliRunner()
 
@@ -220,7 +220,7 @@ class TestMetricInclusionLogic:
         # LOC should appear
         assert "Total LOC" in result.output or "total_loc" in result.output.lower()
 
-    def test_loc_shown_when_explicitly_requested(self, temp_project_dir):
+    def test_loc_shown_when_explicitly_requested(self, temp_project_dir: Path) -> None:
         """Test that LOC IS shown when explicitly requested with -m loc."""
         runner = CliRunner()
 
@@ -237,7 +237,7 @@ class TestMetricInclusionLogic:
         # LOC should appear
         assert "Total LOC" in result.output or "total_loc" in result.output.lower()
 
-    def test_loc_shown_with_all_metrics(self, temp_project_dir):
+    def test_loc_shown_with_all_metrics(self, temp_project_dir: Path) -> None:
         """Test that LOC IS shown when -m all is used."""
         runner = CliRunner()
 
@@ -256,7 +256,7 @@ class TestMetricInclusionLogic:
         assert "Cyclomat" in result.output or "cyclomat" in result.output.lower()
         assert "Cognitive" in result.output or "cognitive" in result.output.lower()
 
-    def test_multiple_metrics_without_loc(self, temp_project_dir):
+    def test_multiple_metrics_without_loc(self, temp_project_dir: Path) -> None:
         """Test requesting multiple metrics without LOC."""
         runner = CliRunner()
 
@@ -278,7 +278,7 @@ class TestMetricInclusionLogic:
         assert "Cyclomat" in result.output or "cyclomat" in result.output.lower()
         assert "Cognitive" in result.output or "cognitive" in result.output.lower()
 
-    def test_loc_only_when_requested(self, temp_project_dir):
+    def test_loc_only_when_requested(self, temp_project_dir: Path) -> None:
         """Test that ONLY LOC metrics show when -m loc is used."""
         runner = CliRunner()
 
@@ -300,7 +300,7 @@ class TestMetricInclusionLogic:
             # Only acceptable if it's in a header or description
             assert "Avg Cyclomat" not in result.output
 
-    def test_halstead_without_loc(self, temp_project_dir):
+    def test_halstead_without_loc(self, temp_project_dir: Path) -> None:
         """Test Halstead metrics without LOC."""
         runner = CliRunner()
 
@@ -325,7 +325,7 @@ class TestMetricInclusionLogic:
 class TestPathDisplayStyles:
     """Test suite for TICKET-STATS-003: Path display styles."""
 
-    def test_relative_style_default(self, temp_project_dir):
+    def test_relative_style_default(self, temp_project_dir: Path) -> None:
         """Test that relative style is the default and truncates long paths."""
         runner = CliRunner()
 
@@ -351,7 +351,7 @@ class TestPathDisplayStyles:
                     if len(path) > 30:
                         assert path.startswith("..."), f"Long path not truncated: {path}"
 
-    def test_parent_style_shows_last_two_components(self, temp_project_dir):
+    def test_parent_style_shows_last_two_components(self, temp_project_dir: Path) -> None:
         """Test that parent style shows only last 2 path components."""
         runner = CliRunner()
 
@@ -383,7 +383,7 @@ class TestPathDisplayStyles:
                     # If truncated, should start with ...
                     assert parts.startswith("..."), f"Parent style showing >2 components: {parts}"
 
-    def test_full_style_no_truncation(self, temp_project_dir):
+    def test_full_style_no_truncation(self, temp_project_dir: Path) -> None:
         """Test that full style shows complete paths without truncation."""
         runner = CliRunner()
 
@@ -407,7 +407,7 @@ class TestPathDisplayStyles:
                     # Full style should never truncate
                     assert not path.startswith("..."), f"Full style path truncated: {path}"
 
-    def test_relative_style_explicit(self, temp_project_dir):
+    def test_relative_style_explicit(self, temp_project_dir: Path) -> None:
         """Test explicitly specifying relative style."""
         runner = CliRunner()
 
@@ -428,19 +428,17 @@ class TestPathDisplayStyles:
 
         # Should behave same as default (truncate long paths)
         lines = result.output.split("\n")
-        has_nested = False
         for line in lines:
             if "/" in line and not any(
                 skip in line for skip in ["Found", "Analyzing", "CODE METRICS"]
             ):
-                has_nested = True
                 parts = line.split()
                 if parts:
                     path = parts[0]
                     if len(path) > 30:
                         assert path.startswith("..."), f"Relative style not truncating: {path}"
 
-    def test_path_style_only_affects_directory_mode(self, temp_project_dir):
+    def test_path_style_only_affects_directory_mode(self, temp_project_dir: Path) -> None:
         """Test that --path-style only works with --by-directory."""
         runner = CliRunner()
 
@@ -471,7 +469,8 @@ class TestPathDisplayStyles:
             os.chdir(temp_project_dir)
 
             result = runner.invoke(
-                stats, ["-p", "cli/*.py", "--path-style", "parent"]  # This should be ignored
+                stats,
+                ["-p", "cli/*.py", "--path-style", "parent"],  # This should be ignored
             )
 
             # Should work without error
@@ -479,7 +478,7 @@ class TestPathDisplayStyles:
         finally:
             os.chdir(original_cwd)
 
-    def test_truncation_length(self, temp_project_dir):
+    def test_truncation_length(self, temp_project_dir: Path) -> None:
         """Test that truncation is exactly 30 characters for relative/parent."""
         runner = CliRunner()
 
@@ -512,7 +511,9 @@ class TestPathDisplayStyles:
 class TestFeatureInteractions:
     """Test interactions between all three features."""
 
-    def test_unlimited_depth_with_full_paths_and_specific_metric(self, temp_project_dir):
+    def test_unlimited_depth_with_full_paths_and_specific_metric(
+        self, temp_project_dir: Path
+    ) -> None:
         """Test --depth 0 --path-style full -m cyc."""
         runner = CliRunner()
 
@@ -550,7 +551,7 @@ class TestFeatureInteractions:
         # Should show cyclomatic
         assert "Cyclomat" in result.output or "cyclomat" in result.output.lower()
 
-    def test_depth_limit_with_parent_style_and_cognitive(self, temp_project_dir):
+    def test_depth_limit_with_parent_style_and_cognitive(self, temp_project_dir: Path) -> None:
         """Test --depth 2 --path-style parent -m cog."""
         runner = CliRunner()
 
@@ -585,7 +586,7 @@ class TestFeatureInteractions:
             or "cog" in result.output.lower()
         )
 
-    def test_all_metrics_with_unlimited_depth_and_relative(self, temp_project_dir):
+    def test_all_metrics_with_unlimited_depth_and_relative(self, temp_project_dir: Path) -> None:
         """Test -m all --depth 0 --path-style relative."""
         runner = CliRunner()
 
@@ -613,13 +614,11 @@ class TestFeatureInteractions:
 
         # Should show all depth levels
         # Should have some truncated paths (relative style with deep nesting)
-        has_truncation = False
         for line in result.output.split("\n"):
             if line.startswith("..."):
-                has_truncation = True
                 break
 
-    def test_json_format_with_all_features(self, temp_project_dir):
+    def test_json_format_with_all_features(self, temp_project_dir: Path) -> None:
         """Test JSON output format with all three features."""
         runner = CliRunner()
 
@@ -650,10 +649,10 @@ class TestFeatureInteractions:
             assert isinstance(data, dict)
 
             # Should have directory data
-            assert any("/" in key for key in data.keys())
+            assert any("/" in key for key in data)
 
             # Should have cyclomatic data but not LOC
-            for key, value in data.items():
+            for _key, value in data.items():
                 if isinstance(value, dict):
                     assert "avg_cyclomatic_complexity" in value or "avg_cyc" in str(value).lower()
                     assert "total_loc" not in value
@@ -661,7 +660,7 @@ class TestFeatureInteractions:
             # JSON might be in the output differently
             pass
 
-    def test_csv_format_with_features(self, temp_project_dir):
+    def test_csv_format_with_features(self, temp_project_dir: Path) -> None:
         """Test CSV output with feature combination."""
         runner = CliRunner()
 
@@ -701,7 +700,7 @@ class TestFeatureInteractions:
             assert "loc" in header_line.lower()
             assert "cyc" in header_line.lower() or "complex" in header_line.lower()
 
-    def test_edge_case_empty_metrics(self, temp_project_dir):
+    def test_edge_case_empty_metrics(self, temp_project_dir: Path) -> None:
         """Test behavior when metrics list would be empty (shouldn't happen)."""
         runner = CliRunner()
 
@@ -721,7 +720,7 @@ class TestFeatureInteractions:
 class TestEdgeCasesAndErrors:
     """Test edge cases and error conditions."""
 
-    def test_invalid_path_style(self):
+    def test_invalid_path_style(self) -> None:
         """Test that invalid path style is rejected."""
         runner = CliRunner()
 
@@ -742,7 +741,7 @@ class TestEdgeCasesAndErrors:
         # Implementation might vary
         assert result.exit_code == 0 or "Invalid" in result.output
 
-    def test_very_large_depth(self, temp_project_dir):
+    def test_very_large_depth(self, temp_project_dir: Path) -> None:
         """Test extremely large depth values."""
         runner = CliRunner()
 
@@ -753,7 +752,7 @@ class TestEdgeCasesAndErrors:
         # Should work (capped by actual directory depth)
         assert result.exit_code == 0
 
-    def test_nonexistent_directory(self):
+    def test_nonexistent_directory(self) -> None:
         """Test with non-existent directory."""
         runner = CliRunner()
 
@@ -763,7 +762,7 @@ class TestEdgeCasesAndErrors:
 
         assert result.exit_code != 0
 
-    def test_empty_directory(self, tmp_path):
+    def test_empty_directory(self, tmp_path: Path) -> None:
         """Test with empty directory."""
         runner = CliRunner()
 
@@ -775,7 +774,7 @@ class TestEdgeCasesAndErrors:
         # Should handle gracefully
         assert "No files found" in result.output or "No analyzable files" in result.output
 
-    def test_mixed_file_types(self, tmp_path):
+    def test_mixed_file_types(self, tmp_path: Path) -> None:
         """Test directory with non-Python files."""
         runner = CliRunner()
 

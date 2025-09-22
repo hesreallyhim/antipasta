@@ -31,7 +31,7 @@ METRIC_PREFIXES = {
         MetricType.HALSTEAD_BUGS,
     ],
     "mai": [MetricType.MAINTAINABILITY_INDEX],
-    "all": [metric for metric in MetricType],  # All available metrics
+    "all": list(MetricType),  # All available metrics
 }
 
 # Maximum depth for unlimited traversal (safety boundary)
@@ -107,7 +107,10 @@ def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
     "--path-style",
     type=click.Choice(["relative", "parent", "full"]),
     default="relative",
-    help="Path display style for directories (relative: truncated paths, parent: immediate parent/name, full: no truncation)",
+    help=(
+        "Path display style for directories "
+        "(relative: truncated paths, parent: immediate parent/name, full: no truncation)"
+    ),
 )
 @click.option(
     "--metric",
@@ -406,7 +409,7 @@ def _collect_directory_stats(
             current = parent
 
     # Each directory should also include its own direct files in the all_files list
-    for dir_path, data in dir_stats.items():
+    for _dir_path, data in dir_stats.items():
         data["all_files"].extend(data["direct_files"])
 
     # Find the common base directory for cleaner display
@@ -488,7 +491,7 @@ def _collect_directory_stats(
 
         # Apply truncation for relative and parent styles (NOT for full)
         if path_style != "full" and len(display_path) > 30:
-            display_path = "..." + display_path[-(30 - 3) :]
+            display_path = "..." + display_path[-(30 - 3):]
 
         # Remove duplicate counts (a file might be counted multiple times in aggregation)
         unique_files = list({id(f): f for f in data["all_files"]}.values())
@@ -500,7 +503,9 @@ def _collect_directory_stats(
 
         # Add LOC stats only if they were collected
         if should_collect_loc:
-            results[display_path]["avg_file_loc"] = statistics.mean(file_locs) if file_locs else 0
+            results[display_path]["avg_file_loc"] = (
+                int(statistics.mean(file_locs)) if file_locs else 0
+            )
             results[display_path]["total_loc"] = sum(file_locs)
 
         # Add additional metrics
@@ -579,7 +584,9 @@ def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> 
 
         # Add LOC stats only if they were collected
         if should_collect_loc:
-            results[module_name]["avg_file_loc"] = statistics.mean(file_locs) if file_locs else 0
+            results[module_name]["avg_file_loc"] = (
+                int(statistics.mean(file_locs)) if file_locs else 0
+            )
             results[module_name]["total_loc"] = sum(file_locs)
 
         # Add additional metrics
@@ -741,7 +748,7 @@ def _truncate_path(path: str, max_length: int) -> str:
     """Truncate long paths for display."""
     if len(path) <= max_length:
         return path
-    return "..." + path[-(max_length - 3) :]
+    return "..." + path[-(max_length - 3):]
 
 
 def _display_json(stats_data: dict[str, Any]) -> None:

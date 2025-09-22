@@ -43,7 +43,8 @@ def main() -> None:
                 for metric in result.metrics:
                     print(
                         f"  {metric.function_name or 'File'}: {metric.value} "
-                        f"(type: {metric.details.get('type', 'function') if metric.details else 'function'})"
+                        f"(type: "
+                        f"{metric.details.get('type', 'function') if metric.details else 'function'}"  # noqa: E501
                     )
 
 

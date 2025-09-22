@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "antipasta"
-version = "0.0.1"
+version = "1.0.0"
 description = "A code quality monitoring and enforcement tool that analyzes a variety of code complexity metrics"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -63,6 +63,10 @@ packages = ["src/antipasta"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+fix = true
+exclude = ["DEMOS"]
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -78,10 +82,8 @@ select = [
     # "TCH", # flake8-type-checking
 ]
 ignore = []
-fix = true
-exclude = ["DEMOS"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["antipasta"]
 
 [tool.black]

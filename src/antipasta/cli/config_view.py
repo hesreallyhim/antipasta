@@ -53,10 +53,7 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
     for key, display_name in threshold_names.items():
         if key in defaults:
             value = defaults[key]
-            if key.startswith("min_"):
-                op = "≥"
-            else:
-                op = "≤"
+            op = "≥" if key.startswith("min_") else "≤"
             click.echo(f"{display_name:<25} {op} {value}")
 
     click.echo()
@@ -101,10 +98,7 @@ def display_table(config: AntipastaConfig) -> None:
     defaults = config.defaults.model_dump()
     for key, value in defaults.items():
         display_key = key.replace("_", " ").title()
-        if key.startswith("min_"):
-            op = ">="
-        else:
-            op = "<="
+        op = ">=" if key.startswith("min_") else "<="
         line = f"  {display_key:<35} {op} {value:>10.1f}"
         click.echo("║" + line.ljust(60) + "║")
 

@@ -68,9 +68,8 @@ def hello():
         # A file in the tests directory should be ignored
         test_file = Path("tests/test_something.py")
 
-        # For files within the project, patterns should still work
-        # (This would return True if the file existed in the project)
-        # Note: We're not creating the file, just testing the pattern matching logic
+        # The file should be ignored based on the pattern
+        assert detector.should_ignore(test_file)
 
     def test_debug_output(self, tmp_path: Path) -> None:
         """Test that demonstrates the fix with debug output.

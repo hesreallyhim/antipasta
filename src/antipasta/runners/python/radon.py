@@ -43,7 +43,7 @@ class RadonRunner(BaseRunner):
         if self._available is None:
             try:
                 # Try to import radon
-                import radon
+                import radon  # noqa: F401
 
                 self._available = True
             except ImportError:
