@@ -36,15 +36,15 @@ jobs:
 
     - name: Lint with ruff
       run: |
-        ruff check antipasta tests
+        ruff check src/antipasta tests
 
     - name: Format check with black
       run: |
-        black --check antipasta tests
+        black --check src/antipasta tests
 
     - name: Type check with mypy
       run: |
-        mypy antipasta tests
+        mypy src/antipasta tests
 
   test:
     runs-on: ubuntu-latest
