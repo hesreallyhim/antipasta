@@ -12,7 +12,7 @@ from antipasta.cli.metrics import metrics
 class TestMetricsCommandValidation:
     """Test validation of file and directory arguments."""
 
-    def test_file_flag_rejects_directory(self):
+    def test_file_flag_rejects_directory(self) -> None:
         """Test that -f/--files flag rejects directories with proper error."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -26,7 +26,7 @@ class TestMetricsCommandValidation:
             assert "Error: Invalid value for '--files' / '-f'" in result.output
             assert f"File '{test_dir}' is a directory" in result.output
 
-    def test_directory_flag_rejects_file(self):
+    def test_directory_flag_rejects_file(self) -> None:
         """Test that -d/--directory flag rejects files with proper error."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -40,7 +40,7 @@ class TestMetricsCommandValidation:
             assert "Error: Invalid value for '--directory' / '-d'" in result.output
             assert f"Directory '{test_file}' is a file" in result.output
 
-    def test_file_flag_accepts_valid_file(self):
+    def test_file_flag_accepts_valid_file(self) -> None:
         """Test that -f/--files flag accepts valid files."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -83,7 +83,7 @@ languages:
                 assert result.exit_code == 0
                 assert "Analyzing 1 files" in result.output
 
-    def test_directory_flag_accepts_valid_directory(self):
+    def test_directory_flag_accepts_valid_directory(self) -> None:
         """Test that -d/--directory flag accepts valid directories."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -129,7 +129,7 @@ languages:
                 assert result.exit_code == 0
                 assert "Analyzing 1 files" in result.output
 
-    def test_multiple_file_flags(self):
+    def test_multiple_file_flags(self) -> None:
         """Test that multiple -f flags can be specified."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -176,7 +176,7 @@ languages:
                 assert result.exit_code == 0
                 assert "Analyzing 2 files" in result.output
 
-    def test_nonexistent_file_error(self):
+    def test_nonexistent_file_error(self) -> None:
         """Test that nonexistent file paths produce proper error."""
         runner = CliRunner()
         result = runner.invoke(metrics, ["-f", "/nonexistent/file.py"])
@@ -185,7 +185,7 @@ languages:
         assert "Error: Invalid value for '--files' / '-f'" in result.output
         assert "does not exist" in result.output
 
-    def test_nonexistent_directory_error(self):
+    def test_nonexistent_directory_error(self) -> None:
         """Test that nonexistent directory paths produce proper error."""
         runner = CliRunner()
         result = runner.invoke(metrics, ["-d", "/nonexistent/directory"])
@@ -194,7 +194,7 @@ languages:
         assert "Error: Invalid value for '--directory' / '-d'" in result.output
         assert "does not exist" in result.output
 
-    def test_mixed_file_and_directory_flags(self):
+    def test_mixed_file_and_directory_flags(self) -> None:
         """Test that both -f and -d flags can be used together."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:

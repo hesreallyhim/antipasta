@@ -733,7 +733,7 @@ class TestEdgeCasesAndErrors:
         assert result.exit_code != 0
         assert "Invalid value" in result.output or "invalid" in result.output.lower()
 
-    def test_negative_depth(self, temp_project_dir):
+    def test_negative_depth(self, temp_project_dir: Path) -> None:
         """Test that negative depth values are handled."""
         runner = CliRunner()
 

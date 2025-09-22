@@ -34,7 +34,7 @@ def create_deprecated_command(new_cmd_path: str, old_function: click.Command) ->
 
     @click.command(hidden=True)  # Hidden from help text
     @click.pass_context
-    def deprecated_wrapper(ctx: click.Context, **kwargs: Any) -> None:
+    def deprecated_wrapper(ctx: click.Context, /, **kwargs: Any) -> None:
         click.echo(
             f"⚠️  Warning: This command is deprecated. "
             f"Please use 'antipasta {new_cmd_path}' instead.",

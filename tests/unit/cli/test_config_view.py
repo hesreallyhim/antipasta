@@ -13,7 +13,7 @@ from antipasta.cli.config_view import view
 class TestConfigViewCommand:
     """Test the config view command."""
 
-    def test_view_valid_config_summary(self):
+    def test_view_valid_config_summary(self) -> None:
         """Test viewing a valid configuration in summary format."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -55,7 +55,7 @@ use_gitignore: true
             assert "IGNORE PATTERNS (2)" in result.output
             assert "Using .gitignore: Yes" in result.output
 
-    def test_view_nonexistent_config(self):
+    def test_view_nonexistent_config(self) -> None:
         """Test viewing a nonexistent configuration file."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -67,7 +67,7 @@ use_gitignore: true
             assert "Configuration file not found" in result.output
             assert "Run 'antipasta config generate'" in result.output
 
-    def test_view_invalid_config_with_validation(self):
+    def test_view_invalid_config_with_validation(self) -> None:
         """Test viewing an invalid configuration with validation enabled."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -91,7 +91,7 @@ languages:
             assert "Status: ❌ Invalid" in result.output
             assert "Configuration has validation errors" in result.output
 
-    def test_view_raw_format(self):
+    def test_view_raw_format(self) -> None:
         """Test viewing configuration in raw format."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -107,7 +107,7 @@ defaults:
             assert result.exit_code == 0
             assert result.output.strip() == content.strip()
 
-    def test_view_json_format(self):
+    def test_view_json_format(self) -> None:
         """Test viewing configuration in JSON format."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -142,7 +142,7 @@ use_gitignore: false
             assert data["languages"][0]["name"] == "python"
             assert data["use_gitignore"] is False
 
-    def test_view_yaml_format(self):
+    def test_view_yaml_format(self) -> None:
         """Test viewing configuration in YAML format."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -174,7 +174,7 @@ use_gitignore: true
             assert data["defaults"]["max_cyclomatic_complexity"] == 10
             assert data["languages"][0]["name"] == "python"
 
-    def test_view_table_format(self):
+    def test_view_table_format(self) -> None:
         """Test viewing configuration in table format."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -222,7 +222,7 @@ use_gitignore: true
             assert "║" in result.output
             assert "╚" in result.output
 
-    def test_view_no_languages_config(self):
+    def test_view_no_languages_config(self) -> None:
         """Test viewing configuration with no languages configured."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -244,7 +244,7 @@ use_gitignore: false
             assert "No languages configured" in result.output
             assert "Using .gitignore: No" in result.output
 
-    def test_view_many_ignore_patterns(self):
+    def test_view_many_ignore_patterns(self) -> None:
         """Test viewing configuration with many ignore patterns."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -276,7 +276,7 @@ use_gitignore: true
             assert "pattern_0" in result.output
             assert "... and 5 more" in result.output
 
-    def test_view_no_validate_flag(self):
+    def test_view_no_validate_flag(self) -> None:
         """Test viewing configuration with --no-validate flag."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -297,7 +297,7 @@ languages: []
             # But no validation errors shown with --no-validate
             assert "Configuration has validation errors" not in result.output
 
-    def test_view_default_config_file(self):
+    def test_view_default_config_file(self) -> None:
         """Test that view defaults to .antipasta.yaml."""
         runner = CliRunner()
         with runner.isolated_filesystem():

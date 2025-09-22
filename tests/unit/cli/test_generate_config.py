@@ -13,7 +13,7 @@ from antipasta.core.config import AntipastaConfig
 class TestGenerateConfigCommand:
     """Test the generate-config command."""
 
-    def test_non_interactive_generates_default_config(self):
+    def test_non_interactive_generates_default_config(self) -> None:
         """Test that non-interactive mode generates a valid default config."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -33,7 +33,7 @@ class TestGenerateConfigCommand:
             assert len(config.languages) == 1
             assert config.languages[0].name == "python"
 
-    def test_non_interactive_overwrites_existing_file(self):
+    def test_non_interactive_overwrites_existing_file(self) -> None:
         """Test that non-interactive mode overwrites existing files without prompting."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -50,7 +50,7 @@ class TestGenerateConfigCommand:
             assert "existing content" not in content
             assert "# antipasta configuration file" in content
 
-    def test_interactive_mode_with_defaults(self):
+    def test_interactive_mode_with_defaults(self) -> None:
         """Test interactive mode accepting all defaults."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -81,7 +81,7 @@ class TestGenerateConfigCommand:
             assert config.defaults.max_cyclomatic_complexity == 10
             assert config.defaults.max_cognitive_complexity == 15
 
-    def test_interactive_mode_with_custom_values(self):
+    def test_interactive_mode_with_custom_values(self) -> None:
         """Test interactive mode with custom threshold values."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -124,7 +124,7 @@ class TestGenerateConfigCommand:
             assert "*.pyc" in config.ignore_patterns
             assert "__pycache__" in config.ignore_patterns
 
-    def test_interactive_mode_file_exists_abort(self):
+    def test_interactive_mode_file_exists_abort(self) -> None:
         """Test that interactive mode aborts when user declines to overwrite."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -156,7 +156,7 @@ class TestGenerateConfigCommand:
             content = output_file.read_text()
             assert content == "existing content\n"
 
-    def test_interactive_mode_file_exists_overwrite(self):
+    def test_interactive_mode_file_exists_overwrite(self) -> None:
         """Test that interactive mode overwrites when user confirms."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -188,7 +188,7 @@ class TestGenerateConfigCommand:
             assert "old content" not in content
             assert "# antipasta configuration file" in content
 
-    def test_default_output_path(self):
+    def test_default_output_path(self) -> None:
         """Test that default output path is .antipasta.yaml."""
         runner = CliRunner()
         with runner.isolated_filesystem():
@@ -198,7 +198,7 @@ class TestGenerateConfigCommand:
             assert Path(".antipasta.yaml").exists()
             assert "✅ Configuration saved to .antipasta.yaml" in result.output
 
-    def test_generated_config_has_helpful_comments(self):
+    def test_generated_config_has_helpful_comments(self) -> None:
         """Test that generated config includes helpful comments."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -217,7 +217,7 @@ class TestGenerateConfigCommand:
             assert "# Files and patterns to ignore during analysis" in content
             assert "# Whether to use .gitignore file for excluding files" in content
 
-    def test_javascript_coming_soon_message(self):
+    def test_javascript_coming_soon_message(self) -> None:
         """Test that JavaScript/TypeScript shows 'coming soon' message."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -248,7 +248,7 @@ class TestGenerateConfigCommand:
             assert len(config.languages) == 1
             assert config.languages[0].name == "python"
 
-    def test_permission_error_handling(self):
+    def test_permission_error_handling(self) -> None:
         """Test that permission errors are handled gracefully."""
         runner = CliRunner()
         with patch("builtins.open", side_effect=PermissionError("Permission denied")):
@@ -259,7 +259,7 @@ class TestGenerateConfigCommand:
             assert result.exit_code == 1
             assert "❌ Error saving configuration: Permission denied" in result.output
 
-    def test_interactive_mode_invalid_values_reprompt(self):
+    def test_interactive_mode_invalid_values_reprompt(self) -> None:
         """Test that invalid values trigger re-prompt."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -289,7 +289,7 @@ class TestGenerateConfigCommand:
             assert result.exit_code == 0
             assert output_file.exists()
 
-    def test_shows_metric_ranges_in_prompts(self):
+    def test_shows_metric_ranges_in_prompts(self) -> None:
         """Test that metric prompts show valid ranges."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -317,7 +317,7 @@ class TestGenerateConfigCommand:
             assert "Range: 1-100" in result.output  # Cognitive
             assert "Range: 0-100" in result.output  # Maintainability
 
-    def test_advanced_metrics_validation(self):
+    def test_advanced_metrics_validation(self) -> None:
         """Test validation of advanced Halstead metrics."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:

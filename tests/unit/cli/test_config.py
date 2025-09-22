@@ -11,7 +11,7 @@ from antipasta.cli.main import cli
 class TestConfigCommandGroup:
     """Test the config command group and subcommands."""
 
-    def test_config_help(self):
+    def test_config_help(self) -> None:
         """Test config command help."""
         runner = CliRunner()
         result = runner.invoke(cli, ["config", "--help"])
@@ -23,7 +23,7 @@ class TestConfigCommandGroup:
         assert "validate" in result.output
         assert "view" in result.output
 
-    def test_config_generate_subcommand(self):
+    def test_config_generate_subcommand(self) -> None:
         """Test config generate subcommand works."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -38,7 +38,7 @@ class TestConfigCommandGroup:
             assert output_file.exists()
             assert "✅ Configuration saved to" in result.output
 
-    def test_config_validate_subcommand(self):
+    def test_config_validate_subcommand(self) -> None:
         """Test config validate subcommand works."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -68,7 +68,7 @@ use_gitignore: true
             assert result.exit_code == 0
             assert "✅ Configuration file is valid" in result.output
 
-    def test_config_view_subcommand(self):
+    def test_config_view_subcommand(self) -> None:
         """Test config view subcommand works."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -98,7 +98,7 @@ use_gitignore: true
             assert f"Configuration: {config_file}" in result.output
             assert "Status: ✅ Valid" in result.output
 
-    def test_backward_compatibility_generate_config(self):
+    def test_backward_compatibility_generate_config(self) -> None:
         """Test backward compatibility for generate-config command."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -115,7 +115,7 @@ use_gitignore: true
             assert "Please use 'antipasta config generate'" in result.output
             assert output_file.exists()
 
-    def test_backward_compatibility_validate_config(self):
+    def test_backward_compatibility_validate_config(self) -> None:
         """Test backward compatibility for validate-config command."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -147,7 +147,7 @@ use_gitignore: true
             assert "Please use 'antipasta config validate'" in result.output
             assert "✅ Configuration file is valid" in result.output
 
-    def test_deprecated_commands_hidden_from_help(self):
+    def test_deprecated_commands_hidden_from_help(self) -> None:
         """Test that deprecated commands are hidden from main help."""
         runner = CliRunner()
         result = runner.invoke(cli, ["--help"])

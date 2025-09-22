@@ -12,7 +12,7 @@ from antipasta.core.config import AntipastaConfig
 class TestIgnorePatternInput:
     """Test the new ignore pattern input behavior."""
 
-    def test_multiple_patterns_one_at_a_time(self):
+    def test_multiple_patterns_one_at_a_time(self) -> None:
         """Test entering multiple patterns one at a time."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -55,7 +55,7 @@ class TestIgnorePatternInput:
             assert "__pycache__/**" in config.ignore_patterns
             assert "*.log" in config.ignore_patterns
 
-    def test_no_default_patterns(self):
+    def test_no_default_patterns(self) -> None:
         """Test declining default test patterns."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -90,7 +90,7 @@ class TestIgnorePatternInput:
             assert "build/**" in config.ignore_patterns
             assert "**/test_*.py" not in config.ignore_patterns
 
-    def test_no_patterns_at_all(self):
+    def test_no_patterns_at_all(self) -> None:
         """Test having no ignore patterns at all."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -120,7 +120,7 @@ class TestIgnorePatternInput:
             config = AntipastaConfig.from_yaml(output_file)
             assert len(config.ignore_patterns) == 0
 
-    def test_pattern_display_feedback(self):
+    def test_pattern_display_feedback(self) -> None:
         """Test that patterns are displayed with confirmation."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -150,7 +150,7 @@ class TestIgnorePatternInput:
             assert "✓ Added: *.tmp" in result.output
             assert "Total patterns to ignore: 4" in result.output
 
-    def test_whitespace_handling(self):
+    def test_whitespace_handling(self) -> None:
         """Test that whitespace is properly handled in patterns."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
