@@ -69,6 +69,38 @@ test-cov: install-dev  ## Run tests with coverage report
 
 check: lint type-check test  ## Run all quality checks (lint, type-check, test)
 
+# Antipasta metrics analysis targets
+
+metrics: install  ## Run antipasta metrics analysis on src/ (verbose)
+	@echo "Running complexity analysis on src/..."
+	@$(VENV_DIR)/bin/antipasta metrics -d src/ || (echo ""; echo "❌ Code complexity check FAILED"; exit 2)
+	@echo ""
+	@echo "✅ Code complexity check PASSED"
+
+metrics-quiet: install  ## Run antipasta metrics analysis on src/ (quiet mode - violations only)
+	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q || exit 2
+
+metrics-json: install  ## Run antipasta metrics analysis and output JSON
+	@$(VENV_DIR)/bin/antipasta metrics -d src/ --format json
+
+metrics-report: install  ## Generate detailed metrics report with statistics
+	@echo "═══════════════════════════════════════════════════════"
+	@echo "         ANTIPASTA METRICS REPORT"
+	@echo "═══════════════════════════════════════════════════════"
+	@echo ""
+	@echo "📊 Overall Statistics:"
+	@$(VENV_DIR)/bin/antipasta stats -p "src/**/*.py" -m cyc -m cog -m mai | head -20
+	@echo ""
+	@echo "📁 Metrics by Module:"
+	@$(VENV_DIR)/bin/antipasta stats -p "src/**/*.py" --by-module -m cyc -m cog -m mai
+	@echo ""
+	@echo "⚠️  Violations:"
+	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q 2>&1 | grep -E "^❌" | head -10 || echo "No violations found"
+	@echo ""
+	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q > /dev/null 2>&1 && echo "✅ PASS: All metrics within thresholds" || echo "❌ FAIL: $(shell $(VENV_DIR)/bin/antipasta metrics -d src/ -q 2>&1 | grep -c '^❌') violations found"
+
+check-all: check metrics-quiet  ## Run all checks including complexity metrics
+
 clean:  ## Clean up build artifacts and cache files
 	rm -rf build dist *.egg-info
 	rm -rf .pytest_cache .mypy_cache .ruff_cache
