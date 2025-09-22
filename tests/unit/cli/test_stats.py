@@ -154,10 +154,14 @@ class TestUnlimitedDepthFeature:
             lines = output.split("\n")
             count = 0
             for line in lines:
-                if line.strip() and not any(
-                    skip in line
-                    for skip in ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]
-                ) and any(c.isdigit() for c in line):  # Has metrics data
+                if (
+                    line.strip()
+                    and not any(
+                        skip in line
+                        for skip in ["Found", "Analyzing", "CODE METRICS", "Location", "---", "="]
+                    )
+                    and any(c.isdigit() for c in line)
+                ):  # Has metrics data
                     count += 1
             return count
 
