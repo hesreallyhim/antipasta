@@ -433,7 +433,7 @@ languages:
                 metrics, ["-c", str(config_file), "--threshold", "cyclomatic_complexity"]
             )
             assert result.exit_code == 1
-            assert "Error parsing threshold override" in result.output
+            assert "Error" in result.output
             assert "Expected 'metric_type=value'" in result.output
 
             # Invalid metric type
@@ -441,7 +441,7 @@ languages:
                 metrics, ["-c", str(config_file), "--threshold", "invalid_metric=10"]
             )
             assert result.exit_code == 1
-            assert "Error parsing threshold override" in result.output
+            assert "Error" in result.output
             assert "Invalid metric type" in result.output
 
             # Invalid value
@@ -449,5 +449,5 @@ languages:
                 metrics, ["-c", str(config_file), "--threshold", "cyclomatic_complexity=abc"]
             )
             assert result.exit_code == 1
-            assert "Error parsing threshold override" in result.output
+            assert "Error" in result.output
             assert "Must be a number" in result.output

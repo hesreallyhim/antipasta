@@ -15,8 +15,7 @@ from antipasta.cli.config_generate import (
     _save_config,
     generate,
     prompt_with_validation,
-    validate_positive_float,
-    validate_positive_int,
+    validate_with_pydantic,
 )
 from antipasta.core.config import AntipastaConfig, ComparisonOperator, DefaultsConfig, LanguageConfig, MetricConfig
 from typing import cast, List
@@ -24,67 +23,69 @@ from typing import cast, List
 from antipasta.core.metrics import MetricType
 
 
-class TestValidatePositiveInt:
-    """Test validate_positive_int function."""
+class TestValidateWithPydantic:
+    """Test validate_with_pydantic function."""
 
-    def test_valid_integer_in_range(self) -> None:
-        """Test valid integer within range."""
-        assert validate_positive_int("10", min_val=1, max_val=20) == 10
-        assert validate_positive_int("1", min_val=1) == 1
-        assert validate_positive_int("100", min_val=1, max_val=100) == 100
+    def test_valid_cyclomatic_complexity(self) -> None:
+        """Test valid cyclomatic complexity values."""
+        assert validate_with_pydantic("cyclomatic_complexity", "10") == 10
+        assert validate_with_pydantic("cyclomatic_complexity", "1") == 1
+        assert validate_with_pydantic("cyclomatic_complexity", "50") == 50
 
-    def test_integer_below_minimum(self) -> None:
-        """Test integer below minimum raises error."""
-        with pytest.raises(click.BadParameter, match="Value must be at least 5"):
-            validate_positive_int("3", min_val=5)
+    def test_cyclomatic_below_minimum(self) -> None:
+        """Test cyclomatic complexity below minimum raises error."""
+        with pytest.raises(click.BadParameter, match="Value must be >= 1"):
+            validate_with_pydantic("cyclomatic_complexity", "0")
 
-    def test_integer_above_maximum(self) -> None:
-        """Test integer above maximum raises error."""
-        with pytest.raises(click.BadParameter, match="Value must be at most 10"):
-            validate_positive_int("15", min_val=1, max_val=10)
+    def test_cyclomatic_above_maximum(self) -> None:
+        """Test cyclomatic complexity above maximum raises error."""
+        with pytest.raises(click.BadParameter, match="Value must be <= 50"):
+            validate_with_pydantic("cyclomatic_complexity", "51")
 
-    def test_non_integer_value(self) -> None:
-        """Test non-integer value raises error."""
-        with pytest.raises(click.BadParameter, match="Must be a valid integer"):
-            validate_positive_int("abc")
+    def test_maintainability_index_range(self) -> None:
+        """Test maintainability index validation."""
+        assert validate_with_pydantic("maintainability_index", "0") == 0
+        assert validate_with_pydantic("maintainability_index", "50.5") == 50.5
+        assert validate_with_pydantic("maintainability_index", "100") == 100
 
-        with pytest.raises(click.BadParameter, match="Must be a valid integer"):
-            validate_positive_int("10.5")
-
-    def test_edge_cases(self) -> None:
-        """Test edge cases."""
-        assert validate_positive_int("0", min_val=0, max_val=10) == 0
-        assert validate_positive_int("-5", min_val=-10) == -5
-
-
-class TestValidatePositiveFloat:
-    """Test validate_positive_float function."""
-
-    def test_valid_float_in_range(self) -> None:
-        """Test valid float within range."""
-        assert validate_positive_float("10.5", min_val=1.0, max_val=20.0) == 10.5
-        assert validate_positive_float("0.1", min_val=0.1) == 0.1
-        assert validate_positive_float("99.99", min_val=1.0, max_val=100.0) == 99.99
-
-    def test_float_below_minimum(self) -> None:
-        """Test float below minimum raises error."""
-        with pytest.raises(click.BadParameter, match="Value must be at least 5.0"):
-            validate_positive_float("3.5", min_val=5.0)
-
-    def test_float_above_maximum(self) -> None:
-        """Test float above maximum raises error."""
-        with pytest.raises(click.BadParameter, match="Value must be at most 10.0"):
-            validate_positive_float("15.5", min_val=1.0, max_val=10.0)
+        with pytest.raises(click.BadParameter, match="Value must be <= 100"):
+            validate_with_pydantic("maintainability_index", "101")
 
     def test_non_numeric_value(self) -> None:
         """Test non-numeric value raises error."""
         with pytest.raises(click.BadParameter, match="Must be a valid number"):
-            validate_positive_float("abc")
+            validate_with_pydantic("cyclomatic_complexity", "abc")
 
-    def test_integer_as_float(self) -> None:
-        """Test integer strings are converted to floats."""
-        assert validate_positive_float("10", min_val=1.0) == 10.0
-        assert isinstance(validate_positive_float("10"), float)
+
+class TestHalsteadValidation:
+    """Test Halstead metric validation with Pydantic."""
+
+    def test_halstead_volume_range(self) -> None:
+        """Test Halstead volume validation."""
+        assert validate_with_pydantic("halstead_volume", "0") == 0
+        assert validate_with_pydantic("halstead_volume", "50000.5") == 50000.5
+        assert validate_with_pydantic("halstead_volume", "100000") == 100000
+
+        with pytest.raises(click.BadParameter, match="Value must be <= 100000"):
+            validate_with_pydantic("halstead_volume", "100001")
+
+    def test_halstead_difficulty_range(self) -> None:
+        """Test Halstead difficulty validation."""
+        assert validate_with_pydantic("halstead_difficulty", "0") == 0
+        assert validate_with_pydantic("halstead_difficulty", "10.5") == 10.5
+        assert validate_with_pydantic("halstead_difficulty", "100") == 100
+
+        with pytest.raises(click.BadParameter, match="Value must be <= 100"):
+            validate_with_pydantic("halstead_difficulty", "101")
+
+    def test_halstead_effort_range(self) -> None:
+        """Test Halstead effort validation."""
+        assert validate_with_pydantic("halstead_effort", "0") == 0
+        assert validate_with_pydantic("halstead_effort", "500000") == 500000
+        assert validate_with_pydantic("halstead_effort", "1000000") == 1000000
+
+        with pytest.raises(click.BadParameter, match="Value must be <= 1000000"):
+            validate_with_pydantic("halstead_effort", "1000001")
 
 
 class TestPromptWithValidation:

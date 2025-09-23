@@ -345,8 +345,8 @@ class TestGenerateConfigCommand:
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
-            assert "Range: 1-100000" in result.output  # Volume range
-            assert "Range: 0.1-100" in result.output  # Difficulty range
-            assert "Range: 1-1000000" in result.output  # Effort range
+            assert "Range: 0-100000" in result.output or "0.0-100000.0" in result.output  # Volume range
+            assert "Range: 0-100" in result.output or "0.0-100.0" in result.output  # Difficulty range
+            assert "Range: 0-1000000" in result.output or "0.0-1000000.0" in result.output  # Effort range
             assert "Invalid input" in result.output
             assert result.exit_code == 0

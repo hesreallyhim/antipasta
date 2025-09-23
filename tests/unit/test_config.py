@@ -98,7 +98,8 @@ class TestDefaultsConfig:
         """Test that negative values are rejected."""
         with pytest.raises(ValidationError) as exc_info:
             DefaultsConfig(max_cyclomatic_complexity=-1)
-        assert "must be non-negative" in str(exc_info.value)
+        # Check for Pydantic's error message about the constraint
+        assert "greater than or equal to 1" in str(exc_info.value)
 
 
 class TestAntipastaConfig:

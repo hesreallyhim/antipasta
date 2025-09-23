@@ -11,8 +11,16 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
+from antipasta.core.metric_models import (
+    CognitiveComplexity,
+    CyclomaticComplexity,
+    HalsteadDifficulty,
+    HalsteadEffort,
+    HalsteadVolume,
+    MaintainabilityIndex,
+)
 from antipasta.core.metrics import MetricType
 
 if TYPE_CHECKING:
@@ -65,22 +73,18 @@ class LanguageConfig(BaseModel):
 
 
 class DefaultsConfig(BaseModel):
-    """Default configuration values."""
+    """Default configuration values with automatic validation.
 
-    max_cyclomatic_complexity: float = 10
-    min_maintainability_index: float = 50
-    max_halstead_volume: float = 1000
-    max_halstead_difficulty: float = 10
-    max_halstead_effort: float = 10000
-    max_cognitive_complexity: float = 15
+    All validation is handled by Pydantic Field constraints,
+    no custom validators needed.
+    """
 
-    @model_validator(mode="after")
-    def validate_defaults(self) -> DefaultsConfig:
-        """Ensure all values are positive."""
-        for field_name, value in self.model_dump().items():
-            if value < 0:
-                raise ValueError(f"{field_name} must be non-negative")
-        return self
+    max_cyclomatic_complexity: CyclomaticComplexity = 10
+    min_maintainability_index: MaintainabilityIndex = 50
+    max_halstead_volume: HalsteadVolume = 1000
+    max_halstead_difficulty: HalsteadDifficulty = 10
+    max_halstead_effort: HalsteadEffort = 10000
+    max_cognitive_complexity: CognitiveComplexity = 15
 
 
 class AntipastaConfig(BaseModel):

@@ -8,35 +8,46 @@ from typing import Any
 import click
 from pydantic import ValidationError
 
+from antipasta.cli.validation_utils import get_metric_constraints
 from antipasta.core.config import AntipastaConfig
+from antipasta.core.metric_models import MetricThresholds
 
 
-def validate_positive_int(value: str, min_val: int = 1, max_val: int | None = None) -> int:
-    """Validate a positive integer within optional range."""
-    try:
-        num = int(value)
-        if num < min_val:
-            raise click.BadParameter(f"Value must be at least {min_val}")
-        if max_val is not None and num > max_val:
-            raise click.BadParameter(f"Value must be at most {max_val}")
-        return num
-    except ValueError as e:
-        raise click.BadParameter("Must be a valid integer") from e
+def validate_with_pydantic(metric_type: str, value: str) -> float:
+    """Validate a metric value using Pydantic model.
 
+    Args:
+        metric_type: The metric type being validated
+        value: String value to validate
 
-def validate_positive_float(
-    value: str, min_val: float = 0.0, max_val: float | None = None
-) -> float:
-    """Validate a positive float within optional range."""
+    Returns:
+        Validated numeric value
+
+    Raises:
+        click.BadParameter: If validation fails
+    """
     try:
         num = float(value)
-        if num < min_val:
-            raise click.BadParameter(f"Value must be at least {min_val}")
-        if max_val is not None and num > max_val:
-            raise click.BadParameter(f"Value must be at most {max_val}")
+        # Use Pydantic validation
+        MetricThresholds(**{metric_type: num})
         return num
-    except ValueError as e:
-        raise click.BadParameter("Must be a valid number") from e
+    except ValidationError as e:
+        # Extract first error message
+        if e.errors():
+            err = e.errors()[0]
+            err_type = err.get('type', '')
+            ctx = err.get('ctx', {})
+
+            if 'greater_than_equal' in err_type:
+                raise click.BadParameter(f"Value must be >= {ctx.get('ge', 0)}")
+            elif 'less_than_equal' in err_type:
+                raise click.BadParameter(f"Value must be <= {ctx.get('le', 'max')}")
+            elif err_type == 'int_type':
+                raise click.BadParameter(f"Must be an integer")
+
+        raise click.BadParameter(str(e))
+    except ValueError:
+        raise click.BadParameter("Must be a valid number")
 
 
 def prompt_with_validation(
@@ -98,25 +109,29 @@ def generate(output: Path, non_interactive: bool) -> None:
     click.echo("\nLet's set up your code quality thresholds:")
     click.echo("-" * 40)
 
+    # Get constraints from Pydantic model
+    cc_min, cc_max = get_metric_constraints('cyclomatic_complexity')
     max_cyclomatic = prompt_with_validation(
         "Maximum cyclomatic complexity per function",
         default=10,
-        validator=lambda v: validate_positive_int(v, min_val=1, max_val=50),
-        help_text="ℹ️  Range: 1-50 (lower is stricter). Recommended: 10",
+        validator=lambda v: validate_with_pydantic('cyclomatic_complexity', v),
+        help_text=f"ℹ️  Range: {cc_min}-{cc_max} (lower is stricter). Recommended: 10",
     )
 
+    cog_min, cog_max = get_metric_constraints('cognitive_complexity')
     max_cognitive = prompt_with_validation(
         "Maximum cognitive complexity per function",
         default=15,
-        validator=lambda v: validate_positive_int(v, min_val=1, max_val=100),
-        help_text="ℹ️  Range: 1-100 (lower is stricter). Recommended: 15",
+        validator=lambda v: validate_with_pydantic('cognitive_complexity', v),
+        help_text=f"ℹ️  Range: {cog_min}-{cog_max} (lower is stricter). Recommended: 15",
     )
 
+    mi_min, mi_max = get_metric_constraints('maintainability_index')
     min_maintainability = prompt_with_validation(
         "Minimum maintainability index",
         default=50,
-        validator=lambda v: validate_positive_int(v, min_val=0, max_val=100),
-        help_text="ℹ️  Range: 0-100 (higher is stricter). Recommended: 50",
+        validator=lambda v: validate_with_pydantic('maintainability_index', v),
+        help_text=f"ℹ️  Range: {mi_min}-{mi_max} (higher is stricter). Recommended: 50",
     )
 
     # Ask about advanced metrics
@@ -135,25 +150,28 @@ def generate(output: Path, non_interactive: bool) -> None:
         click.echo("\nAdvanced Halstead metrics:")
         click.echo("-" * 40)
 
+        hv_min, hv_max = get_metric_constraints('halstead_volume')
         defaults_dict["max_halstead_volume"] = prompt_with_validation(
             "Maximum Halstead volume",
             default=1000,
-            validator=lambda v: validate_positive_float(v, min_val=1, max_val=100000),
-            help_text="ℹ️  Range: 1-100000. Measures program size. Recommended: 1000",
+            validator=lambda v: validate_with_pydantic('halstead_volume', v),
+            help_text=f"ℹ️  Range: {hv_min}-{hv_max}. Measures program size. Recommended: 1000",
         )
 
+        hd_min, hd_max = get_metric_constraints('halstead_difficulty')
         defaults_dict["max_halstead_difficulty"] = prompt_with_validation(
             "Maximum Halstead difficulty",
             default=10,
-            validator=lambda v: validate_positive_float(v, min_val=0.1, max_val=100),
-            help_text="ℹ️  Range: 0.1-100. Measures error proneness. Recommended: 10",
+            validator=lambda v: validate_with_pydantic('halstead_difficulty', v),
+            help_text=f"ℹ️  Range: {hd_min}-{hd_max}. Measures error proneness. Recommended: 10",
         )
 
+        he_min, he_max = get_metric_constraints('halstead_effort')
         defaults_dict["max_halstead_effort"] = prompt_with_validation(
             "Maximum Halstead effort",
             default=10000,
-            validator=lambda v: validate_positive_float(v, min_val=1, max_val=1000000),
-            help_text="ℹ️  Range: 1-1000000. Measures implementation time. Recommended: 10000",
+            validator=lambda v: validate_with_pydantic('halstead_effort', v),
+            help_text=f"ℹ️  Range: {he_min}-{he_max}. Measures implementation time. Recommended: 10000",
         )
     else:
         # Use defaults for advanced metrics

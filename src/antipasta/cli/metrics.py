@@ -7,6 +7,7 @@ from typing import Any
 
 import click
 
+from antipasta.cli.validation_utils import format_validation_error_for_cli, get_metric_help_text
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.config_override import ConfigOverride
@@ -112,7 +113,15 @@ def metrics(
         try:
             override.parse_threshold_string(threshold_str)
         except ValueError as e:
-            click.echo(f"Error parsing threshold override: {e}", err=True)
+            click.echo(f"❌ Error: {format_validation_error_for_cli(e)}", err=True)
+
+            # If it's a range error, show the valid range
+            if '=' in threshold_str:
+                metric_type = threshold_str.split('=')[0].strip()
+                help_text = get_metric_help_text(metric_type)
+                if help_text and metric_type in help_text:
+                    click.echo(f"   ℹ️  {help_text}", err=True)
+
             sys.exit(1)
 
     # Apply overrides to configuration

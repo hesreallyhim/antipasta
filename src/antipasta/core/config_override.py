@@ -10,6 +10,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from pydantic import ValidationError
+
+from antipasta.core.metric_models import MetricThresholds
 from antipasta.core.metrics import MetricType
 
 
@@ -27,9 +30,23 @@ class ConfigOverride:
 
     include_patterns: list[str] = field(default_factory=list)
     exclude_patterns: list[str] = field(default_factory=list)
-    threshold_overrides: dict[str, float] = field(default_factory=dict)
     disable_gitignore: bool = False
     force_analyze: bool = False
+
+    # Use Pydantic model internally for validation
+    _threshold_model: MetricThresholds = field(
+        default_factory=MetricThresholds,
+        init=False,
+        repr=False
+    )
+
+    @property
+    def threshold_overrides(self) -> dict[str, float]:
+        """Get threshold overrides as a dict (for compatibility)."""
+        return {
+            k: v for k, v in self._threshold_model.model_dump().items()
+            if v is not None
+        }
 
     def add_include_pattern(self, pattern: str) -> None:
         """Add a pattern to force-include.
@@ -50,22 +67,59 @@ class ConfigOverride:
             self.exclude_patterns.append(pattern)
 
     def set_threshold(self, metric_type: str, value: float) -> None:
-        """Override a metric threshold.
+        """Override a metric threshold with Pydantic validation.
 
         Args:
             metric_type: Type of metric (e.g., 'cyclomatic_complexity')
-            value: New threshold value
+            value: New threshold value (auto-validated by Pydantic)
+
+        Raises:
+            ValueError: If metric type invalid or value out of range
         """
-        # Validate metric type
+        # First check if metric type is valid
         try:
             MetricType(metric_type)
         except ValueError:
-            raise ValueError(f"Invalid metric type: {metric_type}")
+            valid_metrics = [m.value for m in MetricType]
+            raise ValueError(
+                f"Invalid metric type: '{metric_type}'. "
+                f"Valid types: {', '.join(sorted(valid_metrics))}"
+            ) from None
 
-        if value < 0:
-            raise ValueError(f"Threshold must be non-negative: {value}")
+        # Use Pydantic for validation
+        try:
+            # This triggers Pydantic validation automatically
+            setattr(self._threshold_model, metric_type, value)
+        except ValidationError as e:
+            # Convert Pydantic error to user-friendly message
+            raise ValueError(self._format_validation_error(metric_type, value, e)) from None
 
-        self.threshold_overrides[metric_type] = value
+    def _format_validation_error(
+        self, metric_type: str, value: float, error: ValidationError
+    ) -> str:
+        """Convert Pydantic ValidationError to user-friendly message."""
+        for err in error.errors():
+            if metric_type in str(err.get('loc', ())):
+                # Extract constraint information from error
+                err_type = err.get('type', '')
+                ctx = err.get('ctx', {})
+
+                if 'greater_than_equal' in err_type:
+                    return f"{metric_type} must be >= {ctx.get('ge', 0)}, got {value}"
+                if 'less_than_equal' in err_type:
+                    return f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}"
+                if 'greater_than' in err_type:
+                    return f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}"
+                if 'less_than' in err_type:
+                    return f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}"
+                if err_type == 'int_type':
+                    return f"{metric_type} must be an integer, got {value}"
+                if err_type == 'int_parsing':
+                    return f"{metric_type} must be a valid integer"
+                return f"Invalid value for {metric_type}: {err.get('msg', 'validation failed')}"
+
+        # Fallback
+        return f"Invalid value for {metric_type}: {value}"
 
     def parse_threshold_string(self, threshold_str: str) -> None:
         """Parse a threshold override string in format 'metric_type=value'.
@@ -98,7 +152,7 @@ class ConfigOverride:
         return bool(
             self.include_patterns or
             self.exclude_patterns or
-            self.threshold_overrides or
+            any(v is not None for v in self._threshold_model.model_dump().values()) or
             self.disable_gitignore or
             self.force_analyze
         )
