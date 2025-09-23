@@ -99,6 +99,15 @@ metrics-report: install  ## Generate detailed metrics report with statistics
 	@echo ""
 	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q > /dev/null 2>&1 && echo "✅ PASS: All metrics within thresholds" || echo "❌ FAIL: $(shell $(VENV_DIR)/bin/antipasta metrics -d src/ -q 2>&1 | grep -c '^❌') violations found"
 
+self-check: install  ## Run antipasta on its own source code
+	@echo "════════════════════════════════════════════════════════"
+	@echo "       ANTIPASTA SELF-CHECK"
+	@echo "════════════════════════════════════════════════════════"
+	@echo ""
+	@$(VENV_DIR)/bin/antipasta metrics -d src/antipasta || (echo ""; echo "⚠️  Some violations detected. Consider refactoring complex code."; exit 1)
+	@echo ""
+	@echo "✅ All complexity checks passed!"
+
 check-all: check metrics-quiet  ## Run all checks including complexity metrics
 
 clean:  ## Clean up build artifacts and cache files
