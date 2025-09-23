@@ -13,7 +13,7 @@ def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:
 
     # Add some additional metadata
     schema["$schema"] = "http://json-schema.org/draft-07/schema#"
-    schema["title"] = "Code Cop Configuration Schema"
+    schema["title"] = "Antipasta Configuration Schema"
     schema["description"] = "Schema for .antipasta.yaml configuration files"
 
     if output_path:

@@ -22,7 +22,7 @@ class MetricAggregator:
         """Initialize the aggregator with configuration.
 
         Args:
-            config: Code cop configuration
+            config: Antipasta configuration
         """
         self.config = config
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
@@ -64,6 +64,8 @@ class MetricAggregator:
             if not lang_config:
                 # Use defaults if no specific config
                 lang_config = self._create_default_language_config(language)
+
+            assert lang_config is not None
 
             # Analyze each file
             for file_path in files:

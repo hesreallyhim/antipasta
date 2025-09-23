@@ -22,7 +22,7 @@ class TestGenerateConfigSchema:
         assert "$schema" in schema
         assert schema["$schema"] == "http://json-schema.org/draft-07/schema#"
         assert "title" in schema
-        assert schema["title"] == "Code Cop Configuration Schema"
+        assert schema["title"] == "Antipasta Configuration Schema"
         assert "description" in schema
         assert schema["description"] == "Schema for .antipasta.yaml configuration files"
 
@@ -73,13 +73,13 @@ class TestGenerateConfigSchema:
         assert output_file.exists()
 
         # Read and validate the file content
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             file_content = json.load(f)
 
         # Check file content matches returned schema
         assert file_content == schema
         assert file_content["$schema"] == "http://json-schema.org/draft-07/schema#"
-        assert file_content["title"] == "Code Cop Configuration Schema"
+        assert file_content["title"] == "Antipasta Configuration Schema"
 
     def test_generate_schema_creates_parent_directories(self, tmp_path: Path) -> None:
         """Test that parent directories are created if they don't exist."""
@@ -95,7 +95,7 @@ class TestGenerateConfigSchema:
         assert output_file.exists()
 
         # Validate the file was written correctly
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             file_content = json.load(f)
         assert file_content == schema
 
@@ -112,7 +112,7 @@ class TestGenerateConfigSchema:
         schema = generate_config_schema(output_file)
 
         # Check file was overwritten with new content
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             file_content = json.load(f)
 
         assert file_content != existing_content
@@ -178,7 +178,7 @@ class TestSchemaGeneratorMain:
         test_script = tmp_path / "test_run.py"
 
         # Create a test script that imports and runs the main block
-        script_content = '''
+        script_content = """
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     schema_path = Path(sg.__file__).parent.parent / "schemas" / "metrics-config.schema.json"
     sg.generate_config_schema(schema_path)
     print(f"Schema generated at: {schema_path}")
-'''
+"""
 
         with open(test_script, "w") as f:
             f.write(script_content)
@@ -226,7 +226,11 @@ if __name__ == "__main__":
 
         # Execute main block code directly
         if __name__ != "__main__":  # Simulate __main__ execution
-            schema_path = Path(schema_generator.__file__).parent.parent / "schemas" / "metrics-config.schema.json"
+            schema_path = (
+                Path(schema_generator.__file__).parent.parent
+                / "schemas"
+                / "metrics-config.schema.json"
+            )
             schema_generator.generate_config_schema(schema_path)
             print(f"Schema generated at: {schema_path}")
 

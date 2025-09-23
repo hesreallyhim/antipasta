@@ -39,15 +39,15 @@ def validate_with_pydantic(metric_type: str, value: str) -> float:
             ctx = err.get('ctx', {})
 
             if 'greater_than_equal' in err_type:
-                raise click.BadParameter(f"Value must be >= {ctx.get('ge', 0)}")
-            elif 'less_than_equal' in err_type:
-                raise click.BadParameter(f"Value must be <= {ctx.get('le', 'max')}")
-            elif err_type == 'int_type':
-                raise click.BadParameter(f"Must be an integer")
+                raise click.BadParameter(f"Value must be >= {ctx.get('ge', 0)}") from e
+            if 'less_than_equal' in err_type:
+                raise click.BadParameter(f"Value must be <= {ctx.get('le', 'max')}") from e
+            if err_type == 'int_type':
+                raise click.BadParameter("Must be an integer") from e
 
-        raise click.BadParameter(str(e))
-    except ValueError:
-        raise click.BadParameter("Must be a valid number")
+        raise click.BadParameter(str(e)) from e
+    except ValueError as e:
+        raise click.BadParameter("Must be a valid number") from e
 
 
 def prompt_with_validation(

@@ -22,7 +22,7 @@ class MetricAggregator:
         """Initialize the aggregator with configuration.
 
         Args:
-            config: Code cop configuration
+            config: Antipasta configuration
         """
         self.config = config
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
