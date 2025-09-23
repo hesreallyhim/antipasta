@@ -4,7 +4,7 @@ This module provides constrained type definitions for all metric types,
 ensuring consistent validation across config files and CLI overrides.
 """
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -64,23 +64,23 @@ class MetricThresholds(BaseModel):
     All fields are optional to support partial updates.
     """
 
-    cyclomatic_complexity: Optional[CyclomaticComplexity] = None
-    cognitive_complexity: Optional[CognitiveComplexity] = None
-    maintainability_index: Optional[MaintainabilityIndex] = None
-    halstead_volume: Optional[HalsteadVolume] = None
-    halstead_difficulty: Optional[HalsteadDifficulty] = None
-    halstead_effort: Optional[HalsteadEffort] = None
-    halstead_time: Optional[HalsteadTime] = None
-    halstead_bugs: Optional[HalsteadBugs] = None
-    lines_of_code: Optional[LinesOfCode] = None
-    logical_lines_of_code: Optional[LinesOfCode] = None
-    source_lines_of_code: Optional[LinesOfCode] = None
-    comment_lines: Optional[LinesOfCode] = None
-    blank_lines: Optional[LinesOfCode] = None
+    cyclomatic_complexity: CyclomaticComplexity | None = None
+    cognitive_complexity: CognitiveComplexity | None = None
+    maintainability_index: MaintainabilityIndex | None = None
+    halstead_volume: HalsteadVolume | None = None
+    halstead_difficulty: HalsteadDifficulty | None = None
+    halstead_effort: HalsteadEffort | None = None
+    halstead_time: HalsteadTime | None = None
+    halstead_bugs: HalsteadBugs | None = None
+    lines_of_code: LinesOfCode | None = None
+    logical_lines_of_code: LinesOfCode | None = None
+    source_lines_of_code: LinesOfCode | None = None
+    comment_lines: LinesOfCode | None = None
+    blank_lines: LinesOfCode | None = None
 
     model_config = ConfigDict(
         # Enable validation on assignment for dynamic updates
         validate_assignment=True,
         # Use enum values for cleaner error messages
-        use_enum_values=True
+        use_enum_values=True,
     )

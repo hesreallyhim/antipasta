@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import AntipastaConfig, ComparisonOperator, MetricConfig
+from antipasta.core.config import AntipastaConfig, ComparisonOperator, LanguageConfig, MetricConfig
 from antipasta.core.detector import Language, LanguageDetector
 from antipasta.core.metrics import FileMetrics, MetricType
 from antipasta.core.violations import FileReport, Violation, check_metric_violation
@@ -159,7 +159,7 @@ class MetricAggregator:
 
         return violations
 
-    def _create_default_language_config(self, language: Language) -> Any:
+    def _create_default_language_config(self, language: Language) -> LanguageConfig:
         """Create default language configuration using defaults.
 
         Args:

@@ -4,12 +4,11 @@ This module provides helper functions to extract constraint information
 from Pydantic models and format them for CLI help text and error messages.
 """
 
-from typing import Optional, Tuple
 
 from antipasta.core.metric_models import MetricThresholds
 
 
-def get_metric_constraints(metric_type: str) -> Tuple[Optional[float], Optional[float]]:
+def get_metric_constraints(metric_type: str) -> tuple[float | None, float | None]:
     """Get min/max constraints for a metric from Pydantic schema.
 
     Args:
@@ -86,8 +85,7 @@ def get_metric_help_text(metric_type: str) -> str:
                 if '(' in description:
                     description = description.split('(')[0].strip()
                 return f"{description} (valid: {range_text})"
-            else:
-                return f"Valid range: {range_text}"
+            return f"Valid range: {range_text}"
 
         return description if description else f"Metric: {metric_type}"
 
@@ -109,8 +107,7 @@ def format_validation_error_for_cli(e: Exception) -> str:
     if "Invalid metric type" in error_msg:
         # The error already lists valid types
         return error_msg
-    elif "must be" in error_msg:
+    if "must be" in error_msg:
         # Range errors are already clear
         return error_msg
-    else:
-        return f"Validation error: {error_msg}"
+    return f"Validation error: {error_msg}"

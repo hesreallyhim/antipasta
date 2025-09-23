@@ -29,7 +29,7 @@ def validate_with_pydantic(metric_type: str, value: str) -> float:
     try:
         num = float(value)
         # Use Pydantic validation
-        MetricThresholds(**{metric_type: num})
+        MetricThresholds(**{metric_type: num})  # type: ignore[arg-type]
         return num
     except ValidationError as e:
         # Extract first error message
@@ -167,11 +167,15 @@ def generate(output: Path, non_interactive: bool) -> None:
         )
 
         he_min, he_max = get_metric_constraints('halstead_effort')
+        he_help = (
+            f"ℹ️  Range: {he_min}-{he_max}. "
+            "Measures implementation time. Recommended: 10000"
+        )
         defaults_dict["max_halstead_effort"] = prompt_with_validation(
             "Maximum Halstead effort",
             default=10000,
             validator=lambda v: validate_with_pydantic('halstead_effort', v),
-            help_text=f"ℹ️  Range: {he_min}-{he_max}. Measures implementation time. Recommended: 10000",
+            help_text=he_help,
         )
     else:
         # Use defaults for advanced metrics
