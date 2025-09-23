@@ -4,7 +4,6 @@ This module provides helper functions to extract constraint information
 from Pydantic models and format them for CLI help text and error messages.
 """
 
-
 from antipasta.core.metric_models import MetricThresholds
 
 
@@ -18,27 +17,27 @@ def get_metric_constraints(metric_type: str) -> tuple[float | None, float | None
         Tuple of (min_value, max_value), either can be None
     """
     schema = MetricThresholds.model_json_schema()
-    properties = schema.get('properties', {})
+    properties = schema.get("properties", {})
 
     if metric_type in properties:
         prop_schema = properties[metric_type]
 
         # Handle anyOf schemas (used for Optional fields)
-        if 'anyOf' in prop_schema:
+        if "anyOf" in prop_schema:
             # Find the non-null schema
-            for sub_schema in prop_schema['anyOf']:
-                if sub_schema.get('type') != 'null':
+            for sub_schema in prop_schema["anyOf"]:
+                if sub_schema.get("type") != "null":
                     prop_schema = sub_schema
                     break
 
-        min_val = prop_schema.get('minimum')
-        max_val = prop_schema.get('maximum')
+        min_val = prop_schema.get("minimum")
+        max_val = prop_schema.get("maximum")
 
         # Also check for exclusive bounds
         if min_val is None:
-            min_val = prop_schema.get('exclusiveMinimum')
+            min_val = prop_schema.get("exclusiveMinimum")
         if max_val is None:
-            max_val = prop_schema.get('exclusiveMaximum')
+            max_val = prop_schema.get("exclusiveMaximum")
 
         return (min_val, max_val)
 
@@ -55,19 +54,19 @@ def get_metric_help_text(metric_type: str) -> str:
         Help text string with description and valid range
     """
     schema = MetricThresholds.model_json_schema()
-    properties = schema.get('properties', {})
+    properties = schema.get("properties", {})
 
     if metric_type in properties:
         prop_schema = properties[metric_type]
 
         # Handle anyOf schemas
-        if 'anyOf' in prop_schema:
-            for sub_schema in prop_schema['anyOf']:
-                if sub_schema.get('type') != 'null':
+        if "anyOf" in prop_schema:
+            for sub_schema in prop_schema["anyOf"]:
+                if sub_schema.get("type") != "null":
                     prop_schema = sub_schema
                     break
 
-        description = prop_schema.get('description', '')
+        description = prop_schema.get("description", "")
 
         # Extract range from schema
         min_val, max_val = get_metric_constraints(metric_type)
@@ -82,8 +81,8 @@ def get_metric_help_text(metric_type: str) -> str:
             range_text = " and ".join(range_parts)
             if description:
                 # Extract just the description part without existing range
-                if '(' in description:
-                    description = description.split('(')[0].strip()
+                if "(" in description:
+                    description = description.split("(")[0].strip()
                 return f"{description} (valid: {range_text})"
             return f"Valid range: {range_text}"
 

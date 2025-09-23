@@ -38,6 +38,7 @@ def format_comparison(op: ComparisonOperator | str) -> str:
 
 # ---------- Display helpers ----------
 
+
 def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) -> None:
     """Display configuration in summary format."""
     click.echo(f"Configuration: {config_path}")
@@ -147,6 +148,7 @@ def display_yaml(config: AntipastaConfig) -> None:
 
 # ---------- Load/validation helpers ----------
 
+
 def _load_config_or_defaults(path: Path) -> tuple[AntipastaConfig, bool, list[ErrorDetails]]:
     """Return (config, is_valid, errors)."""
     try:
@@ -183,17 +185,21 @@ def _ensure_path_exists(_ctx: click.Context, _param: click.Parameter, value: Pat
 
 # ---------- CLI entrypoint ----------
 
+
 @click.command()
 @click.option(
-    "--path", "-p",
+    "--path",
+    "-p",
     type=click.Path(path_type=Path, dir_okay=False, readable=True),
     default=Path(".antipasta.yaml"),
     show_default=True,
     help="Path to configuration file",
-    callback=_ensure_path_exists,   # <-- ensures exit_code=1 + your message
+    callback=_ensure_path_exists,  # <-- ensures exit_code=1 + your message
 )
 @click.option(
-    "--format", "fmt", "-f",
+    "--format",
+    "fmt",
+    "-f",
     type=click.Choice(["summary", "table", "yaml", "json", "raw"], case_sensitive=False),
     default="summary",
     show_default=True,

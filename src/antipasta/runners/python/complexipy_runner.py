@@ -55,7 +55,7 @@ class ComplexipyRunner(BaseRunner):
                 file_path=file_path,
                 language=Language.PYTHON.value,
                 metrics=[],
-                error="Complexipy is not installed. " "Install with: pip install complexipy",
+                error="Complexipy is not installed. Install with: pip install complexipy",
             )
 
         # Run complexipy and get results

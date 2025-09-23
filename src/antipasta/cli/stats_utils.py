@@ -68,10 +68,7 @@ def collect_function_complexities_from_reports(reports: list[Any]) -> list[float
     complexities = []
     for report in reports:
         for metric in report.metrics:
-            if (
-                metric.function_name
-                and metric.metric_type == MetricType.CYCLOMATIC_COMPLEXITY
-            ):
+            if metric.function_name and metric.metric_type == MetricType.CYCLOMATIC_COMPLEXITY:
                 complexities.append(metric.value)
     return complexities
 
@@ -128,9 +125,7 @@ def calculate_function_complexity_statistics(complexities: list[float]) -> dict[
     }
 
 
-def collect_metrics_from_reports(
-    reports: list[Any], metric_name: str
-) -> list[float]:
+def collect_metrics_from_reports(reports: list[Any], metric_name: str) -> list[float]:
     """Collect values for a specific metric from reports.
 
     Args:
@@ -187,12 +182,10 @@ def truncate_path_for_display(path: str, max_length: int) -> str:
     """
     if len(path) <= max_length:
         return path
-    return "..." + path[-(max_length - 3):]
+    return "..." + path[-(max_length - 3) :]
 
 
-def format_display_path(
-    rel_path: Path, common_base: Path, path_style: str
-) -> str:
+def format_display_path(rel_path: Path, common_base: Path, path_style: str) -> str:
     """Format a relative path for display based on the specified style.
 
     Args:
@@ -287,7 +280,5 @@ def determine_statistics_grouping_type(stats_data: dict[str, Any]) -> str:
         'DIRECTORY' or 'MODULE' based on key patterns
     """
     # Better detection: check if any key contains path separators or looks like a module
-    is_directory = any(
-        ("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data
-    )
+    is_directory = any(("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data)
     return "DIRECTORY" if is_directory else "MODULE"

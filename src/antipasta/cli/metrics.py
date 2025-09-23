@@ -104,9 +104,16 @@ def metrics(
     override = create_and_configure_override(
         include_pattern, exclude_pattern, threshold, no_gitignore, force_analyze
     )
-    final_config = apply_overrides_to_configuration(configuration, override, quiet,
-                                                    force_analyze, include_pattern,
-                                                    exclude_pattern, threshold, no_gitignore)
+    final_config = apply_overrides_to_configuration(
+        configuration,
+        override,
+        quiet,
+        force_analyze,
+        include_pattern,
+        exclude_pattern,
+        threshold,
+        no_gitignore,
+    )
 
     target_files = determine_files_to_analyze(files, directory, final_config, override, quiet)
     analysis_results = execute_analysis(target_files, final_config, quiet)

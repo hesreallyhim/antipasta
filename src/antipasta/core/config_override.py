@@ -35,18 +35,13 @@ class ConfigOverride:
 
     # Use Pydantic model internally for validation
     _threshold_model: MetricThresholds = field(
-        default_factory=MetricThresholds,
-        init=False,
-        repr=False
+        default_factory=MetricThresholds, init=False, repr=False
     )
 
     @property
     def threshold_overrides(self) -> dict[str, float]:
         """Get threshold overrides as a dict (for compatibility)."""
-        return {
-            k: v for k, v in self._threshold_model.model_dump().items()
-            if v is not None
-        }
+        return {k: v for k, v in self._threshold_model.model_dump().items() if v is not None}
 
     def add_include_pattern(self, pattern: str) -> None:
         """Add a pattern to force-include.
@@ -99,27 +94,25 @@ class ConfigOverride:
     ) -> str:
         """Convert Pydantic ValidationError to user-friendly message."""
         for err in error.errors():
-            if metric_type in str(err.get('loc', ())):
+            if metric_type in str(err.get("loc", ())):
                 return self._format_specific_error(metric_type, value, err)
 
         # Fallback
         return f"Invalid value for {metric_type}: {value}"
 
-    def _format_specific_error(
-        self, metric_type: str, value: float, err: dict[str, Any]
-    ) -> str:
+    def _format_specific_error(self, metric_type: str, value: float, err: dict[str, Any]) -> str:
         """Format a specific validation error based on its type."""
-        err_type = err.get('type', '')
-        ctx = err.get('ctx', {})
+        err_type = err.get("type", "")
+        ctx = err.get("ctx", {})
 
         # Map error types to formatter functions
         error_formatters = {
-            'greater_than_equal': lambda: f"{metric_type} must be >= {ctx.get('ge', 0)}, got {value}",
-            'less_than_equal': lambda: f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}",
-            'greater_than': lambda: f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}",
-            'less_than': lambda: f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}",
-            'int_type': lambda: f"{metric_type} must be an integer, got {value}",
-            'int_parsing': lambda: f"{metric_type} must be a valid integer",
+            "greater_than_equal": lambda: f"{metric_type} must be >= {ctx.get('ge', 0)}, got {value}",
+            "less_than_equal": lambda: f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}",
+            "greater_than": lambda: f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}",
+            "less_than": lambda: f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}",
+            "int_type": lambda: f"{metric_type} must be an integer, got {value}",
+            "int_parsing": lambda: f"{metric_type} must be a valid integer",
         }
 
         # Find matching formatter
@@ -139,22 +132,22 @@ class ConfigOverride:
         Raises:
             ValueError: If string format is invalid
         """
-        if '=' not in threshold_str:
+        if "=" not in threshold_str:
             raise ValueError(
                 f"Invalid threshold format: {threshold_str}. Expected 'metric_type=value'"
             )
 
-        metric_type, value_str = threshold_str.split('=', 1)
+        metric_type, value_str = threshold_str.split("=", 1)
         metric_type = metric_type.strip()
 
         # Support three-letter prefixes for convenience
         prefix_map = {
-            'cyc': 'cyclomatic_complexity',
-            'cog': 'cognitive_complexity',
-            'mai': 'maintainability_index',
-            'vol': 'halstead_volume',
-            'dif': 'halstead_difficulty',
-            'eff': 'halstead_effort',
+            "cyc": "cyclomatic_complexity",
+            "cog": "cognitive_complexity",
+            "mai": "maintainability_index",
+            "vol": "halstead_volume",
+            "dif": "halstead_difficulty",
+            "eff": "halstead_effort",
         }
 
         # Check if it's a prefix and expand it
@@ -174,11 +167,11 @@ class ConfigOverride:
             True if any overrides are set
         """
         return bool(
-            self.include_patterns or
-            self.exclude_patterns or
-            any(v is not None for v in self._threshold_model.model_dump().values()) or
-            self.disable_gitignore or
-            self.force_analyze
+            self.include_patterns
+            or self.exclude_patterns
+            or any(v is not None for v in self._threshold_model.model_dump().values())
+            or self.disable_gitignore
+            or self.force_analyze
         )
 
     def get_effective_ignore_patterns(self, base_patterns: list[str]) -> list[str]:
@@ -225,7 +218,7 @@ class ConfigOverride:
         import pathspec
 
         # Create pathspec from include patterns
-        spec = pathspec.PathSpec.from_lines('gitwildmatch', self.include_patterns)
+        spec = pathspec.PathSpec.from_lines("gitwildmatch", self.include_patterns)
         return spec.match_file(file_path)
 
     def merge_with_config_dict(self, config_dict: dict[str, Any]) -> dict[str, Any]:
@@ -239,6 +232,7 @@ class ConfigOverride:
         """
         # Deep copy to avoid modifying original
         import copy
+
         merged = copy.deepcopy(config_dict)
 
         self._apply_gitignore_override(merged)
@@ -250,13 +244,13 @@ class ConfigOverride:
     def _apply_gitignore_override(self, config: dict[str, Any]) -> None:
         """Apply gitignore override to configuration."""
         if self.disable_gitignore:
-            config['use_gitignore'] = False
+            config["use_gitignore"] = False
 
     def _apply_ignore_pattern_overrides(self, config: dict[str, Any]) -> None:
         """Apply ignore pattern overrides to configuration."""
-        if 'ignore_patterns' in config:
-            config['ignore_patterns'] = self.get_effective_ignore_patterns(
-                config['ignore_patterns']
+        if "ignore_patterns" in config:
+            config["ignore_patterns"] = self.get_effective_ignore_patterns(
+                config["ignore_patterns"]
             )
 
     def _apply_threshold_overrides(self, config: dict[str, Any]) -> None:
@@ -269,7 +263,7 @@ class ConfigOverride:
 
     def _apply_default_threshold_overrides(self, config: dict[str, Any]) -> None:
         """Apply threshold overrides to default configuration."""
-        if 'defaults' not in config:
+        if "defaults" not in config:
             return
 
         # Map metric types to default field names
@@ -277,33 +271,33 @@ class ConfigOverride:
 
         for metric_type, value in self.threshold_overrides.items():
             if metric_type in field_map:
-                config['defaults'][field_map[metric_type]] = value
+                config["defaults"][field_map[metric_type]] = value
 
     def _apply_language_threshold_overrides(self, config: dict[str, Any]) -> None:
         """Apply threshold overrides to language-specific configuration."""
-        if 'languages' not in config:
+        if "languages" not in config:
             return
 
-        for lang_config in config['languages']:
+        for lang_config in config["languages"]:
             self._update_language_metrics(lang_config)
 
     def _update_language_metrics(self, lang_config: dict[str, Any]) -> None:
         """Update metrics in a language configuration."""
-        if 'metrics' not in lang_config:
+        if "metrics" not in lang_config:
             return
 
-        for metric_config in lang_config['metrics']:
-            metric_type = metric_config.get('type')
+        for metric_config in lang_config["metrics"]:
+            metric_type = metric_config.get("type")
             if metric_type in self.threshold_overrides:
-                metric_config['threshold'] = self.threshold_overrides[metric_type]
+                metric_config["threshold"] = self.threshold_overrides[metric_type]
 
     def _get_metric_field_map(self) -> dict[str, str]:
         """Get mapping from metric types to configuration field names."""
         return {
-            'cyclomatic_complexity': 'max_cyclomatic_complexity',
-            'cognitive_complexity': 'max_cognitive_complexity',
-            'maintainability_index': 'min_maintainability_index',
-            'halstead_volume': 'max_halstead_volume',
-            'halstead_difficulty': 'max_halstead_difficulty',
-            'halstead_effort': 'max_halstead_effort',
+            "cyclomatic_complexity": "max_cyclomatic_complexity",
+            "cognitive_complexity": "max_cognitive_complexity",
+            "maintainability_index": "min_maintainability_index",
+            "halstead_volume": "max_halstead_volume",
+            "halstead_difficulty": "max_halstead_difficulty",
+            "halstead_effort": "max_halstead_effort",
         }

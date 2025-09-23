@@ -38,7 +38,12 @@ EXTENSION_MAP = {
 class LanguageDetector:
     """Detects programming language from file paths and respects .gitignore."""
 
-    def __init__(self, ignore_patterns: list[str] | None = None, include_patterns: list[str] | None = None, base_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        ignore_patterns: list[str] | None = None,
+        include_patterns: list[str] | None = None,
+        base_dir: Path | None = None,
+    ) -> None:
         """Initialize the detector with optional ignore and include patterns.
 
         Args:

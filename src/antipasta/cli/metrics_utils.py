@@ -121,8 +121,8 @@ def handle_threshold_parsing_error(error: ValueError, threshold_str: str) -> Non
     click.echo(f"❌ Error: {format_validation_error_for_cli(error)}", err=True)
 
     # If it's a range error, show the valid range
-    if '=' in threshold_str:
-        metric_type = threshold_str.split('=')[0].strip()
+    if "=" in threshold_str:
+        metric_type = threshold_str.split("=")[0].strip()
         help_text = get_metric_help_text(metric_type)
         if help_text and metric_type in help_text:
             click.echo(f"   ℹ️  {help_text}", err=True)
@@ -244,9 +244,7 @@ def display_analysis_status(file_paths: list[Path], quiet: bool) -> None:
         click.echo(f"Analyzing {len(file_paths)} files...")
 
 
-def execute_analysis(
-    file_paths: list[Path], cfg: AntipastaConfig, quiet: bool
-) -> dict[str, Any]:
+def execute_analysis(file_paths: list[Path], cfg: AntipastaConfig, quiet: bool) -> dict[str, Any]:
     """Execute metrics analysis on the specified files."""
     aggregator = MetricAggregator(cfg)
     reports = aggregator.analyze_files(file_paths)
@@ -273,10 +271,7 @@ def output_json_results(results: dict[str, Any]) -> None:
 
     output = {
         "summary": summary,
-        "reports": [
-            format_report_for_json(report)
-            for report in reports
-        ],
+        "reports": [format_report_for_json(report) for report in reports],
     }
     click.echo(json.dumps(output, indent=2))
 
@@ -286,14 +281,8 @@ def format_report_for_json(report: FileReport) -> dict[str, Any]:
     return {
         "file": str(report.file_path),
         "language": report.language,
-        "metrics": [
-            format_metric_for_json(metric)
-            for metric in report.metrics
-        ],
-        "violations": [
-            format_violation_for_json(violation)
-            for violation in report.violations
-        ],
+        "metrics": [format_metric_for_json(metric) for metric in report.metrics],
+        "violations": [format_violation_for_json(violation) for violation in report.violations],
     }
 
 

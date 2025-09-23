@@ -12,49 +12,32 @@ from pydantic import BaseModel, ConfigDict, Field
 # These serve as the single source of truth for validation rules
 
 CyclomaticComplexity = Annotated[
-    int,
-    Field(ge=1, le=50, description="Cyclomatic complexity (1-50)")
+    int, Field(ge=1, le=50, description="Cyclomatic complexity (1-50)")
 ]
 
 CognitiveComplexity = Annotated[
-    int,
-    Field(ge=1, le=100, description="Cognitive complexity (1-100)")
+    int, Field(ge=1, le=100, description="Cognitive complexity (1-100)")
 ]
 
 MaintainabilityIndex = Annotated[
-    float,
-    Field(ge=0, le=100, description="Maintainability index (0-100)")
+    float, Field(ge=0, le=100, description="Maintainability index (0-100)")
 ]
 
-HalsteadVolume = Annotated[
-    float,
-    Field(ge=0, le=100000, description="Halstead volume (0-100000)")
-]
+HalsteadVolume = Annotated[float, Field(ge=0, le=100000, description="Halstead volume (0-100000)")]
 
 HalsteadDifficulty = Annotated[
-    float,
-    Field(ge=0, le=100, description="Halstead difficulty (0-100)")
+    float, Field(ge=0, le=100, description="Halstead difficulty (0-100)")
 ]
 
 HalsteadEffort = Annotated[
-    float,
-    Field(ge=0, le=1000000, description="Halstead effort (0-1000000)")
+    float, Field(ge=0, le=1000000, description="Halstead effort (0-1000000)")
 ]
 
-HalsteadTime = Annotated[
-    float,
-    Field(ge=0, description="Halstead time in seconds")
-]
+HalsteadTime = Annotated[float, Field(ge=0, description="Halstead time in seconds")]
 
-HalsteadBugs = Annotated[
-    float,
-    Field(ge=0, description="Estimated bugs")
-]
+HalsteadBugs = Annotated[float, Field(ge=0, description="Estimated bugs")]
 
-LinesOfCode = Annotated[
-    int,
-    Field(ge=0, description="Lines of code")
-]
+LinesOfCode = Annotated[int, Field(ge=0, description="Lines of code")]
 
 
 class MetricThresholds(BaseModel):

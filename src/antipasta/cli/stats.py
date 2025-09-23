@@ -1005,19 +1005,15 @@ def _display_csv(stats_data: dict[str, Any]) -> None:
             writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
         writer.writerow(["Total Functions", stats_data["functions"]["count"]])
         if "avg_complexity" in stats_data["functions"]:
-            writer.writerow(
-                [
-                    "Average Function Complexity",
-                    stats_data["functions"]["avg_complexity"],
-                ]
-            )
+            writer.writerow([
+                "Average Function Complexity",
+                stats_data["functions"]["avg_complexity"],
+            ])
         elif "avg_loc" in stats_data["functions"]:
-            writer.writerow(
-                [
-                    "Average LOC per Function",
-                    stats_data["functions"]["avg_loc"],
-                ]
-            )
+            writer.writerow([
+                "Average LOC per Function",
+                stats_data["functions"]["avg_loc"],
+            ])
     else:
         # Directory/module statistics
         if not stats_data:
@@ -1060,12 +1056,10 @@ def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> N
                     writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
                 writer.writerow(["Total Functions", stats_data["functions"]["count"]])
                 if "avg_complexity" in stats_data["functions"]:
-                    writer.writerow(
-                        [
-                            "Average Function Complexity",
-                            stats_data["functions"]["avg_complexity"],
-                        ]
-                    )
+                    writer.writerow([
+                        "Average Function Complexity",
+                        stats_data["functions"]["avg_complexity"],
+                    ])
             else:
                 # Directory/module statistics
                 if stats_data:

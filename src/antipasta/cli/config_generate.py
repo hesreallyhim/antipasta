@@ -35,14 +35,14 @@ def validate_with_pydantic(metric_type: str, value: str) -> float:
         # Extract first error message
         if e.errors():
             err = e.errors()[0]
-            err_type = err.get('type', '')
-            ctx = err.get('ctx', {})
+            err_type = err.get("type", "")
+            ctx = err.get("ctx", {})
 
-            if 'greater_than_equal' in err_type:
+            if "greater_than_equal" in err_type:
                 raise click.BadParameter(f"Value must be >= {ctx.get('ge', 0)}") from e
-            if 'less_than_equal' in err_type:
+            if "less_than_equal" in err_type:
                 raise click.BadParameter(f"Value must be <= {ctx.get('le', 'max')}") from e
-            if err_type == 'int_type':
+            if err_type == "int_type":
                 raise click.BadParameter("Must be an integer") from e
 
         raise click.BadParameter(str(e)) from e
@@ -110,27 +110,27 @@ def generate(output: Path, non_interactive: bool) -> None:
     click.echo("-" * 40)
 
     # Get constraints from Pydantic model
-    cc_min, cc_max = get_metric_constraints('cyclomatic_complexity')
+    cc_min, cc_max = get_metric_constraints("cyclomatic_complexity")
     max_cyclomatic = prompt_with_validation(
         "Maximum cyclomatic complexity per function",
         default=10,
-        validator=lambda v: validate_with_pydantic('cyclomatic_complexity', v),
+        validator=lambda v: validate_with_pydantic("cyclomatic_complexity", v),
         help_text=f"ℹ️  Range: {cc_min}-{cc_max} (lower is stricter). Recommended: 10",
     )
 
-    cog_min, cog_max = get_metric_constraints('cognitive_complexity')
+    cog_min, cog_max = get_metric_constraints("cognitive_complexity")
     max_cognitive = prompt_with_validation(
         "Maximum cognitive complexity per function",
         default=15,
-        validator=lambda v: validate_with_pydantic('cognitive_complexity', v),
+        validator=lambda v: validate_with_pydantic("cognitive_complexity", v),
         help_text=f"ℹ️  Range: {cog_min}-{cog_max} (lower is stricter). Recommended: 15",
     )
 
-    mi_min, mi_max = get_metric_constraints('maintainability_index')
+    mi_min, mi_max = get_metric_constraints("maintainability_index")
     min_maintainability = prompt_with_validation(
         "Minimum maintainability index",
         default=50,
-        validator=lambda v: validate_with_pydantic('maintainability_index', v),
+        validator=lambda v: validate_with_pydantic("maintainability_index", v),
         help_text=f"ℹ️  Range: {mi_min}-{mi_max} (higher is stricter). Recommended: 50",
     )
 
@@ -150,31 +150,28 @@ def generate(output: Path, non_interactive: bool) -> None:
         click.echo("\nAdvanced Halstead metrics:")
         click.echo("-" * 40)
 
-        hv_min, hv_max = get_metric_constraints('halstead_volume')
+        hv_min, hv_max = get_metric_constraints("halstead_volume")
         defaults_dict["max_halstead_volume"] = prompt_with_validation(
             "Maximum Halstead volume",
             default=1000,
-            validator=lambda v: validate_with_pydantic('halstead_volume', v),
+            validator=lambda v: validate_with_pydantic("halstead_volume", v),
             help_text=f"ℹ️  Range: {hv_min}-{hv_max}. Measures program size. Recommended: 1000",
         )
 
-        hd_min, hd_max = get_metric_constraints('halstead_difficulty')
+        hd_min, hd_max = get_metric_constraints("halstead_difficulty")
         defaults_dict["max_halstead_difficulty"] = prompt_with_validation(
             "Maximum Halstead difficulty",
             default=10,
-            validator=lambda v: validate_with_pydantic('halstead_difficulty', v),
+            validator=lambda v: validate_with_pydantic("halstead_difficulty", v),
             help_text=f"ℹ️  Range: {hd_min}-{hd_max}. Measures error proneness. Recommended: 10",
         )
 
-        he_min, he_max = get_metric_constraints('halstead_effort')
-        he_help = (
-            f"ℹ️  Range: {he_min}-{he_max}. "
-            "Measures implementation time. Recommended: 10000"
-        )
+        he_min, he_max = get_metric_constraints("halstead_effort")
+        he_help = f"ℹ️  Range: {he_min}-{he_max}. Measures implementation time. Recommended: 10000"
         defaults_dict["max_halstead_effort"] = prompt_with_validation(
             "Maximum Halstead effort",
             default=10000,
-            validator=lambda v: validate_with_pydantic('halstead_effort', v),
+            validator=lambda v: validate_with_pydantic("halstead_effort", v),
             help_text=he_help,
         )
     else:
@@ -282,56 +279,44 @@ def _create_python_config(defaults: dict[str, Any]) -> dict[str, Any]:
     metrics = []
 
     # Cyclomatic complexity
-    metrics.append(
-        {
-            "type": "cyclomatic_complexity",
-            "threshold": defaults["max_cyclomatic_complexity"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "cyclomatic_complexity",
+        "threshold": defaults["max_cyclomatic_complexity"],
+        "comparison": "<=",
+    })
 
     # Cognitive complexity
-    metrics.append(
-        {
-            "type": "cognitive_complexity",
-            "threshold": defaults["max_cognitive_complexity"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "cognitive_complexity",
+        "threshold": defaults["max_cognitive_complexity"],
+        "comparison": "<=",
+    })
 
     # Maintainability index
-    metrics.append(
-        {
-            "type": "maintainability_index",
-            "threshold": defaults["min_maintainability_index"],
-            "comparison": ">=",
-        }
-    )
+    metrics.append({
+        "type": "maintainability_index",
+        "threshold": defaults["min_maintainability_index"],
+        "comparison": ">=",
+    })
 
     # Halstead metrics
-    metrics.append(
-        {
-            "type": "halstead_volume",
-            "threshold": defaults["max_halstead_volume"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "halstead_volume",
+        "threshold": defaults["max_halstead_volume"],
+        "comparison": "<=",
+    })
 
-    metrics.append(
-        {
-            "type": "halstead_difficulty",
-            "threshold": defaults["max_halstead_difficulty"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "halstead_difficulty",
+        "threshold": defaults["max_halstead_difficulty"],
+        "comparison": "<=",
+    })
 
-    metrics.append(
-        {
-            "type": "halstead_effort",
-            "threshold": defaults["max_halstead_effort"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "halstead_effort",
+        "threshold": defaults["max_halstead_effort"],
+        "comparison": "<=",
+    })
 
     return {
         "name": "python",
@@ -349,21 +334,17 @@ def _create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
     # For JS/TS, we only support cyclomatic and cognitive complexity currently
     metrics = []
 
-    metrics.append(
-        {
-            "type": "cyclomatic_complexity",
-            "threshold": defaults["max_cyclomatic_complexity"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "cyclomatic_complexity",
+        "threshold": defaults["max_cyclomatic_complexity"],
+        "comparison": "<=",
+    })
 
-    metrics.append(
-        {
-            "type": "cognitive_complexity",
-            "threshold": defaults["max_cognitive_complexity"],
-            "comparison": "<=",
-        }
-    )
+    metrics.append({
+        "type": "cognitive_complexity",
+        "threshold": defaults["max_cognitive_complexity"],
+        "comparison": "<=",
+    })
 
     return {
         "name": "javascript",
@@ -411,7 +392,7 @@ def _save_config(config: AntipastaConfig, output: Path, force: bool = False) -> 
         for metric in lang.get("metrics", []):
             yaml_lines.append(f"      - type: {metric['type']}")
             yaml_lines.append(f"        threshold: {metric['threshold']}")
-            yaml_lines.append(f"        comparison: \"{metric['comparison']}\"")
+            yaml_lines.append(f'        comparison: "{metric["comparison"]}"')
             if metric != lang["metrics"][-1]:  # Not the last metric
                 yaml_lines.append("")
 
