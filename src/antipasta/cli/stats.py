@@ -12,6 +12,22 @@ from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.config_override import ConfigOverride
 from antipasta.core.metrics import MetricType
+from .stats_utils import (
+    should_collect_loc_metrics,
+    extract_file_loc_from_report,
+    collect_function_names_from_reports,
+    collect_function_complexities_from_reports,
+    calculate_file_loc_statistics,
+    calculate_function_complexity_statistics,
+    collect_metrics_from_reports,
+    calculate_metric_statistics,
+    truncate_path_for_display,
+    format_display_path,
+    find_common_base_directory,
+    remove_duplicate_files,
+    calculate_relative_depth,
+    determine_statistics_grouping_type,
+)
 
 # Metric prefix mappings for easier UX
 METRIC_PREFIXES = {
@@ -37,6 +53,275 @@ METRIC_PREFIXES = {
 
 # Maximum depth for unlimited traversal (safety boundary)
 MAX_DEPTH = 20
+
+
+def collect_files_from_patterns(
+    patterns: tuple[str, ...], directory: Path
+) -> list[Path]:
+    """Collect files matching the given patterns from the directory.
+
+    Args:
+        patterns: Tuple of glob patterns to match
+        directory: Base directory to search in
+
+    Returns:
+        List of file paths matching the patterns
+    """
+    files: list[Path] = []
+    for pattern in patterns:
+        files.extend(directory.glob(pattern))
+    return files
+
+
+def get_default_patterns() -> tuple[str, ...]:
+    """Get default file patterns when none are specified.
+
+    Returns:
+        Tuple of default glob patterns
+    """
+    return ("**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx")
+
+
+def validate_files_found(files: list[Path]) -> bool:
+    """Validate that files were found and display error if not.
+
+    Args:
+        files: List of collected files
+
+    Returns:
+        True if files were found, False otherwise
+    """
+    if not files:
+        click.echo("No files found matching the specified patterns.", err=True)
+        return False
+    return True
+
+
+def setup_configuration_with_overrides(
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    no_gitignore: bool,
+    force_analyze: bool,
+) -> tuple[AntipastaConfig, ConfigOverride]:
+    """Set up configuration with command-line overrides.
+
+    Args:
+        include_pattern: Include patterns from command line
+        exclude_pattern: Exclude patterns from command line
+        no_gitignore: Whether to disable gitignore
+        force_analyze: Whether to force analyze all files
+
+    Returns:
+        Tuple of (config, override)
+    """
+    config = AntipastaConfig.generate_default()
+
+    override = ConfigOverride(
+        include_patterns=list(include_pattern),
+        exclude_patterns=list(exclude_pattern),
+        disable_gitignore=no_gitignore,
+        force_analyze=force_analyze,
+    )
+
+    if override.has_overrides():
+        config = config.apply_overrides(override)
+        display_override_messages(
+            include_pattern, exclude_pattern, no_gitignore, force_analyze
+        )
+
+    return config, override
+
+
+def display_override_messages(
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    no_gitignore: bool,
+    force_analyze: bool,
+) -> None:
+    """Display messages about configuration overrides.
+
+    Args:
+        include_pattern: Include patterns from command line
+        exclude_pattern: Exclude patterns from command line
+        no_gitignore: Whether gitignore is disabled
+        force_analyze: Whether force analyze is enabled
+    """
+    if force_analyze:
+        click.echo("Force analyzing all files (ignoring exclusions)...")
+    elif include_pattern:
+        click.echo(f"Including patterns: {', '.join(include_pattern)}")
+    if exclude_pattern:
+        click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
+    if no_gitignore:
+        click.echo("Ignoring .gitignore patterns")
+
+
+def setup_language_detector(
+    config: AntipastaConfig, override: ConfigOverride, directory: Path
+) -> 'LanguageDetector':
+    """Set up language detector with configuration.
+
+    Args:
+        config: Antipasta configuration
+        override: Configuration overrides
+        directory: Base directory
+
+    Returns:
+        Configured language detector
+    """
+    from antipasta.core.detector import LanguageDetector
+
+    detector = LanguageDetector(
+        ignore_patterns=config.ignore_patterns,
+        include_patterns=override.include_patterns if override else [],
+        base_dir=directory
+    )
+
+    if config.use_gitignore:
+        gitignore_path = directory / ".gitignore"
+        if gitignore_path.exists():
+            detector.add_gitignore(gitignore_path)
+
+    return detector
+
+
+def analyze_and_display_file_breakdown(
+    files: list[Path], detector: 'LanguageDetector'
+) -> tuple[dict[Any, list[Path]], int, int]:
+    """Analyze files and display breakdown by language.
+
+    Args:
+        files: List of all files found
+        detector: Language detector
+
+    Returns:
+        Tuple of (files_by_language, analyzable_files_count, ignored_files_count)
+    """
+    files_by_language = detector.group_by_language(files)
+
+    # Count analyzable files (currently only Python is supported)
+    analyzable_files = sum(
+        len(f) for lang, f in files_by_language.items() if lang.value == "python"
+    )
+    ignored_files = len(files) - sum(len(f) for f in files_by_language.values())
+
+    # Show file breakdown
+    click.echo(f"Found {len(files)} files matching patterns")
+    if ignored_files > 0:
+        click.echo(f"  - {ignored_files} ignored (matching .gitignore or ignore patterns)")
+    for lang, lang_files in files_by_language.items():
+        status = "✓" if lang.value == "python" else "✗ (not supported)"
+        click.echo(f"  - {len(lang_files)} {lang.value} files {status}")
+
+    return files_by_language, analyzable_files, ignored_files
+
+
+def validate_analyzable_files(analyzable_files: int) -> bool:
+    """Validate that there are analyzable files and display error if not.
+
+    Args:
+        analyzable_files: Number of analyzable files
+
+    Returns:
+        True if there are analyzable files, False otherwise
+    """
+    if analyzable_files == 0:
+        click.echo(
+            "\nNo analyzable files found (only Python is currently supported).",
+            err=True,
+        )
+        return False
+    return True
+
+
+def perform_analysis_with_feedback(
+    aggregator: MetricAggregator, files: list[Path], analyzable_files: int
+) -> list[Any]:
+    """Perform file analysis with user feedback.
+
+    Args:
+        aggregator: Metric aggregator
+        files: List of files to analyze
+        analyzable_files: Number of analyzable files
+
+    Returns:
+        List of analysis reports
+    """
+    click.echo(f"\nAnalyzing {analyzable_files} Python files...")
+    return aggregator.analyze_files(files)
+
+
+def get_metrics_to_include(metric: tuple[str, ...]) -> list[str]:
+    """Get the list of metrics to include, applying defaults if needed.
+
+    Args:
+        metric: Metric arguments from command line
+
+    Returns:
+        List of metric names to include
+    """
+    metrics_to_include = parse_metrics(metric)
+
+    # If no metrics specified, default to LOC metrics
+    if not metric:  # If user didn't provide ANY -m flags
+        metrics_to_include = [m.value for m in METRIC_PREFIXES["loc"]]
+
+    return metrics_to_include
+
+
+def collect_statistics_based_on_grouping(
+    reports: list[Any],
+    metrics_to_include: list[str],
+    by_directory: bool,
+    by_module: bool,
+    directory: Path,
+    depth: int,
+    path_style: str,
+) -> dict[str, Any]:
+    """Collect statistics based on the requested grouping method.
+
+    Args:
+        reports: Analysis reports
+        metrics_to_include: Metrics to include in statistics
+        by_directory: Whether to group by directory
+        by_module: Whether to group by module
+        directory: Base directory
+        depth: Directory depth for display
+        path_style: Path display style
+
+    Returns:
+        Statistics data dictionary
+    """
+    if by_directory:
+        return _collect_directory_stats(
+            reports, metrics_to_include, directory, depth, path_style
+        )
+    elif by_module:
+        return _collect_module_stats(reports, metrics_to_include)
+    else:
+        return _collect_overall_stats(reports, metrics_to_include)
+
+
+def handle_output_and_display(
+    stats_data: dict[str, Any], format: str, output: Path | None
+) -> None:
+    """Handle output and display of statistics based on format and output options.
+
+    Args:
+        stats_data: Statistics data to output
+        format: Output format
+        output: Output file path (optional)
+    """
+    if output:
+        _save_stats(stats_data, format, output)
+        click.echo(f"✓ Saved to {output}")
+    else:
+        if format == "json":
+            _display_json(stats_data)
+        elif format == "csv":
+            _display_csv(stats_data)
+        else:
+            _display_table(stats_data)
 
 
 def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
@@ -195,200 +480,73 @@ def stats(
         # Generate ALL formats at once (9 files from 1 analysis!)
         antipasta stats -p "**/*.py" --format all --output ./reports/
     """
-    # Default patterns if none specified
-    if not pattern:
-        pattern = ("**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx")
+    # Use default patterns if none specified
+    patterns_to_use = pattern if pattern else get_default_patterns()
 
-    # Collect files
-    files: list[Path] = []
-    for pat in pattern:
-        files.extend(directory.glob(pat))
-
-    if not files:
-        click.echo("No files found matching the specified patterns.", err=True)
+    # Collect and validate files
+    files = collect_files_from_patterns(patterns_to_use, directory)
+    if not validate_files_found(files):
         return
 
-    # Load config (use defaults)
-    config = AntipastaConfig.generate_default()
-
-    # Apply overrides if any are specified
-    override = ConfigOverride(
-        include_patterns=list(include_pattern),
-        exclude_patterns=list(exclude_pattern),
-        disable_gitignore=no_gitignore,
-        force_analyze=force_analyze,
+    # Set up configuration with overrides
+    config, override = setup_configuration_with_overrides(
+        include_pattern, exclude_pattern, no_gitignore, force_analyze
     )
 
-    # Apply overrides to configuration
-    if override.has_overrides():
-        config = config.apply_overrides(override)
-        if force_analyze:
-            click.echo("Force analyzing all files (ignoring exclusions)...")
-        elif include_pattern:
-            click.echo(f"Including patterns: {', '.join(include_pattern)}")
-        if exclude_pattern:
-            click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
-        if no_gitignore:
-            click.echo("Ignoring .gitignore patterns")
-
-    # Create aggregator and detector to preview what will be analyzed
+    # Set up language detection and file analysis
     aggregator = MetricAggregator(config)
+    detector = setup_language_detector(config, override, directory)
 
-    # Group files by language to see what will actually be analyzed
-    from antipasta.core.detector import LanguageDetector
-
-    detector = LanguageDetector(
-        ignore_patterns=config.ignore_patterns,
-        include_patterns=override.include_patterns if override else [],
-        base_dir=directory
+    # Analyze files and display breakdown
+    files_by_language, analyzable_files, ignored_files = analyze_and_display_file_breakdown(
+        files, detector
     )
-    if config.use_gitignore:
-        gitignore_path = directory / ".gitignore"
-        if gitignore_path.exists():
-            detector.add_gitignore(gitignore_path)
 
-    files_by_language = detector.group_by_language(files)
-
-    # Count analyzable files (currently only Python is supported)
-    analyzable_files = sum(
-        len(f) for lang, f in files_by_language.items() if lang.value == "python"
-    )
-    ignored_files = len(files) - sum(len(f) for f in files_by_language.values())
-
-    # Show file breakdown
-    click.echo(f"Found {len(files)} files matching patterns")
-    if ignored_files > 0:
-        click.echo(f"  - {ignored_files} ignored (matching .gitignore or ignore patterns)")
-    for lang, lang_files in files_by_language.items():
-        status = "✓" if lang.value == "python" else "✗ (not supported)"
-        click.echo(f"  - {len(lang_files)} {lang.value} files {status}")
-
-    if analyzable_files == 0:
-        click.echo(
-            "\nNo analyzable files found (only Python is currently supported).",
-            err=True,
-        )
+    if not validate_analyzable_files(analyzable_files):
         return
 
-    # Analyze files
-    click.echo(f"\nAnalyzing {analyzable_files} Python files...")
-    reports = aggregator.analyze_files(files)
+    # Perform analysis
+    reports = perform_analysis_with_feedback(aggregator, files, analyzable_files)
 
-    # Parse metrics to include
-    metrics_to_include = parse_metrics(metric)
-
-    # If no metrics specified, default to LOC metrics
-    if not metric:  # If user didn't provide ANY -m flags
-        metrics_to_include = [m.value for m in METRIC_PREFIXES["loc"]]
+    # Get metrics to include
+    metrics_to_include = get_metrics_to_include(metric)
 
     # Handle 'all' format - generate all reports
     if format == "all":
         _generate_all_reports(reports, metrics_to_include, output or Path("."))
     else:
-        # Collect statistics based on grouping
-        if by_directory:
-            stats_data = _collect_directory_stats(
-                reports, metrics_to_include, directory, depth, path_style
-            )
-        elif by_module:
-            stats_data = _collect_module_stats(reports, metrics_to_include)
-        else:
-            stats_data = _collect_overall_stats(reports, metrics_to_include)
+        # Collect statistics based on grouping method
+        stats_data = collect_statistics_based_on_grouping(
+            reports, metrics_to_include, by_directory, by_module,
+            directory, depth, path_style
+        )
 
-        # Display or save results
-        if output:
-            _save_stats(stats_data, format, output)
-            click.echo(f"✓ Saved to {output}")
-        else:
-            if format == "json":
-                _display_json(stats_data)
-            elif format == "csv":
-                _display_csv(stats_data)
-            else:
-                _display_table(stats_data)
+        # Handle output and display
+        handle_output_and_display(stats_data, format, output)
 
 
 def _collect_overall_stats(reports: list[Any], metrics_to_include: list[str]) -> dict[str, Any]:
     """Collect overall statistics across all files."""
     stats = {
-        "files": {
-            "count": len(reports),
-            "total_loc": 0,
-            "avg_loc": 0.0,
-            "min_loc": 0,
-            "max_loc": 0,
-            "std_dev": 0.0,
-        },
-        "functions": {
-            "count": 0,
-            "total_loc": 0,
-            "avg_loc": 0.0,
-            "min_loc": 0,
-            "max_loc": 0,
-        },
+        "files": {"count": len(reports)},
+        "functions": {"count": 0},
     }
 
-    # Check if we should collect LOC metrics
-    should_collect_loc = any(
-        metric in metrics_to_include
-        for metric in ["lines_of_code", "logical_lines_of_code", "source_lines_of_code"]
-    )
+    should_collect_loc = should_collect_loc_metrics(metrics_to_include)
+    function_names = collect_function_names_from_reports(reports)
+    function_complexities = collect_function_complexities_from_reports(reports)
 
-    # Collect LOC per file (only if requested)
-    file_locs = []
-    function_names = set()  # Track unique function names
-    function_complexities = []  # Use complexity as proxy for function size
+    # Add file-level LOC statistics if requested
+    if should_collect_loc:
+        loc_stats = calculate_file_loc_statistics(reports)
+        if loc_stats["total_loc"] > 0:  # Only add if data was found
+            stats["files"].update(loc_stats)
 
-    for report in reports:
-        # File LOC (only if requested)
-        if should_collect_loc:
-            file_loc = next(
-                (
-                    m.value
-                    for m in report.metrics
-                    if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
-                ),
-                0,
-            )
-            if file_loc > 0:
-                file_locs.append(file_loc)
-
-        # Collect function-level metrics
-        # Since LOC per function isn't available, use cyclomatic complexity
-        for metric in report.metrics:
-            if metric.function_name:  # Any metric with a function name
-                function_names.add((report.file_path, metric.function_name))
-                # Use cyclomatic complexity as a proxy for function complexity
-                if metric.metric_type == MetricType.CYCLOMATIC_COMPLEXITY:
-                    function_complexities.append(metric.value)
-
-    # Calculate file statistics (only if LOC was collected)
-    if should_collect_loc and file_locs:
-        stats["files"]["total_loc"] = sum(file_locs)
-        stats["files"]["avg_loc"] = statistics.mean(file_locs)
-        stats["files"]["min_loc"] = min(file_locs)
-        stats["files"]["max_loc"] = max(file_locs)
-        if len(file_locs) > 1:
-            stats["files"]["std_dev"] = statistics.stdev(file_locs)
-    elif should_collect_loc:
-        # LOC was requested but no data found, keep the default zeros
-        pass
-    else:
-        # LOC was not requested, remove the LOC-specific fields
-        del stats["files"]["total_loc"]
-        del stats["files"]["avg_loc"]
-        del stats["files"]["min_loc"]
-        del stats["files"]["max_loc"]
-        del stats["files"]["std_dev"]
-
-    # Calculate function statistics
+    # Add function statistics
     stats["functions"]["count"] = len(function_names)
     if function_complexities:
-        # Since we don't have LOC per function, report complexity instead
-        stats["functions"]["avg_complexity"] = statistics.mean(function_complexities)
-        stats["functions"]["min_complexity"] = min(function_complexities)
-        stats["functions"]["max_complexity"] = max(function_complexities)
-        # Note: We're not setting LOC metrics for functions since they're not available
+        complexity_stats = calculate_function_complexity_statistics(function_complexities)
+        stats["functions"].update(complexity_stats)
 
     # Add additional metrics if requested
     for metric_name in metrics_to_include:
@@ -397,50 +555,46 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: list[str]) ->
     return stats
 
 
-def _collect_directory_stats(
-    reports: list[Any], metrics_to_include: list[str], base_dir: Path, depth: int, path_style: str
-) -> dict[str, Any]:
-    """Collect statistics grouped by directory with hierarchical aggregation.
+def _build_directory_tree_structure(reports: list[Any], metrics_to_include: list[str]) -> dict[Path, dict[str, Any]]:
+    """Build initial directory tree structure from reports.
 
     Args:
         reports: List of metric reports
-        metrics_to_include: Additional metrics to include
-        base_dir: Base directory for relative paths
-        depth: Maximum depth of directories to display (1 = top-level only)
+        metrics_to_include: Metrics to collect
+
+    Returns:
+        Dictionary mapping directory paths to their data
     """
-    if not reports:
-        return {}
-
-    # Handle unlimited depth with safety boundary
-    effective_depth = MAX_DEPTH if depth == 0 else depth
-
-    # Build a tree structure for aggregation
     dir_stats: dict[Path, dict[str, Any]] = defaultdict(
         lambda: {
-            "direct_files": [],  # Files directly in this directory
-            "all_files": [],  # All files including subdirectories
+            "direct_files": [],
+            "all_files": [],
             "function_names": set(),
             "metrics": defaultdict(list),
         }
     )
 
-    # First pass: organize files by their immediate parent directory
     for report in reports:
         parent_dir = report.file_path.parent
         dir_stats[parent_dir]["direct_files"].append(report)
 
-        # Collect metrics from this file
         for metric in report.metrics:
             if metric.function_name:
                 dir_stats[parent_dir]["function_names"].add(metric.function_name)
             if metric.metric_type.value in metrics_to_include:
                 dir_stats[parent_dir]["metrics"][metric.metric_type.value].append(metric.value)
 
-    # Second pass: aggregate files up the directory tree
-    # This ensures parent directories include stats from all descendants
+    return dir_stats
+
+
+def _aggregate_directory_tree_upward(dir_stats: dict[Path, dict[str, Any]]) -> None:
+    """Aggregate directory statistics up the tree hierarchy.
+
+    Args:
+        dir_stats: Directory statistics to aggregate (modified in-place)
+    """
     all_dirs = sorted(dir_stats.keys(), key=lambda p: len(p.parts), reverse=True)
     for dir_path in all_dirs:
-        # Add this directory's files to all parent directories
         current = dir_path
         while current != current.parent:
             parent = current.parent
@@ -466,90 +620,58 @@ def _collect_directory_stats(
     for _dir_path, data in dir_stats.items():
         data["all_files"].extend(data["direct_files"])
 
-    # Find the common base directory for cleaner display
-    import os
 
-    all_file_dirs = [report.file_path.parent for report in reports]
-    if all_file_dirs:
-        try:
-            common_base = Path(os.path.commonpath([str(d) for d in all_file_dirs]))
-        except ValueError:
-            common_base = base_dir
-    else:
-        common_base = base_dir
+def _build_directory_results(
+    dir_stats: dict[Path, dict[str, Any]],
+    metrics_to_include: list[str],
+    common_base: Path,
+    effective_depth: int,
+    path_style: str,
+) -> dict[str, Any]:
+    """Build final results from directory statistics.
 
-    # Build results based on depth
+    Args:
+        dir_stats: Directory statistics data
+        metrics_to_include: Metrics to include
+        common_base: Common base directory
+        effective_depth: Maximum depth to include
+        path_style: Path display style
+
+    Returns:
+        Formatted results dictionary
+    """
     results = {}
+    should_collect_loc = should_collect_loc_metrics(metrics_to_include)
+
     for dir_path, data in dir_stats.items():
-        # Skip if no files in this directory (shouldn't happen, but be safe)
+        # Skip if no files in this directory
         if not data["all_files"]:
             continue
 
-        # Calculate depth relative to common base
-        try:
-            if dir_path == common_base:
-                rel_path = Path(".")
-                dir_depth = 0
-            else:
-                rel_path = dir_path.relative_to(common_base)
-                dir_depth = len(rel_path.parts)
-        except ValueError:
-            # Directory is not under common_base, skip it
+        # Calculate relative path and depth
+        rel_path, dir_depth = calculate_relative_depth(dir_path, common_base)
+        if rel_path is None:  # Directory not under common_base
             continue
 
         # Skip directories deeper than requested depth
         if dir_depth >= effective_depth:
             continue
 
-        # Check if we should collect LOC metrics
-        should_collect_loc = any(
-            metric in metrics_to_include
-            for metric in ["lines_of_code", "logical_lines_of_code", "source_lines_of_code"]
-        )
-
-        # Calculate statistics for this directory
+        # Calculate LOC statistics if needed
         file_locs = []
         if should_collect_loc:
             for report in data["all_files"]:
-                file_loc = next(
-                    (
-                        m.value
-                        for m in report.metrics
-                        if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
-                    ),
-                    0,
-                )
+                file_loc = extract_file_loc_from_report(report)
                 if file_loc > 0:
                     file_locs.append(file_loc)
 
         # Create display path
-        if rel_path == Path("."):
-            display_path = common_base.name if common_base.name else "."
-        else:
-            if path_style == "parent":
-                # Show only immediate parent/name
-                parts = rel_path.parts
-                if len(parts) == 1:
-                    display_path = parts[0]
-                elif len(parts) == 2:
-                    # For two parts, show both (parent/child)
-                    display_path = str(Path(*parts))
-                else:
-                    # For deeper paths, show last 2 components
-                    display_path = str(Path(*parts[-2:]))
-            elif path_style == "full":
-                # Full path with NO truncation
-                display_path = str(rel_path)
-            else:  # relative (default)
-                display_path = str(rel_path)
+        display_path = _create_display_path(rel_path, common_base, path_style)
 
-        # Apply truncation for relative and parent styles (NOT for full)
-        if path_style != "full" and len(display_path) > 30:
-            display_path = "..." + display_path[-(30 - 3):]
+        # Remove duplicate files
+        unique_files = remove_duplicate_files(data["all_files"])
 
-        # Remove duplicate counts (a file might be counted multiple times in aggregation)
-        unique_files = list({id(f): f for f in data["all_files"]}.values())
-
+        # Build result entry
         results[display_path] = {
             "file_count": len(unique_files),
             "function_count": len(data["function_names"]),
@@ -565,15 +687,101 @@ def _collect_directory_stats(
         # Add additional metrics
         for metric_name, values in data["metrics"].items():
             if values:
-                # Remove duplicates from aggregated metrics too
-                unique_values = values[: len(unique_files)]  # Rough deduplication
+                # Remove duplicates from aggregated metrics
+                unique_values = values[: len(unique_files)]
                 results[display_path][f"avg_{metric_name}"] = statistics.mean(unique_values)
 
     return results
 
 
-def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> dict[str, Any]:
-    """Collect statistics grouped by Python module."""
+def _create_display_path(rel_path: Path, common_base: Path, path_style: str) -> str:
+    """Create display path based on style preferences.
+
+    Args:
+        rel_path: Relative path to format
+        common_base: Common base directory
+        path_style: Display style preference
+
+    Returns:
+        Formatted display path
+    """
+    display_path = format_display_path(rel_path, common_base, path_style)
+
+    # Apply truncation for relative and parent styles (NOT for full)
+    if path_style != "full" and len(display_path) > 30:
+        display_path = truncate_path_for_display(display_path, 30)
+
+    return display_path
+
+
+def _collect_directory_stats(
+    reports: list[Any], metrics_to_include: list[str], base_dir: Path, depth: int, path_style: str
+) -> dict[str, Any]:
+    """Collect statistics grouped by directory with hierarchical aggregation.
+
+    Args:
+        reports: List of metric reports
+        metrics_to_include: Additional metrics to include
+        base_dir: Base directory for relative paths
+        depth: Maximum depth of directories to display (1 = top-level only)
+        path_style: Path display style
+    """
+    if not reports:
+        return {}
+
+    # Handle unlimited depth with safety boundary
+    effective_depth = MAX_DEPTH if depth == 0 else depth
+
+    # Build directory tree structure
+    dir_stats = _build_directory_tree_structure(reports, metrics_to_include)
+
+    # Aggregate statistics up the directory tree
+    _aggregate_directory_tree_upward(dir_stats)
+
+    # Find common base directory
+    common_base = find_common_base_directory(reports, base_dir)
+
+    # Build and return final results
+    return _build_directory_results(
+        dir_stats, metrics_to_include, common_base, effective_depth, path_style
+    )
+
+
+def _determine_module_name(report: Any) -> str:
+    """Determine Python module name from file path.
+
+    Args:
+        report: Metric report with file path
+
+    Returns:
+        Module name or '<root>' if not in a package
+    """
+    module_parts: list[str] = []
+    current_path = report.file_path.parent
+
+    # Walk up looking for __init__.py files
+    while current_path != current_path.parent:
+        if (current_path / "__init__.py").exists():
+            module_parts.insert(0, current_path.name)
+            current_path = current_path.parent
+        else:
+            break
+
+    return ".".join(module_parts) if module_parts else "<root>"
+
+
+def _group_reports_by_module(
+    reports: list[Any], metrics_to_include: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Group reports by Python module.
+
+    Args:
+        reports: List of metric reports
+        metrics_to_include: Metrics to collect
+
+    Returns:
+        Dictionary mapping module names to their data
+    """
     module_stats: dict[str, dict[str, Any]] = defaultdict(
         lambda: {
             "files": [],
@@ -582,52 +790,41 @@ def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> 
         }
     )
 
-    # Group reports by module
     for report in reports:
-        # Determine module from file path
-        module_parts: list[str] = []
-        current_path = report.file_path.parent
-
-        # Walk up looking for __init__.py files
-        while current_path != current_path.parent:
-            if (current_path / "__init__.py").exists():
-                module_parts.insert(0, current_path.name)
-                current_path = current_path.parent
-            else:
-                break
-
-        module_name = ".".join(module_parts) if module_parts else "<root>"
+        module_name = _determine_module_name(report)
         module_stats[module_name]["files"].append(report)
 
-        # Collect unique function names
+        # Collect metrics
         for metric in report.metrics:
             if metric.function_name:
                 module_stats[module_name]["function_names"].add(metric.function_name)
-
             if metric.metric_type.value in metrics_to_include:
                 module_stats[module_name]["metrics"][metric.metric_type.value].append(metric.value)
 
-    # Check if we should collect LOC metrics
-    should_collect_loc = any(
-        metric in metrics_to_include
-        for metric in ["lines_of_code", "logical_lines_of_code", "source_lines_of_code"]
-    )
+    return module_stats
 
-    # Calculate statistics
+
+def _calculate_module_statistics(
+    module_stats: dict[str, dict[str, Any]], metrics_to_include: list[str]
+) -> dict[str, Any]:
+    """Calculate statistics for each module.
+
+    Args:
+        module_stats: Grouped module data
+        metrics_to_include: Metrics to include
+
+    Returns:
+        Module statistics dictionary
+    """
     results = {}
+    should_collect_loc = should_collect_loc_metrics(metrics_to_include)
+
     for module_name, data in module_stats.items():
-        # Similar calculation as directory stats
+        # Calculate LOC statistics if needed
         file_locs = []
         if should_collect_loc:
             for report in data["files"]:
-                file_loc = next(
-                    (
-                        m.value
-                        for m in report.metrics
-                        if m.metric_type == MetricType.LINES_OF_CODE and m.function_name is None
-                    ),
-                    0,
-                )
+                file_loc = extract_file_loc_from_report(report)
                 if file_loc > 0:
                     file_locs.append(file_loc)
 
@@ -651,133 +848,127 @@ def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> 
     return results
 
 
+def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> dict[str, Any]:
+    """Collect statistics grouped by Python module."""
+    module_stats = _group_reports_by_module(reports, metrics_to_include)
+    return _calculate_module_statistics(module_stats, metrics_to_include)
+
+
 def _collect_metric_stats(reports: list[Any], metric_name: str) -> dict[str, Any]:
     """Collect statistics for a specific metric."""
-    values = []
-
     try:
-        metric_type = MetricType(metric_name)
+        MetricType(metric_name)  # Validate metric name
     except ValueError:
         return {"error": f"Unknown metric: {metric_name}"}
 
-    for report in reports:
-        for metric in report.metrics:
-            if metric.metric_type == metric_type:
-                values.append(metric.value)
+    values = collect_metrics_from_reports(reports, metric_name)
+    return calculate_metric_statistics(values)
 
-    if not values:
-        return {"count": 0, "avg": 0, "min": 0, "max": 0}
 
-    return {
-        "count": len(values),
-        "avg": statistics.mean(values),
-        "min": min(values),
-        "max": max(values),
-        "std_dev": statistics.stdev(values) if len(values) > 1 else 0,
-    }
+def _display_overall_statistics(stats_data: dict[str, Any]) -> None:
+    """Display overall statistics in table format.
+
+    Args:
+        stats_data: Overall statistics data
+    """
+    click.echo("\n" + "=" * 60)
+    click.echo("CODE METRICS STATISTICS")
+    click.echo("=" * 60 + "\n")
+
+    # File statistics
+    click.echo("FILE STATISTICS:")
+    click.echo(f"  Total files: {stats_data['files']['count']}")
+    if "total_loc" in stats_data["files"]:
+        click.echo(f"  Total LOC: {stats_data['files']['total_loc']:,}")
+        click.echo(f"  Average LOC per file: {stats_data['files']['avg_loc']:.1f}")
+        click.echo(f"  Min LOC: {stats_data['files']['min_loc']}")
+        click.echo(f"  Max LOC: {stats_data['files']['max_loc']}")
+        if stats_data["files"].get("std_dev", 0) > 0:
+            click.echo(f"  Standard deviation: {stats_data['files']['std_dev']:.1f}")
+
+    # Function statistics
+    click.echo("\nFUNCTION STATISTICS:")
+    click.echo(f"  Total functions: {stats_data['functions']['count']}")
+    if stats_data["functions"]["count"] > 0:
+        if "avg_complexity" in stats_data["functions"]:
+            click.echo(f"  Average complexity: {stats_data['functions']['avg_complexity']:.1f}")
+            click.echo(f"  Min complexity: {stats_data['functions']['min_complexity']:.1f}")
+            click.echo(f"  Max complexity: {stats_data['functions']['max_complexity']:.1f}")
+        elif "avg_loc" in stats_data["functions"]:
+            # Fallback to LOC if available (for backward compatibility)
+            click.echo(f"  Average LOC per function: {stats_data['functions']['avg_loc']:.1f}")
+            click.echo(f"  Min LOC: {stats_data['functions']['min_loc']}")
+            click.echo(f"  Max LOC: {stats_data['functions']['max_loc']}")
+
+    # Additional metrics
+    for key, value in stats_data.items():
+        if key not in ["files", "functions"] and isinstance(value, dict):
+            click.echo(f"\n{key.upper().replace('_', ' ')} STATISTICS:")
+            click.echo(f"  Count: {value.get('count', 0)}")
+            click.echo(f"  Average: {value.get('avg', 0):.2f}")
+            click.echo(f"  Min: {value.get('min', 0):.2f}")
+            click.echo(f"  Max: {value.get('max', 0):.2f}")
+
+
+def _display_grouped_statistics(stats_data: dict[str, Any]) -> None:
+    """Display directory or module grouped statistics in table format.
+
+    Args:
+        stats_data: Grouped statistics data
+    """
+    click.echo("\n" + "=" * 80)
+    grouping_type = determine_statistics_grouping_type(stats_data)
+    click.echo(f"CODE METRICS BY {grouping_type}")
+    click.echo("=" * 80 + "\n")
+
+    # Find all metric keys
+    all_keys = set()
+    for data in stats_data.values():
+        all_keys.update(data.keys())
+
+    # Create header
+    headers = ["Location", "Files", "Functions"]
+
+    # Add LOC headers only if present in data
+    if any("avg_file_loc" in data for data in stats_data.values()):
+        headers.append("Avg File LOC")
+    if any("total_loc" in data for data in stats_data.values()):
+        headers.append("Total LOC")
+    for key in sorted(all_keys):
+        if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
+            headers.append(key.replace("avg_", "Avg ").replace("_", " ").title())
+
+    # Print header
+    click.echo(_format_table_row(headers))
+    click.echo("-" * sum(len(h) + 3 for h in headers))
+
+    # Print rows
+    for location, data in sorted(stats_data.items()):
+        row = [
+            truncate_path_for_display(location, 30),
+            str(data.get("file_count", 0)),
+            str(data.get("function_count", 0)),
+        ]
+
+        # Add LOC data only if present in headers
+        if "Avg File LOC" in headers:
+            row.append(f"{data.get('avg_file_loc', 0):.1f}")
+        if "Total LOC" in headers:
+            row.append(f"{data.get('total_loc', 0):,}")
+
+        for key in sorted(all_keys):
+            if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
+                row.append(f"{data.get(key, 0):.2f}")
+
+        click.echo(_format_table_row(row))
 
 
 def _display_table(stats_data: dict[str, Any]) -> None:
     """Display statistics as a formatted table."""
     if isinstance(stats_data, dict) and "files" in stats_data:
-        # Overall statistics
-        click.echo("\n" + "=" * 60)
-        click.echo("CODE METRICS STATISTICS")
-        click.echo("=" * 60 + "\n")
-
-        # File statistics
-        click.echo("FILE STATISTICS:")
-        click.echo(f"  Total files: {stats_data['files']['count']}")
-        if "total_loc" in stats_data["files"]:
-            click.echo(f"  Total LOC: {stats_data['files']['total_loc']:,}")
-            click.echo(f"  Average LOC per file: {stats_data['files']['avg_loc']:.1f}")
-            click.echo(f"  Min LOC: {stats_data['files']['min_loc']}")
-            click.echo(f"  Max LOC: {stats_data['files']['max_loc']}")
-            if stats_data["files"].get("std_dev", 0) > 0:
-                click.echo(f"  Standard deviation: {stats_data['files']['std_dev']:.1f}")
-
-        # Function statistics
-        click.echo("\nFUNCTION STATISTICS:")
-        click.echo(f"  Total functions: {stats_data['functions']['count']}")
-        if stats_data["functions"]["count"] > 0:
-            if "avg_complexity" in stats_data["functions"]:
-                click.echo(f"  Average complexity: {stats_data['functions']['avg_complexity']:.1f}")
-                click.echo(f"  Min complexity: {stats_data['functions']['min_complexity']:.1f}")
-                click.echo(f"  Max complexity: {stats_data['functions']['max_complexity']:.1f}")
-            elif "avg_loc" in stats_data["functions"]:
-                # Fallback to LOC if available (for backward compatibility)
-                click.echo(f"  Average LOC per function: {stats_data['functions']['avg_loc']:.1f}")
-                click.echo(f"  Min LOC: {stats_data['functions']['min_loc']}")
-                click.echo(f"  Max LOC: {stats_data['functions']['max_loc']}")
-
-        # Additional metrics
-        for key, value in stats_data.items():
-            if key not in ["files", "functions"] and isinstance(value, dict):
-                click.echo(f"\n{key.upper().replace('_', ' ')} STATISTICS:")
-                click.echo(f"  Count: {value.get('count', 0)}")
-                click.echo(f"  Average: {value.get('avg', 0):.2f}")
-                click.echo(f"  Min: {value.get('min', 0):.2f}")
-                click.echo(f"  Max: {value.get('max', 0):.2f}")
+        _display_overall_statistics(stats_data)
     else:
-        # Directory or module statistics
-        click.echo("\n" + "=" * 80)
-        # Better detection: check if any key contains path separators or looks like a module
-        is_directory = any(
-            ("/" in str(k) or "\\" in str(k) or Path(str(k)).parts) for k in stats_data
-        )
-        click.echo("CODE METRICS BY " + ("DIRECTORY" if is_directory else "MODULE"))
-        click.echo("=" * 80 + "\n")
-
-        # Find all metric keys
-        all_keys = set()
-        for data in stats_data.values():
-            all_keys.update(data.keys())
-
-        # Create header
-        headers = [
-            "Location",
-            "Files",
-            "Functions",
-        ]
-
-        # Add LOC headers only if present in data
-        if any("avg_file_loc" in data for data in stats_data.values()):
-            headers.append("Avg File LOC")
-        if any("total_loc" in data for data in stats_data.values()):
-            headers.append("Total LOC")
-        for key in sorted(all_keys):
-            if key.startswith("avg_") and key not in [
-                "avg_file_loc",
-                "avg_function_loc",
-            ]:
-                headers.append(key.replace("avg_", "Avg ").replace("_", " ").title())
-
-        # Print header
-        click.echo(_format_table_row(headers))
-        click.echo("-" * sum(len(h) + 3 for h in headers))
-
-        # Print rows
-        for location, data in sorted(stats_data.items()):
-            row = [
-                _truncate_path(location, 30),
-                str(data.get("file_count", 0)),
-                str(data.get("function_count", 0)),
-            ]
-
-            # Add LOC data only if present in headers
-            if "Avg File LOC" in headers:
-                row.append(f"{data.get('avg_file_loc', 0):.1f}")
-            if "Total LOC" in headers:
-                row.append(f"{data.get('total_loc', 0):,}")
-
-            for key in sorted(all_keys):
-                if key.startswith("avg_") and key not in [
-                    "avg_file_loc",
-                    "avg_function_loc",
-                ]:
-                    row.append(f"{data.get(key, 0):.2f}")
-
-            click.echo(_format_table_row(row))
+        _display_grouped_statistics(stats_data)
 
 
 def _format_table_row(values: list[Any]) -> str:
@@ -796,13 +987,6 @@ def _format_table_row(values: list[Any]) -> str:
         else:
             formatted.append(str(value))
     return " ".join(formatted)
-
-
-def _truncate_path(path: str, max_length: int) -> str:
-    """Truncate long paths for display."""
-    if len(path) <= max_length:
-        return path
-    return "..." + path[-(max_length - 3):]
 
 
 def _display_json(stats_data: dict[str, Any]) -> None:
