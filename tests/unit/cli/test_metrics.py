@@ -65,7 +65,7 @@ languages:
 """
             )
 
-            with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
                 # Mock the analyzer to avoid actual metric computation
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
@@ -111,7 +111,7 @@ languages:
 """
             )
 
-            with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
                 # Mock the analyzer
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
@@ -157,7 +157,7 @@ languages:
 """
             )
 
-            with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_instance.generate_summary.return_value = {
@@ -224,7 +224,7 @@ languages:
 """
             )
 
-            with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_instance.generate_summary.return_value = {
