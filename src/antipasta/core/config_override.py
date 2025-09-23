@@ -100,26 +100,35 @@ class ConfigOverride:
         """Convert Pydantic ValidationError to user-friendly message."""
         for err in error.errors():
             if metric_type in str(err.get('loc', ())):
-                # Extract constraint information from error
-                err_type = err.get('type', '')
-                ctx = err.get('ctx', {})
-
-                if 'greater_than_equal' in err_type:
-                    return f"{metric_type} must be >= {ctx.get('ge', 0)}, got {value}"
-                if 'less_than_equal' in err_type:
-                    return f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}"
-                if 'greater_than' in err_type:
-                    return f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}"
-                if 'less_than' in err_type:
-                    return f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}"
-                if err_type == 'int_type':
-                    return f"{metric_type} must be an integer, got {value}"
-                if err_type == 'int_parsing':
-                    return f"{metric_type} must be a valid integer"
-                return f"Invalid value for {metric_type}: {err.get('msg', 'validation failed')}"
+                return self._format_specific_error(metric_type, value, err)
 
         # Fallback
         return f"Invalid value for {metric_type}: {value}"
+
+    def _format_specific_error(
+        self, metric_type: str, value: float, err: dict[str, Any]
+    ) -> str:
+        """Format a specific validation error based on its type."""
+        err_type = err.get('type', '')
+        ctx = err.get('ctx', {})
+
+        # Map error types to formatter functions
+        error_formatters = {
+            'greater_than_equal': lambda: f"{metric_type} must be >= {ctx.get('ge', 0)}, got {value}",
+            'less_than_equal': lambda: f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}",
+            'greater_than': lambda: f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}",
+            'less_than': lambda: f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}",
+            'int_type': lambda: f"{metric_type} must be an integer, got {value}",
+            'int_parsing': lambda: f"{metric_type} must be a valid integer",
+        }
+
+        # Find matching formatter
+        for error_key, formatter in error_formatters.items():
+            if error_key in err_type or err_type == error_key:
+                return formatter()
+
+        # Default message
+        return f"Invalid value for {metric_type}: {err.get('msg', 'validation failed')}"
 
     def parse_threshold_string(self, threshold_str: str) -> None:
         """Parse a threshold override string in format 'metric_type=value'.
@@ -232,41 +241,69 @@ class ConfigOverride:
         import copy
         merged = copy.deepcopy(config_dict)
 
-        # Apply gitignore override
-        if self.disable_gitignore:
-            merged['use_gitignore'] = False
-
-        # Apply ignore pattern overrides
-        if 'ignore_patterns' in merged:
-            merged['ignore_patterns'] = self.get_effective_ignore_patterns(
-                merged['ignore_patterns']
-            )
-
-        # Apply threshold overrides
-        if self.threshold_overrides:
-            # Update defaults
-            if 'defaults' in merged:
-                for metric_type, value in self.threshold_overrides.items():
-                    # Map metric types to default field names
-                    field_map = {
-                        'cyclomatic_complexity': 'max_cyclomatic_complexity',
-                        'cognitive_complexity': 'max_cognitive_complexity',
-                        'maintainability_index': 'min_maintainability_index',
-                        'halstead_volume': 'max_halstead_volume',
-                        'halstead_difficulty': 'max_halstead_difficulty',
-                        'halstead_effort': 'max_halstead_effort',
-                    }
-
-                    if metric_type in field_map:
-                        merged['defaults'][field_map[metric_type]] = value
-
-            # Update language-specific metrics
-            if 'languages' in merged:
-                for lang_config in merged['languages']:
-                    if 'metrics' in lang_config:
-                        for metric_config in lang_config['metrics']:
-                            metric_type = metric_config.get('type')
-                            if metric_type in self.threshold_overrides:
-                                metric_config['threshold'] = self.threshold_overrides[metric_type]
+        self._apply_gitignore_override(merged)
+        self._apply_ignore_pattern_overrides(merged)
+        self._apply_threshold_overrides(merged)
 
         return merged
+
+    def _apply_gitignore_override(self, config: dict[str, Any]) -> None:
+        """Apply gitignore override to configuration."""
+        if self.disable_gitignore:
+            config['use_gitignore'] = False
+
+    def _apply_ignore_pattern_overrides(self, config: dict[str, Any]) -> None:
+        """Apply ignore pattern overrides to configuration."""
+        if 'ignore_patterns' in config:
+            config['ignore_patterns'] = self.get_effective_ignore_patterns(
+                config['ignore_patterns']
+            )
+
+    def _apply_threshold_overrides(self, config: dict[str, Any]) -> None:
+        """Apply threshold overrides to configuration."""
+        if not self.threshold_overrides:
+            return
+
+        self._apply_default_threshold_overrides(config)
+        self._apply_language_threshold_overrides(config)
+
+    def _apply_default_threshold_overrides(self, config: dict[str, Any]) -> None:
+        """Apply threshold overrides to default configuration."""
+        if 'defaults' not in config:
+            return
+
+        # Map metric types to default field names
+        field_map = self._get_metric_field_map()
+
+        for metric_type, value in self.threshold_overrides.items():
+            if metric_type in field_map:
+                config['defaults'][field_map[metric_type]] = value
+
+    def _apply_language_threshold_overrides(self, config: dict[str, Any]) -> None:
+        """Apply threshold overrides to language-specific configuration."""
+        if 'languages' not in config:
+            return
+
+        for lang_config in config['languages']:
+            self._update_language_metrics(lang_config)
+
+    def _update_language_metrics(self, lang_config: dict[str, Any]) -> None:
+        """Update metrics in a language configuration."""
+        if 'metrics' not in lang_config:
+            return
+
+        for metric_config in lang_config['metrics']:
+            metric_type = metric_config.get('type')
+            if metric_type in self.threshold_overrides:
+                metric_config['threshold'] = self.threshold_overrides[metric_type]
+
+    def _get_metric_field_map(self) -> dict[str, str]:
+        """Get mapping from metric types to configuration field names."""
+        return {
+            'cyclomatic_complexity': 'max_cyclomatic_complexity',
+            'cognitive_complexity': 'max_cognitive_complexity',
+            'maintainability_index': 'min_maintainability_index',
+            'halstead_volume': 'max_halstead_volume',
+            'halstead_difficulty': 'max_halstead_difficulty',
+            'halstead_effort': 'max_halstead_effort',
+        }
