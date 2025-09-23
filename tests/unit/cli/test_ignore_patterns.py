@@ -5,7 +5,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from antipasta.cli.generate_config import generate_config
+from antipasta.cli.config_generate import generate
 from antipasta.core.config import AntipastaConfig
 
 
@@ -25,7 +25,6 @@ class TestIgnorePatternInput:
                     "50",  # maintainability
                     "n",  # no advanced
                     "y",  # Python
-                    "n",  # no JS
                     "y",  # use gitignore
                     "y",  # use default test patterns
                     "*.pyc",  # first additional pattern
@@ -36,7 +35,7 @@ class TestIgnorePatternInput:
             )
 
             result = runner.invoke(
-                generate_config, ["--output", str(output_file)], input=user_input
+                generate, ["--output", str(output_file)], input=user_input
             )
 
             if result.exit_code != 0:
@@ -68,7 +67,6 @@ class TestIgnorePatternInput:
                     "50",  # maintainability
                     "n",  # no advanced
                     "y",  # Python
-                    "n",  # no JS
                     "y",  # use gitignore
                     "n",  # NO default test patterns
                     "build/**",  # only custom pattern
@@ -77,7 +75,7 @@ class TestIgnorePatternInput:
             )
 
             result = runner.invoke(
-                generate_config, ["--output", str(output_file)], input=user_input
+                generate, ["--output", str(output_file)], input=user_input
             )
 
             assert result.exit_code == 0
@@ -103,7 +101,6 @@ class TestIgnorePatternInput:
                     "50",  # maintainability
                     "n",  # no advanced
                     "y",  # Python
-                    "n",  # no JS
                     "y",  # use gitignore
                     "n",  # no default test patterns
                     "",  # no custom patterns either
@@ -111,7 +108,7 @@ class TestIgnorePatternInput:
             )
 
             result = runner.invoke(
-                generate_config, ["--output", str(output_file)], input=user_input
+                generate, ["--output", str(output_file)], input=user_input
             )
 
             assert result.exit_code == 0
@@ -133,7 +130,6 @@ class TestIgnorePatternInput:
                     "50",  # maintainability
                     "n",  # no advanced
                     "y",  # Python
-                    "n",  # no JS
                     "y",  # use gitignore
                     "y",  # use default test patterns
                     "*.tmp",  # one custom pattern
@@ -142,7 +138,7 @@ class TestIgnorePatternInput:
             )
 
             result = runner.invoke(
-                generate_config, ["--output", str(output_file)], input=user_input
+                generate, ["--output", str(output_file)], input=user_input
             )
 
             assert result.exit_code == 0
@@ -163,7 +159,6 @@ class TestIgnorePatternInput:
                     "50",  # maintainability
                     "n",  # no advanced
                     "y",  # Python
-                    "n",  # no JS
                     "y",  # use gitignore
                     "n",  # no default test patterns
                     "  *.spaces  ",  # pattern with leading/trailing spaces
@@ -173,7 +168,7 @@ class TestIgnorePatternInput:
             )
 
             result = runner.invoke(
-                generate_config, ["--output", str(output_file)], input=user_input
+                generate, ["--output", str(output_file)], input=user_input
             )
 
             assert result.exit_code == 0
