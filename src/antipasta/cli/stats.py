@@ -239,10 +239,11 @@ def stats(
 
     detector = LanguageDetector(
         ignore_patterns=config.ignore_patterns,
-        include_patterns=override.include_patterns if override else []
+        include_patterns=override.include_patterns if override else [],
+        base_dir=directory
     )
     if config.use_gitignore:
-        gitignore_path = Path(".gitignore")
+        gitignore_path = directory / ".gitignore"
         if gitignore_path.exists():
             detector.add_gitignore(gitignore_path)
 

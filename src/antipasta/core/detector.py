@@ -38,15 +38,17 @@ EXTENSION_MAP = {
 class LanguageDetector:
     """Detects programming language from file paths and respects .gitignore."""
 
-    def __init__(self, ignore_patterns: list[str] | None = None, include_patterns: list[str] | None = None) -> None:
+    def __init__(self, ignore_patterns: list[str] | None = None, include_patterns: list[str] | None = None, base_dir: Path | None = None) -> None:
         """Initialize the detector with optional ignore and include patterns.
 
         Args:
             ignore_patterns: List of gitignore-style patterns to exclude files
             include_patterns: List of gitignore-style patterns to force-include files (overrides ignore patterns)
+            base_dir: Base directory for resolving relative paths (defaults to current directory)
         """
         self.ignore_patterns = ignore_patterns or []
         self.include_patterns = include_patterns or []
+        self.base_dir = base_dir or Path.cwd()
         self._pathspec: pathspec.PathSpec | None = None
         self._include_spec: pathspec.PathSpec | None = None
         self._gitignore_patterns: list[str] = []  # Track patterns from .gitignore
@@ -108,11 +110,11 @@ class LanguageDetector:
         """
         # Convert to string for matching
         if file_path.is_absolute():
-            # Try to get relative path from current directory first
+            # Try to get relative path from base directory first
             try:
-                path_str = str(file_path.relative_to(Path.cwd()))
+                path_str = str(file_path.relative_to(self.base_dir))
             except ValueError:
-                # Path is outside current directory - use just the filename
+                # Path is outside base directory - use just the filename
                 # for patterns like "**/*.py" to work
                 path_str = file_path.name
         else:

@@ -227,17 +227,21 @@ def _collect_files(
     override: ConfigOverride | None,
 ) -> list[Path]:
     """Collect all files to analyze, respecting gitignore patterns and overrides."""
+    # Determine base directory for pattern matching
+    base_dir = directory if directory else Path.cwd()
+
     # Create a detector with config's ignore patterns and override include patterns
     detector = LanguageDetector(
         ignore_patterns=config.ignore_patterns,
         include_patterns=(
             override.include_patterns if override and override.include_patterns else []
         ),
+        base_dir=base_dir,
     )
 
     # Load .gitignore if enabled
     if config.use_gitignore:
-        gitignore_path = Path(".gitignore")
+        gitignore_path = base_dir / ".gitignore"
         if gitignore_path.exists():
             detector.add_gitignore(gitignore_path)
 

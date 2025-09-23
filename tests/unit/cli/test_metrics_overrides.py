@@ -4,11 +4,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from click.testing import CliRunner
 
 from antipasta.cli.metrics import metrics
-from antipasta.core.config_override import ConfigOverride
 from antipasta.core.metrics import MetricType
 from antipasta.core.violations import Violation
 
