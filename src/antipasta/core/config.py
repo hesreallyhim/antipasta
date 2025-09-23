@@ -175,10 +175,15 @@ class AntipastaConfig(BaseModel):
         override = ConfigOverride(
             include_patterns=include_patterns or [],
             exclude_patterns=exclude_patterns or [],
-            threshold_overrides=threshold_overrides or {},
             disable_gitignore=disable_gitignore,
             force_analyze=force_analyze,
         )
+
+        # Apply threshold overrides if provided
+        if threshold_overrides:
+            for metric_type, value in threshold_overrides.items():
+                override.set_threshold(metric_type, value)
+
         return self.apply_overrides(override)
 
 

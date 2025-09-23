@@ -131,7 +131,9 @@ class ConfigOverride:
             ValueError: If string format is invalid
         """
         if '=' not in threshold_str:
-            raise ValueError(f"Invalid threshold format: {threshold_str}. Expected 'metric_type=value'")
+            raise ValueError(
+                f"Invalid threshold format: {threshold_str}. Expected 'metric_type=value'"
+            )
 
         metric_type, value_str = threshold_str.split('=', 1)
         metric_type = metric_type.strip()
@@ -139,7 +141,7 @@ class ConfigOverride:
         try:
             value = float(value_str.strip())
         except ValueError:
-            raise ValueError(f"Invalid threshold value: {value_str}. Must be a number")
+            raise ValueError(f"Invalid threshold value: {value_str}. Must be a number") from None
 
         self.set_threshold(metric_type, value)
 
