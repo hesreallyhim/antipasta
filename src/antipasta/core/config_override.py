@@ -125,7 +125,7 @@ class ConfigOverride:
         """Parse a threshold override string in format 'metric_type=value'.
 
         Args:
-            threshold_str: String like 'cyclomatic_complexity=15'
+            threshold_str: String like 'cyclomatic_complexity=15' or 'cyc=15'
 
         Raises:
             ValueError: If string format is invalid
@@ -137,6 +137,19 @@ class ConfigOverride:
 
         metric_type, value_str = threshold_str.split('=', 1)
         metric_type = metric_type.strip()
+
+        # Support three-letter prefixes for convenience
+        prefix_map = {
+            'cyc': 'cyclomatic_complexity',
+            'cog': 'cognitive_complexity',
+            'mai': 'maintainability_index',
+            'vol': 'halstead_volume',
+            'dif': 'halstead_difficulty',
+            'eff': 'halstead_effort',
+        }
+
+        # Check if it's a prefix and expand it
+        metric_type = prefix_map.get(metric_type, metric_type)
 
         try:
             value = float(value_str.strip())

@@ -67,7 +67,10 @@ from antipasta.cli.metrics_utils import (
     "--threshold",
     "-t",
     multiple=True,
-    help="Override metric thresholds (format: metric_type=value, e.g., cyclomatic_complexity=15)",
+    help=(
+        "Override metric thresholds (format: metric_type=value, e.g., cyclomatic_complexity=15 or cyc=15). "
+        "Prefixes: cyc=cyclomatic, cog=cognitive, mai=maintainability, vol=volume, dif=difficulty, eff=effort"
+    ),
 )
 @click.option(
     "--no-gitignore",
