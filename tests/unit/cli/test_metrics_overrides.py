@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 
 from antipasta.cli.metrics import metrics
+from antipasta.core.config import ComparisonOperator
 from antipasta.core.metrics import MetricType
 from antipasta.core.violations import Violation
 
@@ -29,7 +30,8 @@ class TestMetricsOverrides:
 
             # Create config that ignores tests
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 languages:
@@ -40,7 +42,8 @@ languages:
         comparison: "<="
 ignore_patterns:
   - "**/tests/**"
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
@@ -55,16 +58,13 @@ ignore_patterns:
                 mock_aggregator.return_value = mock_instance
 
                 # Without override, tests should be ignored
-                result = self.runner.invoke(
-                    metrics,
-                    ["-d", str(tmpdir), "-c", str(config_file)]
-                )
+                result = self.runner.invoke(metrics, ["-d", str(tmpdir), "-c", str(config_file)])
                 assert "No files found to analyze" in result.output
 
                 # With include pattern, tests should be analyzed
                 result = self.runner.invoke(
                     metrics,
-                    ["-d", str(tmpdir), "-c", str(config_file), "--include-pattern", "**/tests/**"]
+                    ["-d", str(tmpdir), "-c", str(config_file), "--include-pattern", "**/tests/**"],
                 )
                 assert result.exit_code == 0
                 assert "Including patterns: **/tests/**" in result.output
@@ -73,6 +73,7 @@ ignore_patterns:
     def test_exclude_pattern_override(self) -> None:
         """Test that additional exclude patterns work."""
         import os
+
         with tempfile.TemporaryDirectory() as tmpdir:
             old_cwd = os.getcwd()
             os.chdir(tmpdir)
@@ -90,7 +91,8 @@ ignore_patterns:
 
                 # Create minimal config
                 config_file = Path(tmpdir) / ".antipasta.yaml"
-                config_file.write_text("""
+                config_file.write_text(
+                    """
 defaults:
   max_cyclomatic_complexity: 10
 languages:
@@ -101,7 +103,8 @@ languages:
       - type: cyclomatic_complexity
         threshold: 10
         comparison: "<="
-""")
+"""
+                )
 
                 with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                     mock_instance = MagicMock()
@@ -118,7 +121,7 @@ languages:
                     # With exclude pattern, build directory should be ignored
                     result = self.runner.invoke(
                         metrics,
-                        ["-d", ".", "-c", ".antipasta.yaml", "--exclude-pattern", "**/build/**"]
+                        ["-d", ".", "-c", ".antipasta.yaml", "--exclude-pattern", "**/build/**"],
                     )
                     if result.exit_code != 0:
                         print("Error output:", result.output)
@@ -132,7 +135,8 @@ languages:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create test file
             test_file = Path(tmpdir) / "complex.py"
-            test_file.write_text("""
+            test_file.write_text(
+                """
 def complex_func(x):
     if x > 0:
         if x > 10:
@@ -141,11 +145,13 @@ def complex_func(x):
             return "medium"
         return "small"
     return "negative"
-""")
+"""
+            )
 
             # Create config with strict threshold
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 3
 languages:
@@ -154,7 +160,8 @@ languages:
       - type: cyclomatic_complexity
         threshold: 3
         comparison: "<="
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
@@ -165,13 +172,14 @@ languages:
                 violation_report.violations = [
                     Violation(
                         metric_type=MetricType.CYCLOMATIC_COMPLEXITY,
-                        message="Function 'complex_func' has cyclomatic complexity 5 (threshold: 3)",
+                        message="Function 'complex_func' has cyclomatic complexity 5 "
+                        "(threshold: 3)",
                         file_path=test_file,
                         line_number=1,
                         function_name="complex_func",
                         value=5.0,
                         threshold=3.0,
-                        comparison="<="
+                        comparison=ComparisonOperator.LE,
                     )
                 ]
                 mock_instance.analyze_files.return_value = [violation_report]
@@ -185,10 +193,7 @@ languages:
                 mock_aggregator.return_value = mock_instance
 
                 # Run with default strict threshold
-                result = self.runner.invoke(
-                    metrics,
-                    ["-f", str(test_file), "-c", str(config_file)]
-                )
+                result = self.runner.invoke(metrics, ["-f", str(test_file), "-c", str(config_file)])
                 assert result.exit_code == 2  # Violation found
                 assert "VIOLATIONS FOUND" in result.output
 
@@ -204,7 +209,14 @@ languages:
 
                 result = self.runner.invoke(
                     metrics,
-                    ["-f", str(test_file), "-c", str(config_file), "--threshold", "cyclomatic_complexity=10"]
+                    [
+                        "-f",
+                        str(test_file),
+                        "-c",
+                        str(config_file),
+                        "--threshold",
+                        "cyclomatic_complexity=10",
+                    ],
                 )
                 assert result.exit_code == 0  # Should pass with higher threshold
                 assert "Threshold overrides: cyclomatic_complexity=10" in result.output
@@ -225,7 +237,8 @@ languages:
 
             # Create config
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 languages:
@@ -235,7 +248,8 @@ languages:
         threshold: 10
         comparison: "<="
 use_gitignore: true
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
@@ -251,8 +265,7 @@ use_gitignore: true
 
                 # With --no-gitignore, should analyze ignored files
                 result = self.runner.invoke(
-                    metrics,
-                    ["-d", str(tmpdir), "-c", str(config_file), "--no-gitignore"]
+                    metrics, ["-d", str(tmpdir), "-c", str(config_file), "--no-gitignore"]
                 )
                 assert result.exit_code == 0
                 assert "Ignoring .gitignore patterns" in result.output
@@ -260,6 +273,7 @@ use_gitignore: true
     def test_force_analyze_flag(self) -> None:
         """Test that --force-analyze ignores all exclusions."""
         import os
+
         with tempfile.TemporaryDirectory() as tmpdir:
             old_cwd = os.getcwd()
             os.chdir(tmpdir)
@@ -280,7 +294,8 @@ use_gitignore: true
 
                 # Create config that excludes tests and build
                 config_file = Path(tmpdir) / ".antipasta.yaml"
-                config_file.write_text("""
+                config_file.write_text(
+                    """
 defaults:
   max_cyclomatic_complexity: 10
 languages:
@@ -294,7 +309,8 @@ languages:
 ignore_patterns:
   - "**/tests/**"
   - "**/build/**"
-""")
+"""
+                )
 
                 with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                     mock_instance = MagicMock()
@@ -310,8 +326,7 @@ ignore_patterns:
 
                     # With --force-analyze, should analyze everything
                     result = self.runner.invoke(
-                        metrics,
-                        ["-d", ".", "-c", ".antipasta.yaml", "--force-analyze"]
+                        metrics, ["-d", ".", "-c", ".antipasta.yaml", "--force-analyze"]
                     )
                     if result.exit_code != 0:
                         print("Error output:", result.output)
@@ -327,17 +342,20 @@ ignore_patterns:
             test_dir = Path(tmpdir) / "tests"
             test_dir.mkdir()
             test_file = test_dir / "test_complex.py"
-            test_file.write_text("""
+            test_file.write_text(
+                """
 def test_complex():
     for i in range(10):
         if i % 2 == 0:
             if i > 5:
                 print(i)
-""")
+"""
+            )
 
             # Create config
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 3
   min_maintainability_index: 70
@@ -353,7 +371,8 @@ languages:
 ignore_patterns:
   - "**/tests/**"
 use_gitignore: true
-""")
+"""
+            )
 
             with patch("antipasta.cli.metrics.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
@@ -371,24 +390,33 @@ use_gitignore: true
                 result = self.runner.invoke(
                     metrics,
                     [
-                        "-d", str(tmpdir),
-                        "-c", str(config_file),
-                        "--include-pattern", "**/tests/**",
-                        "--threshold", "cyclomatic_complexity=10",
-                        "--threshold", "maintainability_index=40",
-                        "--no-gitignore"
-                    ]
+                        "-d",
+                        str(tmpdir),
+                        "-c",
+                        str(config_file),
+                        "--include-pattern",
+                        "**/tests/**",
+                        "--threshold",
+                        "cyclomatic_complexity=10",
+                        "--threshold",
+                        "maintainability_index=40",
+                        "--no-gitignore",
+                    ],
                 )
                 assert result.exit_code == 0
                 assert "Including patterns: **/tests/**" in result.output
-                assert "Threshold overrides: cyclomatic_complexity=10, maintainability_index=40" in result.output
+                assert (
+                    "Threshold overrides: cyclomatic_complexity=10, maintainability_index=40"
+                    in result.output
+                )
                 assert "Ignoring .gitignore patterns" in result.output
 
     def test_invalid_threshold_format(self) -> None:
         """Test error handling for invalid threshold format."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / ".antipasta.yaml"
-            config_file.write_text("""
+            config_file.write_text(
+                """
 defaults:
   max_cyclomatic_complexity: 10
 languages:
@@ -397,12 +425,12 @@ languages:
       - type: cyclomatic_complexity
         threshold: 10
         comparison: "<="
-""")
+"""
+            )
 
             # Invalid format (no equals sign)
             result = self.runner.invoke(
-                metrics,
-                ["-c", str(config_file), "--threshold", "cyclomatic_complexity"]
+                metrics, ["-c", str(config_file), "--threshold", "cyclomatic_complexity"]
             )
             assert result.exit_code == 1
             assert "Error parsing threshold override" in result.output
@@ -410,8 +438,7 @@ languages:
 
             # Invalid metric type
             result = self.runner.invoke(
-                metrics,
-                ["-c", str(config_file), "--threshold", "invalid_metric=10"]
+                metrics, ["-c", str(config_file), "--threshold", "invalid_metric=10"]
             )
             assert result.exit_code == 1
             assert "Error parsing threshold override" in result.output
@@ -419,8 +446,7 @@ languages:
 
             # Invalid value
             result = self.runner.invoke(
-                metrics,
-                ["-c", str(config_file), "--threshold", "cyclomatic_complexity=abc"]
+                metrics, ["-c", str(config_file), "--threshold", "cyclomatic_complexity=abc"]
             )
             assert result.exit_code == 1
             assert "Error parsing threshold override" in result.output

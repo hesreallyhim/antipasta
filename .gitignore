@@ -140,3 +140,6 @@ target/
 .coverage/
 
 test.csv
+
+# Internal development files
+__INTERNAL__/

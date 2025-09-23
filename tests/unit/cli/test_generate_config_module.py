@@ -1,23 +1,27 @@
-"""Unit tests for the generate_config module."""
+"""Unit tests for the config_generate module."""
 
+from shutil import ignore_patterns
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import click
 import pytest
 from click.testing import CliRunner
 
-from antipasta.cli.generate_config import (
+from antipasta.cli.config_generate import (
     _create_javascript_config,
     _create_python_config,
     _save_config,
-    generate_config,
+    generate,
     prompt_with_validation,
     validate_positive_float,
     validate_positive_int,
 )
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.config import AntipastaConfig, ComparisonOperator, DefaultsConfig, LanguageConfig, MetricConfig
+from typing import cast, List
+
+from antipasta.core.metrics import MetricType
 
 
 class TestValidatePositiveInt:
@@ -91,7 +95,9 @@ class TestPromptWithValidation:
     def test_valid_input_first_try(self, mock_echo: MagicMock, mock_prompt: MagicMock) -> None:
         """Test valid input on first attempt."""
         mock_prompt.return_value = "10"
-        validator = lambda v: int(v)
+
+        def validator(v: str) -> int:
+            return int(v)
 
         result = prompt_with_validation("Enter number", default=5, validator=validator)
 
@@ -109,7 +115,7 @@ class TestPromptWithValidation:
             try:
                 return int(v)
             except ValueError:
-                raise click.BadParameter("Invalid number")
+                raise click.BadParameter("Invalid number") from None
 
         result = prompt_with_validation("Enter number", default=5, validator=validator)
 
@@ -122,13 +128,12 @@ class TestPromptWithValidation:
     def test_with_help_text(self, mock_echo: MagicMock, mock_prompt: MagicMock) -> None:
         """Test prompt with help text."""
         mock_prompt.return_value = "10"
-        validator = lambda v: int(v)
+
+        def validator(v: str) -> int:
+            return int(v)
 
         result = prompt_with_validation(
-            "Enter number",
-            default=5,
-            validator=validator,
-            help_text="This is help text"
+            "Enter number", default=5, validator=validator, help_text="This is help text"
         )
 
         assert result == 10
@@ -136,7 +141,7 @@ class TestPromptWithValidation:
 
 
 class TestGenerateConfigCommand:
-    """Test generate_config command."""
+    """Test config_generate command."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
@@ -148,8 +153,7 @@ class TestGenerateConfigCommand:
             output_path = Path(tmpdir) / "test.yaml"
 
             result = self.runner.invoke(
-                generate_config,
-                ["--output", str(output_path), "--non-interactive"]
+                generate, ["--output", str(output_path), "--non-interactive"]
             )
 
             assert result.exit_code == 0
@@ -163,7 +167,9 @@ class TestGenerateConfigCommand:
 
     @patch("click.confirm")
     @patch("click.prompt")
-    def test_interactive_mode_minimal(self, mock_prompt: MagicMock, mock_confirm: MagicMock) -> None:
+    def test_interactive_mode_minimal(
+        self, mock_prompt: MagicMock, mock_confirm: MagicMock
+    ) -> None:
         """Test interactive mode with minimal selections."""
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "test.yaml"
@@ -173,22 +179,19 @@ class TestGenerateConfigCommand:
                 "10",  # cyclomatic complexity
                 "15",  # cognitive complexity
                 "50",  # maintainability index
-                "",    # no additional patterns
+                "",  # no additional patterns
             ]
 
             mock_confirm.side_effect = [
                 False,  # no advanced metrics
-                True,   # include Python
-                False,  # no JavaScript
-                True,   # use gitignore
+                True,  # include Python
+                # False,  # no JavaScript
+                True,  # use gitignore
                 False,  # no test defaults
                 # File doesn't exist, so no overwrite prompt
             ]
 
-            result = self.runner.invoke(
-                generate_config,
-                ["--output", str(output_path)]
-            )
+            result = self.runner.invoke(generate, ["--output", str(output_path)])
 
             assert result.exit_code == 0
             assert output_path.exists()
@@ -203,28 +206,25 @@ class TestGenerateConfigCommand:
 
             # Mock responses for interactive prompts
             mock_prompt.side_effect = [
-                "10",    # cyclomatic complexity
-                "15",    # cognitive complexity
-                "50",    # maintainability index
+                "10",  # cyclomatic complexity
+                "15",  # cognitive complexity
+                "50",  # maintainability index
                 "1000",  # halstead volume
-                "10",    # halstead difficulty
-                "10000", # halstead effort
+                "10",  # halstead difficulty
+                "10000",  # halstead effort
                 "**/vendor/**",  # additional pattern
-                "",      # end patterns
+                "",  # end patterns
             ]
 
             mock_confirm.side_effect = [
-                True,   # advanced metrics
-                True,   # include Python
-                True,   # include JavaScript
-                True,   # use gitignore
-                True,   # use test defaults
+                True,  # advanced metrics
+                True,  # include Python
+                # True,  # include JavaScript
+                True,  # use gitignore
+                True,  # use test defaults
             ]
 
-            result = self.runner.invoke(
-                generate_config,
-                ["--output", str(output_path)]
-            )
+            result = self.runner.invoke(generate, ["--output", str(output_path)])
 
             assert result.exit_code == 0
             assert output_path.exists()
@@ -232,7 +232,7 @@ class TestGenerateConfigCommand:
             # Verify config content
             config = AntipastaConfig.from_yaml(output_path)
             assert config.defaults.max_halstead_volume == 1000
-            assert len(config.languages) == 2  # Python and JavaScript
+            assert len(config.languages) == 1  # Python (JS not supported yet)
             assert "**/vendor/**" in config.ignore_patterns
 
     @patch("click.confirm")
@@ -249,17 +249,14 @@ class TestGenerateConfigCommand:
                 mock_prompt.side_effect = ["10", "15", "50", ""]
                 mock_confirm.side_effect = [
                     False,  # no advanced
-                    True,   # Python
-                    False,  # no JS
-                    True,   # gitignore
+                    True,  # Python
+                    # False,  # no JS
+                    True,  # gitignore
                     False,  # no test defaults
                     False,  # Don't overwrite existing file
                 ]
 
-                result = self.runner.invoke(
-                    generate_config,
-                    ["--output", str(output_path)]
-                )
+                result = self.runner.invoke(generate, ["--output", str(output_path)])
 
                 assert result.exit_code == 0
                 assert "Aborted" in result.output
@@ -352,26 +349,24 @@ class TestSaveConfig:
                 assert any("Configuration saved" in str(call) for call in mock_echo.call_args_list)
 
     def test_save_config_with_custom_values(self) -> None:
-        """Test saving config with custom values."""
-        config_dict = {
-            "defaults": {
-                "max_cyclomatic_complexity": 5,
-                "max_cognitive_complexity": 10,
-                "min_maintainability_index": 70,
-            },
-            "languages": [
+        config = AntipastaConfig(
+            defaults=DefaultsConfig(
+                max_cyclomatic_complexity=5,
+                max_cognitive_complexity=10,
+                min_maintainability_index=70,
+            ),
+            languages=cast(list[LanguageConfig], [
                 {
                     "name": "python",
                     "extensions": [".py"],
                     "metrics": [
                         {"type": "cyclomatic_complexity", "threshold": 5, "comparison": "<="}
-                    ]
+                    ],
                 }
-            ],
-            "ignore_patterns": ["**/tests/**", "**/vendor/**"],
-            "use_gitignore": False,
-        }
-        config = AntipastaConfig(**config_dict)
+            ]),
+            ignore_patterns=["**/tests/**", "**/vendor/**"],
+            use_gitignore=False,
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "test.yaml"
@@ -399,25 +394,26 @@ class TestSaveConfig:
 
     def test_save_config_empty_patterns(self) -> None:
         """Test saving config with no ignore patterns."""
-        config_dict = {
-            "defaults": {
-                "max_cyclomatic_complexity": 10,
-                "max_cognitive_complexity": 15,
-                "min_maintainability_index": 50,
-            },
-            "languages": [
-                {
-                    "name": "python",
-                    "extensions": [".py"],
-                    "metrics": [
-                        {"type": "cyclomatic_complexity", "threshold": 10, "comparison": "<="}
-                    ]
-                }
+        config = AntipastaConfig(defaults=DefaultsConfig(
+                max_cyclomatic_complexity=10,
+                max_cognitive_complexity=15,
+                min_maintainability_index=50,
+            ),
+            languages=[
+                LanguageConfig(
+                    name="python",
+                    extensions=[".py"],
+                    metrics=[MetricConfig(
+                        type=MetricType.CYCLOMATIC_COMPLEXITY,
+                        threshold=10,
+                        comparison=ComparisonOperator.LE
+                    )],
+                )
             ],
-            "ignore_patterns": [],
-            "use_gitignore": True,
-        }
-        config = AntipastaConfig(**config_dict)
+            ignore_patterns=[],
+            use_gitignore=True,
+        )
+    # config = AntipastaConfig(**config_dict)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "test.yaml"
@@ -441,14 +437,16 @@ class TestInteractiveEdgeCases:
         """Test handling keyboard interrupt during prompts."""
         mock_prompt.side_effect = KeyboardInterrupt()
 
-        result = self.runner.invoke(generate_config)
+        result = self.runner.invoke(generate)
 
         # Should exit gracefully
         assert result.exit_code != 0
 
     @patch("click.confirm")
     @patch("click.prompt")
-    def test_validation_error_in_config(self, mock_prompt: MagicMock, mock_confirm: MagicMock) -> None:
+    def test_validation_error_in_config(
+        self, mock_prompt: MagicMock, mock_confirm: MagicMock
+    ) -> None:
         """Test handling validation errors when creating config."""
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "test.yaml"
@@ -463,17 +461,14 @@ class TestInteractiveEdgeCases:
 
             mock_confirm.side_effect = [
                 False,  # no advanced
-                True,   # Python
+                True,  # Python
                 False,  # no JS
-                True,   # gitignore
+                True,  # gitignore
                 False,  # no test defaults
             ]
 
             with patch("click.echo"):
-                result = self.runner.invoke(
-                    generate_config,
-                    ["--output", str(output_path)]
-                )
+                result = self.runner.invoke(generate, ["--output", str(output_path)])
 
             # Should handle the validation gracefully
             # The validator should catch this before config creation

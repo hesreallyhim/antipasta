@@ -3,7 +3,6 @@
 import pytest
 
 from antipasta.core.config_override import ConfigOverride
-from antipasta.core.metrics import MetricType
 
 
 class TestConfigOverride:
