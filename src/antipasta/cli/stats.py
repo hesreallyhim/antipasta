@@ -10,6 +10,7 @@ import click
 
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
+from antipasta.core.config_override import ConfigOverride
 from antipasta.core.metrics import MetricType
 
 # Metric prefix mappings for easier UX
@@ -130,6 +131,31 @@ def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
     type=click.Path(file_okay=True, dir_okay=True, path_type=Path),
     help="Output file or directory (for 'all' format)",
 )
+@click.option(
+    "--include-pattern",
+    "-i",
+    multiple=True,
+    help=(
+        "Force include files matching pattern (overrides ignore patterns, "
+        "can be specified multiple times)"
+    ),
+)
+@click.option(
+    "--exclude-pattern",
+    "-e",
+    multiple=True,
+    help="Add additional exclusion patterns (can be specified multiple times)",
+)
+@click.option(
+    "--no-gitignore",
+    is_flag=True,
+    help="Disable .gitignore usage for this run",
+)
+@click.option(
+    "--force-analyze",
+    is_flag=True,
+    help="Analyze all files, ignoring all exclusions",
+)
 def stats(
     pattern: tuple[str, ...],
     directory: Path,
@@ -140,6 +166,10 @@ def stats(
     metric: tuple[str, ...],
     format: str,
     output: Path | None,
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    no_gitignore: bool,
+    force_analyze: bool,
 ) -> None:
     """Collect and display code metrics statistics.
 
@@ -181,15 +211,39 @@ def stats(
     # Load config (use defaults)
     config = AntipastaConfig.generate_default()
 
+    # Apply overrides if any are specified
+    override = ConfigOverride(
+        include_patterns=list(include_pattern),
+        exclude_patterns=list(exclude_pattern),
+        disable_gitignore=no_gitignore,
+        force_analyze=force_analyze,
+    )
+
+    # Apply overrides to configuration
+    if override.has_overrides():
+        config = config.apply_overrides(override)
+        if force_analyze:
+            click.echo("Force analyzing all files (ignoring exclusions)...")
+        elif include_pattern:
+            click.echo(f"Including patterns: {', '.join(include_pattern)}")
+        if exclude_pattern:
+            click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
+        if no_gitignore:
+            click.echo("Ignoring .gitignore patterns")
+
     # Create aggregator and detector to preview what will be analyzed
     aggregator = MetricAggregator(config)
 
     # Group files by language to see what will actually be analyzed
     from antipasta.core.detector import LanguageDetector
 
-    detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
+    detector = LanguageDetector(
+        ignore_patterns=config.ignore_patterns,
+        include_patterns=override.include_patterns if override else [],
+        base_dir=directory
+    )
     if config.use_gitignore:
-        gitignore_path = Path(".gitignore")
+        gitignore_path = directory / ".gitignore"
         if gitignore_path.exists():
             detector.add_gitignore(gitignore_path)
 
@@ -491,7 +545,7 @@ def _collect_directory_stats(
 
         # Apply truncation for relative and parent styles (NOT for full)
         if path_style != "full" and len(display_path) > 30:
-            display_path = "..." + display_path[-(30 - 3) :]
+            display_path = "..." + display_path[-(30 - 3):]
 
         # Remove duplicate counts (a file might be counted multiple times in aggregation)
         unique_files = list({id(f): f for f in data["all_files"]}.values())
@@ -748,7 +802,7 @@ def _truncate_path(path: str, max_length: int) -> str:
     """Truncate long paths for display."""
     if len(path) <= max_length:
         return path
-    return "..." + path[-(max_length - 3) :]
+    return "..." + path[-(max_length - 3):]
 
 
 def _display_json(stats_data: dict[str, Any]) -> None:
