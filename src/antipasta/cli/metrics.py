@@ -9,6 +9,7 @@ import click
 
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
+from antipasta.core.config_override import ConfigOverride
 from antipasta.core.detector import LanguageDetector
 from antipasta.core.violations import FileReport
 
@@ -46,8 +47,48 @@ from antipasta.core.violations import FileReport
     default="text",
     help="Output format (text or json)",
 )
+@click.option(
+    "--include-pattern",
+    "-i",
+    multiple=True,
+    help=(
+        "Force include files matching pattern (overrides ignore patterns, "
+        "can be specified multiple times"
+    ),
+)
+@click.option(
+    "--exclude-pattern",
+    "-e",
+    multiple=True,
+    help="Add additional exclusion patterns (can be specified multiple times)",
+)
+@click.option(
+    "--threshold",
+    "-t",
+    multiple=True,
+    help="Override metric thresholds (format: metric_type=value, e.g., cyclomatic_complexity=15)",
+)
+@click.option(
+    "--no-gitignore",
+    is_flag=True,
+    help="Disable .gitignore usage for this run",
+)
+@click.option(
+    "--force-analyze",
+    is_flag=True,
+    help="Analyze all files, ignoring all exclusions",
+)
 def metrics(
-    config: Path, files: tuple[Path, ...], directory: Path | None, quiet: bool, format: str
+    config: Path,
+    files: tuple[Path, ...],
+    directory: Path | None,
+    quiet: bool,
+    format: str,
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    threshold: tuple[str, ...],
+    no_gitignore: bool,
+    force_analyze: bool,
 ) -> None:
     """Analyze code metrics for specified files.
 
@@ -58,14 +99,45 @@ def metrics(
     # Load configuration
     cfg = _load_configuration(config, quiet)
 
+    # Apply overrides if any are specified
+    override = ConfigOverride(
+        include_patterns=list(include_pattern),
+        exclude_patterns=list(exclude_pattern),
+        disable_gitignore=no_gitignore,
+        force_analyze=force_analyze,
+    )
+
+    # Parse threshold overrides
+    for threshold_str in threshold:
+        try:
+            override.parse_threshold_string(threshold_str)
+        except ValueError as e:
+            click.echo(f"Error parsing threshold override: {e}", err=True)
+            sys.exit(1)
+
+    # Apply overrides to configuration
+    if override.has_overrides():
+        cfg = cfg.apply_overrides(override)
+        if not quiet:
+            if force_analyze:
+                click.echo("Force analyzing all files (ignoring exclusions)...")
+            elif include_pattern:
+                click.echo(f"Including patterns: {', '.join(include_pattern)}")
+            if exclude_pattern:
+                click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
+            if threshold:
+                click.echo(f"Threshold overrides: {', '.join(threshold)}")
+            if no_gitignore:
+                click.echo("Ignoring .gitignore patterns")
+
     # Collect files to analyze
-    file_paths = _collect_files(files, directory, cfg)
+    file_paths = _collect_files(files, directory, cfg, override)
 
     # If no files or directory specified, default to current directory
     if not file_paths and not files and not directory:
         if not quiet:
             click.echo("No files or directory specified, analyzing current directory...")
-        file_paths = _collect_files((), Path.cwd(), cfg)
+        file_paths = _collect_files((), Path.cwd(), cfg, override)
 
     if not file_paths:
         click.echo("No files found to analyze", err=True)
@@ -149,11 +221,19 @@ def _load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
 
 
 def _collect_files(
-    files: tuple[Path, ...], directory: Path | None, config: AntipastaConfig
+    files: tuple[Path, ...],
+    directory: Path | None,
+    config: AntipastaConfig,
+    override: ConfigOverride | None,
 ) -> list[Path]:
-    """Collect all files to analyze, respecting gitignore patterns."""
-    # Create a detector with config's ignore patterns
-    detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
+    """Collect all files to analyze, respecting gitignore patterns and overrides."""
+    # Create a detector with config's ignore patterns and override include patterns
+    detector = LanguageDetector(
+        ignore_patterns=config.ignore_patterns,
+        include_patterns=(
+            override.include_patterns if override and override.include_patterns else []
+        ),
+    )
 
     # Load .gitignore if enabled
     if config.use_gitignore:

@@ -38,23 +38,33 @@ EXTENSION_MAP = {
 class LanguageDetector:
     """Detects programming language from file paths and respects .gitignore."""
 
-    def __init__(self, ignore_patterns: list[str] | None = None) -> None:
-        """Initialize the detector with optional ignore patterns.
+    def __init__(self, ignore_patterns: list[str] | None = None, include_patterns: list[str] | None = None) -> None:
+        """Initialize the detector with optional ignore and include patterns.
 
         Args:
             ignore_patterns: List of gitignore-style patterns to exclude files
+            include_patterns: List of gitignore-style patterns to force-include files (overrides ignore patterns)
         """
         self.ignore_patterns = ignore_patterns or []
+        self.include_patterns = include_patterns or []
         self._pathspec: pathspec.PathSpec | None = None
+        self._include_spec: pathspec.PathSpec | None = None
         self._gitignore_patterns: list[str] = []  # Track patterns from .gitignore
 
     @property
     def pathspec(self) -> pathspec.PathSpec:
-        """Get or create the pathspec instance."""
+        """Get or create the pathspec instance for ignore patterns."""
         if self._pathspec is None:
             all_patterns = self.ignore_patterns + self._gitignore_patterns
             self._pathspec = pathspec.PathSpec.from_lines("gitwildmatch", all_patterns)
         return self._pathspec
+
+    @property
+    def include_spec(self) -> pathspec.PathSpec | None:
+        """Get or create the pathspec instance for include patterns."""
+        if self._include_spec is None and self.include_patterns:
+            self._include_spec = pathspec.PathSpec.from_lines("gitwildmatch", self.include_patterns)
+        return self._include_spec
 
     def add_gitignore(self, gitignore_path: Path) -> None:
         """Add patterns from a .gitignore file.
@@ -88,33 +98,36 @@ class LanguageDetector:
     def should_ignore(self, file_path: Path) -> bool:
         """Check if a file should be ignored based on patterns.
 
+        Include patterns take precedence over ignore patterns.
+
         Args:
             file_path: Path to check
 
         Returns:
             True if file should be ignored
         """
-        if not self.ignore_patterns and not self._gitignore_patterns:
-            return False
-
         # Convert to string for matching
         if file_path.is_absolute():
+            # Try to get relative path from current directory first
             try:
-                # Try to get relative path from current directory
-                relative_path = file_path.relative_to(Path.cwd())
-                path_str = str(relative_path)
+                path_str = str(file_path.relative_to(Path.cwd()))
             except ValueError:
-                # Path is outside current directory
-                # Only apply non-gitignore patterns to files outside the project
-                if self.ignore_patterns:
-                    spec = pathspec.PathSpec.from_lines("gitwildmatch", self.ignore_patterns)
-                    # Use just the filename for matching outside project files
-                    return spec.match_file(file_path.name)
-                return False
+                # Path is outside current directory - use just the filename
+                # for patterns like "**/*.py" to work
+                path_str = file_path.name
         else:
             # Already relative, use as is
             path_str = str(file_path)
 
+        # Check include patterns first - they override ignore patterns
+        if self.include_spec and self.include_spec.match_file(path_str):
+            return False  # Force include
+
+        # If no ignore patterns, don't ignore
+        if not self.ignore_patterns and not self._gitignore_patterns:
+            return False
+
+        # Check ignore patterns
         return self.pathspec.match_file(path_str)
 
     def group_by_language(self, file_paths: list[Path]) -> dict[Language, list[Path]]:

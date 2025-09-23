@@ -8,11 +8,15 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from antipasta.core.metrics import MetricType
+
+if TYPE_CHECKING:
+    from antipasta.core.config_override import ConfigOverride
 
 
 class ComparisonOperator(str, Enum):
@@ -122,6 +126,56 @@ class AntipastaConfig(BaseModel):
             if lang_config.name.lower() == language.lower():
                 return lang_config
         return None
+
+    def apply_overrides(self, overrides: ConfigOverride) -> AntipastaConfig:
+        """Apply configuration overrides and return a new config instance.
+
+        Args:
+            overrides: ConfigOverride instance with override settings
+
+        Returns:
+            New AntipastaConfig instance with overrides applied
+        """
+        if not overrides.has_overrides():
+            return self  # No changes needed
+
+        # Convert to dict, apply overrides, and create new instance
+        config_dict = self.model_dump(exclude_none=True, mode="json")
+        modified_dict = overrides.merge_with_config_dict(config_dict)
+        return AntipastaConfig(**modified_dict)
+
+    def with_overrides(
+        self,
+        include_patterns: list[str] | None = None,
+        exclude_patterns: list[str] | None = None,
+        threshold_overrides: dict[str, float] | None = None,
+        disable_gitignore: bool = False,
+        force_analyze: bool = False,
+    ) -> AntipastaConfig:
+        """Create a new config with specified overrides.
+
+        Convenience method that creates a ConfigOverride internally.
+
+        Args:
+            include_patterns: Patterns to force-include
+            exclude_patterns: Additional patterns to exclude
+            threshold_overrides: Metric threshold overrides
+            disable_gitignore: Whether to disable .gitignore
+            force_analyze: Whether to ignore all exclusions
+
+        Returns:
+            New AntipastaConfig instance with overrides applied
+        """
+        from antipasta.core.config_override import ConfigOverride
+
+        override = ConfigOverride(
+            include_patterns=include_patterns or [],
+            exclude_patterns=exclude_patterns or [],
+            threshold_overrides=threshold_overrides or {},
+            disable_gitignore=disable_gitignore,
+            force_analyze=force_analyze,
+        )
+        return self.apply_overrides(override)
 
 
 def _get_default_python_config() -> LanguageConfig:
