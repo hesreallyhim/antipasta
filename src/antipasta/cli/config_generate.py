@@ -1,8 +1,8 @@
 """Configuration generation command for antipasta."""
 
-import sys
 from collections.abc import Callable
 from pathlib import Path
+import sys
 from typing import Any
 
 import click

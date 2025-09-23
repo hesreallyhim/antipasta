@@ -1,15 +1,15 @@
 """View configuration command."""
 
-import json
-import sys
 from collections.abc import Callable
 from functools import partial
+import json
 from pathlib import Path
+import sys
 
 import click
-import yaml
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
+import yaml
 
 from antipasta.core.config import AntipastaConfig, ComparisonOperator
 

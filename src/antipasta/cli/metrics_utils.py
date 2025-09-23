@@ -1,8 +1,8 @@
 """Helper functions for metrics command."""
 
 import json
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 import click
@@ -45,7 +45,7 @@ def collect_files(
 ) -> list[Path]:
     """Collect all files to analyze, respecting gitignore patterns and overrides."""
     # Determine base directory for pattern matching
-    base_dir = directory if directory else Path.cwd()
+    base_dir = directory or Path.cwd()
 
     # Create a detector with config's ignore patterns and override include patterns
     detector = LanguageDetector(

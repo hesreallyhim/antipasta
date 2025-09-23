@@ -87,7 +87,7 @@ def get_metric_help_text(metric_type: str) -> str:
                 return f"{description} (valid: {range_text})"
             return f"Valid range: {range_text}"
 
-        return description if description else f"Metric: {metric_type}"
+        return description or f"Metric: {metric_type}"
 
     return f"Metric: {metric_type}"
 

@@ -18,7 +18,6 @@ from antipasta.cli.stats import stats as stats_cmd
 @click.version_option(version=__version__, prog_name="antipasta")
 def cli() -> None:
     """antipasta: A code quality enforcement tool that analyzes code complexity metrics."""
-    pass
 
 
 # Add main commands

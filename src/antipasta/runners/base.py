@@ -22,7 +22,6 @@ class BaseRunner(ABC):
         Returns:
             FileMetrics object containing all calculated metrics
         """
-        pass
 
     @abstractmethod
     def is_available(self) -> bool:
@@ -31,7 +30,6 @@ class BaseRunner(ABC):
         Returns:
             True if the runner can be used
         """
-        pass
 
     @property
     @abstractmethod
@@ -41,4 +39,3 @@ class BaseRunner(ABC):
         Returns:
             List of MetricType values as strings
         """
-        pass

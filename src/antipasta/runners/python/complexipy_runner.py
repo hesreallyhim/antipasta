@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
+import subprocess
 from typing import Any
 
 from antipasta.core.detector import Language

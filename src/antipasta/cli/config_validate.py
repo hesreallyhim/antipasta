@@ -1,7 +1,7 @@
 """Configuration validation command."""
 
-import sys
 from pathlib import Path
+import sys
 
 import click
 from pydantic import ValidationError

@@ -10,8 +10,8 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import yaml
 from pydantic import BaseModel, Field, field_validator
+import yaml
 
 from antipasta.core.metric_models import (
     CognitiveComplexity,

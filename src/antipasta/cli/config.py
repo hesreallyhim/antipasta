@@ -13,7 +13,6 @@ def config() -> None:
 
     Commands for generating, validating, and viewing antipasta configurations.
     """
-    pass
 
 
 # Add subcommands

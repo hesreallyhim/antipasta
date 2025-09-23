@@ -1,7 +1,7 @@
 """Utility functions for statistics collection and display."""
 
-import statistics
 from pathlib import Path
+import statistics
 from typing import Any
 
 from antipasta.core.metrics import MetricType
@@ -204,7 +204,7 @@ def format_display_path(
         Formatted path string
     """
     if rel_path == Path("."):
-        return common_base.name if common_base.name else "."
+        return common_base.name or "."
 
     if path_style == "parent":
         # Show only immediate parent/name

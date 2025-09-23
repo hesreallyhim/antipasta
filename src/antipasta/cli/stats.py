@@ -1,9 +1,9 @@
 """Statistics command for code metrics analysis."""
 
-import json
-import statistics
 from collections import defaultdict
+import json
 from pathlib import Path
+import statistics
 from typing import Any
 
 import click
@@ -474,7 +474,7 @@ def stats(
         antipasta stats -p "**/*.py" --format all --output ./reports/
     """
     # Use default patterns if none specified
-    patterns_to_use = pattern if pattern else get_default_patterns()
+    patterns_to_use = pattern or get_default_patterns()
 
     # Collect and validate files
     files = collect_files_from_patterns(patterns_to_use, directory)
