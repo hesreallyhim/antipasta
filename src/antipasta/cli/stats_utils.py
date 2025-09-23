@@ -211,17 +211,16 @@ def format_display_path(
         parts = rel_path.parts
         if len(parts) == 1:
             return parts[0]
-        elif len(parts) == 2:
+        if len(parts) == 2:
             # For two parts, show both (parent/child)
             return str(Path(*parts))
-        else:
-            # For deeper paths, show last 2 components
-            return str(Path(*parts[-2:]))
-    elif path_style == "full":
+        # For deeper paths, show last 2 components
+        return str(Path(*parts[-2:]))
+    if path_style == "full":
         # Full path with NO truncation
         return str(rel_path)
-    else:  # relative (default)
-        return str(rel_path)
+    # relative (default)
+    return str(rel_path)
 
 
 def find_common_base_directory(reports: list[Any], base_dir: Path) -> Path:
@@ -258,7 +257,7 @@ def remove_duplicate_files(files: list[Any]) -> list[Any]:
     return list({id(f): f for f in files}.values())
 
 
-def calculate_relative_depth(dir_path: Path, common_base: Path) -> tuple[Path, int]:
+def calculate_relative_depth(dir_path: Path, common_base: Path) -> tuple[Path | None, int]:
     """Calculate the relative path and depth from common base.
 
     Args:
@@ -271,9 +270,8 @@ def calculate_relative_depth(dir_path: Path, common_base: Path) -> tuple[Path, i
     try:
         if dir_path == common_base:
             return Path("."), 0
-        else:
-            rel_path = dir_path.relative_to(common_base)
-            return rel_path, len(rel_path.parts)
+        rel_path = dir_path.relative_to(common_base)
+        return rel_path, len(rel_path.parts)
     except ValueError:
         # Directory is not under common_base
         return None, 0

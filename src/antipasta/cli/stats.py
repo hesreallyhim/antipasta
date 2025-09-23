@@ -11,22 +11,24 @@ import click
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.config_override import ConfigOverride
+from antipasta.core.detector import LanguageDetector
 from antipasta.core.metrics import MetricType
+
 from .stats_utils import (
-    should_collect_loc_metrics,
-    extract_file_loc_from_report,
-    collect_function_names_from_reports,
-    collect_function_complexities_from_reports,
     calculate_file_loc_statistics,
     calculate_function_complexity_statistics,
-    collect_metrics_from_reports,
     calculate_metric_statistics,
-    truncate_path_for_display,
-    format_display_path,
-    find_common_base_directory,
-    remove_duplicate_files,
     calculate_relative_depth,
+    collect_function_complexities_from_reports,
+    collect_function_names_from_reports,
+    collect_metrics_from_reports,
     determine_statistics_grouping_type,
+    extract_file_loc_from_report,
+    find_common_base_directory,
+    format_display_path,
+    remove_duplicate_files,
+    should_collect_loc_metrics,
+    truncate_path_for_display,
 )
 
 # Metric prefix mappings for easier UX
@@ -55,9 +57,7 @@ METRIC_PREFIXES = {
 MAX_DEPTH = 20
 
 
-def collect_files_from_patterns(
-    patterns: tuple[str, ...], directory: Path
-) -> list[Path]:
+def collect_files_from_patterns(patterns: tuple[str, ...], directory: Path) -> list[Path]:
     """Collect files matching the given patterns from the directory.
 
     Args:
@@ -125,9 +125,7 @@ def setup_configuration_with_overrides(
 
     if override.has_overrides():
         config = config.apply_overrides(override)
-        display_override_messages(
-            include_pattern, exclude_pattern, no_gitignore, force_analyze
-        )
+        display_override_messages(include_pattern, exclude_pattern, no_gitignore, force_analyze)
 
     return config, override
 
@@ -158,7 +156,7 @@ def display_override_messages(
 
 def setup_language_detector(
     config: AntipastaConfig, override: ConfigOverride, directory: Path
-) -> 'LanguageDetector':
+) -> "LanguageDetector":
     """Set up language detector with configuration.
 
     Args:
@@ -174,7 +172,7 @@ def setup_language_detector(
     detector = LanguageDetector(
         ignore_patterns=config.ignore_patterns,
         include_patterns=override.include_patterns if override else [],
-        base_dir=directory
+        base_dir=directory,
     )
 
     if config.use_gitignore:
@@ -186,7 +184,7 @@ def setup_language_detector(
 
 
 def analyze_and_display_file_breakdown(
-    files: list[Path], detector: 'LanguageDetector'
+    files: list[Path], detector: "LanguageDetector"
 ) -> tuple[dict[Any, list[Path]], int, int]:
     """Analyze files and display breakdown by language.
 
@@ -293,18 +291,13 @@ def collect_statistics_based_on_grouping(
         Statistics data dictionary
     """
     if by_directory:
-        return _collect_directory_stats(
-            reports, metrics_to_include, directory, depth, path_style
-        )
-    elif by_module:
+        return _collect_directory_stats(reports, metrics_to_include, directory, depth, path_style)
+    if by_module:
         return _collect_module_stats(reports, metrics_to_include)
-    else:
-        return _collect_overall_stats(reports, metrics_to_include)
+    return _collect_overall_stats(reports, metrics_to_include)
 
 
-def handle_output_and_display(
-    stats_data: dict[str, Any], format: str, output: Path | None
-) -> None:
+def handle_output_and_display(stats_data: dict[str, Any], format: str, output: Path | None) -> None:
     """Handle output and display of statistics based on format and output options.
 
     Args:
@@ -517,8 +510,7 @@ def stats(
     else:
         # Collect statistics based on grouping method
         stats_data = collect_statistics_based_on_grouping(
-            reports, metrics_to_include, by_directory, by_module,
-            directory, depth, path_style
+            reports, metrics_to_include, by_directory, by_module, directory, depth, path_style
         )
 
         # Handle output and display
@@ -555,7 +547,9 @@ def _collect_overall_stats(reports: list[Any], metrics_to_include: list[str]) ->
     return stats
 
 
-def _build_directory_tree_structure(reports: list[Any], metrics_to_include: list[str]) -> dict[Path, dict[str, Any]]:
+def _build_directory_tree_structure(
+    reports: list[Any], metrics_to_include: list[str]
+) -> dict[Path, dict[str, Any]]:
     """Build initial directory tree structure from reports.
 
     Args:
