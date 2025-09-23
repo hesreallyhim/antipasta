@@ -97,114 +97,18 @@ def metrics(
 
     For an interactive terminal UI, use 'antipasta tui' instead.
     """
-    # Load configuration
-    cfg = _load_configuration(config, quiet)
-
-    # Apply overrides if any are specified
-    override = ConfigOverride(
-        include_patterns=list(include_pattern),
-        exclude_patterns=list(exclude_pattern),
-        disable_gitignore=no_gitignore,
-        force_analyze=force_analyze,
+    configuration = _prepare_configuration(config, threshold, quiet)
+    override = _create_and_configure_override(
+        include_pattern, exclude_pattern, threshold, no_gitignore, force_analyze
     )
+    final_config = _apply_overrides_to_configuration(configuration, override, quiet,
+                                                    force_analyze, include_pattern,
+                                                    exclude_pattern, threshold, no_gitignore)
 
-    # Parse threshold overrides
-    for threshold_str in threshold:
-        try:
-            override.parse_threshold_string(threshold_str)
-        except ValueError as e:
-            click.echo(f"❌ Error: {format_validation_error_for_cli(e)}", err=True)
-
-            # If it's a range error, show the valid range
-            if '=' in threshold_str:
-                metric_type = threshold_str.split('=')[0].strip()
-                help_text = get_metric_help_text(metric_type)
-                if help_text and metric_type in help_text:
-                    click.echo(f"   ℹ️  {help_text}", err=True)
-
-            sys.exit(1)
-
-    # Apply overrides to configuration
-    if override.has_overrides():
-        cfg = cfg.apply_overrides(override)
-        if not quiet:
-            if force_analyze:
-                click.echo("Force analyzing all files (ignoring exclusions)...")
-            elif include_pattern:
-                click.echo(f"Including patterns: {', '.join(include_pattern)}")
-            if exclude_pattern:
-                click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
-            if threshold:
-                click.echo(f"Threshold overrides: {', '.join(threshold)}")
-            if no_gitignore:
-                click.echo("Ignoring .gitignore patterns")
-
-    # Collect files to analyze
-    file_paths = _collect_files(files, directory, cfg, override)
-
-    # If no files or directory specified, default to current directory
-    if not file_paths and not files and not directory:
-        if not quiet:
-            click.echo("No files or directory specified, analyzing current directory...")
-        file_paths = _collect_files((), Path.cwd(), cfg, override)
-
-    if not file_paths:
-        click.echo("No files found to analyze", err=True)
-        sys.exit(1)
-
-    if not quiet:
-        click.echo(f"Analyzing {len(file_paths)} files...")
-
-    # Analyze files
-    aggregator = MetricAggregator(cfg)
-    reports = aggregator.analyze_files(file_paths)
-
-    # Generate summary
-    summary = aggregator.generate_summary(reports)
-
-    # Print results based on format
-    if format == "json":
-        # Output JSON format
-        output = {
-            "summary": summary,
-            "reports": [
-                {
-                    "file": str(report.file_path),
-                    "language": report.language,
-                    "metrics": [
-                        {
-                            "type": metric.metric_type.value,
-                            "value": metric.value,
-                            "details": metric.details,
-                            "line_number": metric.line_number,
-                            "function_name": metric.function_name,
-                        }
-                        for metric in report.metrics
-                    ],
-                    "violations": [
-                        {
-                            "type": v.metric_type.value,
-                            "message": v.message,
-                            "line_number": v.line_number,
-                            "function": v.function_name,
-                            "value": v.value,
-                            "threshold": v.threshold,
-                            "comparison": v.comparison.value,
-                        }
-                        for v in report.violations
-                    ],
-                }
-                for report in reports
-            ],
-        }
-        click.echo(json.dumps(output, indent=2))
-    else:
-        # Default text format
-        if not quiet or not summary["success"]:
-            _print_results(reports, summary, quiet)
-
-    # Exit with appropriate code
-    sys.exit(0 if summary["success"] else 2)
+    target_files = _determine_files_to_analyze(files, directory, final_config, override, quiet)
+    analysis_results = _execute_analysis(target_files, final_config, quiet)
+    _output_results(analysis_results, format, quiet)
+    _exit_with_appropriate_code(analysis_results["summary"])
 
 
 def _load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
@@ -301,3 +205,226 @@ def _print_results(reports: list[FileReport], summary: dict[str, Any], quiet: bo
         click.echo("\n✗ Code quality check FAILED")
     elif not quiet:
         click.echo("\n✓ Code quality check PASSED")
+
+
+def _prepare_configuration(config: Path, threshold: tuple[str, ...], quiet: bool) -> AntipastaConfig:
+    """Load configuration and apply threshold overrides."""
+    cfg = _load_configuration(config, quiet)
+    return cfg
+
+
+def _handle_threshold_parsing_error(error: ValueError, threshold_str: str) -> None:
+    """Handle threshold parsing errors with helpful messages."""
+    click.echo(f"❌ Error: {format_validation_error_for_cli(error)}", err=True)
+
+    # If it's a range error, show the valid range
+    if '=' in threshold_str:
+        metric_type = threshold_str.split('=')[0].strip()
+        help_text = get_metric_help_text(metric_type)
+        if help_text and metric_type in help_text:
+            click.echo(f"   ℹ️  {help_text}", err=True)
+
+
+def _create_and_configure_override(
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    threshold: tuple[str, ...],
+    no_gitignore: bool,
+    force_analyze: bool,
+) -> ConfigOverride:
+    """Create configuration override object and parse threshold overrides."""
+    override = ConfigOverride(
+        include_patterns=list(include_pattern),
+        exclude_patterns=list(exclude_pattern),
+        disable_gitignore=no_gitignore,
+        force_analyze=force_analyze,
+    )
+
+    _parse_threshold_overrides_into_override(override, threshold)
+    return override
+
+
+def _parse_threshold_overrides_into_override(override: ConfigOverride, threshold: tuple[str, ...]) -> None:
+    """Parse threshold override strings and add them to the override object."""
+    for threshold_str in threshold:
+        try:
+            override.parse_threshold_string(threshold_str)
+        except ValueError as e:
+            _handle_threshold_parsing_error(e, threshold_str)
+            sys.exit(1)
+
+
+def _apply_overrides_to_configuration(
+    cfg: AntipastaConfig,
+    override: ConfigOverride,
+    quiet: bool,
+    force_analyze: bool,
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    threshold: tuple[str, ...],
+    no_gitignore: bool,
+) -> AntipastaConfig:
+    """Apply configuration overrides and display status messages."""
+    if override.has_overrides():
+        cfg = cfg.apply_overrides(override)
+        _display_override_status_messages(
+            quiet, force_analyze, include_pattern, exclude_pattern, threshold, no_gitignore
+        )
+    return cfg
+
+
+def _display_override_status_messages(
+    quiet: bool,
+    force_analyze: bool,
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    threshold: tuple[str, ...],
+    no_gitignore: bool,
+) -> None:
+    """Display status messages about applied configuration overrides."""
+    if quiet:
+        return
+
+    if force_analyze:
+        click.echo("Force analyzing all files (ignoring exclusions)...")
+    elif include_pattern:
+        click.echo(f"Including patterns: {', '.join(include_pattern)}")
+    if exclude_pattern:
+        click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
+    if threshold:
+        click.echo(f"Threshold overrides: {', '.join(threshold)}")
+    if no_gitignore:
+        click.echo("Ignoring .gitignore patterns")
+
+
+def _determine_files_to_analyze(
+    files: tuple[Path, ...],
+    directory: Path | None,
+    cfg: AntipastaConfig,
+    override: ConfigOverride,
+    quiet: bool,
+) -> list[Path]:
+    """Determine which files to analyze based on input parameters."""
+    file_paths = _collect_files(files, directory, cfg, override)
+
+    # If no files or directory specified, default to current directory
+    if not file_paths and not files and not directory:
+        file_paths = _handle_default_directory_analysis(cfg, override, quiet)
+
+    _validate_files_found(file_paths)
+    _display_analysis_status(file_paths, quiet)
+
+    return file_paths
+
+
+def _handle_default_directory_analysis(
+    cfg: AntipastaConfig, override: ConfigOverride, quiet: bool
+) -> list[Path]:
+    """Handle analysis when no specific files or directory are specified."""
+    if not quiet:
+        click.echo("No files or directory specified, analyzing current directory...")
+    return _collect_files((), Path.cwd(), cfg, override)
+
+
+def _validate_files_found(file_paths: list[Path]) -> None:
+    """Validate that files were found for analysis."""
+    if not file_paths:
+        click.echo("No files found to analyze", err=True)
+        sys.exit(1)
+
+
+def _display_analysis_status(file_paths: list[Path], quiet: bool) -> None:
+    """Display status message about files being analyzed."""
+    if not quiet:
+        click.echo(f"Analyzing {len(file_paths)} files...")
+
+
+def _execute_analysis(
+    file_paths: list[Path], cfg: AntipastaConfig, quiet: bool
+) -> dict[str, Any]:
+    """Execute metrics analysis on the specified files."""
+    aggregator = MetricAggregator(cfg)
+    reports = aggregator.analyze_files(file_paths)
+    summary = aggregator.generate_summary(reports)
+
+    return {
+        "reports": reports,
+        "summary": summary,
+    }
+
+
+def _output_results(results: dict[str, Any], format: str, quiet: bool) -> None:
+    """Output analysis results in the specified format."""
+    if format == "json":
+        _output_json_results(results)
+    else:
+        _output_text_results(results, quiet)
+
+
+def _output_json_results(results: dict[str, Any]) -> None:
+    """Output results in JSON format."""
+    reports = results["reports"]
+    summary = results["summary"]
+
+    output = {
+        "summary": summary,
+        "reports": [
+            _format_report_for_json(report)
+            for report in reports
+        ],
+    }
+    click.echo(json.dumps(output, indent=2))
+
+
+def _format_report_for_json(report: FileReport) -> dict[str, Any]:
+    """Format a single file report for JSON output."""
+    return {
+        "file": str(report.file_path),
+        "language": report.language,
+        "metrics": [
+            _format_metric_for_json(metric)
+            for metric in report.metrics
+        ],
+        "violations": [
+            _format_violation_for_json(violation)
+            for violation in report.violations
+        ],
+    }
+
+
+def _format_metric_for_json(metric: Any) -> dict[str, Any]:
+    """Format a single metric for JSON output."""
+    return {
+        "type": metric.metric_type.value,
+        "value": metric.value,
+        "details": metric.details,
+        "line_number": metric.line_number,
+        "function_name": metric.function_name,
+    }
+
+
+def _format_violation_for_json(violation: Any) -> dict[str, Any]:
+    """Format a single violation for JSON output."""
+    return {
+        "type": violation.metric_type.value,
+        "message": violation.message,
+        "line_number": violation.line_number,
+        "function": violation.function_name,
+        "value": violation.value,
+        "threshold": violation.threshold,
+        "comparison": violation.comparison.value,
+    }
+
+
+def _output_text_results(results: dict[str, Any], quiet: bool) -> None:
+    """Output results in text format."""
+    reports = results["reports"]
+    summary = results["summary"]
+
+    if not quiet or not summary["success"]:
+        _print_results(reports, summary, quiet)
+
+
+def _exit_with_appropriate_code(summary: dict[str, Any]) -> None:
+    """Exit with appropriate status code based on analysis results."""
+    sys.exit(0 if summary["success"] else 2)
