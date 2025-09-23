@@ -17,6 +17,10 @@ Complex code is harder to understand, test, and maintain. By enforcing limits on
 -   Identify refactoring opportunities
 -   Reduce technical debt over time
 
+### What makes antipasta different than other code complexity tools like `radon`?
+
+I have no idea, I've never used them - this library is mostly a combination of [radon](https://github.com/rubik/radon) and [complexipy](https://github.com/rohaquinlop/complexipy) with an amazing CLI.
+
 ## Installation
 
 ### From PyPI (Recommended)
@@ -32,7 +36,7 @@ pip install antipasta
 git clone https://github.com/hesreallyhim/antipasta.git
 cd antipasta
 
-# Install with development dependencies
+# Install with development dependencies (automatically creates venv)
 make install-dev
 ```
 
