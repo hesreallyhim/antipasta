@@ -1,7 +1,7 @@
 """Configuration-related helper functions for metrics command."""
 
-import sys
 from pathlib import Path
+import sys
 
 import click
 
@@ -31,9 +31,7 @@ def _load_default_config(config: Path, quiet: bool) -> AntipastaConfig:
     """Load default configuration and show helpful message."""
     if not quiet:
         click.echo(f"Configuration file '{config}' not found.", err=True)
-        click.echo(
-            "Run 'antipasta config generate' to create a configuration file.", err=True
-        )
+        click.echo("Run 'antipasta config generate' to create a configuration file.", err=True)
         click.echo("Using default configuration for now...")
     return AntipastaConfig.generate_default()
 

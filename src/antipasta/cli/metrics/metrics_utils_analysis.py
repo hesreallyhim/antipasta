@@ -1,16 +1,17 @@
 """Analysis workflow helper functions for metrics command."""
 
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 import click
 
-from antipasta.cli.metrics_utils_collection import collect_files
-from antipasta.cli.metrics_utils_output import display_analysis_status
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.config_override import ConfigOverride
+
+from .metrics_utils_collection import collect_files
+from .metrics_utils_output import display_analysis_status
 
 
 def determine_files_to_analyze(

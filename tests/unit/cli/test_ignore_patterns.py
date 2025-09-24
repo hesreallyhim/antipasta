@@ -1,7 +1,7 @@
 """Tests for ignore pattern input in generate-config command."""
 
-import tempfile
 from pathlib import Path
+import tempfile
 
 from click.testing import CliRunner
 

@@ -4,14 +4,14 @@ from pathlib import Path
 
 import click
 
-from antipasta.cli.metrics_utils_analysis import (
+from .metrics_utils_analysis import (
     determine_files_to_analyze,
     execute_analysis,
     exit_with_appropriate_code,
 )
-from antipasta.cli.metrics_utils_config import prepare_configuration
-from antipasta.cli.metrics_utils_output import output_results
-from antipasta.cli.metrics_utils_override import (
+from .metrics_utils_config import prepare_configuration
+from .metrics_utils_output import output_results
+from .metrics_utils_override import (
     apply_overrides_to_configuration,
     create_and_configure_override,
 )

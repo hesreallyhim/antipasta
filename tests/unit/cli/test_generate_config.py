@@ -1,7 +1,7 @@
 """Tests for the generate-config CLI command."""
 
-import tempfile
 from pathlib import Path
+import tempfile
 from unittest.mock import patch
 
 from click.testing import CliRunner

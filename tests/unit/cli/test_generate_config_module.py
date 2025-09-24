@@ -1,13 +1,13 @@
 """Unit tests for the config_generate module."""
 
-from shutil import ignore_patterns
-import tempfile
 from pathlib import Path
+import tempfile
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import click
-import pytest
 from click.testing import CliRunner
+import pytest
 
 from antipasta.cli.config_generate import (
     _create_javascript_config,
@@ -17,9 +17,13 @@ from antipasta.cli.config_generate import (
     prompt_with_validation,
     validate_with_pydantic,
 )
-from antipasta.core.config import AntipastaConfig, ComparisonOperator, DefaultsConfig, LanguageConfig, MetricConfig
-from typing import cast, List
-
+from antipasta.core.config import (
+    AntipastaConfig,
+    ComparisonOperator,
+    DefaultsConfig,
+    LanguageConfig,
+    MetricConfig,
+)
 from antipasta.core.metrics import MetricType
 
 
