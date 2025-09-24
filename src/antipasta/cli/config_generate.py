@@ -205,7 +205,7 @@ def _collect_project_settings() -> dict[str, Any]:
     Returns:
         Dictionary with project settings.
     """
-    settings = {}
+    settings: dict[str, Any] = {}
 
     click.echo("\nProject settings:")
     click.echo("-" * 40)
@@ -359,10 +359,9 @@ def _confirm_file_overwrite(output: Path) -> bool:
     """
     click.echo(f"\nConfiguration will be saved to: {output}")
 
-    if output.exists():
-        if not click.confirm("File already exists. Overwrite?", default=False):
-            click.echo("Aborted.")
-            return False
+    if output.exists() and not click.confirm("File already exists. Overwrite?", default=False):
+        click.echo("Aborted.")
+        return False
 
     return True
 
@@ -455,19 +454,20 @@ def _create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
     Currently not used but kept for future implementation.
     """
     # For JS/TS, we only support cyclomatic and cognitive complexity currently
-    metrics = []
+    metrics: list[dict[str, str]] = []
 
-    metrics.append({
-        "type": "cyclomatic_complexity",
-        "threshold": defaults["max_cyclomatic_complexity"],
-        "comparison": "<=",
-    })
-
-    metrics.append({
-        "type": "cognitive_complexity",
-        "threshold": defaults["max_cognitive_complexity"],
-        "comparison": "<=",
-    })
+    metrics.extend((
+        {
+            "type": "cyclomatic_complexity",
+            "threshold": defaults["max_cyclomatic_complexity"],
+            "comparison": "<=",
+        },
+        {
+            "type": "cognitive_complexity",
+            "threshold": defaults["max_cognitive_complexity"],
+            "comparison": "<=",
+        },
+    ))
 
     return {
         "name": "javascript",
@@ -503,7 +503,7 @@ def _generate_yaml_content(data: dict[str, Any]) -> str:
     Returns:
         YAML content as string.
     """
-    yaml_lines = []
+    yaml_lines: list[str] = []
 
     # Add header comments
     _add_header_comments(yaml_lines)
@@ -549,15 +549,15 @@ def _add_defaults_section(lines: list[str], defaults: dict[str, Any]) -> None:
     ])
 
     # Basic metrics
-    lines.append(f"  max_cyclomatic_complexity: {defaults.get('max_cyclomatic_complexity', 10)}")
-    lines.append(f"  max_cognitive_complexity: {defaults.get('max_cognitive_complexity', 15)}")
-    lines.append(f"  min_maintainability_index: {defaults.get('min_maintainability_index', 50)}")
+    lines.extend(f"  max_cyclomatic_complexity: {defaults.get('max_cyclomatic_complexity', 10)}")
+    lines.extend(f"  max_cognitive_complexity: {defaults.get('max_cognitive_complexity', 15)}")
+    lines.extend(f"  min_maintainability_index: {defaults.get('min_maintainability_index', 50)}")
 
     # Halstead metrics
-    lines.append("  # Halstead metrics (advanced)")
-    lines.append(f"  max_halstead_volume: {defaults.get('max_halstead_volume', 1000)}")
-    lines.append(f"  max_halstead_difficulty: {defaults.get('max_halstead_difficulty', 10)}")
-    lines.append(f"  max_halstead_effort: {defaults.get('max_halstead_effort', 10000)}")
+    lines.extend("  # Halstead metrics (advanced)")
+    lines.extend(f"  max_halstead_volume: {defaults.get('max_halstead_volume', 1000)}")
+    lines.extend(f"  max_halstead_difficulty: {defaults.get('max_halstead_difficulty', 10)}")
+    lines.extend(f"  max_halstead_effort: {defaults.get('max_halstead_effort', 10000)}")
 
 
 def _add_languages_section(lines: list[str], languages: list[dict[str, Any]]) -> None:
@@ -596,9 +596,11 @@ def _add_language_entry(lines: list[str], lang: dict[str, Any]) -> None:
     lines.append("    metrics:")
     metrics = lang.get("metrics", [])
     for i, metric in enumerate(metrics):
-        lines.append(f"      - type: {metric['type']}")
-        lines.append(f"        threshold: {metric['threshold']}")
-        lines.append(f'        comparison: "{metric["comparison"]}"')
+        lines.extend((
+            f"      - type: {metric['type']}",
+            f"        threshold: {metric['threshold']}",
+            f'        comparison: "{metric["comparison"]}"',
+        ))
         # Add spacing between metrics except for the last one
         if i < len(metrics) - 1:
             lines.append("")
@@ -649,8 +651,7 @@ def _write_config_file(output: Path, content: str) -> None:
         SystemExit: If file writing fails.
     """
     try:
-        with open(output, "w") as f:
-            f.write(content)
+        Path(output).write_text(content)
 
         click.echo(f"✅ Configuration saved to {output}")
         click.echo(f"\nRun 'antipasta config validate {output}' to verify.")
