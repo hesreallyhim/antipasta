@@ -146,10 +146,13 @@ def display_override_messages(
     """
     if force_analyze:
         click.echo("Force analyzing all files (ignoring exclusions)...")
+        # Don't show include patterns if force analyzing
     elif include_pattern:
         click.echo(f"Including patterns: {', '.join(include_pattern)}")
+
     if exclude_pattern:
         click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
+
     if no_gitignore:
         click.echo("Ignoring .gitignore patterns")
 
@@ -196,22 +199,75 @@ def analyze_and_display_file_breakdown(
         Tuple of (files_by_language, analyzable_files_count, ignored_files_count)
     """
     files_by_language = detector.group_by_language(files)
+    analyzable_files = _count_analyzable_files(files_by_language)
+    ignored_files = _count_ignored_files(files, files_by_language)
 
-    # Count analyzable files (currently only Python is supported)
-    analyzable_files = sum(
-        len(f) for lang, f in files_by_language.items() if lang.value == "python"
-    )
-    ignored_files = len(files) - sum(len(f) for f in files_by_language.values())
-
-    # Show file breakdown
-    click.echo(f"Found {len(files)} files matching patterns")
-    if ignored_files > 0:
-        click.echo(f"  - {ignored_files} ignored (matching .gitignore or ignore patterns)")
-    for lang, lang_files in files_by_language.items():
-        status = "✓" if lang.value == "python" else "✗ (not supported)"
-        click.echo(f"  - {len(lang_files)} {lang.value} files {status}")
+    _display_file_breakdown(files, files_by_language, ignored_files)
 
     return files_by_language, analyzable_files, ignored_files
+
+
+def _count_analyzable_files(files_by_language: dict[Any, list[Path]]) -> int:
+    """Count files that can be analyzed (currently only Python).
+
+    Args:
+        files_by_language: Files grouped by language
+
+    Returns:
+        Number of analyzable files
+    """
+    return sum(
+        len(files) for lang, files in files_by_language.items()
+        if lang.value == "python"
+    )
+
+
+def _count_ignored_files(
+    all_files: list[Path], files_by_language: dict[Any, list[Path]]
+) -> int:
+    """Count files that were ignored.
+
+    Args:
+        all_files: All files found
+        files_by_language: Files grouped by language
+
+    Returns:
+        Number of ignored files
+    """
+    total_grouped = sum(len(files) for files in files_by_language.values())
+    return len(all_files) - total_grouped
+
+
+def _display_file_breakdown(
+    files: list[Path], files_by_language: dict[Any, list[Path]], ignored_files: int
+) -> None:
+    """Display the file breakdown information.
+
+    Args:
+        files: All files found
+        files_by_language: Files grouped by language
+        ignored_files: Number of ignored files
+    """
+    click.echo(f"Found {len(files)} files matching patterns")
+
+    if ignored_files > 0:
+        click.echo(f"  - {ignored_files} ignored (matching .gitignore or ignore patterns)")
+
+    for lang, lang_files in files_by_language.items():
+        status = _get_language_support_status(lang.value)
+        click.echo(f"  - {len(lang_files)} {lang.value} files {status}")
+
+
+def _get_language_support_status(language: str) -> str:
+    """Get the support status display string for a language.
+
+    Args:
+        language: Language name
+
+    Returns:
+        Status display string
+    """
+    return "✓" if language == "python" else "✗ (not supported)"
 
 
 def validate_analyzable_files(analyzable_files: int) -> bool:
@@ -329,27 +385,59 @@ def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
     metrics_to_include = []
 
     for arg in metric_args:
-        # Check if it's a known prefix
-        if arg in METRIC_PREFIXES:
-            # Add all metrics for this prefix
-            for metric_type in METRIC_PREFIXES[arg]:
-                if metric_type.value not in metrics_to_include:
-                    metrics_to_include.append(metric_type.value)
+        parsed_metrics = _parse_single_metric_arg(arg)
+        if parsed_metrics:
+            _add_unique_metrics(metrics_to_include, parsed_metrics)
         else:
-            # Try to interpret as a full metric name
-            try:
-                metric_type = MetricType(arg)
-                if metric_type.value not in metrics_to_include:
-                    metrics_to_include.append(metric_type.value)
-            except ValueError:
-                # Unknown metric, show warning but continue
-                click.echo(
-                    f"Warning: Unknown metric '{arg}'. "
-                    f"Available prefixes: {', '.join(METRIC_PREFIXES.keys())}",
-                    err=True,
-                )
+            _warn_unknown_metric(arg)
 
     return metrics_to_include
+
+
+def _parse_single_metric_arg(arg: str) -> list[str]:
+    """Parse a single metric argument into metric values.
+
+    Args:
+        arg: Metric argument (prefix or full name)
+
+    Returns:
+        List of metric values, or empty list if unknown
+    """
+    # Check if it's a known prefix
+    if arg in METRIC_PREFIXES:
+        return [metric_type.value for metric_type in METRIC_PREFIXES[arg]]
+
+    # Try to interpret as a full metric name
+    try:
+        metric_type = MetricType(arg)
+        return [metric_type.value]
+    except ValueError:
+        return []
+
+
+def _add_unique_metrics(target_list: list[str], new_metrics: list[str]) -> None:
+    """Add metrics to target list if not already present.
+
+    Args:
+        target_list: List to add metrics to (modified in place)
+        new_metrics: Metrics to add
+    """
+    for metric in new_metrics:
+        if metric not in target_list:
+            target_list.append(metric)
+
+
+def _warn_unknown_metric(arg: str) -> None:
+    """Display warning for unknown metric argument.
+
+    Args:
+        arg: Unknown metric argument
+    """
+    click.echo(
+        f"Warning: Unknown metric '{arg}'. "
+        f"Available prefixes: {', '.join(METRIC_PREFIXES.keys())}",
+        err=True,
+    )
 
 
 @click.command()
@@ -473,47 +561,136 @@ def stats(
         # Generate ALL formats at once (9 files from 1 analysis!)
         antipasta stats -p "**/*.py" --format all --output ./reports/
     """
-    # Use default patterns if none specified
-    patterns_to_use = pattern or get_default_patterns()
-
-    # Collect and validate files
-    files = collect_files_from_patterns(patterns_to_use, directory)
-    if not validate_files_found(files):
+    # Phase 1: File collection and validation
+    files = _collect_and_validate_files(pattern, directory)
+    if not files:
         return
 
-    # Set up configuration with overrides
+    # Phase 2: Configuration and setup
+    config, override, aggregator, detector = _setup_analysis_environment(
+        include_pattern, exclude_pattern, no_gitignore, force_analyze, directory
+    )
+
+    # Phase 3: File analysis and filtering
+    analyzable_files, reports = _analyze_files_with_validation(
+        files, detector, aggregator
+    )
+    if not reports:
+        return
+
+    # Phase 4: Generate output
+    _generate_output(
+        reports, metric, format, output,
+        by_directory, by_module, directory, depth, path_style
+    )
+
+
+def _collect_and_validate_files(pattern: tuple[str, ...], directory: Path) -> list[Path] | None:
+    """Collect files and validate they exist.
+
+    Args:
+        pattern: File patterns to search for
+        directory: Base directory to search in
+
+    Returns:
+        List of files if found, None if validation fails
+    """
+    patterns_to_use = pattern or get_default_patterns()
+    files = collect_files_from_patterns(patterns_to_use, directory)
+
+    if not validate_files_found(files):
+        return None
+
+    return files
+
+
+def _setup_analysis_environment(
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    no_gitignore: bool,
+    force_analyze: bool,
+    directory: Path,
+) -> tuple[AntipastaConfig, ConfigOverride, MetricAggregator, LanguageDetector]:
+    """Set up the analysis environment with configuration and tools.
+
+    Args:
+        include_pattern: Include patterns from command line
+        exclude_pattern: Exclude patterns from command line
+        no_gitignore: Whether to disable gitignore
+        force_analyze: Whether to force analyze all files
+        directory: Base directory
+
+    Returns:
+        Tuple of (config, override, aggregator, detector)
+    """
     config, override = setup_configuration_with_overrides(
         include_pattern, exclude_pattern, no_gitignore, force_analyze
     )
 
-    # Set up language detection and file analysis
     aggregator = MetricAggregator(config)
     detector = setup_language_detector(config, override, directory)
 
-    # Analyze files and display breakdown
+    return config, override, aggregator, detector
+
+
+def _analyze_files_with_validation(
+    files: list[Path],
+    detector: LanguageDetector,
+    aggregator: MetricAggregator,
+) -> tuple[int, list[Any] | None]:
+    """Analyze files and validate results.
+
+    Args:
+        files: Files to analyze
+        detector: Language detector
+        aggregator: Metric aggregator
+
+    Returns:
+        Tuple of (analyzable_files_count, reports) or (0, None) if validation fails
+    """
     files_by_language, analyzable_files, ignored_files = analyze_and_display_file_breakdown(
         files, detector
     )
 
     if not validate_analyzable_files(analyzable_files):
-        return
+        return 0, None
 
-    # Perform analysis
     reports = perform_analysis_with_feedback(aggregator, files, analyzable_files)
+    return analyzable_files, reports
 
-    # Get metrics to include
+
+def _generate_output(
+    reports: list[Any],
+    metric: tuple[str, ...],
+    format: str,
+    output: Path | None,
+    by_directory: bool,
+    by_module: bool,
+    directory: Path,
+    depth: int,
+    path_style: str,
+) -> None:
+    """Generate the requested output format.
+
+    Args:
+        reports: Analysis reports
+        metric: Metrics to include
+        format: Output format
+        output: Output path
+        by_directory: Group by directory
+        by_module: Group by module
+        directory: Base directory
+        depth: Directory depth
+        path_style: Path display style
+    """
     metrics_to_include = get_metrics_to_include(metric)
 
-    # Handle 'all' format - generate all reports
     if format == "all":
         _generate_all_reports(reports, metrics_to_include, output or Path("."))
     else:
-        # Collect statistics based on grouping method
         stats_data = collect_statistics_based_on_grouping(
             reports, metrics_to_include, by_directory, by_module, directory, depth, path_style
         )
-
-        # Handle output and display
         handle_output_and_display(stats_data, format, output)
 
 
@@ -587,31 +764,75 @@ def _aggregate_directory_tree_upward(dir_stats: dict[Path, dict[str, Any]]) -> N
     Args:
         dir_stats: Directory statistics to aggregate (modified in-place)
     """
-    all_dirs = sorted(dir_stats.keys(), key=lambda p: len(p.parts), reverse=True)
-    for dir_path in all_dirs:
-        current = dir_path
-        while current != current.parent:
-            parent = current.parent
-            if parent not in dir_stats:
-                dir_stats[parent] = {
-                    "direct_files": [],
-                    "all_files": [],
-                    "function_names": set(),
-                    "metrics": defaultdict(list),
-                }
+    # Process directories from deepest to shallowest
+    sorted_dirs = sorted(dir_stats.keys(), key=lambda p: len(p.parts), reverse=True)
 
-            # Add all files from child to parent's aggregated list
-            dir_stats[parent]["all_files"].extend(dir_stats[dir_path]["direct_files"])
-            dir_stats[parent]["function_names"].update(dir_stats[dir_path]["function_names"])
+    for dir_path in sorted_dirs:
+        _propagate_stats_to_parents(dir_stats, dir_path)
 
-            # Aggregate metrics
-            for metric_name, values in dir_stats[dir_path]["metrics"].items():
-                dir_stats[parent]["metrics"][metric_name].extend(values)
+    # Include direct files in all_files for each directory
+    _finalize_all_files(dir_stats)
 
-            current = parent
 
-    # Each directory should also include its own direct files in the all_files list
-    for _dir_path, data in dir_stats.items():
+def _propagate_stats_to_parents(
+    dir_stats: dict[Path, dict[str, Any]], dir_path: Path
+) -> None:
+    """Propagate statistics from a directory to all its parent directories.
+
+    Args:
+        dir_stats: Directory statistics dictionary
+        dir_path: Current directory path to propagate from
+    """
+    current = dir_path
+    while current != current.parent:
+        parent = current.parent
+        _ensure_parent_exists(dir_stats, parent)
+        _aggregate_child_to_parent(dir_stats, parent, dir_path)
+        current = parent
+
+
+def _ensure_parent_exists(dir_stats: dict[Path, dict[str, Any]], parent: Path) -> None:
+    """Ensure parent directory entry exists in stats.
+
+    Args:
+        dir_stats: Directory statistics dictionary
+        parent: Parent directory path
+    """
+    if parent not in dir_stats:
+        dir_stats[parent] = {
+            "direct_files": [],
+            "all_files": [],
+            "function_names": set(),
+            "metrics": defaultdict(list),
+        }
+
+
+def _aggregate_child_to_parent(
+    dir_stats: dict[Path, dict[str, Any]], parent: Path, child: Path
+) -> None:
+    """Aggregate child directory stats to parent.
+
+    Args:
+        dir_stats: Directory statistics dictionary
+        parent: Parent directory path
+        child: Child directory path
+    """
+    # Add files from child to parent's aggregated list
+    dir_stats[parent]["all_files"].extend(dir_stats[child]["direct_files"])
+    dir_stats[parent]["function_names"].update(dir_stats[child]["function_names"])
+
+    # Aggregate metrics
+    for metric_name, values in dir_stats[child]["metrics"].items():
+        dir_stats[parent]["metrics"][metric_name].extend(values)
+
+
+def _finalize_all_files(dir_stats: dict[Path, dict[str, Any]]) -> None:
+    """Add direct files to all_files list for each directory.
+
+    Args:
+        dir_stats: Directory statistics dictionary
+    """
+    for data in dir_stats.values():
         data["all_files"].extend(data["direct_files"])
 
 
@@ -958,43 +1179,98 @@ def _display_overall_statistics(stats_data: dict[str, Any]) -> None:
     Args:
         stats_data: Overall statistics data
     """
+    _display_statistics_header()
+    _display_file_statistics(stats_data.get("files", {}))
+    _display_function_statistics(stats_data.get("functions", {}))
+    _display_additional_metrics(stats_data)
+
+
+def _display_statistics_header() -> None:
+    """Display the statistics header."""
     click.echo("\n" + "=" * 60)
     click.echo("CODE METRICS STATISTICS")
     click.echo("=" * 60 + "\n")
 
-    # File statistics
+
+def _display_file_statistics(file_stats: dict[str, Any]) -> None:
+    """Display file statistics.
+
+    Args:
+        file_stats: File statistics data
+    """
     click.echo("FILE STATISTICS:")
-    click.echo(f"  Total files: {stats_data['files']['count']}")
-    if "total_loc" in stats_data["files"]:
-        click.echo(f"  Total LOC: {stats_data['files']['total_loc']:,}")
-        click.echo(f"  Average LOC per file: {stats_data['files']['avg_loc']:.1f}")
-        click.echo(f"  Min LOC: {stats_data['files']['min_loc']}")
-        click.echo(f"  Max LOC: {stats_data['files']['max_loc']}")
-        if stats_data["files"].get("std_dev", 0) > 0:
-            click.echo(f"  Standard deviation: {stats_data['files']['std_dev']:.1f}")
+    click.echo(f"  Total files: {file_stats.get('count', 0)}")
 
-    # Function statistics
+    if "total_loc" not in file_stats:
+        return
+
+    click.echo(f"  Total LOC: {file_stats['total_loc']:,}")
+    click.echo(f"  Average LOC per file: {file_stats['avg_loc']:.1f}")
+    click.echo(f"  Min LOC: {file_stats['min_loc']}")
+    click.echo(f"  Max LOC: {file_stats['max_loc']}")
+
+    std_dev = file_stats.get("std_dev", 0)
+    if std_dev > 0:
+        click.echo(f"  Standard deviation: {std_dev:.1f}")
+
+
+def _display_function_statistics(func_stats: dict[str, Any]) -> None:
+    """Display function statistics.
+
+    Args:
+        func_stats: Function statistics data
+    """
     click.echo("\nFUNCTION STATISTICS:")
-    click.echo(f"  Total functions: {stats_data['functions']['count']}")
-    if stats_data["functions"]["count"] > 0:
-        if "avg_complexity" in stats_data["functions"]:
-            click.echo(f"  Average complexity: {stats_data['functions']['avg_complexity']:.1f}")
-            click.echo(f"  Min complexity: {stats_data['functions']['min_complexity']:.1f}")
-            click.echo(f"  Max complexity: {stats_data['functions']['max_complexity']:.1f}")
-        elif "avg_loc" in stats_data["functions"]:
-            # Fallback to LOC if available (for backward compatibility)
-            click.echo(f"  Average LOC per function: {stats_data['functions']['avg_loc']:.1f}")
-            click.echo(f"  Min LOC: {stats_data['functions']['min_loc']}")
-            click.echo(f"  Max LOC: {stats_data['functions']['max_loc']}")
+    click.echo(f"  Total functions: {func_stats.get('count', 0)}")
 
-    # Additional metrics
+    if func_stats.get("count", 0) == 0:
+        return
+
+    # Display complexity metrics if available
+    if "avg_complexity" in func_stats:
+        _display_complexity_metrics(func_stats)
+    elif "avg_loc" in func_stats:
+        _display_function_loc_metrics(func_stats)
+
+
+def _display_complexity_metrics(func_stats: dict[str, Any]) -> None:
+    """Display function complexity metrics.
+
+    Args:
+        func_stats: Function statistics with complexity data
+    """
+    click.echo(f"  Average complexity: {func_stats['avg_complexity']:.1f}")
+    click.echo(f"  Min complexity: {func_stats['min_complexity']:.1f}")
+    click.echo(f"  Max complexity: {func_stats['max_complexity']:.1f}")
+
+
+def _display_function_loc_metrics(func_stats: dict[str, Any]) -> None:
+    """Display function LOC metrics (backward compatibility).
+
+    Args:
+        func_stats: Function statistics with LOC data
+    """
+    click.echo(f"  Average LOC per function: {func_stats['avg_loc']:.1f}")
+    click.echo(f"  Min LOC: {func_stats['min_loc']}")
+    click.echo(f"  Max LOC: {func_stats['max_loc']}")
+
+
+def _display_additional_metrics(stats_data: dict[str, Any]) -> None:
+    """Display additional metrics beyond files and functions.
+
+    Args:
+        stats_data: Overall statistics data
+    """
     for key, value in stats_data.items():
-        if key not in ["files", "functions"] and isinstance(value, dict):
-            click.echo(f"\n{key.upper().replace('_', ' ')} STATISTICS:")
-            click.echo(f"  Count: {value.get('count', 0)}")
-            click.echo(f"  Average: {value.get('avg', 0):.2f}")
-            click.echo(f"  Min: {value.get('min', 0):.2f}")
-            click.echo(f"  Max: {value.get('max', 0):.2f}")
+        if key in ["files", "functions"] or not isinstance(value, dict):
+            continue
+
+        metric_name = key.upper().replace('_', ' ')
+        click.echo(f"\n{metric_name} STATISTICS:")
+        click.echo(f"  Count: {value.get('count', 0)}")
+        click.echo(f"  Average: {value.get('avg', 0):.2f}")
+        click.echo(f"  Min: {value.get('min', 0):.2f}")
+        click.echo(f"  Max: {value.get('max', 0):.2f}")
 
 
 def _display_grouped_statistics(stats_data: dict[str, Any]) -> None:
