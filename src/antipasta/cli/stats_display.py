@@ -12,12 +12,24 @@ from .stats_utils import (
     truncate_path_for_display,
 )
 
+# Display constants
+STATISTICS_SEPARATOR = "=" * 60
+GROUPED_STATISTICS_SEPARATOR = "=" * 80
+DEFAULT_LOCATION_WIDTH = 30
+STANDARD_COLUMN_WIDTHS = [30, 8, 10, 12, 10]
+EXTRA_COLUMN_WIDTH = 15
+
+# CSV constants
+CSV_METRIC_HEADER = "Metric"
+CSV_VALUE_HEADER = "Value"
+CSV_LOCATION_HEADER = "location"
+
 
 def display_statistics_header() -> None:
     """Display the statistics header."""
-    click.echo("\n" + "=" * 60)
+    click.echo("\n" + STATISTICS_SEPARATOR)
     click.echo("CODE METRICS STATISTICS")
-    click.echo("=" * 60 + "\n")
+    click.echo(STATISTICS_SEPARATOR + "\n")
 
 
 def display_file_statistics(file_stats: dict[str, Any]) -> None:
@@ -89,16 +101,34 @@ def display_additional_metrics(stats_data: dict[str, Any]) -> None:
     Args:
         stats_data: Overall statistics data
     """
-    for key, value in stats_data.items():
-        if key in ["files", "functions"] or not isinstance(value, dict):
-            continue
+    additional_metrics = extract_additional_metrics(stats_data)
 
-        metric_name = key.upper().replace('_', ' ')
-        click.echo(f"\n{metric_name} STATISTICS:")
-        click.echo(f"  Count: {value.get('count', 0)}")
-        click.echo(f"  Average: {value.get('avg', 0):.2f}")
-        click.echo(f"  Min: {value.get('min', 0):.2f}")
-        click.echo(f"  Max: {value.get('max', 0):.2f}")
+    for key, value in additional_metrics.items():
+        display_single_metric_section(key, value)
+
+
+def extract_additional_metrics(stats_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Extract additional metrics excluding standard files and functions."""
+    additional_metrics = {}
+    for key, value in stats_data.items():
+        if key not in ["files", "functions"] and isinstance(value, dict):
+            additional_metrics[key] = value
+    return additional_metrics
+
+
+def display_single_metric_section(metric_key: str, metric_data: dict[str, Any]) -> None:
+    """Display a single metric section with formatted header and values."""
+    metric_name = metric_key.upper().replace('_', ' ')
+    click.echo(f"\n{metric_name} STATISTICS:")
+    display_metric_values(metric_data)
+
+
+def display_metric_values(metric_data: dict[str, Any]) -> None:
+    """Display standard metric values (count, average, min, max)."""
+    click.echo(f"  Count: {metric_data.get('count', 0)}")
+    click.echo(f"  Average: {metric_data.get('avg', 0):.2f}")
+    click.echo(f"  Min: {metric_data.get('min', 0):.2f}")
+    click.echo(f"  Max: {metric_data.get('max', 0):.2f}")
 
 
 def display_overall_statistics(stats_data: dict[str, Any]) -> None:
@@ -121,16 +151,20 @@ def display_grouped_statistics(stats_data: dict[str, Any]) -> None:
     """
     display_grouped_statistics_header(stats_data)
     headers = build_grouped_statistics_headers(stats_data)
-    display_table_headers(headers)
-    display_grouped_statistics_rows(stats_data, headers)
+    click.echo(format_table_row(headers))
+    click.echo("-" * sum(len(h) + 3 for h in headers))
+
+    for location, data in sorted(stats_data.items()):
+        row = build_grouped_statistics_row(location, data, headers)
+        click.echo(format_table_row(row))
 
 
 def display_grouped_statistics_header(stats_data: dict[str, Any]) -> None:
     """Display header section for grouped statistics."""
-    click.echo("\n" + "=" * 80)
+    click.echo("\n" + GROUPED_STATISTICS_SEPARATOR)
     grouping_type = determine_statistics_grouping_type(stats_data)
     click.echo(f"CODE METRICS BY {grouping_type}")
-    click.echo("=" * 80 + "\n")
+    click.echo(GROUPED_STATISTICS_SEPARATOR + "\n")
 
 
 def build_grouped_statistics_headers(stats_data: dict[str, Any]) -> list[str]:
@@ -142,7 +176,10 @@ def build_grouped_statistics_headers(stats_data: dict[str, Any]) -> list[str]:
     Returns:
         List of header column names
     """
-    all_keys = collect_all_statistic_keys(stats_data)
+    all_keys = set()
+    for data in stats_data.values():
+        all_keys.update(data.keys())
+
     headers = ["Location", "Files", "Functions"]
 
     add_loc_headers_if_present(headers, stats_data)
@@ -159,11 +196,13 @@ def add_loc_headers_if_present(headers: list[str], stats_data: dict[str, Any]) -
         headers.append("Total LOC")
 
 
+
+
 def add_metric_headers(headers: list[str], all_keys: set[str]) -> None:
     """Add metric headers for average values."""
     for key in sorted(all_keys):
         if is_displayable_average_metric(key):
-            formatted_header = format_metric_header(key)
+            formatted_header = key.replace("avg_", "Avg ").replace("_", " ").title()
             headers.append(formatted_header)
 
 
@@ -172,27 +211,10 @@ def is_displayable_average_metric(key: str) -> bool:
     return key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]
 
 
-def format_metric_header(key: str) -> str:
-    """Format a metric key into a readable header."""
-    return key.replace("avg_", "Avg ").replace("_", " ").title()
 
 
-def display_table_headers(headers: list[str]) -> None:
-    """Display table headers and separator line."""
-    click.echo(format_table_row(headers))
-    click.echo("-" * sum(len(h) + 3 for h in headers))
 
 
-def display_grouped_statistics_rows(stats_data: dict[str, Any], headers: list[str]) -> None:
-    """Display data rows for grouped statistics.
-
-    Args:
-        stats_data: Statistics data to display
-        headers: Table headers for column ordering
-    """
-    for location, data in sorted(stats_data.items()):
-        row = build_grouped_statistics_row(location, data, headers)
-        click.echo(format_table_row(row))
 
 
 def build_grouped_statistics_row(location: str, data: dict[str, Any], headers: list[str]) -> list[str]:
@@ -207,7 +229,7 @@ def build_grouped_statistics_row(location: str, data: dict[str, Any], headers: l
         List of formatted row values
     """
     row = [
-        truncate_path_for_display(location, 30),
+        truncate_path_for_display(location, DEFAULT_LOCATION_WIDTH),
         str(data.get("file_count", 0)),
         str(data.get("function_count", 0)),
     ]
@@ -244,20 +266,27 @@ def display_table(stats_data: dict[str, Any]) -> None:
 
 def format_table_row(values: list[Any]) -> str:
     """Format a row for table display."""
-    # Dynamic widths based on number of columns
-    if len(values) <= 3:
-        widths = [30, 8, 10] + [15] * (len(values) - 3)
-    elif len(values) <= 5:
-        widths = [30, 8, 10, 12, 10] + [15] * (len(values) - 5)
+    num_columns = len(values)
+    if num_columns <= 3:
+        widths = STANDARD_COLUMN_WIDTHS[:3] + [EXTRA_COLUMN_WIDTH] * (num_columns - 3)
+    elif num_columns <= 5:
+        widths = STANDARD_COLUMN_WIDTHS + [EXTRA_COLUMN_WIDTH] * (num_columns - 5)
     else:
-        widths = [30, 8, 10, 12, 10] + [15] * (len(values) - 5)
+        widths = STANDARD_COLUMN_WIDTHS + [EXTRA_COLUMN_WIDTH] * (num_columns - 5)
+
     formatted = []
     for i, value in enumerate(values):
         if i < len(widths):
-            formatted.append(str(value).ljust(widths[i])[: widths[i]])
+            formatted.append(str(value).ljust(widths[i])[:widths[i]])
         else:
             formatted.append(str(value))
     return " ".join(formatted)
+
+
+
+
+
+
 
 
 def display_json(stats_data: dict[str, Any]) -> None:
@@ -280,33 +309,40 @@ def display_csv(stats_data: dict[str, Any]) -> None:
 
 def display_overall_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
     """Display overall statistics as CSV."""
-    writer.writerow(["Metric", "Value"])
-    writer.writerow(["Total Files", stats_data["files"]["count"]])
+    writer.writerow([CSV_METRIC_HEADER, CSV_VALUE_HEADER])
+    write_csv_metric(writer, "Total Files", stats_data["files"]["count"])
 
     display_file_loc_metrics_csv(writer, stats_data)
-    writer.writerow(["Total Functions", stats_data["functions"]["count"]])
+    write_csv_metric(writer, "Total Functions", stats_data["functions"]["count"])
     display_function_complexity_metrics_csv(writer, stats_data)
+
+
+def write_csv_metric(writer: Any, metric_name: str, value: Any) -> None:
+    """Write a single metric row to CSV."""
+    writer.writerow([metric_name, value])
 
 
 def display_file_loc_metrics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
     """Display file LOC metrics in CSV format."""
     if "total_loc" in stats_data["files"]:
-        writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
-        writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
+        write_csv_metric(writer, "Total LOC", stats_data["files"]["total_loc"])
+        write_csv_metric(writer, "Average LOC per File", stats_data["files"]["avg_loc"])
 
 
 def display_function_complexity_metrics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
     """Display function complexity metrics in CSV format."""
     if "avg_complexity" in stats_data["functions"]:
-        writer.writerow([
+        write_csv_metric(
+            writer,
             "Average Function Complexity",
-            stats_data["functions"]["avg_complexity"],
-        ])
+            stats_data["functions"]["avg_complexity"]
+        )
     elif "avg_loc" in stats_data["functions"]:
-        writer.writerow([
+        write_csv_metric(
+            writer,
             "Average LOC per Function",
-            stats_data["functions"]["avg_loc"],
-        ])
+            stats_data["functions"]["avg_loc"]
+        )
 
 
 def display_grouped_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
@@ -314,19 +350,17 @@ def display_grouped_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> N
     if not stats_data:
         return
 
-    all_keys = collect_all_statistic_keys(stats_data)
-    headers = ["location"] + sorted(all_keys)
-    writer.writerow(headers)
-
-    write_grouped_data_rows_csv(writer, stats_data, all_keys)
-
-
-def collect_all_statistic_keys(stats_data: dict[str, Any]) -> set[str]:
-    """Collect all unique keys from grouped statistics data."""
     all_keys = set()
     for data in stats_data.values():
         all_keys.update(data.keys())
-    return all_keys
+
+    headers = [CSV_LOCATION_HEADER] + sorted(all_keys)
+    writer.writerow(headers)
+    write_grouped_data_rows_csv(writer, stats_data, all_keys)
+
+
+
+
 
 
 def write_grouped_data_rows_csv(writer: Any, stats_data: dict[str, Any], all_keys: set[str]) -> None:
