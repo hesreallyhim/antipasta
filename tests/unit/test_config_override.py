@@ -172,10 +172,7 @@ class TestConfigOverride:
     def test_get_effective_ignore_patterns_force_analyze(self) -> None:
         """Test getting effective ignore patterns with force_analyze."""
         base_patterns = ["**/test_*.py", "**/tests/**"]
-        override = ConfigOverride(
-            exclude_patterns=["**/build/**"],
-            force_analyze=True
-        )
+        override = ConfigOverride(exclude_patterns=["**/build/**"], force_analyze=True)
 
         effective = override.get_effective_ignore_patterns(base_patterns)
         assert effective == []  # All patterns ignored when force_analyze is True
@@ -229,9 +226,9 @@ class TestConfigOverride:
                     "metrics": [
                         {"type": "cyclomatic_complexity", "threshold": 10},
                         {"type": "maintainability_index", "threshold": 50},
-                    ]
+                    ],
                 }
-            ]
+            ],
         }
 
         override = ConfigOverride(

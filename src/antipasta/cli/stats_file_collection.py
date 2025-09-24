@@ -148,8 +148,7 @@ def _warn_unknown_metric(arg: str) -> None:
         arg: Unknown metric argument
     """
     click.echo(
-        f"Warning: Unknown metric '{arg}'. "
-        f"Available prefixes: {', '.join(METRIC_PREFIXES.keys())}",
+        f"Warning: Unknown metric '{arg}'. Available prefixes: {', '.join(METRIC_PREFIXES.keys())}",
         err=True,
     )
 

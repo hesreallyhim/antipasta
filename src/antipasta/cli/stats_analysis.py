@@ -41,15 +41,10 @@ def _count_analyzable_files(files_by_language: dict[Any, list[Path]]) -> int:
     Returns:
         Number of analyzable files
     """
-    return sum(
-        len(files) for lang, files in files_by_language.items()
-        if lang.value == "python"
-    )
+    return sum(len(files) for lang, files in files_by_language.items() if lang.value == "python")
 
 
-def _count_ignored_files(
-    all_files: list[Path], files_by_language: dict[Any, list[Path]]
-) -> int:
+def _count_ignored_files(all_files: list[Path], files_by_language: dict[Any, list[Path]]) -> int:
     """Count files that were ignored.
 
     Args:

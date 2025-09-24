@@ -70,9 +70,7 @@ def aggregate_directory_tree_upward(dir_stats: dict[Path, dict[str, Any]]) -> No
     finalize_all_files(dir_stats)
 
 
-def propagate_stats_to_parents(
-    dir_stats: dict[Path, dict[str, Any]], dir_path: Path
-) -> None:
+def propagate_stats_to_parents(dir_stats: dict[Path, dict[str, Any]], dir_path: Path) -> None:
     """Propagate statistics from a directory to all its parent directories.
 
     Args:
@@ -238,9 +236,7 @@ def add_loc_statistics_to_result(result_entry: dict[str, Any], all_files: list[A
     """
     file_locs = extract_file_locs_from_reports(all_files)
 
-    result_entry["avg_file_loc"] = (
-        int(statistics.mean(file_locs)) if file_locs else 0
-    )
+    result_entry["avg_file_loc"] = int(statistics.mean(file_locs)) if file_locs else 0
     result_entry["total_loc"] = sum(file_locs)
 
 

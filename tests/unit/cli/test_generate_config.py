@@ -57,18 +57,16 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "interactive-config.yaml"
 
             # Simulate user input: accept all defaults
-            user_input = "\n".join(
-                [
-                    "10",  # max cyclomatic complexity
-                    "15",  # max cognitive complexity
-                    "50",  # min maintainability index
-                    "n",  # no advanced metrics
-                    "y",  # include Python
-                    "y",  # use gitignore
-                    "y",  # use default test patterns
-                    "",  # no additional patterns (press Enter to continue)
-                ]
-            )
+            user_input = "\n".join([
+                "10",  # max cyclomatic complexity
+                "15",  # max cognitive complexity
+                "50",  # min maintainability index
+                "n",  # no advanced metrics
+                "y",  # include Python
+                "y",  # use gitignore
+                "y",  # use default test patterns
+                "",  # no additional patterns (press Enter to continue)
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -88,23 +86,21 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "custom-config.yaml"
 
             # Simulate user input: custom values
-            user_input = "\n".join(
-                [
-                    "20",  # max cyclomatic complexity
-                    "25",  # max cognitive complexity
-                    "40",  # min maintainability index
-                    "y",  # yes to advanced metrics
-                    "2000",  # max halstead volume
-                    "15",  # max halstead difficulty
-                    "20000",  # max halstead effort
-                    "y",  # include Python
-                    "n",  # don't use gitignore
-                    "n",  # don't use default test patterns
-                    "*.pyc",  # first custom pattern
-                    "__pycache__",  # second custom pattern
-                    "",  # empty to finish patterns
-                ]
-            )
+            user_input = "\n".join([
+                "20",  # max cyclomatic complexity
+                "25",  # max cognitive complexity
+                "40",  # min maintainability index
+                "y",  # yes to advanced metrics
+                "2000",  # max halstead volume
+                "15",  # max halstead difficulty
+                "20000",  # max halstead effort
+                "y",  # include Python
+                "n",  # don't use gitignore
+                "n",  # don't use default test patterns
+                "*.pyc",  # first custom pattern
+                "__pycache__",  # second custom pattern
+                "",  # empty to finish patterns
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -132,19 +128,17 @@ class TestGenerateConfigCommand:
             output_file.write_text("existing content\n")
 
             # Simulate user input: decline overwrite
-            user_input = "\n".join(
-                [
-                    "10",  # max cyclomatic complexity
-                    "15",  # max cognitive complexity
-                    "50",  # min maintainability index
-                    "n",  # no advanced metrics
-                    "y",  # include Python
-                    "y",  # use gitignore
-                    "y",  # use default test patterns
-                    "",  # no additional patterns
-                    "n",  # don't overwrite
-                ]
-            )
+            user_input = "\n".join([
+                "10",  # max cyclomatic complexity
+                "15",  # max cognitive complexity
+                "50",  # min maintainability index
+                "n",  # no advanced metrics
+                "y",  # include Python
+                "y",  # use gitignore
+                "y",  # use default test patterns
+                "",  # no additional patterns
+                "n",  # don't overwrite
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -164,19 +158,17 @@ class TestGenerateConfigCommand:
             output_file.write_text("old content\n")
 
             # Simulate user input: confirm overwrite
-            user_input = "\n".join(
-                [
-                    "10",  # max cyclomatic complexity
-                    "15",  # max cognitive complexity
-                    "50",  # min maintainability index
-                    "n",  # no advanced metrics
-                    "y",  # include Python
-                    "y",  # use gitignore
-                    "y",  # use default test patterns
-                    "",  # no additional patterns
-                    "y",  # yes, overwrite
-                ]
-            )
+            user_input = "\n".join([
+                "10",  # max cyclomatic complexity
+                "15",  # max cognitive complexity
+                "50",  # min maintainability index
+                "n",  # no advanced metrics
+                "y",  # include Python
+                "y",  # use gitignore
+                "y",  # use default test patterns
+                "",  # no additional patterns
+                "y",  # yes, overwrite
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -224,19 +216,17 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "config.yaml"
 
             # Try to configure without Python (to see JS message clearly)
-            user_input = "\n".join(
-                [
-                    "10",  # max cyclomatic complexity
-                    "15",  # max cognitive complexity
-                    "50",  # min maintainability index
-                    "n",  # no advanced metrics
-                    "y",  # yes Python (at least one language needed)
-                    # No JavaScript prompt anymore - just shows "coming soon"
-                    "y",  # use gitignore
-                    "y",  # use default test patterns
-                    "",  # no additional patterns
-                ]
-            )
+            user_input = "\n".join([
+                "10",  # max cyclomatic complexity
+                "15",  # max cognitive complexity
+                "50",  # min maintainability index
+                "n",  # no advanced metrics
+                "y",  # yes Python (at least one language needed)
+                # No JavaScript prompt anymore - just shows "coming soon"
+                "y",  # use gitignore
+                "y",  # use default test patterns
+                "",  # no additional patterns
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -266,21 +256,19 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "test-config.yaml"
 
             # First attempt invalid, then valid values
-            user_input = "\n".join(
-                [
-                    "-5",  # Invalid: negative cyclomatic
-                    "10",  # Valid cyclomatic
-                    "200",  # Invalid: cognitive > 100
-                    "15",  # Valid cognitive
-                    "150",  # Invalid: maintainability > 100
-                    "50",  # Valid maintainability
-                    "n",  # No advanced metrics
-                    "y",  # Include Python
-                    "y",  # Use gitignore
-                    "y",  # Use default test patterns
-                    "",  # No additional patterns
-                ]
-            )
+            user_input = "\n".join([
+                "-5",  # Invalid: negative cyclomatic
+                "10",  # Valid cyclomatic
+                "200",  # Invalid: cognitive > 100
+                "15",  # Valid cognitive
+                "150",  # Invalid: maintainability > 100
+                "50",  # Valid maintainability
+                "n",  # No advanced metrics
+                "y",  # Include Python
+                "y",  # Use gitignore
+                "y",  # Use default test patterns
+                "",  # No additional patterns
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -296,20 +284,18 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "test-ranges.yaml"
 
             # Just provide one invalid input to see the prompts
-            user_input = "\n".join(
-                [
-                    "q",  # Invalid input to trigger error and see range
-                    "10",  # Then valid input
-                    "15",
-                    "50",
-                    "n",
-                    "y",
-                    "n",
-                    "y",
-                    "y",  # Use default test patterns
-                    "",  # No additional patterns
-                ]
-            )
+            user_input = "\n".join([
+                "q",  # Invalid input to trigger error and see range
+                "10",  # Then valid input
+                "15",
+                "50",
+                "n",
+                "y",
+                "n",
+                "y",
+                "y",  # Use default test patterns
+                "",  # No additional patterns
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -324,29 +310,33 @@ class TestGenerateConfigCommand:
             output_file = Path(tmpdir) / "test-halstead.yaml"
 
             # Test invalid Halstead metric values
-            user_input = "\n".join(
-                [
-                    "10",  # Valid cyclomatic
-                    "15",  # Valid cognitive
-                    "50",  # Valid maintainability
-                    "y",  # Yes to advanced metrics
-                    "-100",  # Invalid: negative volume
-                    "1000",  # Valid volume
-                    "0",  # Invalid: difficulty too low
-                    "10",  # Valid difficulty
-                    "-5000",  # Invalid: negative effort
-                    "10000",  # Valid effort
-                    "y",  # Include Python
-                    "y",  # Use gitignore
-                    "y",  # Use default test patterns
-                    "",  # No additional patterns
-                ]
-            )
+            user_input = "\n".join([
+                "10",  # Valid cyclomatic
+                "15",  # Valid cognitive
+                "50",  # Valid maintainability
+                "y",  # Yes to advanced metrics
+                "-100",  # Invalid: negative volume
+                "1000",  # Valid volume
+                "0",  # Invalid: difficulty too low
+                "10",  # Valid difficulty
+                "-5000",  # Invalid: negative effort
+                "10000",  # Valid effort
+                "y",  # Include Python
+                "y",  # Use gitignore
+                "y",  # Use default test patterns
+                "",  # No additional patterns
+            ])
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
-            assert "Range: 0-100000" in result.output or "0.0-100000.0" in result.output  # Volume range
-            assert "Range: 0-100" in result.output or "0.0-100.0" in result.output  # Difficulty range
-            assert "Range: 0-1000000" in result.output or "0.0-1000000.0" in result.output  # Effort range
+            assert (
+                "Range: 0-100000" in result.output or "0.0-100000.0" in result.output
+            )  # Volume range
+            assert (
+                "Range: 0-100" in result.output or "0.0-100.0" in result.output
+            )  # Difficulty range
+            assert (
+                "Range: 0-1000000" in result.output or "0.0-1000000.0" in result.output
+            )  # Effort range
             assert "Invalid input" in result.output
             assert result.exit_code == 0

@@ -13,8 +13,8 @@ The fix ensures that only the filename is used for pattern matching when
 the file is outside the project directory.
 """
 
-import tempfile
 from pathlib import Path
+import tempfile
 
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig

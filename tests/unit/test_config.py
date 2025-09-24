@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from antipasta.core.config import (
     AntipastaConfig,

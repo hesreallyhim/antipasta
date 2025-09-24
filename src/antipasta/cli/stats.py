@@ -144,14 +144,11 @@ def stats(
     )
 
     # Phase 3: File analysis and filtering
-    analyzable_files, reports = analyze_files_with_validation(
-        files, detector, aggregator
-    )
+    analyzable_files, reports = analyze_files_with_validation(files, detector, aggregator)
     if not reports:
         return
 
     # Phase 4: Generate output
     generate_output(
-        reports, metric, format, output,
-        by_directory, by_module, directory, depth, path_style
+        reports, metric, format, output, by_directory, by_module, directory, depth, path_style
     )

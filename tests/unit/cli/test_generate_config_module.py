@@ -360,15 +360,18 @@ class TestSaveConfig:
                 max_cognitive_complexity=10,
                 min_maintainability_index=70,
             ),
-            languages=cast(list[LanguageConfig], [
-                {
-                    "name": "python",
-                    "extensions": [".py"],
-                    "metrics": [
-                        {"type": "cyclomatic_complexity", "threshold": 5, "comparison": "<="}
-                    ],
-                }
-            ]),
+            languages=cast(
+                list[LanguageConfig],
+                [
+                    {
+                        "name": "python",
+                        "extensions": [".py"],
+                        "metrics": [
+                            {"type": "cyclomatic_complexity", "threshold": 5, "comparison": "<="}
+                        ],
+                    }
+                ],
+            ),
             ignore_patterns=["**/tests/**", "**/vendor/**"],
             use_gitignore=False,
         )
@@ -399,7 +402,8 @@ class TestSaveConfig:
 
     def test_save_config_empty_patterns(self) -> None:
         """Test saving config with no ignore patterns."""
-        config = AntipastaConfig(defaults=DefaultsConfig(
+        config = AntipastaConfig(
+            defaults=DefaultsConfig(
                 max_cyclomatic_complexity=10,
                 max_cognitive_complexity=15,
                 min_maintainability_index=50,
@@ -408,17 +412,19 @@ class TestSaveConfig:
                 LanguageConfig(
                     name="python",
                     extensions=[".py"],
-                    metrics=[MetricConfig(
-                        type=MetricType.CYCLOMATIC_COMPLEXITY,
-                        threshold=10,
-                        comparison=ComparisonOperator.LE
-                    )],
+                    metrics=[
+                        MetricConfig(
+                            type=MetricType.CYCLOMATIC_COMPLEXITY,
+                            threshold=10,
+                            comparison=ComparisonOperator.LE,
+                        )
+                    ],
                 )
             ],
             ignore_patterns=[],
             use_gitignore=True,
         )
-    # config = AntipastaConfig(**config_dict)
+        # config = AntipastaConfig(**config_dict)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "test.yaml"

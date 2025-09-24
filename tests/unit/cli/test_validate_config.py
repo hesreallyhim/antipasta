@@ -1,7 +1,7 @@
 """Tests for the validate-config command."""
 
-import tempfile
 from pathlib import Path
+import tempfile
 
 from click.testing import CliRunner
 

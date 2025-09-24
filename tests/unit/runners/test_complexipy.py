@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
+import subprocess
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest

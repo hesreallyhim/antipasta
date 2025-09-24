@@ -1,7 +1,7 @@
 """Tests for the config command group."""
 
-import tempfile
 from pathlib import Path
+import tempfile
 
 from click.testing import CliRunner
 

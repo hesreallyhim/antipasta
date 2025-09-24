@@ -1,4 +1,4 @@
-"""Tests for path display styles."""""
+"""Tests for path display styles.""" ""
 
 from pathlib import Path
 

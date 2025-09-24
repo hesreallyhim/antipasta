@@ -1,8 +1,8 @@
 """Test cases for schema_generator module."""
 
 import json
-import sys
 from pathlib import Path
+import sys
 from unittest.mock import MagicMock, mock_open, patch
 
 from antipasta.utils.schema_generator import generate_config_schema

@@ -1,7 +1,7 @@
 """Test metric models and Pydantic validation."""
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from antipasta.core.metric_models import MetricThresholds
 

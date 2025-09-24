@@ -1,7 +1,7 @@
 """Tests for the metrics CLI command."""
 
-import tempfile
 from pathlib import Path
+import tempfile
 from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner

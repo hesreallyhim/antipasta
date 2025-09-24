@@ -24,11 +24,13 @@ _THRESHOLD_NAMES = {
     "max_halstead_effort": "Halstead Effort",
 }
 
+
 def _display_header(config_path: Path, is_valid: bool) -> None:
     """Display configuration header with path and validation status."""
     click.echo(f"Configuration: {config_path}")
     click.echo(f"Status: {'✅ Valid' if is_valid else '❌ Invalid'}")
     click.echo()
+
 
 def _display_thresholds(config: AntipastaConfig) -> None:
     """Display threshold settings."""
@@ -40,6 +42,7 @@ def _display_thresholds(config: AntipastaConfig) -> None:
             op = "≥" if key.startswith("min_") else "≤"
             click.echo(f"{display_name:<25} {op} {defaults[key]}")
     click.echo()
+
 
 def _display_languages(config: AntipastaConfig) -> None:
     """Display language configurations."""
@@ -56,6 +59,7 @@ def _display_languages(config: AntipastaConfig) -> None:
         click.echo(f"  ✓ {enabled} metrics configured")
         click.echo()
 
+
 def _display_ignore_patterns(config: AntipastaConfig) -> None:
     """Display ignore patterns if configured."""
     if not config.ignore_patterns:
@@ -66,6 +70,7 @@ def _display_ignore_patterns(config: AntipastaConfig) -> None:
         click.echo(f"• {pattern}")
     click.echo()
 
+
 def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) -> None:
     """Display configuration in summary format."""
     _display_header(config_path, is_valid)
@@ -73,6 +78,7 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
     _display_languages(config)
     _display_ignore_patterns(config)
     click.echo(f"Using .gitignore: {'Yes' if config.use_gitignore else 'No'}")
+
 
 def display_table(config: AntipastaConfig) -> None:
     """Display configuration in table format."""
@@ -116,19 +122,23 @@ def display_table(config: AntipastaConfig) -> None:
 
     click.echo(box("╚═╝"))
 
+
 def display_raw(config_path: Path) -> None:
     """Display raw configuration file content."""
     click.echo(Path(config_path).read_text(encoding="utf-8"))
+
 
 def display_json(config: AntipastaConfig) -> None:
     """Display configuration in JSON format."""
     data = config.model_dump(exclude_none=True, mode="json")
     click.echo(json.dumps(data, indent=2))
 
+
 def display_yaml(config: AntipastaConfig) -> None:
     """Display configuration in YAML format."""
     data = config.model_dump(exclude_none=True, mode="json")
     click.echo(yaml.dump(data, default_flow_style=False, sort_keys=False))
+
 
 def _load_config_or_defaults(path: Path) -> tuple[AntipastaConfig, bool, list[ErrorDetails]]:
     """Return (config, is_valid, errors)."""
@@ -140,6 +150,7 @@ def _load_config_or_defaults(path: Path) -> tuple[AntipastaConfig, bool, list[Er
     except Exception as e:
         raise click.ClickException(f"Error loading configuration: {e}") from e
 
+
 def _report_validation(validate: bool, is_valid: bool, errors: list[ErrorDetails]) -> None:
     """Optionally emit validation diagnostics."""
     if not (validate and not is_valid):
@@ -149,6 +160,7 @@ def _report_validation(validate: bool, is_valid: bool, errors: list[ErrorDetails
         loc = " -> ".join(map(str, err.get("loc", ())))
         click.echo(f"  - {loc}: {err.get('msg', 'Invalid value')}", err=True)
 
+
 def _ensure_path_exists(_ctx: click.Context, _param: click.Parameter, value: Path) -> Path:
     if not Path(value).exists():
         raise click.ClickException(
@@ -157,7 +169,10 @@ def _ensure_path_exists(_ctx: click.Context, _param: click.Parameter, value: Pat
         )
     return value
 
-def _get_display_handler(fmt: str, config: AntipastaConfig, path: Path, is_valid: bool) -> Callable[[], None]:
+
+def _get_display_handler(
+    fmt: str, config: AntipastaConfig, path: Path, is_valid: bool
+) -> Callable[[], None]:
     """Get the appropriate display handler for the format."""
     handlers = {
         "summary": partial(display_summary, config, path, is_valid),
@@ -168,6 +183,7 @@ def _get_display_handler(fmt: str, config: AntipastaConfig, path: Path, is_valid
     if fmt.lower() not in handlers:
         raise click.ClickException(f"Unknown format: {fmt}")
     return handlers[fmt.lower()]
+
 
 @click.command()
 @click.option(

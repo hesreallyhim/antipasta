@@ -1,11 +1,11 @@
 """Tests for the config view command."""
 
 import json
-import tempfile
 from pathlib import Path
+import tempfile
 
-import yaml
 from click.testing import CliRunner
+import yaml
 
 from antipasta.cli.config_view import view
 

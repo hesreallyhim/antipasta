@@ -52,16 +52,12 @@ def calculate(x):
                 mock_aggregator.return_value = mock_instance
 
                 # Without override, tests should be ignored
-                result = self.runner.invoke(
-                    stats,
-                    ["-p", "**/*.py", "-d", str(tmpdir)]
-                )
+                result = self.runner.invoke(stats, ["-p", "**/*.py", "-d", str(tmpdir)])
                 # Should only find src files
 
                 # With include pattern, tests should be included
                 result = self.runner.invoke(
-                    stats,
-                    ["-p", "**/*.py", "-d", str(tmpdir), "--include-pattern", "**/tests/**"]
+                    stats, ["-p", "**/*.py", "-d", str(tmpdir), "--include-pattern", "**/tests/**"]
                 )
                 assert result.exit_code == 0
                 assert "Including patterns: **/tests/**" in result.output
@@ -88,7 +84,7 @@ def calculate(x):
                 # Exclude generated directory
                 result = self.runner.invoke(
                     stats,
-                    ["-p", "**/*.py", "-d", str(tmpdir), "--exclude-pattern", "**/generated/**"]
+                    ["-p", "**/*.py", "-d", str(tmpdir), "--exclude-pattern", "**/generated/**"],
                 )
                 assert result.exit_code == 0
                 assert "Additional exclusions: **/generated/**" in result.output
@@ -116,8 +112,7 @@ def calculate(x):
 
                 # With --no-gitignore, should include build directory
                 result = self.runner.invoke(
-                    stats,
-                    ["-p", "**/*.py", "-d", str(tmpdir), "--no-gitignore"]
+                    stats, ["-p", "**/*.py", "-d", str(tmpdir), "--no-gitignore"]
                 )
                 assert result.exit_code == 0
                 assert "Ignoring .gitignore patterns" in result.output
@@ -147,8 +142,7 @@ def calculate(x):
 
                 # Force analyze everything
                 result = self.runner.invoke(
-                    stats,
-                    ["-p", "**/*.py", "-d", str(tmpdir), "--force-analyze"]
+                    stats, ["-p", "**/*.py", "-d", str(tmpdir), "--force-analyze"]
                 )
                 assert result.exit_code == 0
                 assert "Force analyzing all files (ignoring exclusions)" in result.output
@@ -183,12 +177,17 @@ def calculate(x):
                 result = self.runner.invoke(
                     stats,
                     [
-                        "-p", "**/*.py",
-                        "-p", "**/*.js",
-                        "-d", str(tmpdir),
-                        "--include-pattern", "**/tests/**",
-                        "--metric", "loc"
-                    ]
+                        "-p",
+                        "**/*.py",
+                        "-p",
+                        "**/*.js",
+                        "-d",
+                        str(tmpdir),
+                        "--include-pattern",
+                        "**/tests/**",
+                        "--metric",
+                        "loc",
+                    ],
                 )
                 assert result.exit_code == 0
                 assert "Including patterns: **/tests/**" in result.output
@@ -225,13 +224,18 @@ def process():
                 result = self.runner.invoke(
                     stats,
                     [
-                        "-p", "**/*.py",
-                        "-d", str(tmpdir),
+                        "-p",
+                        "**/*.py",
+                        "-d",
+                        str(tmpdir),
                         "--by-directory",
-                        "--depth", "2",
-                        "--include-pattern", "**/tests/**",
-                        "--metric", "cyc"
-                    ]
+                        "--depth",
+                        "2",
+                        "--include-pattern",
+                        "**/tests/**",
+                        "--metric",
+                        "cyc",
+                    ],
                 )
                 assert result.exit_code == 0
 
@@ -258,12 +262,16 @@ def calculate(x, y):
                 result = self.runner.invoke(
                     stats,
                     [
-                        "-p", "**/*.py",
-                        "-d", str(tmpdir),
-                        "--format", "json",
+                        "-p",
+                        "**/*.py",
+                        "-d",
+                        str(tmpdir),
+                        "--format",
+                        "json",
                         "--force-analyze",
-                        "--metric", "all"
-                    ]
+                        "--metric",
+                        "all",
+                    ],
                 )
                 assert result.exit_code == 0
 
@@ -271,12 +279,16 @@ def calculate(x, y):
                 result = self.runner.invoke(
                     stats,
                     [
-                        "-p", "**/*.py",
-                        "-d", str(tmpdir),
-                        "--format", "csv",
+                        "-p",
+                        "**/*.py",
+                        "-d",
+                        str(tmpdir),
+                        "--format",
+                        "csv",
                         "--no-gitignore",
-                        "--metric", "cyc"
-                    ]
+                        "--metric",
+                        "cyc",
+                    ],
                 )
                 assert result.exit_code == 0
 
@@ -284,10 +296,14 @@ def calculate(x, y):
                 result = self.runner.invoke(
                     stats,
                     [
-                        "-p", "**/*.py",
-                        "-d", str(tmpdir),
-                        "--exclude-pattern", "**/build/**",
-                        "--metric", "loc"
-                    ]
+                        "-p",
+                        "**/*.py",
+                        "-d",
+                        str(tmpdir),
+                        "--exclude-pattern",
+                        "**/build/**",
+                        "--metric",
+                        "loc",
+                    ],
                 )
                 assert result.exit_code == 0
