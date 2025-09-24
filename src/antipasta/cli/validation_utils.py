@@ -4,6 +4,8 @@ This module provides helper functions to extract constraint information
 from Pydantic models and format them for CLI help text and error messages.
 """
 
+from typing import Any
+
 from antipasta.core.metric_models import MetricThresholds
 
 
@@ -46,18 +48,18 @@ def get_metric_help_text(metric_type: str) -> str:
     return _format_help_text_with_range(description, range_constraints, metric_type)
 
 
-def _get_metric_schema_properties() -> dict:
+def _get_metric_schema_properties() -> dict[str, Any]:
     """Extract properties from MetricThresholds schema."""
-    schema = MetricThresholds.model_json_schema()
+    schema: dict[str, dict[str, Any]] = MetricThresholds.model_json_schema()
     return schema.get("properties", {})
 
 
-def _is_valid_metric_type(metric_type: str, schema_properties: dict) -> bool:
+def _is_valid_metric_type(metric_type: str, schema_properties: dict[str, Any]) -> bool:
     """Check if metric type exists in schema properties."""
     return metric_type in schema_properties
 
 
-def _resolve_property_schema(prop_schema: dict) -> dict:
+def _resolve_property_schema(prop_schema: dict[str, Any]) -> dict[str, Any]:
     """Resolve anyOf schemas to get the actual property schema.
 
     Handles Optional fields that use anyOf with null type.
@@ -68,7 +70,7 @@ def _resolve_property_schema(prop_schema: dict) -> dict:
     return _extract_non_null_schema_from_any_of(prop_schema["anyOf"])
 
 
-def _extract_non_null_schema_from_any_of(any_of_schemas: list[dict]) -> dict:
+def _extract_non_null_schema_from_any_of(any_of_schemas: list[dict[str, Any]]) -> dict[str, Any]:
     """Find and return the non-null schema from anyOf list."""
     for sub_schema in any_of_schemas:
         if sub_schema.get("type") != "null":
@@ -78,30 +80,30 @@ def _extract_non_null_schema_from_any_of(any_of_schemas: list[dict]) -> dict:
     return any_of_schemas[0] if any_of_schemas else {}
 
 
-def _extract_range_constraints(schema: dict) -> tuple[float | None, float | None]:
+def _extract_range_constraints(schema: dict[str, Any]) -> tuple[float | None, float | None]:
     """Extract minimum and maximum constraints from schema."""
     min_val = _get_minimum_constraint(schema)
     max_val = _get_maximum_constraint(schema)
     return (min_val, max_val)
 
 
-def _get_minimum_constraint(schema: dict) -> float | None:
+def _get_minimum_constraint(schema: dict[str, Any]) -> float | None:
     """Extract minimum constraint, checking both inclusive and exclusive bounds."""
-    min_val = schema.get("minimum")
+    min_val: float | None = schema.get("minimum")
     if min_val is not None:
         return min_val
     return schema.get("exclusiveMinimum")
 
 
-def _get_maximum_constraint(schema: dict) -> float | None:
+def _get_maximum_constraint(schema: dict[str, Any]) -> float | None:
     """Extract maximum constraint, checking both inclusive and exclusive bounds."""
-    max_val = schema.get("maximum")
+    max_val: float | None = schema.get("maximum")
     if max_val is not None:
         return max_val
     return schema.get("exclusiveMaximum")
 
 
-def _extract_description(schema: dict) -> str:
+def _extract_description(schema: dict[str, Any]) -> str:
     """Extract description from schema, removing any existing range information."""
     description = schema.get("description", "")
 
@@ -119,9 +121,7 @@ def _remove_existing_range_from_description(description: str) -> str:
 
 
 def _format_help_text_with_range(
-    description: str,
-    range_constraints: tuple[float | None, float | None],
-    metric_type: str
+    description: str, range_constraints: tuple[float | None, float | None], metric_type: str
 ) -> str:
     """Format help text combining description and range constraints."""
     min_val, max_val = range_constraints

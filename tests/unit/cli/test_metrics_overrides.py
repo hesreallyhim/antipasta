@@ -45,7 +45,7 @@ ignore_patterns:
 """
             )
 
-            with patch("antipasta.cli.metrics_utils.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.cli.metrics_utils_analysis.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_instance.generate_summary.return_value = {
@@ -106,7 +106,7 @@ languages:
 """
                 )
 
-                with patch("antipasta.cli.metrics_utils.MetricAggregator") as mock_aggregator:
+                with patch("antipasta.cli.metrics_utils_analysis.MetricAggregator") as mock_aggregator:
                     mock_instance = MagicMock()
                     mock_instance.analyze_files.return_value = []
                     mock_instance.generate_summary.return_value = {
@@ -163,7 +163,7 @@ languages:
 """
             )
 
-            with patch("antipasta.cli.metrics_utils.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.cli.metrics_utils_analysis.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
 
                 # First call: with strict threshold (should fail)
@@ -251,7 +251,7 @@ use_gitignore: true
 """
             )
 
-            with patch("antipasta.cli.metrics_utils.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.cli.metrics_utils_analysis.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_instance.generate_summary.return_value = {
@@ -312,7 +312,7 @@ ignore_patterns:
 """
                 )
 
-                with patch("antipasta.cli.metrics_utils.MetricAggregator") as mock_aggregator:
+                with patch("antipasta.cli.metrics_utils_analysis.MetricAggregator") as mock_aggregator:
                     mock_instance = MagicMock()
                     mock_instance.analyze_files.return_value = []
                     mock_instance.generate_summary.return_value = {
@@ -374,7 +374,7 @@ use_gitignore: true
 """
             )
 
-            with patch("antipasta.cli.metrics_utils.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.cli.metrics_utils_analysis.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_instance.generate_summary.return_value = {
