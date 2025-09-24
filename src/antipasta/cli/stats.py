@@ -1,22 +1,13 @@
 """Statistics command for code metrics analysis."""
 
 from pathlib import Path
-from typing import Any
 
 import click
 
-from antipasta.core.aggregator import MetricAggregator
-
 from .stats_analysis import analyze_files_with_validation
-from .stats_collection import (
-    collect_directory_stats,
-    collect_module_stats,
-    collect_overall_stats,
-)
 from .stats_config import setup_analysis_environment
 from .stats_file_collection import (
     collect_and_validate_files,
-    get_metrics_to_include,
 )
 from .stats_output import generate_output
 

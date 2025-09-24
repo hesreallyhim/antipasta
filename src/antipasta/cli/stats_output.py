@@ -97,13 +97,13 @@ def save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> No
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
             display_csv(stats_data)
-        with open(output_path, "w") as f:
+        with open(output_path, "w") as f:  # noqa: FURB103
             f.write(buffer.getvalue())
     else:  # table format
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
             display_table(stats_data)
-        with open(output_path, "w") as f:
+        with open(output_path, "w") as f:  # noqa: FURB103
             f.write(buffer.getvalue())
 
 

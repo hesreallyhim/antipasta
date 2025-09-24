@@ -1,11 +1,10 @@
 """Module statistics collection utilities for stats command."""
 
-import statistics
 from collections import defaultdict
+import statistics
 from typing import Any
 
 from .stats_directory import extract_file_locs_from_reports
-from .stats_metrics import add_metric_statistics_to_result
 from .stats_utils import should_collect_loc_metrics
 
 
@@ -118,13 +117,13 @@ def add_module_loc_statistics(result_entry: dict[str, Any], files: list[Any]) ->
     """
     file_locs = extract_file_locs_from_reports(files)
 
-    result_entry["avg_file_loc"] = (
-        int(statistics.mean(file_locs)) if file_locs else 0
-    )
+    result_entry["avg_file_loc"] = int(statistics.mean(file_locs)) if file_locs else 0
     result_entry["total_loc"] = sum(file_locs)
 
 
-def add_module_metric_statistics(result_entry: dict[str, Any], metrics: dict[str, list[Any]]) -> None:
+def add_module_metric_statistics(
+    result_entry: dict[str, Any], metrics: dict[str, list[Any]]
+) -> None:
     """Add metric statistics to module result entry.
 
     Args:

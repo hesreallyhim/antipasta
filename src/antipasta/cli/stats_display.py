@@ -88,7 +88,7 @@ def display_additional_metrics(stats_data: dict[str, Any]) -> None:
     """
     for key, value in stats_data.items():
         if key not in ["files", "functions"] and isinstance(value, dict):
-            metric_name = key.upper().replace('_', ' ')
+            metric_name = key.upper().replace("_", " ")
             click.echo(f"\n{metric_name} STATISTICS:")
             click.echo(f"  Count: {value.get('count', 0)}")
             click.echo(f"  Average: {value.get('avg', 0):.2f}")
@@ -156,7 +156,9 @@ def build_grouped_statistics_headers(stats_data: dict[str, Any]) -> list[str]:
     return headers
 
 
-def build_grouped_statistics_row(location: str, data: dict[str, Any], headers: list[str]) -> list[str]:
+def build_grouped_statistics_row(
+    location: str, data: dict[str, Any], headers: list[str]
+) -> list[str]:
     """Build a single row for grouped statistics display.
 
     Args:
@@ -198,13 +200,14 @@ def display_table(stats_data: dict[str, Any]) -> None:
 def format_table_row(values: list[Any]) -> str:
     """Format a row for table display."""
     num_columns = len(values)
-    widths = STANDARD_COLUMN_WIDTHS[:min(5, num_columns)] + \
-             [EXTRA_COLUMN_WIDTH] * max(0, num_columns - 5)
+    widths = STANDARD_COLUMN_WIDTHS[: min(5, num_columns)] + [EXTRA_COLUMN_WIDTH] * max(
+        0, num_columns - 5
+    )
 
     formatted = []
     for i, value in enumerate(values):
         if i < len(widths):
-            formatted.append(str(value).ljust(widths[i])[:widths[i]])
+            formatted.append(str(value).ljust(widths[i])[: widths[i]])
         else:
             formatted.append(str(value))
     return " ".join(formatted)
@@ -236,7 +239,10 @@ def display_csv(stats_data: dict[str, Any]) -> None:
 
         # Add function complexity or LOC metrics
         if "avg_complexity" in stats_data["functions"]:
-            writer.writerow(["Average Function Complexity", stats_data["functions"]["avg_complexity"]])
+            writer.writerow([
+                "Average Function Complexity",
+                stats_data["functions"]["avg_complexity"],
+            ])
         elif "avg_loc" in stats_data["functions"]:
             writer.writerow(["Average LOC per Function", stats_data["functions"]["avg_loc"]])
     else:

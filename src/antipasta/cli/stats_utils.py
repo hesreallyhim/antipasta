@@ -182,7 +182,7 @@ def truncate_path_for_display(path: str, max_length: int) -> str:
     """
     if len(path) <= max_length:
         return path
-    return "..." + path[-(max_length - 3) :]
+    return "..." + path[-(max_length - 3):]
 
 
 def format_display_path(rel_path: Path, common_base: Path, path_style: str) -> str:

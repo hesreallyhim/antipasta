@@ -1,8 +1,8 @@
 """Directory statistics collection utilities for stats command."""
 
-import statistics
 from collections import defaultdict
 from pathlib import Path
+import statistics
 from typing import Any
 
 from .stats_metrics import add_metric_statistics_to_result
@@ -156,10 +156,7 @@ def should_include_directory(
         return False
 
     # Skip directories deeper than requested depth
-    if dir_depth >= effective_depth:
-        return False
-
-    return True
+    return not dir_depth >= effective_depth
 
 
 def build_directory_results(
@@ -189,6 +186,8 @@ def build_directory_results(
             continue
 
         rel_path, _ = calculate_relative_depth(dir_path, common_base)
+        if rel_path is None:
+            continue
         display_path = create_display_path(rel_path, common_base, path_style)
         unique_files = remove_duplicate_files(data["all_files"])
 

@@ -6,7 +6,6 @@ import click
 
 from antipasta.core.metrics import MetricType
 
-
 # Metric prefix mappings for easier UX
 METRIC_PREFIXES = {
     "loc": [
@@ -97,7 +96,7 @@ def parse_metrics(metric_args: tuple[str, ...]) -> list[str]:
     Returns:
         List of full metric names to include
     """
-    metrics_to_include = []
+    metrics_to_include: list[str] = []
 
     for arg in metric_args:
         parsed_metrics = _parse_single_metric_arg(arg)
