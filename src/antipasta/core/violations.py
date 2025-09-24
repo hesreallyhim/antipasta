@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import operator
 from typing import TYPE_CHECKING, Any, Callable
 
 from antipasta.core.config import ComparisonOperator, MetricConfig
@@ -121,12 +122,12 @@ class FileReport:
 
 # Dictionary dispatch for comparison operations to reduce cyclomatic complexity
 _VIOLATION_CHECKS: dict[ComparisonOperator, Callable[[float, float], bool]] = {
-    ComparisonOperator.LT: lambda v, t: v >= t,  # value should be < threshold
-    ComparisonOperator.LE: lambda v, t: v > t,   # value should be <= threshold
-    ComparisonOperator.GT: lambda v, t: v <= t,  # value should be > threshold
-    ComparisonOperator.GE: lambda v, t: v < t,   # value should be >= threshold
-    ComparisonOperator.EQ: lambda v, t: v != t,  # value should be == threshold
-    ComparisonOperator.NE: lambda v, t: v == t,  # value should be != threshold
+    ComparisonOperator.LT: operator.ge,  # value should be < threshold
+    ComparisonOperator.LE: operator.gt,  # value should be <= threshold
+    ComparisonOperator.GT: operator.le,  # value should be > threshold
+    ComparisonOperator.GE: operator.lt,  # value should be >= threshold
+    ComparisonOperator.EQ: operator.ne,  # value should be == threshold
+    ComparisonOperator.NE: operator.eq,  # value should be != threshold
 }
 
 

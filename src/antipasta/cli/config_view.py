@@ -39,15 +39,18 @@ def format_comparison(op: ComparisonOperator | str) -> str:
 # ---------- Display helpers ----------
 
 
-def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) -> None:
-    """Display configuration in summary format."""
+def _display_header(config_path: Path, is_valid: bool) -> None:
+    """Display configuration header with path and validation status."""
     click.echo(f"Configuration: {config_path}")
     click.echo(f"Status: {'✅ Valid' if is_valid else '❌ Invalid'}")
     click.echo()
 
-    # Thresholds
+
+def _display_thresholds(config: AntipastaConfig) -> None:
+    """Display threshold settings."""
     click.echo("THRESHOLDS")
     click.echo("━" * 50)
+
     defaults = config.defaults.model_dump()
     names = {
         "max_cyclomatic_complexity": "Cyclomatic Complexity",
@@ -57,35 +60,52 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
         "max_halstead_difficulty": "Halstead Difficulty",
         "max_halstead_effort": "Halstead Effort",
     }
+
     for key, display_name in names.items():
-        if key in defaults:
-            value = defaults[key]
-            op = "≥" if key.startswith("min_") else "≤"
-            click.echo(f"{display_name:<25} {op} {value}")
+        if key not in defaults:
+            continue
+        value = defaults[key]
+        op = "≥" if key.startswith("min_") else "≤"
+        click.echo(f"{display_name:<25} {op} {value}")
     click.echo()
 
-    # Languages
+
+def _display_languages(config: AntipastaConfig) -> None:
+    """Display language configurations."""
     click.echo("LANGUAGES")
     click.echo("━" * 50)
-    if config.languages:
-        for lang in config.languages:
-            extensions = ", ".join(lang.extensions)
-            click.echo(f"{lang.name.capitalize()} ({extensions})")
-            enabled = sum(1 for m in lang.metrics if m.enabled)
-            click.echo(f"  ✓ {enabled} metrics configured")
-            click.echo()
-    else:
+
+    if not config.languages:
         click.echo("No languages configured")
         click.echo()
+        return
 
-    # Ignore patterns
-    if config.ignore_patterns:
-        click.echo(f"IGNORE PATTERNS ({len(config.ignore_patterns)})")
-        click.echo("━" * 50)
-        for pattern in config.ignore_patterns:
-            click.echo(f"• {pattern}")
+    for lang in config.languages:
+        extensions = ", ".join(lang.extensions)
+        click.echo(f"{lang.name.capitalize()} ({extensions})")
+        enabled = sum(1 for m in lang.metrics if m.enabled)
+        click.echo(f"  ✓ {enabled} metrics configured")
         click.echo()
 
+
+def _display_ignore_patterns(config: AntipastaConfig) -> None:
+    """Display ignore patterns if configured."""
+    if not config.ignore_patterns:
+        return
+
+    click.echo(f"IGNORE PATTERNS ({len(config.ignore_patterns)})")
+    click.echo("━" * 50)
+    for pattern in config.ignore_patterns:
+        click.echo(f"• {pattern}")
+    click.echo()
+
+
+def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) -> None:
+    """Display configuration in summary format."""
+    _display_header(config_path, is_valid)
+    _display_thresholds(config)
+    _display_languages(config)
+    _display_ignore_patterns(config)
     click.echo(f"Using .gitignore: {'Yes' if config.use_gitignore else 'No'}")
 
 
