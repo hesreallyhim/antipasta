@@ -1,4 +1,4 @@
-"""Configuration generation command for antipasta - REFACTORED VERSION."""
+"""Configuration generation command for antipasta."""
 
 from collections.abc import Callable
 from pathlib import Path
@@ -162,6 +162,71 @@ def _collect_halstead_thresholds() -> dict[str, float]:
     return thresholds
 
 
+@click.command()
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    default=".antipasta.yaml",
+    help="Output file path",
+)
+@click.option(
+    "--non-interactive",
+    is_flag=True,
+    help="Generate with defaults without prompting",
+)
+def generate(output: Path, non_interactive: bool) -> None:
+    """Generate an antipasta configuration file.
+
+    Creates a configuration file with sensible defaults. In interactive mode,
+    prompts for customization of thresholds and settings.
+    """
+    if non_interactive:
+        # Generate with defaults
+        config = AntipastaConfig.generate_default()
+        _save_config(config, output, force=True)
+        return
+
+    # Interactive mode
+    _show_welcome_message()
+
+    # Build configuration interactively
+    config_dict = _build_interactive_config()
+
+    # Create and save configuration
+    _finalize_and_save_config(config_dict, output)
+
+
+def _build_interactive_config() -> dict[str, Any]:
+    """Build configuration dictionary through interactive prompts.
+
+    Returns:
+        Dictionary containing all configuration data.
+    """
+    config_dict: dict[str, Any] = {}
+
+    # Collect basic thresholds
+    defaults_dict = _collect_basic_thresholds()
+
+    # Ask about advanced metrics
+    if click.confirm("\nWould you like to configure advanced Halstead metrics?", default=False):
+        defaults_dict.update(_collect_halstead_thresholds())
+    else:
+        # Use defaults for advanced metrics
+        defaults_dict.update(_get_default_halstead_thresholds())
+
+    config_dict["defaults"] = defaults_dict
+
+    # Collect language configuration
+    config_dict["languages"] = _collect_language_config(defaults_dict)
+
+    # Collect project settings
+    project_settings = _collect_project_settings()
+    config_dict.update(project_settings)
+
+    return config_dict
+
+
 def _get_default_halstead_thresholds() -> dict[str, float]:
     """Get default Halstead thresholds.
 
@@ -205,7 +270,7 @@ def _collect_project_settings() -> dict[str, Any]:
     Returns:
         Dictionary with project settings.
     """
-    settings: dict[str, Any] = {}
+    settings = {}
 
     click.echo("\nProject settings:")
     click.echo("-" * 40)
@@ -283,34 +348,22 @@ def _collect_additional_patterns() -> list[str]:
     return patterns
 
 
-def _build_interactive_config() -> dict[str, Any]:
-    """Build configuration dictionary through interactive prompts.
+def _finalize_and_save_config(config_dict: dict[str, Any], output: Path) -> None:
+    """Create configuration object and save to file.
 
-    Returns:
-        Dictionary containing all configuration data.
+    Args:
+        config_dict: Configuration dictionary.
+        output: Output file path.
     """
-    config_dict: dict[str, Any] = {}
+    # Create configuration with validation
+    config = _create_validated_config(config_dict)
 
-    # Collect basic thresholds
-    defaults_dict = _collect_basic_thresholds()
+    # Handle file overwrite confirmation
+    if not _confirm_file_overwrite(output):
+        return
 
-    # Ask about advanced metrics
-    if click.confirm("\nWould you like to configure advanced Halstead metrics?", default=False):
-        defaults_dict.update(_collect_halstead_thresholds())
-    else:
-        # Use defaults for advanced metrics
-        defaults_dict.update(_get_default_halstead_thresholds())
-
-    config_dict["defaults"] = defaults_dict
-
-    # Collect language configuration
-    config_dict["languages"] = _collect_language_config(defaults_dict)
-
-    # Collect project settings
-    project_settings = _collect_project_settings()
-    config_dict.update(project_settings)
-
-    return config_dict
+    # Save the configuration
+    _save_config(config, output, force=False)
 
 
 def _create_validated_config(config_dict: dict[str, Any]) -> AntipastaConfig:
@@ -359,86 +412,57 @@ def _confirm_file_overwrite(output: Path) -> bool:
     """
     click.echo(f"\nConfiguration will be saved to: {output}")
 
-    if output.exists() and not click.confirm("File already exists. Overwrite?", default=False):
-        click.echo("Aborted.")
-        return False
+    if output.exists():
+        if not click.confirm("File already exists. Overwrite?", default=False):
+            click.echo("Aborted.")
+            return False
 
     return True
-
-
-def _finalize_and_save_config(config_dict: dict[str, Any], output: Path) -> None:
-    """Create configuration object and save to file.
-
-    Args:
-        config_dict: Configuration dictionary.
-        output: Output file path.
-    """
-    # Create configuration with validation
-    config = _create_validated_config(config_dict)
-
-    # Handle file overwrite confirmation
-    if not _confirm_file_overwrite(output):
-        return
-
-    # Save the configuration
-    _save_config(config, output, force=False)
-
-
-@click.command()
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(path_type=Path),
-    default=".antipasta.yaml",
-    help="Output file path",
-)
-@click.option(
-    "--non-interactive",
-    is_flag=True,
-    help="Generate with defaults without prompting",
-)
-def generate(output: Path, non_interactive: bool) -> None:
-    """Generate an antipasta configuration file.
-
-    Creates a configuration file with sensible defaults. In interactive mode,
-    prompts for customization of thresholds and settings.
-    """
-    if non_interactive:
-        # Generate with defaults
-        config = AntipastaConfig.generate_default()
-        _save_config(config, output, force=True)
-        return
-
-    # Interactive mode
-    _show_welcome_message()
-
-    # Build configuration interactively
-    config_dict = _build_interactive_config()
-
-    # Create and save configuration
-    _finalize_and_save_config(config_dict, output)
 
 
 def _create_python_config(defaults: dict[str, Any]) -> dict[str, Any]:
     """Create Python language configuration."""
     metrics = []
 
-    # Build metrics list using a more modular approach
-    metric_configs = [
-        ("cyclomatic_complexity", "max_cyclomatic_complexity", "<="),
-        ("cognitive_complexity", "max_cognitive_complexity", "<="),
-        ("maintainability_index", "min_maintainability_index", ">="),
-        ("halstead_volume", "max_halstead_volume", "<="),
-        ("halstead_difficulty", "max_halstead_difficulty", "<="),
-        ("halstead_effort", "max_halstead_effort", "<="),
-    ]
+    # Cyclomatic complexity
+    metrics.append({
+        "type": "cyclomatic_complexity",
+        "threshold": defaults["max_cyclomatic_complexity"],
+        "comparison": "<=",
+    })
 
-    for metric_type, threshold_key, comparison in metric_configs:
-        metrics.append({
-            "type": metric_type,
-            "threshold": defaults[threshold_key],
-            "comparison": comparison,
-        })
+    # Cognitive complexity
+    metrics.append({
+        "type": "cognitive_complexity",
+        "threshold": defaults["max_cognitive_complexity"],
+        "comparison": "<=",
+    })
+
+    # Maintainability index
+    metrics.append({
+        "type": "maintainability_index",
+        "threshold": defaults["min_maintainability_index"],
+        "comparison": ">=",
+    })
+
+    # Halstead metrics
+    metrics.append({
+        "type": "halstead_volume",
+        "threshold": defaults["max_halstead_volume"],
+        "comparison": "<=",
+    })
+
+    metrics.append({
+        "type": "halstead_difficulty",
+        "threshold": defaults["max_halstead_difficulty"],
+        "comparison": "<=",
+    })
+
+    metrics.append({
+        "type": "halstead_effort",
+        "threshold": defaults["max_halstead_effort"],
+        "comparison": "<=",
+    })
 
     return {
         "name": "python",
@@ -454,20 +478,19 @@ def _create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
     Currently not used but kept for future implementation.
     """
     # For JS/TS, we only support cyclomatic and cognitive complexity currently
-    metrics: list[dict[str, str]] = []
+    metrics = []
 
-    metrics.extend((
-        {
-            "type": "cyclomatic_complexity",
-            "threshold": defaults["max_cyclomatic_complexity"],
-            "comparison": "<=",
-        },
-        {
-            "type": "cognitive_complexity",
-            "threshold": defaults["max_cognitive_complexity"],
-            "comparison": "<=",
-        },
-    ))
+    metrics.append({
+        "type": "cyclomatic_complexity",
+        "threshold": defaults["max_cyclomatic_complexity"],
+        "comparison": "<=",
+    })
+
+    metrics.append({
+        "type": "cognitive_complexity",
+        "threshold": defaults["max_cognitive_complexity"],
+        "comparison": "<=",
+    })
 
     return {
         "name": "javascript",
@@ -477,181 +500,66 @@ def _create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
 
 
 def _save_config(config: AntipastaConfig, output: Path, force: bool = False) -> None:
-    """Save configuration to file with helpful comments.
-
-    Args:
-        config: Configuration object to save.
-        output: Output file path.
-        force: Whether to force overwrite without confirmation.
-    """
+    """Save configuration to file with helpful comments."""
     # Convert to dict for customization
     data = config.model_dump(exclude_none=True, mode="json")
 
-    # Generate YAML content
-    yaml_content = _generate_yaml_content(data)
+    # Create YAML content with comments
+    yaml_lines = []
+    yaml_lines.append("# antipasta configuration file")
+    yaml_lines.append("# Generated by: antipasta config generate")
+    yaml_lines.append("")
+    yaml_lines.append("# Default thresholds for all languages")
+    yaml_lines.append("defaults:")
 
-    # Write file and show success message
-    _write_config_file(output, yaml_content)
+    defaults = data.get("defaults", {})
+    cyclo_max = defaults.get("max_cyclomatic_complexity", 10)
+    cog_max = defaults.get("max_cognitive_complexity", 15)
+    maint_min = defaults.get("min_maintainability_index", 50)
+    yaml_lines.append(f"  max_cyclomatic_complexity: {cyclo_max}")
+    yaml_lines.append(f"  max_cognitive_complexity: {cog_max}")
+    yaml_lines.append(f"  min_maintainability_index: {maint_min}")
+    yaml_lines.append("  # Halstead metrics (advanced)")
+    yaml_lines.append(f"  max_halstead_volume: {defaults.get('max_halstead_volume', 1000)}")
+    yaml_lines.append(f"  max_halstead_difficulty: {defaults.get('max_halstead_difficulty', 10)}")
+    yaml_lines.append(f"  max_halstead_effort: {defaults.get('max_halstead_effort', 10000)}")
 
+    yaml_lines.append("")
+    yaml_lines.append("# Language-specific configurations")
+    yaml_lines.append("languages:")
 
-def _generate_yaml_content(data: dict[str, Any]) -> str:
-    """Generate YAML content with comments from configuration data.
+    for lang in data.get("languages", []):
+        yaml_lines.append(f"  - name: {lang['name']}")
+        if lang.get("extensions"):
+            yaml_lines.append("    extensions:")
+            for ext in lang["extensions"]:
+                yaml_lines.append(f"      - {ext}")
+        yaml_lines.append("    metrics:")
+        for metric in lang.get("metrics", []):
+            yaml_lines.append(f"      - type: {metric['type']}")
+            yaml_lines.append(f"        threshold: {metric['threshold']}")
+            yaml_lines.append(f'        comparison: "{metric["comparison"]}"')
+            if metric != lang["metrics"][-1]:  # Not the last metric
+                yaml_lines.append("")
 
-    Args:
-        data: Configuration data dictionary.
-
-    Returns:
-        YAML content as string.
-    """
-    yaml_lines: list[str] = []
-
-    # Add header comments
-    _add_header_comments(yaml_lines)
-
-    # Add defaults section
-    _add_defaults_section(yaml_lines, data.get("defaults", {}))
-
-    # Add languages section
-    _add_languages_section(yaml_lines, data.get("languages", []))
-
-    # Add ignore patterns section
-    _add_ignore_patterns_section(yaml_lines, data.get("ignore_patterns", []))
-
-    # Add gitignore setting
-    _add_gitignore_setting(yaml_lines, data.get("use_gitignore", True))
-
-    return "\n".join(yaml_lines) + "\n"
-
-
-def _add_header_comments(lines: list[str]) -> None:
-    """Add header comments to YAML lines.
-
-    Args:
-        lines: List to append lines to.
-    """
-    lines.extend([
-        "# antipasta configuration file",
-        "# Generated by: antipasta config generate",
-        "",
-    ])
-
-
-def _add_defaults_section(lines: list[str], defaults: dict[str, Any]) -> None:
-    """Add defaults section to YAML lines.
-
-    Args:
-        lines: List to append lines to.
-        defaults: Defaults dictionary.
-    """
-    lines.extend([
-        "# Default thresholds for all languages",
-        "defaults:",
-    ])
-
-    # Basic metrics
-    lines.extend(f"  max_cyclomatic_complexity: {defaults.get('max_cyclomatic_complexity', 10)}")
-    lines.extend(f"  max_cognitive_complexity: {defaults.get('max_cognitive_complexity', 15)}")
-    lines.extend(f"  min_maintainability_index: {defaults.get('min_maintainability_index', 50)}")
-
-    # Halstead metrics
-    lines.extend("  # Halstead metrics (advanced)")
-    lines.extend(f"  max_halstead_volume: {defaults.get('max_halstead_volume', 1000)}")
-    lines.extend(f"  max_halstead_difficulty: {defaults.get('max_halstead_difficulty', 10)}")
-    lines.extend(f"  max_halstead_effort: {defaults.get('max_halstead_effort', 10000)}")
-
-
-def _add_languages_section(lines: list[str], languages: list[dict[str, Any]]) -> None:
-    """Add languages section to YAML lines.
-
-    Args:
-        lines: List to append lines to.
-        languages: List of language configurations.
-    """
-    lines.extend([
-        "",
-        "# Language-specific configurations",
-        "languages:",
-    ])
-
-    for lang in languages:
-        _add_language_entry(lines, lang)
-
-
-def _add_language_entry(lines: list[str], lang: dict[str, Any]) -> None:
-    """Add a single language entry to YAML lines.
-
-    Args:
-        lines: List to append lines to.
-        lang: Language configuration dictionary.
-    """
-    lines.append(f"  - name: {lang['name']}")
-
-    # Add extensions if present
-    if lang.get("extensions"):
-        lines.append("    extensions:")
-        for ext in lang["extensions"]:
-            lines.append(f"      - {ext}")
-
-    # Add metrics
-    lines.append("    metrics:")
-    metrics = lang.get("metrics", [])
-    for i, metric in enumerate(metrics):
-        lines.extend((
-            f"      - type: {metric['type']}",
-            f"        threshold: {metric['threshold']}",
-            f'        comparison: "{metric["comparison"]}"',
-        ))
-        # Add spacing between metrics except for the last one
-        if i < len(metrics) - 1:
-            lines.append("")
-
-
-def _add_ignore_patterns_section(lines: list[str], patterns: list[str]) -> None:
-    """Add ignore patterns section to YAML lines.
-
-    Args:
-        lines: List to append lines to.
-        patterns: List of ignore patterns.
-    """
-    lines.extend([
-        "",
-        "# Files and patterns to ignore during analysis",
-    ])
-
+    yaml_lines.append("")
+    yaml_lines.append("# Files and patterns to ignore during analysis")
+    patterns = data.get("ignore_patterns", [])
     if patterns:
-        lines.append("ignore_patterns:")
+        yaml_lines.append("ignore_patterns:")
         for pattern in patterns:
-            lines.append(f'  - "{pattern}"')
+            yaml_lines.append(f'  - "{pattern}"')
     else:
-        lines.append("ignore_patterns: []")
+        yaml_lines.append("ignore_patterns: []")
 
+    yaml_lines.append("")
+    yaml_lines.append("# Whether to use .gitignore file for excluding files")
+    yaml_lines.append(f"use_gitignore: {str(data.get('use_gitignore', True)).lower()}")
 
-def _add_gitignore_setting(lines: list[str], use_gitignore: bool) -> None:
-    """Add gitignore setting to YAML lines.
-
-    Args:
-        lines: List to append lines to.
-        use_gitignore: Whether to use .gitignore.
-    """
-    lines.extend([
-        "",
-        "# Whether to use .gitignore file for excluding files",
-        f"use_gitignore: {str(use_gitignore).lower()}",
-    ])
-
-
-def _write_config_file(output: Path, content: str) -> None:
-    """Write configuration content to file.
-
-    Args:
-        output: Output file path.
-        content: YAML content to write.
-
-    Raises:
-        SystemExit: If file writing fails.
-    """
+    # Write file
     try:
-        Path(output).write_text(content)
+        with open(output, "w") as f:
+            f.write("\n".join(yaml_lines) + "\n")
 
         click.echo(f"✅ Configuration saved to {output}")
         click.echo(f"\nRun 'antipasta config validate {output}' to verify.")
