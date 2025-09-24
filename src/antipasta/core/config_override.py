@@ -7,10 +7,12 @@ editing configuration files.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from pydantic import ValidationError
+from pydantic_core import ErrorDetails
 
 from antipasta.core.metric_models import MetricThresholds
 from antipasta.core.metrics import MetricType
@@ -100,17 +102,31 @@ class ConfigOverride:
         # Fallback
         return f"Invalid value for {metric_type}: {value}"
 
-    def _format_specific_error(self, metric_type: str, value: float, err: dict[str, Any]) -> str:
+    def _format_specific_error(
+        self, metric_type: str, value: float, err: ErrorDetails
+    ) -> str:
         """Format a specific validation error based on its type."""
         err_type = err.get("type", "")
-        ctx = err.get("ctx", {})
+        ctx: dict[str, Any] = err.get("ctx", {}) or {}
 
         # Map error types to formatter functions
-        error_formatters = {
-            "greater_than_equal": lambda: f"{metric_type} must be >= {ctx.get('ge', 0)}, got {value}",
-            "less_than_equal": lambda: f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}",
-            "greater_than": lambda: f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}",
-            "less_than": lambda: f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}",
+        error_formatters: dict[str, Callable[[], str]] = {
+            "greater_than_equal": lambda: (
+                f"{metric_type} must be >= {ctx.get('ge', 0)}, "
+                f"got {value}"
+            ),
+            "less_than_equal": lambda: (
+                f"{metric_type} must be <= {ctx.get('le', 'max')}, "
+                f"got {value}"
+            ),
+            "greater_than": lambda: (
+                f"{metric_type} must be > {ctx.get('gt', 0)}, "
+                f"got {value}"
+            ),
+            "less_than": lambda: (
+                f"{metric_type} must be < {ctx.get('lt', 'max')}, "
+                f"got {value}"
+            ),
             "int_type": lambda: f"{metric_type} must be an integer, got {value}",
             "int_parsing": lambda: f"{metric_type} must be a valid integer",
         }
