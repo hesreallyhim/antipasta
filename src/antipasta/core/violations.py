@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from antipasta.core.config import ComparisonOperator, MetricConfig
 
@@ -35,18 +35,26 @@ class Violation:
 
     def _generate_message(self) -> str:
         """Generate a human-readable violation message."""
-        location = str(self.file_path)
-        if self.line_number:
-            location += f":{self.line_number}"
-        if self.function_name:
-            location += f" ({self.function_name})"
-
-        metric_name = self.metric_type.value.replace("_", " ").title()
+        location = self._format_location()
+        metric_name = self._format_metric_name()
 
         return (
             f"{location}: {metric_name} is {self.value:.2f} "
             f"(threshold: {self.comparison.value} {self.threshold})"
         )
+
+    def _format_location(self) -> str:
+        """Format the location string with file, line, and function info."""
+        location = str(self.file_path)
+        if self.line_number:
+            location += f":{self.line_number}"
+        if self.function_name:
+            location += f" ({self.function_name})"
+        return location
+
+    def _format_metric_name(self) -> str:
+        """Format the metric type for display."""
+        return self.metric_type.value.replace("_", " ").title()
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the violation information for JSON-friendly output."""
@@ -88,19 +96,38 @@ class FileReport:
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the report for JSON-friendly output."""
-        data: dict[str, Any] = {
+        data = self._build_base_dict()
+        self._add_error_if_present(data)
+        return data
+
+    def _build_base_dict(self) -> dict[str, Any]:
+        """Build the base dictionary for serialization."""
+        return {
             "file": str(self.file_path),
             "language": self.language,
             "metrics": [metric.to_dict() for metric in self.metrics],
             "violations": [violation.to_dict() for violation in self.violations],
         }
+
+    def _add_error_if_present(self, data: dict[str, Any]) -> None:
+        """Add error to dictionary if present."""
         if self.error is not None:
             data["error"] = self.error
-        return data
 
     def violation_messages(self) -> list[str]:
         """Return formatted violation messages for display."""
         return [f"❌ {violation.message}" for violation in self.violations]
+
+
+# Dictionary dispatch for comparison operations to reduce cyclomatic complexity
+_VIOLATION_CHECKS: dict[ComparisonOperator, Callable[[float, float], bool]] = {
+    ComparisonOperator.LT: lambda v, t: v >= t,  # value should be < threshold
+    ComparisonOperator.LE: lambda v, t: v > t,   # value should be <= threshold
+    ComparisonOperator.GT: lambda v, t: v <= t,  # value should be > threshold
+    ComparisonOperator.GE: lambda v, t: v < t,   # value should be >= threshold
+    ComparisonOperator.EQ: lambda v, t: v != t,  # value should be == threshold
+    ComparisonOperator.NE: lambda v, t: v == t,  # value should be != threshold
+}
 
 
 def check_metric_violation(metric: MetricResult, config: MetricConfig) -> Violation | None:
@@ -116,33 +143,22 @@ def check_metric_violation(metric: MetricResult, config: MetricConfig) -> Violat
     if not config.enabled:
         return None
 
-    value = metric.value
-    threshold = config.threshold
-    comparison = config.comparison
+    # Use dictionary dispatch to avoid if-elif ladder
+    check_fn = _VIOLATION_CHECKS.get(config.comparison)
+    if not check_fn:
+        return None
 
-    violated = False
-    if comparison == ComparisonOperator.LT:
-        violated = value >= threshold
-    elif comparison == ComparisonOperator.LE:
-        violated = value > threshold
-    elif comparison == ComparisonOperator.GT:
-        violated = value <= threshold
-    elif comparison == ComparisonOperator.GE:
-        violated = value < threshold
-    elif comparison == ComparisonOperator.EQ:
-        violated = value != threshold
-    elif comparison == ComparisonOperator.NE:
-        violated = value == threshold
+    violated = check_fn(metric.value, config.threshold)
 
-    if violated:
-        return Violation(
-            file_path=metric.file_path,
-            metric_type=metric.metric_type,
-            value=value,
-            threshold=threshold,
-            comparison=comparison,
-            line_number=metric.line_number,
-            function_name=metric.function_name,
-        )
+    if not violated:
+        return None
 
-    return None
+    return Violation(
+        file_path=metric.file_path,
+        metric_type=metric.metric_type,
+        value=metric.value,
+        threshold=config.threshold,
+        comparison=config.comparison,
+        line_number=metric.line_number,
+        function_name=metric.function_name,
+    )
