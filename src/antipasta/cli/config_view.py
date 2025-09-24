@@ -11,33 +11,18 @@ from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 import yaml
 
-from antipasta.core.config import AntipastaConfig, ComparisonOperator
+from antipasta.core.config import AntipastaConfig
 
-# ---------- Pure formatting helpers ----------
-
-_COMPARISON_SYMBOLS = {
-    ComparisonOperator.LE: "≤",
-    ComparisonOperator.LT: "<",
-    ComparisonOperator.GE: "≥",
-    ComparisonOperator.GT: ">",
-    ComparisonOperator.EQ: "=",
-    ComparisonOperator.NE: "≠",
-    "<=": "≤",
-    "<": "<",
-    ">=": "≥",
-    ">": ">",
-    "==": "=",
-    "!=": "≠",
+# Table formatting constants
+_TABLE_WIDTH = 60
+_THRESHOLD_NAMES = {
+    "max_cyclomatic_complexity": "Cyclomatic Complexity",
+    "max_cognitive_complexity": "Cognitive Complexity",
+    "min_maintainability_index": "Maintainability Index",
+    "max_halstead_volume": "Halstead Volume",
+    "max_halstead_difficulty": "Halstead Difficulty",
+    "max_halstead_effort": "Halstead Effort",
 }
-
-
-def format_comparison(op: ComparisonOperator | str) -> str:
-    """Format comparison operator for display."""
-    return _COMPARISON_SYMBOLS.get(op, str(op))
-
-
-# ---------- Display helpers ----------
-
 
 def _display_header(config_path: Path, is_valid: bool) -> None:
     """Display configuration header with path and validation status."""
@@ -45,41 +30,25 @@ def _display_header(config_path: Path, is_valid: bool) -> None:
     click.echo(f"Status: {'✅ Valid' if is_valid else '❌ Invalid'}")
     click.echo()
 
-
 def _display_thresholds(config: AntipastaConfig) -> None:
     """Display threshold settings."""
     click.echo("THRESHOLDS")
     click.echo("━" * 50)
-
     defaults = config.defaults.model_dump()
-    names = {
-        "max_cyclomatic_complexity": "Cyclomatic Complexity",
-        "max_cognitive_complexity": "Cognitive Complexity",
-        "min_maintainability_index": "Maintainability Index",
-        "max_halstead_volume": "Halstead Volume",
-        "max_halstead_difficulty": "Halstead Difficulty",
-        "max_halstead_effort": "Halstead Effort",
-    }
-
-    for key, display_name in names.items():
-        if key not in defaults:
-            continue
-        value = defaults[key]
-        op = "≥" if key.startswith("min_") else "≤"
-        click.echo(f"{display_name:<25} {op} {value}")
+    for key, display_name in _THRESHOLD_NAMES.items():
+        if key in defaults:
+            op = "≥" if key.startswith("min_") else "≤"
+            click.echo(f"{display_name:<25} {op} {defaults[key]}")
     click.echo()
-
 
 def _display_languages(config: AntipastaConfig) -> None:
     """Display language configurations."""
     click.echo("LANGUAGES")
     click.echo("━" * 50)
-
     if not config.languages:
         click.echo("No languages configured")
         click.echo()
         return
-
     for lang in config.languages:
         extensions = ", ".join(lang.extensions)
         click.echo(f"{lang.name.capitalize()} ({extensions})")
@@ -87,18 +56,15 @@ def _display_languages(config: AntipastaConfig) -> None:
         click.echo(f"  ✓ {enabled} metrics configured")
         click.echo()
 
-
 def _display_ignore_patterns(config: AntipastaConfig) -> None:
     """Display ignore patterns if configured."""
     if not config.ignore_patterns:
         return
-
     click.echo(f"IGNORE PATTERNS ({len(config.ignore_patterns)})")
     click.echo("━" * 50)
     for pattern in config.ignore_patterns:
         click.echo(f"• {pattern}")
     click.echo()
-
 
 def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) -> None:
     """Display configuration in summary format."""
@@ -108,66 +74,61 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
     _display_ignore_patterns(config)
     click.echo(f"Using .gitignore: {'Yes' if config.use_gitignore else 'No'}")
 
-
 def display_table(config: AntipastaConfig) -> None:
     """Display configuration in table format."""
-    click.echo("╔" + "═" * 60 + "╗")
-    click.echo("║" + " ANTIPASTA CONFIGURATION ".center(60) + "║")
-    click.echo("╠" + "═" * 60 + "╣")
+    w = _TABLE_WIDTH
+    box = lambda c, t="": "║" + t.ljust(w) + "║" if t else c[0] + c[1] * w + c[2]
 
-    # Default thresholds
-    click.echo("║ DEFAULT THRESHOLDS".ljust(61) + "║")
-    click.echo("╟" + "─" * 60 + "╢")
-    defaults = config.defaults.model_dump()
-    for key, value in defaults.items():
+    # Header
+    click.echo(box("╔═╗"))
+    click.echo(box("", " ANTIPASTA CONFIGURATION ".center(w)))
+    click.echo(box("╠═╣"))
+
+    # Thresholds
+    click.echo(box("", " DEFAULT THRESHOLDS"))
+    click.echo(box("╟─╢"))
+    for key, value in config.defaults.model_dump().items():
         display_key = key.replace("_", " ").title()
         op = ">=" if key.startswith("min_") else "<="
-        line = f"  {display_key:<35} {op} {value:>10.1f}"
-        click.echo("║" + line.ljust(60) + "║")
+        click.echo(box("", f"  {display_key:<35} {op} {value:>10.1f}"))
 
     # Languages
     if config.languages:
-        click.echo("╟" + "─" * 60 + "╢")
-        click.echo("║ LANGUAGES".ljust(61) + "║")
-        click.echo("╟" + "─" * 60 + "╢")
+        click.echo(box("╟─╢"))
+        click.echo(box("", " LANGUAGES"))
+        click.echo(box("╟─╢"))
         for lang in config.languages:
-            line = f"  {lang.name}: {len(lang.metrics)} metrics, {len(lang.extensions)} extensions"
-            click.echo("║" + line.ljust(60) + "║")
+            text = f"  {lang.name}: {len(lang.metrics)} metrics, {len(lang.extensions)} extensions"
+            click.echo(box("", text))
 
     # Ignore patterns
     if config.ignore_patterns:
-        click.echo("╟" + "─" * 60 + "╢")
-        click.echo(f"║ IGNORE PATTERNS ({len(config.ignore_patterns)})".ljust(61) + "║")
-        click.echo("╟" + "─" * 60 + "╢")
+        click.echo(box("╟─╢"))
+        click.echo(box("", f" IGNORE PATTERNS ({len(config.ignore_patterns)})"))
+        click.echo(box("╟─╢"))
         for pattern in config.ignore_patterns[:5]:
-            line = f"  {pattern}"
-            click.echo("║" + (line if len(line) <= 60 else line[:57] + "...").ljust(60) + "║")
+            text = f"  {pattern}"
+            if len(text) > w:
+                text = text[:57] + "..."
+            click.echo(box("", text))
         if len(config.ignore_patterns) > 5:
-            remaining = len(config.ignore_patterns) - 5
-            click.echo("║" + f"  ... and {remaining} more".ljust(60) + "║")
+            click.echo(box("", f"  ... and {len(config.ignore_patterns) - 5} more"))
 
-    click.echo("╚" + "═" * 60 + "╝")
-
+    click.echo(box("╚═╝"))
 
 def display_raw(config_path: Path) -> None:
     """Display raw configuration file content."""
     click.echo(Path(config_path).read_text(encoding="utf-8"))
-
 
 def display_json(config: AntipastaConfig) -> None:
     """Display configuration in JSON format."""
     data = config.model_dump(exclude_none=True, mode="json")
     click.echo(json.dumps(data, indent=2))
 
-
 def display_yaml(config: AntipastaConfig) -> None:
     """Display configuration in YAML format."""
     data = config.model_dump(exclude_none=True, mode="json")
     click.echo(yaml.dump(data, default_flow_style=False, sort_keys=False))
-
-
-# ---------- Load/validation helpers ----------
-
 
 def _load_config_or_defaults(path: Path) -> tuple[AntipastaConfig, bool, list[ErrorDetails]]:
     """Return (config, is_valid, errors)."""
@@ -175,36 +136,38 @@ def _load_config_or_defaults(path: Path) -> tuple[AntipastaConfig, bool, list[Er
         cfg = AntipastaConfig.from_yaml(path)
         return cfg, True, []
     except ValidationError as e:
-        # Use defaults for display, but preserve errors for optional reporting
         return AntipastaConfig(), False, e.errors()
-    except Exception as e:  # unexpected I/O/parse errors
+    except Exception as e:
         raise click.ClickException(f"Error loading configuration: {e}") from e
-
 
 def _report_validation(validate: bool, is_valid: bool, errors: list[ErrorDetails]) -> None:
     """Optionally emit validation diagnostics."""
     if not (validate and not is_valid):
         return
-    click.echo()
-    click.echo("⚠️  Configuration has validation errors:", err=True)
+    click.echo("\n⚠️  Configuration has validation errors:", err=True)
     for err in errors:
         loc = " -> ".join(map(str, err.get("loc", ())))
-        msg = err.get("msg", "Invalid value")
-        click.echo(f"  - {loc}: {msg}", err=True)
-
+        click.echo(f"  - {loc}: {err.get('msg', 'Invalid value')}", err=True)
 
 def _ensure_path_exists(_ctx: click.Context, _param: click.Parameter, value: Path) -> Path:
     if not Path(value).exists():
-        # ClickException -> exit code 1, preserves your message
         raise click.ClickException(
             f"Configuration file not found: {value}\n"
             "Run 'antipasta config generate' to create a configuration file."
         )
     return value
 
-
-# ---------- CLI entrypoint ----------
-
+def _get_display_handler(fmt: str, config: AntipastaConfig, path: Path, is_valid: bool) -> Callable[[], None]:
+    """Get the appropriate display handler for the format."""
+    handlers = {
+        "summary": partial(display_summary, config, path, is_valid),
+        "table": partial(display_table, config),
+        "json": partial(display_json, config),
+        "yaml": partial(display_yaml, config),
+    }
+    if fmt.lower() not in handlers:
+        raise click.ClickException(f"Unknown format: {fmt}")
+    return handlers[fmt.lower()]
 
 @click.command()
 @click.option(
@@ -214,7 +177,7 @@ def _ensure_path_exists(_ctx: click.Context, _param: click.Parameter, value: Pat
     default=Path(".antipasta.yaml"),
     show_default=True,
     help="Path to configuration file",
-    callback=_ensure_path_exists,  # <-- ensures exit_code=1 + your message
+    callback=_ensure_path_exists,
 )
 @click.option(
     "--format",
@@ -260,18 +223,8 @@ def view(path: Path, fmt: str, validate: bool) -> None:
             return
 
         config, is_valid, errors = _load_config_or_defaults(path)
-
-        dispatch: dict[str, Callable[[], None]] = {
-            "summary": partial(display_summary, config, path, is_valid),
-            "table": partial(display_table, config),
-            "json": partial(display_json, config),
-            "yaml": partial(display_yaml, config),
-        }
-        handler = dispatch.get(fmt.lower())
-        if not handler:
-            raise click.ClickException(f"Unknown format: {fmt}")
+        handler = _get_display_handler(fmt, config, path, is_valid)
         handler()
-
         _report_validation(validate, is_valid, errors)
 
     except click.ClickException as e:
