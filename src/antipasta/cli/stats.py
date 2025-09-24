@@ -638,54 +638,121 @@ def _build_directory_results(
     should_collect_loc = should_collect_loc_metrics(metrics_to_include)
 
     for dir_path, data in dir_stats.items():
-        # Skip if no files in this directory
-        if not data["all_files"]:
+        if not _should_include_directory(data, dir_path, common_base, effective_depth):
             continue
 
-        # Calculate relative path and depth
-        rel_path, dir_depth = calculate_relative_depth(dir_path, common_base)
-        if rel_path is None:  # Directory not under common_base
-            continue
-
-        # Skip directories deeper than requested depth
-        if dir_depth >= effective_depth:
-            continue
-
-        # Calculate LOC statistics if needed
-        file_locs = []
-        if should_collect_loc:
-            for report in data["all_files"]:
-                file_loc = extract_file_loc_from_report(report)
-                if file_loc > 0:
-                    file_locs.append(file_loc)
-
-        # Create display path
+        rel_path, _ = calculate_relative_depth(dir_path, common_base)
         display_path = _create_display_path(rel_path, common_base, path_style)
-
-        # Remove duplicate files
         unique_files = remove_duplicate_files(data["all_files"])
 
-        # Build result entry
-        results[display_path] = {
-            "file_count": len(unique_files),
-            "function_count": len(data["function_names"]),
-        }
+        # Build base result entry
+        result_entry = _build_base_directory_result(data, unique_files)
 
-        # Add LOC stats only if they were collected
+        # Add LOC statistics if needed
         if should_collect_loc:
-            results[display_path]["avg_file_loc"] = (
-                int(statistics.mean(file_locs)) if file_locs else 0
-            )
-            results[display_path]["total_loc"] = sum(file_locs)
+            _add_loc_statistics_to_result(result_entry, data["all_files"])
 
         # Add additional metrics
-        for metric_name, values in data["metrics"].items():
-            if values:
-                # Remove duplicates from aggregated metrics
-                unique_values = values[: len(unique_files)]
-                results[display_path][f"avg_{metric_name}"] = statistics.mean(unique_values)
+        _add_metric_statistics_to_result(result_entry, data["metrics"], unique_files)
+
+        results[display_path] = result_entry
 
     return results
+
+
+def _should_include_directory(
+    data: dict[str, Any], dir_path: Path, common_base: Path, effective_depth: int
+) -> bool:
+    """Check if a directory should be included in results.
+
+    Args:
+        data: Directory data
+        dir_path: Directory path
+        common_base: Common base directory
+        effective_depth: Maximum depth to include
+
+    Returns:
+        True if directory should be included
+    """
+    # Skip if no files in this directory
+    if not data["all_files"]:
+        return False
+
+    # Calculate relative path and depth
+    rel_path, dir_depth = calculate_relative_depth(dir_path, common_base)
+    if rel_path is None:  # Directory not under common_base
+        return False
+
+    # Skip directories deeper than requested depth
+    if dir_depth >= effective_depth:
+        return False
+
+    return True
+
+
+def _build_base_directory_result(data: dict[str, Any], unique_files: list[Any]) -> dict[str, Any]:
+    """Build base result entry with file and function counts.
+
+    Args:
+        data: Directory data
+        unique_files: List of unique files
+
+    Returns:
+        Base result dictionary
+    """
+    return {
+        "file_count": len(unique_files),
+        "function_count": len(data["function_names"]),
+    }
+
+
+def _add_loc_statistics_to_result(result_entry: dict[str, Any], all_files: list[Any]) -> None:
+    """Add LOC statistics to result entry.
+
+    Args:
+        result_entry: Result entry to modify
+        all_files: List of all files to analyze
+    """
+    file_locs = _extract_file_locs_from_reports(all_files)
+
+    result_entry["avg_file_loc"] = (
+        int(statistics.mean(file_locs)) if file_locs else 0
+    )
+    result_entry["total_loc"] = sum(file_locs)
+
+
+def _extract_file_locs_from_reports(reports: list[Any]) -> list[int]:
+    """Extract LOC values from reports.
+
+    Args:
+        reports: List of reports to analyze
+
+    Returns:
+        List of LOC values
+    """
+    file_locs = []
+    for report in reports:
+        file_loc = extract_file_loc_from_report(report)
+        if file_loc > 0:
+            file_locs.append(file_loc)
+    return file_locs
+
+
+def _add_metric_statistics_to_result(
+    result_entry: dict[str, Any], metrics: dict[str, list[Any]], unique_files: list[Any]
+) -> None:
+    """Add metric statistics to result entry.
+
+    Args:
+        result_entry: Result entry to modify
+        metrics: Metrics data
+        unique_files: List of unique files
+    """
+    for metric_name, values in metrics.items():
+        if values:
+            # Remove duplicates from aggregated metrics
+            unique_values = values[: len(unique_files)]
+            result_entry[f"avg_{metric_name}"] = statistics.mean(unique_values)
 
 
 def _create_display_path(rel_path: Path, common_base: Path, path_style: str) -> str:
@@ -814,32 +881,58 @@ def _calculate_module_statistics(
     should_collect_loc = should_collect_loc_metrics(metrics_to_include)
 
     for module_name, data in module_stats.items():
-        # Calculate LOC statistics if needed
-        file_locs = []
+        result_entry = _build_base_module_result(data)
+
         if should_collect_loc:
-            for report in data["files"]:
-                file_loc = extract_file_loc_from_report(report)
-                if file_loc > 0:
-                    file_locs.append(file_loc)
+            _add_module_loc_statistics(result_entry, data["files"])
 
-        results[module_name] = {
-            "file_count": len(data["files"]),
-            "function_count": len(data["function_names"]),
-        }
+        _add_module_metric_statistics(result_entry, data["metrics"])
 
-        # Add LOC stats only if they were collected
-        if should_collect_loc:
-            results[module_name]["avg_file_loc"] = (
-                int(statistics.mean(file_locs)) if file_locs else 0
-            )
-            results[module_name]["total_loc"] = sum(file_locs)
-
-        # Add additional metrics
-        for metric_name, values in data["metrics"].items():
-            if values:
-                results[module_name][f"avg_{metric_name}"] = statistics.mean(values)
+        results[module_name] = result_entry
 
     return results
+
+
+def _build_base_module_result(data: dict[str, Any]) -> dict[str, Any]:
+    """Build base result entry for a module.
+
+    Args:
+        data: Module data
+
+    Returns:
+        Base result dictionary with file and function counts
+    """
+    return {
+        "file_count": len(data["files"]),
+        "function_count": len(data["function_names"]),
+    }
+
+
+def _add_module_loc_statistics(result_entry: dict[str, Any], files: list[Any]) -> None:
+    """Add LOC statistics to module result entry.
+
+    Args:
+        result_entry: Result entry to modify
+        files: List of files in the module
+    """
+    file_locs = _extract_file_locs_from_reports(files)
+
+    result_entry["avg_file_loc"] = (
+        int(statistics.mean(file_locs)) if file_locs else 0
+    )
+    result_entry["total_loc"] = sum(file_locs)
+
+
+def _add_module_metric_statistics(result_entry: dict[str, Any], metrics: dict[str, list[Any]]) -> None:
+    """Add metric statistics to module result entry.
+
+    Args:
+        result_entry: Result entry to modify
+        metrics: Metrics data for the module
+    """
+    for metric_name, values in metrics.items():
+        if values:
+            result_entry[f"avg_{metric_name}"] = statistics.mean(values)
 
 
 def _collect_module_stats(reports: list[Any], metrics_to_include: list[str]) -> dict[str, Any]:
@@ -910,51 +1003,119 @@ def _display_grouped_statistics(stats_data: dict[str, Any]) -> None:
     Args:
         stats_data: Grouped statistics data
     """
+    _display_grouped_statistics_header(stats_data)
+    headers = _build_grouped_statistics_headers(stats_data)
+    _display_table_headers(headers)
+    _display_grouped_statistics_rows(stats_data, headers)
+
+
+def _display_grouped_statistics_header(stats_data: dict[str, Any]) -> None:
+    """Display header section for grouped statistics."""
     click.echo("\n" + "=" * 80)
     grouping_type = determine_statistics_grouping_type(stats_data)
     click.echo(f"CODE METRICS BY {grouping_type}")
     click.echo("=" * 80 + "\n")
 
-    # Find all metric keys
-    all_keys = set()
-    for data in stats_data.values():
-        all_keys.update(data.keys())
 
-    # Create header
+def _build_grouped_statistics_headers(stats_data: dict[str, Any]) -> list[str]:
+    """Build header row for grouped statistics table.
+
+    Args:
+        stats_data: Grouped statistics data
+
+    Returns:
+        List of header column names
+    """
+    all_keys = _collect_all_statistic_keys(stats_data)
     headers = ["Location", "Files", "Functions"]
 
-    # Add LOC headers only if present in data
+    _add_loc_headers_if_present(headers, stats_data)
+    _add_metric_headers(headers, all_keys)
+
+    return headers
+
+
+def _add_loc_headers_if_present(headers: list[str], stats_data: dict[str, Any]) -> None:
+    """Add LOC-related headers if present in the data."""
     if any("avg_file_loc" in data for data in stats_data.values()):
         headers.append("Avg File LOC")
     if any("total_loc" in data for data in stats_data.values()):
         headers.append("Total LOC")
-    for key in sorted(all_keys):
-        if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
-            headers.append(key.replace("avg_", "Avg ").replace("_", " ").title())
 
-    # Print header
+
+def _add_metric_headers(headers: list[str], all_keys: set[str]) -> None:
+    """Add metric headers for average values."""
+    for key in sorted(all_keys):
+        if _is_displayable_average_metric(key):
+            formatted_header = _format_metric_header(key)
+            headers.append(formatted_header)
+
+
+def _is_displayable_average_metric(key: str) -> bool:
+    """Check if a metric key should be displayed as a column header."""
+    return key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]
+
+
+def _format_metric_header(key: str) -> str:
+    """Format a metric key into a readable header."""
+    return key.replace("avg_", "Avg ").replace("_", " ").title()
+
+
+def _display_table_headers(headers: list[str]) -> None:
+    """Display table headers and separator line."""
     click.echo(_format_table_row(headers))
     click.echo("-" * sum(len(h) + 3 for h in headers))
 
-    # Print rows
+
+def _display_grouped_statistics_rows(stats_data: dict[str, Any], headers: list[str]) -> None:
+    """Display data rows for grouped statistics.
+
+    Args:
+        stats_data: Statistics data to display
+        headers: Table headers for column ordering
+    """
     for location, data in sorted(stats_data.items()):
-        row = [
-            truncate_path_for_display(location, 30),
-            str(data.get("file_count", 0)),
-            str(data.get("function_count", 0)),
-        ]
-
-        # Add LOC data only if present in headers
-        if "Avg File LOC" in headers:
-            row.append(f"{data.get('avg_file_loc', 0):.1f}")
-        if "Total LOC" in headers:
-            row.append(f"{data.get('total_loc', 0):,}")
-
-        for key in sorted(all_keys):
-            if key.startswith("avg_") and key not in ["avg_file_loc", "avg_function_loc"]:
-                row.append(f"{data.get(key, 0):.2f}")
-
+        row = _build_grouped_statistics_row(location, data, headers)
         click.echo(_format_table_row(row))
+
+
+def _build_grouped_statistics_row(location: str, data: dict[str, Any], headers: list[str]) -> list[str]:
+    """Build a single row for grouped statistics display.
+
+    Args:
+        location: Location identifier
+        data: Statistics data for this location
+        headers: Table headers for column ordering
+
+    Returns:
+        List of formatted row values
+    """
+    row = [
+        truncate_path_for_display(location, 30),
+        str(data.get("file_count", 0)),
+        str(data.get("function_count", 0)),
+    ]
+
+    _add_loc_data_to_row(row, data, headers)
+    _add_metric_data_to_row(row, data, headers)
+
+    return row
+
+
+def _add_loc_data_to_row(row: list[str], data: dict[str, Any], headers: list[str]) -> None:
+    """Add LOC data to row if present in headers."""
+    if "Avg File LOC" in headers:
+        row.append(f"{data.get('avg_file_loc', 0):.1f}")
+    if "Total LOC" in headers:
+        row.append(f"{data.get('total_loc', 0):,}")
+
+
+def _add_metric_data_to_row(row: list[str], data: dict[str, Any], headers: list[str]) -> None:
+    """Add metric data to row for displayable average metrics."""
+    all_keys = set(data.keys())
+    for key in sorted(all_keys):
+        if _is_displayable_average_metric(key):
+            row.append(f"{data.get(key, 0):.2f}")
 
 
 def _display_table(stats_data: dict[str, Any]) -> None:
@@ -991,100 +1152,159 @@ def _display_json(stats_data: dict[str, Any]) -> None:
 
 
 def _display_csv(stats_data: dict[str, Any]) -> None:
-    """Display statistics as CSV."""
+    """Display statistics as CSV to stdout."""
     import csv
     import sys
 
-    if isinstance(stats_data, dict) and "files" in stats_data:
-        # Overall statistics - flatten structure
-        writer = csv.writer(sys.stdout)
-        writer.writerow(["Metric", "Value"])
-        writer.writerow(["Total Files", stats_data["files"]["count"]])
-        if "total_loc" in stats_data["files"]:
-            writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
-            writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
-        writer.writerow(["Total Functions", stats_data["functions"]["count"]])
-        if "avg_complexity" in stats_data["functions"]:
-            writer.writerow([
-                "Average Function Complexity",
-                stats_data["functions"]["avg_complexity"],
-            ])
-        elif "avg_loc" in stats_data["functions"]:
-            writer.writerow([
-                "Average LOC per Function",
-                stats_data["functions"]["avg_loc"],
-            ])
+    writer = csv.writer(sys.stdout)
+
+    if _is_overall_statistics(stats_data):
+        _display_overall_statistics_csv(writer, stats_data)
     else:
-        # Directory/module statistics
-        if not stats_data:
-            return
+        _display_grouped_statistics_csv(writer, stats_data)
 
-        # Get all keys
-        all_keys = set()
-        for data in stats_data.values():
-            all_keys.update(data.keys())
 
-        # Write header
-        writer = csv.writer(sys.stdout)
-        headers = ["location"] + sorted(all_keys)
-        writer.writerow(headers)
+def _display_overall_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Display overall statistics as CSV."""
+    writer.writerow(["Metric", "Value"])
+    writer.writerow(["Total Files", stats_data["files"]["count"]])
 
-        # Write data
-        for location, data in sorted(stats_data.items()):
-            row = [location]
-            for key in sorted(all_keys):
-                row.append(data.get(key, 0))
-            writer.writerow(row)
+    _display_file_loc_metrics_csv(writer, stats_data)
+    writer.writerow(["Total Functions", stats_data["functions"]["count"]])
+    _display_function_complexity_metrics_csv(writer, stats_data)
+
+
+def _display_file_loc_metrics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Display file LOC metrics in CSV format."""
+    if "total_loc" in stats_data["files"]:
+        writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
+        writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
+
+
+def _display_function_complexity_metrics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Display function complexity metrics in CSV format."""
+    if "avg_complexity" in stats_data["functions"]:
+        writer.writerow([
+            "Average Function Complexity",
+            stats_data["functions"]["avg_complexity"],
+        ])
+    elif "avg_loc" in stats_data["functions"]:
+        writer.writerow([
+            "Average LOC per Function",
+            stats_data["functions"]["avg_loc"],
+        ])
+
+
+def _display_grouped_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Display directory/module statistics as CSV."""
+    if not stats_data:
+        return
+
+    all_keys = _collect_all_statistic_keys(stats_data)
+    headers = ["location"] + sorted(all_keys)
+    writer.writerow(headers)
+
+    _write_grouped_data_rows_csv(writer, stats_data, all_keys)
 
 
 def _save_stats(stats_data: dict[str, Any], format: str, output_path: Path) -> None:
-    """Save statistics to a file."""
+    """Save statistics to a file in the specified format."""
     if format == "json":
-        with open(output_path, "w") as f:
-            json.dump(stats_data, f, indent=2)
+        _save_stats_as_json(stats_data, output_path)
     elif format == "csv":
-        import csv
-
-        with open(output_path, "w") as f:
-            if isinstance(stats_data, dict) and "files" in stats_data:
-                # Overall statistics
-                writer = csv.writer(f)
-                writer.writerow(["Metric", "Value"])
-                writer.writerow(["Total Files", stats_data["files"]["count"]])
-                if "total_loc" in stats_data["files"]:
-                    writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
-                    writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
-                writer.writerow(["Total Functions", stats_data["functions"]["count"]])
-                if "avg_complexity" in stats_data["functions"]:
-                    writer.writerow([
-                        "Average Function Complexity",
-                        stats_data["functions"]["avg_complexity"],
-                    ])
-            else:
-                # Directory/module statistics
-                if stats_data:
-                    all_keys = set()
-                    for data in stats_data.values():
-                        all_keys.update(data.keys())
-
-                    writer = csv.writer(f)
-                    headers = ["location"] + sorted(all_keys)
-                    writer.writerow(headers)
-
-                    for location, data in sorted(stats_data.items()):
-                        row = [location]
-                        for key in sorted(all_keys):
-                            row.append(data.get(key, 0))
-                        writer.writerow(row)
+        _save_stats_as_csv(stats_data, output_path)
     else:  # table format
-        import contextlib
-        import io
+        _save_stats_as_table(stats_data, output_path)
 
-        buffer = io.StringIO()
-        with contextlib.redirect_stdout(buffer):
-            _display_table(stats_data)
-        with open(output_path, "w") as f:
-            f.write(buffer.getvalue())
+
+def _save_stats_as_json(stats_data: dict[str, Any], output_path: Path) -> None:
+    """Save statistics data as JSON format."""
+    with open(output_path, "w") as f:
+        json.dump(stats_data, f, indent=2)
+
+
+def _save_stats_as_csv(stats_data: dict[str, Any], output_path: Path) -> None:
+    """Save statistics data as CSV format."""
+    import csv
+
+    with open(output_path, "w") as f:
+        if _is_overall_statistics(stats_data):
+            _write_overall_statistics_csv(csv.writer(f), stats_data)
+        else:
+            _write_grouped_statistics_csv(csv.writer(f), stats_data)
+
+
+def _save_stats_as_table(stats_data: dict[str, Any], output_path: Path) -> None:
+    """Save statistics data as formatted table."""
+    import contextlib
+    import io
+
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        _display_table(stats_data)
+    with open(output_path, "w") as f:
+        f.write(buffer.getvalue())
+
+
+def _is_overall_statistics(stats_data: dict[str, Any]) -> bool:
+    """Check if statistics data represents overall statistics."""
+    return isinstance(stats_data, dict) and "files" in stats_data
+
+
+def _write_overall_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Write overall statistics to CSV writer."""
+    writer.writerow(["Metric", "Value"])
+    writer.writerow(["Total Files", stats_data["files"]["count"]])
+
+    _write_file_loc_metrics_csv(writer, stats_data)
+    _write_function_metrics_csv(writer, stats_data)
+
+
+def _write_file_loc_metrics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Write file LOC metrics to CSV writer."""
+    if "total_loc" in stats_data["files"]:
+        writer.writerow(["Total LOC", stats_data["files"]["total_loc"]])
+        writer.writerow(["Average LOC per File", stats_data["files"]["avg_loc"]])
+
+
+def _write_function_metrics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Write function metrics to CSV writer."""
+    writer.writerow(["Total Functions", stats_data["functions"]["count"]])
+
+    if "avg_complexity" in stats_data["functions"]:
+        writer.writerow([
+            "Average Function Complexity",
+            stats_data["functions"]["avg_complexity"],
+        ])
+
+
+def _write_grouped_statistics_csv(writer: Any, stats_data: dict[str, Any]) -> None:
+    """Write grouped statistics (directory/module) to CSV writer."""
+    if not stats_data:
+        return
+
+    all_keys = _collect_all_statistic_keys(stats_data)
+    headers = ["location"] + sorted(all_keys)
+    writer.writerow(headers)
+
+    _write_grouped_data_rows_csv(writer, stats_data, all_keys)
+
+
+def _collect_all_statistic_keys(stats_data: dict[str, Any]) -> set[str]:
+    """Collect all unique keys from grouped statistics data."""
+    all_keys = set()
+    for data in stats_data.values():
+        all_keys.update(data.keys())
+    return all_keys
+
+
+def _write_grouped_data_rows_csv(writer: Any, stats_data: dict[str, Any], all_keys: set[str]) -> None:
+    """Write data rows for grouped statistics to CSV writer."""
+    for location, data in sorted(stats_data.items()):
+        row = [location]
+        for key in sorted(all_keys):
+            row.append(data.get(key, 0))
+        writer.writerow(row)
 
 
 def _generate_all_reports(reports: list[Any], metrics: list[str], output_dir: Path) -> None:
