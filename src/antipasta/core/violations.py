@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from antipasta.core.config import ComparisonOperator, MetricConfig
 
@@ -48,6 +48,18 @@ class Violation:
             f"(threshold: {self.comparison.value} {self.threshold})"
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the violation information for JSON-friendly output."""
+        return {
+            "type": self.metric_type.value,
+            "message": self.message,
+            "line_number": self.line_number,
+            "function": self.function_name,
+            "value": self.value,
+            "threshold": self.threshold,
+            "comparison": self.comparison.value,
+        }
+
 
 @dataclass
 class FileReport:
@@ -73,6 +85,22 @@ class FileReport:
     def violation_count(self) -> int:
         """Get the number of violations."""
         return len(self.violations)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the report for JSON-friendly output."""
+        data: dict[str, Any] = {
+            "file": str(self.file_path),
+            "language": self.language,
+            "metrics": [metric.to_dict() for metric in self.metrics],
+            "violations": [violation.to_dict() for violation in self.violations],
+        }
+        if self.error is not None:
+            data["error"] = self.error
+        return data
+
+    def violation_messages(self) -> list[str]:
+        """Return formatted violation messages for display."""
+        return [f"❌ {violation.message}" for violation in self.violations]
 
 
 def check_metric_violation(metric: MetricResult, config: MetricConfig) -> Violation | None:

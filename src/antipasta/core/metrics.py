@@ -46,6 +46,16 @@ class MetricResult:
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
 
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the metric result for JSON-friendly output."""
+        return {
+            "type": self.metric_type.value,
+            "value": self.value,
+            "details": self.details,
+            "line_number": self.line_number,
+            "function_name": self.function_name,
+        }
+
 
 @dataclass
 class FileMetrics:

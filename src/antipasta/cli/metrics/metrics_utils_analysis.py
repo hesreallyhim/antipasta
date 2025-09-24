@@ -11,7 +11,6 @@ from antipasta.core.config import AntipastaConfig
 from antipasta.core.config_override import ConfigOverride
 
 from .metrics_utils_collection import collect_files
-from .metrics_utils_output import display_analysis_status
 
 
 def determine_files_to_analyze(
@@ -28,7 +27,8 @@ def determine_files_to_analyze(
         file_paths = handle_default_directory_analysis(cfg, override, quiet)
 
     validate_files_found(file_paths)
-    display_analysis_status(file_paths, quiet)
+    if not quiet:
+        click.echo(f"Analyzing {len(file_paths)} files...")
 
     return file_paths
 
