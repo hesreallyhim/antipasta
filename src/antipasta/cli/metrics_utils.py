@@ -19,22 +19,30 @@ def load_configuration(config: Path, quiet: bool) -> AntipastaConfig:
     """Load configuration from file or generate default."""
     try:
         if config.exists():
-            cfg = AntipastaConfig.from_yaml(config)
-            if not quiet:
-                click.echo(f"Using configuration: {config}")
-        else:
-            # Config file doesn't exist, show helpful message and use defaults
-            if not quiet:
-                click.echo(f"Configuration file '{config}' not found.", err=True)
-                click.echo(
-                    "Run 'antipasta config generate' to create a configuration file.", err=True
-                )
-                click.echo("Using default configuration for now...")
-            cfg = AntipastaConfig.generate_default()
-        return cfg
+            return _load_existing_config(config, quiet)
+        return _load_default_config(config, quiet)
     except Exception as e:
         click.echo(f"Error loading configuration: {e}", err=True)
         sys.exit(1)
+
+
+def _load_existing_config(config: Path, quiet: bool) -> AntipastaConfig:
+    """Load configuration from existing file."""
+    cfg = AntipastaConfig.from_yaml(config)
+    if not quiet:
+        click.echo(f"Using configuration: {config}")
+    return cfg
+
+
+def _load_default_config(config: Path, quiet: bool) -> AntipastaConfig:
+    """Load default configuration and show helpful message."""
+    if not quiet:
+        click.echo(f"Configuration file '{config}' not found.", err=True)
+        click.echo(
+            "Run 'antipasta config generate' to create a configuration file.", err=True
+        )
+        click.echo("Using default configuration for now...")
+    return AntipastaConfig.generate_default()
 
 
 def collect_files(
@@ -44,71 +52,104 @@ def collect_files(
     override: ConfigOverride | None,
 ) -> list[Path]:
     """Collect all files to analyze, respecting gitignore patterns and overrides."""
-    # Determine base directory for pattern matching
     base_dir = directory or Path.cwd()
-
-    # Create a detector with config's ignore patterns and override include patterns
-    detector = LanguageDetector(
-        ignore_patterns=config.ignore_patterns,
-        include_patterns=(
-            override.include_patterns if override and override.include_patterns else []
-        ),
-        base_dir=base_dir,
-    )
-
-    # Load .gitignore if enabled
-    if config.use_gitignore:
-        gitignore_path = base_dir / ".gitignore"
-        if gitignore_path.exists():
-            detector.add_gitignore(gitignore_path)
+    detector = _create_language_detector(config, override, base_dir)
+    _load_gitignore_if_enabled(config, base_dir, detector)
 
     file_paths = list(files)
 
-    # Add files from directory if specified
     if directory:
-        patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-        all_files: list[Path] = []
-        for pattern in patterns:
-            all_files.extend(directory.glob(pattern))
-
-        # Filter out ignored files
-        for file_path in all_files:
-            if not detector.should_ignore(file_path):
-                file_paths.append(file_path)
+        file_paths.extend(_collect_directory_files(directory, detector))
 
     # Remove duplicates
     return list(set(file_paths))
 
 
+def _create_language_detector(
+    config: AntipastaConfig, override: ConfigOverride | None, base_dir: Path
+) -> LanguageDetector:
+    """Create a language detector with appropriate patterns."""
+    include_patterns = []
+    if override and override.include_patterns:
+        include_patterns = override.include_patterns
+
+    return LanguageDetector(
+        ignore_patterns=config.ignore_patterns,
+        include_patterns=include_patterns,
+        base_dir=base_dir,
+    )
+
+
+def _load_gitignore_if_enabled(
+    config: AntipastaConfig, base_dir: Path, detector: LanguageDetector
+) -> None:
+    """Load .gitignore file if enabled in configuration."""
+    if not config.use_gitignore:
+        return
+
+    gitignore_path = base_dir / ".gitignore"
+    if gitignore_path.exists():
+        detector.add_gitignore(gitignore_path)
+
+
+def _collect_directory_files(directory: Path, detector: LanguageDetector) -> list[Path]:
+    """Collect all supported files from a directory."""
+    patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+    collected_files = []
+
+    for pattern in patterns:
+        for file_path in directory.glob(pattern):
+            if not detector.should_ignore(file_path):
+                collected_files.append(file_path)
+
+    return collected_files
+
+
 def print_results(reports: list[FileReport], summary: dict[str, Any], quiet: bool) -> None:
     """Print analysis results."""
     if not quiet:
-        click.echo("\n" + "=" * 70)
-        click.echo("METRICS ANALYSIS SUMMARY")
-        click.echo("=" * 70)
-        click.echo(f"Total files analyzed: {summary['total_files']}")
-        click.echo(f"Files with violations: {summary['files_with_violations']}")
-        click.echo(f"Total violations: {summary['total_violations']}")
+        _print_summary_header(summary)
 
-        if summary["violations_by_type"]:
-            click.echo("\nViolations by type:")
-            for metric_type, count in summary["violations_by_type"].items():
-                click.echo(f"  - {metric_type}: {count}")
-
-    # Print violations
     if summary["total_violations"] > 0:
-        click.echo("\n" + "-" * 70)
-        click.echo("VIOLATIONS FOUND:")
-        click.echo("-" * 70)
-
-        for report in reports:
-            if report.has_violations:
-                for violation in report.violations:
-                    click.echo(f"❌ {violation.message}")
-
+        _print_violations(reports)
         click.echo("\n✗ Code quality check FAILED")
     elif not quiet:
         click.echo("\n✓ Code quality check PASSED")
+
+
+def _print_summary_header(summary: dict[str, Any]) -> None:
+    """Print the summary header section."""
+    click.echo("\n" + "=" * 70)
+    click.echo("METRICS ANALYSIS SUMMARY")
+    click.echo("=" * 70)
+    click.echo(f"Total files analyzed: {summary['total_files']}")
+    click.echo(f"Files with violations: {summary['files_with_violations']}")
+    click.echo(f"Total violations: {summary['total_violations']}")
+
+    _print_violations_by_type(summary)
+
+
+def _print_violations_by_type(summary: dict[str, Any]) -> None:
+    """Print violations grouped by type."""
+    if not summary["violations_by_type"]:
+        return
+
+    click.echo("\nViolations by type:")
+    for metric_type, count in summary["violations_by_type"].items():
+        click.echo(f"  - {metric_type}: {count}")
+
+
+def _print_violations(reports: list[FileReport]) -> None:
+    """Print all violations found in reports."""
+    click.echo("\n" + "-" * 70)
+    click.echo("VIOLATIONS FOUND:")
+    click.echo("-" * 70)
+
+    for report in reports:
+        if not report.has_violations:
+            continue
+        for violation in report.violations:
+            click.echo(f"❌ {violation.message}")
 
 
 def prepare_configuration(config: Path, threshold: tuple[str, ...], quiet: bool) -> AntipastaConfig:
@@ -170,11 +211,13 @@ def apply_overrides_to_configuration(
     no_gitignore: bool,
 ) -> AntipastaConfig:
     """Apply configuration overrides and display status messages."""
-    if override.has_overrides():
-        cfg = cfg.apply_overrides(override)
-        display_override_status_messages(
-            quiet, force_analyze, include_pattern, exclude_pattern, threshold, no_gitignore
-        )
+    if not override.has_overrides():
+        return cfg
+
+    cfg = cfg.apply_overrides(override)
+    display_override_status_messages(
+        quiet, force_analyze, include_pattern, exclude_pattern, threshold, no_gitignore
+    )
     return cfg
 
 
@@ -190,16 +233,39 @@ def display_override_status_messages(
     if quiet:
         return
 
+    messages = _collect_override_messages(
+        force_analyze, include_pattern, exclude_pattern, threshold, no_gitignore
+    )
+
+    for message in messages:
+        click.echo(message)
+
+
+def _collect_override_messages(
+    force_analyze: bool,
+    include_pattern: tuple[str, ...],
+    exclude_pattern: tuple[str, ...],
+    threshold: tuple[str, ...],
+    no_gitignore: bool,
+) -> list[str]:
+    """Collect all override status messages to display."""
+    messages = []
+
     if force_analyze:
-        click.echo("Force analyzing all files (ignoring exclusions)...")
+        messages.append("Force analyzing all files (ignoring exclusions)...")
     elif include_pattern:
-        click.echo(f"Including patterns: {', '.join(include_pattern)}")
+        messages.append(f"Including patterns: {', '.join(include_pattern)}")
+
     if exclude_pattern:
-        click.echo(f"Additional exclusions: {', '.join(exclude_pattern)}")
+        messages.append(f"Additional exclusions: {', '.join(exclude_pattern)}")
+
     if threshold:
-        click.echo(f"Threshold overrides: {', '.join(threshold)}")
+        messages.append(f"Threshold overrides: {', '.join(threshold)}")
+
     if no_gitignore:
-        click.echo("Ignoring .gitignore patterns")
+        messages.append("Ignoring .gitignore patterns")
+
+    return messages
 
 
 def determine_files_to_analyze(
@@ -212,14 +278,20 @@ def determine_files_to_analyze(
     """Determine which files to analyze based on input parameters."""
     file_paths = collect_files(files, directory, cfg, override)
 
-    # If no files or directory specified, default to current directory
-    if not file_paths and not files and not directory:
+    if _should_use_default_directory(file_paths, files, directory):
         file_paths = handle_default_directory_analysis(cfg, override, quiet)
 
     validate_files_found(file_paths)
     display_analysis_status(file_paths, quiet)
 
     return file_paths
+
+
+def _should_use_default_directory(
+    file_paths: list[Path], files: tuple[Path, ...], directory: Path | None
+) -> bool:
+    """Check if we should analyze the current directory by default."""
+    return not file_paths and not files and not directory
 
 
 def handle_default_directory_analysis(
