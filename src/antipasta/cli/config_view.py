@@ -83,7 +83,9 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
 def display_table(config: AntipastaConfig) -> None:
     """Display configuration in table format."""
     w = _TABLE_WIDTH
-    box = lambda c, t="": "║" + t.ljust(w) + "║" if t else c[0] + c[1] * w + c[2]
+
+    def box(c: str, t: str = "") -> str:
+        return "║" + t.ljust(w) + "║" if t else c[0] + c[1] * w + c[2]
 
     # Header
     click.echo(box("╔═╗"))

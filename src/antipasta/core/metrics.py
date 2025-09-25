@@ -7,12 +7,12 @@ code quality metrics and analysis results.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Any
 
 
-class MetricType(str, Enum):
+class MetricType(StrEnum):
     """Types of code metrics supported."""
 
     CYCLOMATIC_COMPLEXITY = "cyclomatic_complexity"

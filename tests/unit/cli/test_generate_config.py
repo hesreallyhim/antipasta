@@ -241,7 +241,7 @@ class TestGenerateConfigCommand:
     def test_permission_error_handling(self) -> None:
         """Test that permission errors are handled gracefully."""
         runner = CliRunner()
-        with patch("builtins.open", side_effect=PermissionError("Permission denied")):
+        with patch("io.open", side_effect=PermissionError("Permission denied")):
             result = runner.invoke(
                 generate, ["--non-interactive", "--output", "/protected/config.yaml"]
             )

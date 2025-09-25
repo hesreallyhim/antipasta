@@ -6,7 +6,7 @@ including metric thresholds, language settings, and project defaults.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from antipasta.core.config_override import ConfigOverride
 
 
-class ComparisonOperator(str, Enum):
+class ComparisonOperator(StrEnum):
     """Valid comparison operators for metric thresholds."""
 
     LT = "<"

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import pathspec
 
 
-class Language(str, Enum):
+class Language(StrEnum):
     """Supported programming languages."""
 
     PYTHON = "python"
@@ -48,7 +48,8 @@ class LanguageDetector:
 
         Args:
             ignore_patterns: List of gitignore-style patterns to exclude files
-            include_patterns: List of gitignore-style patterns to force-include files (overrides ignore patterns)
+            include_patterns: List of gitignore-style patterns to force-include files
+                (overrides ignore patterns)
             base_dir: Base directory for resolving relative paths (defaults to current directory)
         """
         self.ignore_patterns = ignore_patterns or []
@@ -59,7 +60,7 @@ class LanguageDetector:
         self._gitignore_patterns: list[str] = []  # Track patterns from .gitignore
 
     @property
-    def pathspec(self) -> pathspec.PathSpec:
+    def ignore_spec(self) -> pathspec.PathSpec:
         """Get or create the pathspec instance for ignore patterns."""
         if self._pathspec is None:
             all_patterns = self.ignore_patterns + self._gitignore_patterns
@@ -135,7 +136,7 @@ class LanguageDetector:
             return False
 
         # Check ignore patterns
-        return self.pathspec.match_file(path_str)
+        return self.ignore_spec.match_file(path_str)
 
     def group_by_language(self, file_paths: list[Path]) -> dict[Language, list[Path]]:
         """Group files by their detected language.

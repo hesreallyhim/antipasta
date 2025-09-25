@@ -65,7 +65,6 @@ target-version = "py311"
 preview = true
 line-length = 100
 fix = true
-fixable = ["ALL"]
 extend-exclude = ["DEMOS", "__INTERNAL__"]
 
 [tool.ruff.lint]
@@ -86,6 +85,7 @@ select = [
     # "TCH", # flake8-type-checking
 ]
 ignore = []
+fixable = ["ALL"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["antipasta"]

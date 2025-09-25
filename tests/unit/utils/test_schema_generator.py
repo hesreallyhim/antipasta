@@ -195,8 +195,7 @@ if __name__ == "__main__":
     print(f"Schema generated at: {schema_path}")
 """
 
-        with open(test_script, "w") as f:
-            f.write(script_content)
+        test_script.write_text(script_content)
 
         # Run the script
         import subprocess

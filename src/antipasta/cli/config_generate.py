@@ -270,7 +270,7 @@ def _collect_project_settings() -> dict[str, Any]:
     Returns:
         Dictionary with project settings.
     """
-    settings = {}
+    settings: dict[str, Any] = {}
 
     click.echo("\nProject settings:")
     click.echo("-" * 40)
@@ -412,10 +412,9 @@ def _confirm_file_overwrite(output: Path) -> bool:
     """
     click.echo(f"\nConfiguration will be saved to: {output}")
 
-    if output.exists():
-        if not click.confirm("File already exists. Overwrite?", default=False):
-            click.echo("Aborted.")
-            return False
+    if output.exists() and not click.confirm("File already exists. Overwrite?", default=False):
+        click.echo("Aborted.")
+        return False
 
     return True
 
@@ -550,8 +549,7 @@ def _save_config(config: AntipastaConfig, output: Path, force: bool = False) -> 
 
     # Write file
     try:
-        with open(output, "w") as f:
-            f.write("\n".join(yaml_lines) + "\n")
+        Path(output).write_text("\n".join(yaml_lines) + "\n")
 
         click.echo(f"✅ Configuration saved to {output}")
         click.echo(f"\nRun 'antipasta config validate {output}' to verify.")
