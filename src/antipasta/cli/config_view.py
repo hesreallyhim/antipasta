@@ -11,7 +11,7 @@ from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 import yaml
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.config import AntipastaConfig, LanguageConfig
 
 # Table formatting constants
 _TABLE_WIDTH = 60
@@ -35,6 +35,7 @@ def _display_header(config_path: Path, is_valid: bool) -> None:
 def _get_threshold_operator(key: str) -> str:
     """Get the comparison operator for a threshold key."""
     return "≥" if key.startswith("min_") else "≤"
+
 
 def _display_thresholds(config: AntipastaConfig) -> None:
     """Display threshold settings."""
@@ -89,10 +90,12 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
 
 def _create_box_renderer(width: int) -> Callable[[str, str], str]:
     """Create a box rendering function with fixed width."""
+
     def box(border: str, text: str = "") -> str:
         if text:
             return "║" + text.ljust(width) + "║"
         return border[0] + border[1] * width + border[2]
+
     return box
 
 
@@ -114,7 +117,9 @@ def _render_thresholds_section(box: Callable[[str, str], str], config: Antipasta
         click.echo(box("", f"  {display_key:<35} {op} {value:>10.1f}"))
 
 
-def _render_languages_section(box: Callable[[str, str], str], languages: list) -> None:
+def _render_languages_section(
+    box: Callable[[str, str], str], languages: list[LanguageConfig]
+) -> None:
     """Render the languages section if languages are configured."""
     if not languages:
         return
@@ -132,10 +137,12 @@ def _truncate_text(text: str, max_width: int) -> str:
     """Truncate text if it exceeds max width."""
     if len(text) <= max_width:
         return text
-    return text[:max_width - 3] + "..."
+    return text[: max_width - 3] + "..."
 
 
-def _render_ignore_patterns_section(box: Callable[[str, str], str], patterns: list, width: int) -> None:
+def _render_ignore_patterns_section(
+    box: Callable[[str, str], str], patterns: list[str], width: int
+) -> None:
     """Render the ignore patterns section if patterns are configured."""
     if not patterns:
         return
