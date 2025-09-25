@@ -32,15 +32,22 @@ def _display_header(config_path: Path, is_valid: bool) -> None:
     click.echo()
 
 
+def _get_threshold_operator(key: str) -> str:
+    """Get the comparison operator for a threshold key."""
+    return "≥" if key.startswith("min_") else "≤"
+
 def _display_thresholds(config: AntipastaConfig) -> None:
     """Display threshold settings."""
     click.echo("THRESHOLDS")
     click.echo("━" * 50)
+
     defaults = config.defaults.model_dump()
     for key, display_name in _THRESHOLD_NAMES.items():
-        if key in defaults:
-            op = "≥" if key.startswith("min_") else "≤"
-            click.echo(f"{display_name:<25} {op} {defaults[key]}")
+        if key not in defaults:
+            continue
+        op = _get_threshold_operator(key)
+        click.echo(f"{display_name:<25} {op} {defaults[key]}")
+
     click.echo()
 
 
@@ -80,49 +87,86 @@ def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) 
     click.echo(f"Using .gitignore: {'Yes' if config.use_gitignore else 'No'}")
 
 
-def display_table(config: AntipastaConfig) -> None:
-    """Display configuration in table format."""
-    w = _TABLE_WIDTH
+def _create_box_renderer(width: int) -> Callable[[str, str], str]:
+    """Create a box rendering function with fixed width."""
+    def box(border: str, text: str = "") -> str:
+        if text:
+            return "║" + text.ljust(width) + "║"
+        return border[0] + border[1] * width + border[2]
+    return box
 
-    def box(c: str, t: str = "") -> str:
-        return "║" + t.ljust(w) + "║" if t else c[0] + c[1] * w + c[2]
 
-    # Header
-    click.echo(box("╔═╗"))
-    click.echo(box("", " ANTIPASTA CONFIGURATION ".center(w)))
-    click.echo(box("╠═╣"))
+def _render_table_header(box: Callable[[str, str], str], width: int) -> None:
+    """Render the table header section."""
+    click.echo(box("╔═╗", ""))
+    click.echo(box("", " ANTIPASTA CONFIGURATION ".center(width)))
+    click.echo(box("╠═╣", ""))
 
-    # Thresholds
+
+def _render_thresholds_section(box: Callable[[str, str], str], config: AntipastaConfig) -> None:
+    """Render the thresholds section of the table."""
     click.echo(box("", " DEFAULT THRESHOLDS"))
-    click.echo(box("╟─╢"))
+    click.echo(box("╟─╢", ""))
+
     for key, value in config.defaults.model_dump().items():
         display_key = key.replace("_", " ").title()
         op = ">=" if key.startswith("min_") else "<="
         click.echo(box("", f"  {display_key:<35} {op} {value:>10.1f}"))
 
-    # Languages
-    if config.languages:
-        click.echo(box("╟─╢"))
-        click.echo(box("", " LANGUAGES"))
-        click.echo(box("╟─╢"))
-        for lang in config.languages:
-            text = f"  {lang.name}: {len(lang.metrics)} metrics, {len(lang.extensions)} extensions"
-            click.echo(box("", text))
 
-    # Ignore patterns
-    if config.ignore_patterns:
-        click.echo(box("╟─╢"))
-        click.echo(box("", f" IGNORE PATTERNS ({len(config.ignore_patterns)})"))
-        click.echo(box("╟─╢"))
-        for pattern in config.ignore_patterns[:5]:
-            text = f"  {pattern}"
-            if len(text) > w:
-                text = text[:57] + "..."
-            click.echo(box("", text))
-        if len(config.ignore_patterns) > 5:
-            click.echo(box("", f"  ... and {len(config.ignore_patterns) - 5} more"))
+def _render_languages_section(box: Callable[[str, str], str], languages: list) -> None:
+    """Render the languages section if languages are configured."""
+    if not languages:
+        return
 
-    click.echo(box("╚═╝"))
+    click.echo(box("╟─╢", ""))
+    click.echo(box("", " LANGUAGES"))
+    click.echo(box("╟─╢", ""))
+
+    for lang in languages:
+        text = f"  {lang.name}: {len(lang.metrics)} metrics, {len(lang.extensions)} extensions"
+        click.echo(box("", text))
+
+
+def _truncate_text(text: str, max_width: int) -> str:
+    """Truncate text if it exceeds max width."""
+    if len(text) <= max_width:
+        return text
+    return text[:max_width - 3] + "..."
+
+
+def _render_ignore_patterns_section(box: Callable[[str, str], str], patterns: list, width: int) -> None:
+    """Render the ignore patterns section if patterns are configured."""
+    if not patterns:
+        return
+
+    click.echo(box("╟─╢", ""))
+    click.echo(box("", f" IGNORE PATTERNS ({len(patterns)})"))
+    click.echo(box("╟─╢", ""))
+
+    # Display first 5 patterns
+    display_limit = 5
+    for pattern in patterns[:display_limit]:
+        text = _truncate_text(f"  {pattern}", width)
+        click.echo(box("", text))
+
+    # Show count of remaining patterns
+    remaining = len(patterns) - display_limit
+    if remaining > 0:
+        click.echo(box("", f"  ... and {remaining} more"))
+
+
+def display_table(config: AntipastaConfig) -> None:
+    """Display configuration in table format."""
+    width = _TABLE_WIDTH
+    box = _create_box_renderer(width)
+
+    _render_table_header(box, width)
+    _render_thresholds_section(box, config)
+    _render_languages_section(box, config.languages)
+    _render_ignore_patterns_section(box, config.ignore_patterns, width)
+
+    click.echo(box("╚═╝", ""))
 
 
 def display_raw(config_path: Path) -> None:
