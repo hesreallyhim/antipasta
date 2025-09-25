@@ -8,8 +8,8 @@ from antipasta import __version__
 from antipasta.cli.config import config as config_group
 
 # For backward compatibility
-from antipasta.cli.config_generate import generate as generate_cmd
-from antipasta.cli.config_validate import validate as validate_cmd
+from antipasta.cli.config.config_generate import generate as generate_cmd
+from antipasta.cli.config.config_validate import validate as validate_cmd
 from antipasta.cli.metrics import metrics as metrics_cmd
 from antipasta.cli.stats import stats as stats_cmd
 

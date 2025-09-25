@@ -9,7 +9,7 @@ import click
 from click.testing import CliRunner
 import pytest
 
-from antipasta.cli.config_generate import (
+from antipasta.cli.config.config_generate import (
     _create_javascript_config,
     _create_python_config,
     _save_config,

@@ -5,7 +5,7 @@ import tempfile
 
 from click.testing import CliRunner
 
-from antipasta.cli.config_generate import generate
+from antipasta.cli.config.config_generate import generate
 from antipasta.core.config import AntipastaConfig
 
 

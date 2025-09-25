@@ -1,15 +1,15 @@
-"""Tests for the validate-config command."""
+"""Tests for the config validate command."""
 
 from pathlib import Path
 import tempfile
 
 from click.testing import CliRunner
 
-from antipasta.cli.validate import validate_config
+from antipasta.cli.config.config_validate import validate
 
 
 class TestValidateConfigCommand:
-    """Test the validate-config command."""
+    """Test the config validate subcommand."""
 
     def test_validate_valid_config(self) -> None:
         """Test validating a valid configuration file."""
@@ -36,7 +36,7 @@ use_gitignore: true
 """
             )
 
-            result = runner.invoke(validate_config, [str(config_file)])
+            result = runner.invoke(validate, [str(config_file)])
 
             assert result.exit_code == 0
             assert "✅ Configuration file is valid" in result.output
@@ -61,14 +61,14 @@ languages:
 """
             )
 
-            result = runner.invoke(validate_config, [str(config_file)])
+            result = runner.invoke(validate, [str(config_file)])
 
             assert result.exit_code == 1
             assert "❌ Configuration validation failed" in result.output
             assert "Validation errors:" in result.output
 
     def test_validate_default_file(self) -> None:
-        """Test that validate-config defaults to .antipasta.yaml."""
+        """Test that validate defaults to .antipasta.yaml."""
         runner = CliRunner()
         with runner.isolated_filesystem():
             # Create .antipasta.yaml in the current directory
@@ -91,8 +91,8 @@ use_gitignore: true
 """
             )
 
-            # Run validate-config without arguments
-            result = runner.invoke(validate_config)
+            # Run validate without arguments
+            result = runner.invoke(validate)
 
             assert result.exit_code == 0
             assert "✅ Configuration file is valid: .antipasta.yaml" in result.output
@@ -102,7 +102,7 @@ use_gitignore: true
         runner = CliRunner()
         with runner.isolated_filesystem():
             # Don't create .antipasta.yaml
-            result = runner.invoke(validate_config)
+            result = runner.invoke(validate)
 
             assert result.exit_code == 2
             assert "Path '.antipasta.yaml' does not exist" in result.output
@@ -122,7 +122,7 @@ languages:
 """
             )
 
-            result = runner.invoke(validate_config, [str(config_file)])
+            result = runner.invoke(validate, [str(config_file)])
 
             assert result.exit_code == 1
             assert "❌ Error loading configuration" in result.output
@@ -162,7 +162,7 @@ use_gitignore: true
 """
             )
 
-            result = runner.invoke(validate_config, [str(config_file)])
+            result = runner.invoke(validate, [str(config_file)])
 
             assert result.exit_code == 0
             assert "Languages: 2" in result.output

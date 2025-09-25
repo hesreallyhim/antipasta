@@ -2,9 +2,9 @@
 
 import click
 
-from antipasta.cli.config_generate import generate
-from antipasta.cli.config_validate import validate
-from antipasta.cli.config_view import view
+from antipasta.cli.config.config_generate import generate
+from antipasta.cli.config.config_validate import validate
+from antipasta.cli.config.config_view import view
 
 
 @click.group()

@@ -7,7 +7,7 @@ import tempfile
 from click.testing import CliRunner
 import yaml
 
-from antipasta.cli.config_view import view
+from antipasta.cli.config.config_view import view
 
 
 class TestConfigViewCommand:
