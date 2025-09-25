@@ -5,7 +5,7 @@ from typing import Any
 
 from antipasta.core.metrics import MetricType
 
-from .stats_utils import (
+from ..utils import (
     calculate_file_loc_statistics,
     calculate_function_complexity_statistics,
     collect_function_complexities_from_reports,

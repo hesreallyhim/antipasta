@@ -4,12 +4,10 @@ from pathlib import Path
 
 import click
 
-from .stats_analysis import analyze_files_with_validation
-from .stats_config import setup_analysis_environment
-from .stats_file_collection import (
-    collect_and_validate_files,
-)
-from .stats_output import generate_output
+from .collection.analysis import analyze_files_with_validation
+from .collection.file_collection import collect_and_validate_files
+from .config import setup_analysis_environment
+from .output import generate_output
 
 
 @click.command()

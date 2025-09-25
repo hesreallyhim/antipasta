@@ -8,7 +8,7 @@ import click
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.detector import LanguageDetector
 
-from .stats_file_collection import validate_analyzable_files
+from .file_collection import validate_analyzable_files
 
 
 def analyze_and_display_file_breakdown(

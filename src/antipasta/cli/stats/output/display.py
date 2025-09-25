@@ -5,7 +5,7 @@ from typing import Any
 
 import click
 
-from .stats_utils import (
+from ..utils import (
     determine_statistics_grouping_type,
     truncate_path_for_display,
 )

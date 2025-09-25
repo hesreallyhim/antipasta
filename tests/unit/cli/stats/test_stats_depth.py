@@ -5,7 +5,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from antipasta.cli.stats import stats
-from antipasta.cli.stats_directory import MAX_DEPTH
+from antipasta.cli.stats.aggregation.directory import MAX_DEPTH
 
 
 class TestUnlimitedDepthFeature:

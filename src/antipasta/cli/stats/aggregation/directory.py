@@ -5,8 +5,8 @@ from pathlib import Path
 import statistics
 from typing import Any
 
-from .stats_metrics import add_metric_statistics_to_result
-from .stats_utils import (
+from ..collection.metrics import add_metric_statistics_to_result
+from ..utils import (
     calculate_relative_depth,
     extract_file_loc_from_report,
     find_common_base_directory,

@@ -1,8 +1,8 @@
 """Statistics collection coordination for the stats command."""
 
-from .stats_directory import collect_directory_stats
-from .stats_metrics import collect_overall_stats
-from .stats_module import collect_module_stats
+from .directory import collect_directory_stats
+from .module import collect_module_stats
+from ..collection.metrics import collect_overall_stats
 
 # Re-export the main collection functions for backward compatibility
 __all__ = [

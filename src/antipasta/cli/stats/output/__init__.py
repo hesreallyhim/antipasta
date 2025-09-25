@@ -8,12 +8,12 @@ from typing import Any
 
 import click
 
-from .stats_collection import (
+from ..aggregation import (
     collect_directory_stats,
     collect_module_stats,
     collect_overall_stats,
 )
-from .stats_display import (
+from .display import (
     display_csv,
     display_json,
     display_table,
@@ -182,7 +182,7 @@ def generate_output(
         depth: Directory depth
         path_style: Path display style
     """
-    from .stats_file_collection import get_metrics_to_include
+    from ..collection.file_collection import get_metrics_to_include
 
     metrics_to_include = get_metrics_to_include(metric)
 
