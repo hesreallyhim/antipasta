@@ -9,11 +9,13 @@ import click
 from click.testing import CliRunner
 import pytest
 
-from antipasta.cli.config.config_generate import (
-    _create_javascript_config,
-    _create_python_config,
-    _save_config,
-    generate,
+from antipasta.cli.config.config_generate import generate
+from antipasta.cli.config.config_generate.file_operations import save_config as _save_config
+from antipasta.cli.config.config_generate.language_config import (
+    create_javascript_config as _create_javascript_config,
+    create_python_config as _create_python_config,
+)
+from antipasta.cli.config.config_generate.validation import (
     prompt_with_validation,
     validate_with_pydantic,
 )
