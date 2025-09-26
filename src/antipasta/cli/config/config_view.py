@@ -25,6 +25,12 @@ _THRESHOLD_NAMES = {
 }
 
 
+def echo_box(box: Callable[[str, str], str], content: tuple[str, str]) -> None:
+    """Echo a line of the box."""
+    border, text = content
+    click.echo(box(border, text))
+
+
 def _display_header(config_path: Path, is_valid: bool) -> None:
     """Display configuration header with path and validation status."""
     click.echo(f"Configuration: {config_path}")
@@ -101,20 +107,20 @@ def _create_box_renderer(width: int) -> Callable[[str, str], str]:
 
 def _render_table_header(box: Callable[[str, str], str], width: int) -> None:
     """Render the table header section."""
-    click.echo(box("╔═╗", ""))
-    click.echo(box("", " ANTIPASTA CONFIGURATION ".center(width)))
-    click.echo(box("╠═╣", ""))
+    echo_box(box, ("╔═╗", ""))
+    echo_box(box, ("", " ANTIPASTA CONFIGURATION ".center(width)))
+    echo_box(box, ("╠═╣", ""))
 
 
 def _render_thresholds_section(box: Callable[[str, str], str], config: AntipastaConfig) -> None:
     """Render the thresholds section of the table."""
-    click.echo(box("", " DEFAULT THRESHOLDS"))
-    click.echo(box("╟─╢", ""))
+    echo_box(box, ("", " DEFAULT THRESHOLDS"))
+    echo_box(box, ("╟─╢", ""))
 
     for key, value in config.defaults.model_dump().items():
         display_key = key.replace("_", " ").title()
         op = ">=" if key.startswith("min_") else "<="
-        click.echo(box("", f"  {display_key:<35} {op} {value:>10.1f}"))
+        echo_box(box, ("", f"  {display_key:<35} {op} {value:>10.1f}"))
 
 
 def _render_languages_section(
@@ -124,13 +130,13 @@ def _render_languages_section(
     if not languages:
         return
 
-    click.echo(box("╟─╢", ""))
-    click.echo(box("", " LANGUAGES"))
-    click.echo(box("╟─╢", ""))
+    echo_box(box, ("╟─╢", ""))
+    echo_box(box, ("", " LANGUAGES"))
+    echo_box(box, ("╟─╢", ""))
 
     for lang in languages:
         text = f"  {lang.name}: {len(lang.metrics)} metrics, {len(lang.extensions)} extensions"
-        click.echo(box("", text))
+        echo_box(box, ("", text))
 
 
 def _truncate_text(text: str, max_width: int) -> str:
@@ -147,20 +153,20 @@ def _render_ignore_patterns_section(
     if not patterns:
         return
 
-    click.echo(box("╟─╢", ""))
-    click.echo(box("", f" IGNORE PATTERNS ({len(patterns)})"))
-    click.echo(box("╟─╢", ""))
+    echo_box(box, ("╟─╢", ""))
+    echo_box(box, ("", f" IGNORE PATTERNS ({len(patterns)})"))
+    echo_box(box, ("╟─╢", ""))
 
     # Display first 5 patterns
     display_limit = 5
     for pattern in patterns[:display_limit]:
         text = _truncate_text(f"  {pattern}", width)
-        click.echo(box("", text))
+        echo_box(box, ("", text))
 
     # Show count of remaining patterns
     remaining = len(patterns) - display_limit
     if remaining > 0:
-        click.echo(box("", f"  ... and {remaining} more"))
+        echo_box(box, ("", f"  ... and {remaining} more"))
 
 
 def display_table(config: AntipastaConfig) -> None:
@@ -173,7 +179,7 @@ def display_table(config: AntipastaConfig) -> None:
     _render_languages_section(box, config.languages)
     _render_ignore_patterns_section(box, config.ignore_patterns, width)
 
-    click.echo(box("╚═╝", ""))
+    echo_box(box, ("╚═╝", ""))
 
 
 def display_raw(config_path: Path) -> None:
