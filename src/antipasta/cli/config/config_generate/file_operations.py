@@ -1,13 +1,26 @@
 """File operations for configuration generation."""
 
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 import click
 from pydantic import ValidationError
+import yaml
 
 from antipasta.core.config import AntipastaConfig
+
+
+def _dump_scalar(value: Any) -> str:
+    """Serialize a scalar to YAML without trailing newline."""
+    dumped = yaml.safe_dump(
+        value,
+        allow_unicode=False,
+        default_flow_style=False,
+        sort_keys=False,
+        explicit_end=False,
+    ).strip()
+    return dumped.splitlines()[0] if dumped else ""
 
 
 def save_config(config: AntipastaConfig, output: Path) -> None:
@@ -27,31 +40,50 @@ def save_config(config: AntipastaConfig, output: Path) -> None:
     cyclo_max = defaults.get("max_cyclomatic_complexity", 10)
     cog_max = defaults.get("max_cognitive_complexity", 15)
     maint_min = defaults.get("min_maintainability_index", 50)
-    yaml_lines.append(f"  max_cyclomatic_complexity: {cyclo_max}")  # noqa: FURB113
-    yaml_lines.append(f"  max_cognitive_complexity: {cog_max}")
-    yaml_lines.append(f"  min_maintainability_index: {maint_min}")
+    yaml_lines.append(
+        f"  max_cyclomatic_complexity: {_dump_scalar(cyclo_max)}"
+    )  # noqa: FURB113
+    yaml_lines.append(f"  max_cognitive_complexity: {_dump_scalar(cog_max)}")
+    yaml_lines.append(f"  min_maintainability_index: {_dump_scalar(maint_min)}")
     yaml_lines.append("  # Halstead metrics (advanced)")
-    yaml_lines.append(f"  max_halstead_volume: {defaults.get('max_halstead_volume', 1000)}")
-    yaml_lines.append(f"  max_halstead_difficulty: {defaults.get('max_halstead_difficulty', 10)}")
-    yaml_lines.append(f"  max_halstead_effort: {defaults.get('max_halstead_effort', 10000)}")
+    halstead_volume = _dump_scalar(defaults.get("max_halstead_volume", 1000))
+    halstead_difficulty = _dump_scalar(defaults.get("max_halstead_difficulty", 10))
+    halstead_effort = _dump_scalar(defaults.get("max_halstead_effort", 10000))
+    yaml_lines.append(f"  max_halstead_volume: {halstead_volume}")
+    yaml_lines.append(f"  max_halstead_difficulty: {halstead_difficulty}")
+    yaml_lines.append(f"  max_halstead_effort: {halstead_effort}")
 
     yaml_lines.append("")
     yaml_lines.append("# Language-specific configurations")
-    yaml_lines.append("languages:")
+    languages = data.get("languages") or []
+    if languages:
+        yaml_lines.append("languages:")
+        for lang in languages:
+            name = _dump_scalar(lang.get("name", ""))
+            yaml_lines.append(f"  - name: {name}")
 
-    for lang in data.get("languages", []):
-        yaml_lines.append(f"  - name: {lang['name']}")
-        if lang.get("extensions"):
-            yaml_lines.append("    extensions:")
-            for ext in lang["extensions"]:
-                yaml_lines.append(f"      - {ext}")
-        yaml_lines.append("    metrics:")
-        for metric in lang.get("metrics", []):
-            yaml_lines.append(f"      - type: {metric['type']}")  # noqa: FURB113
-            yaml_lines.append(f"        threshold: {metric['threshold']}")
-            yaml_lines.append(f'        comparison: "{metric["comparison"]}"')
-            if metric != lang["metrics"][-1]:  # Not the last metric
-                yaml_lines.append("")
+            extensions = lang.get("extensions") or []
+            if extensions:
+                yaml_lines.append("    extensions:")
+                for ext in extensions:
+                    yaml_lines.append(f"      - {_dump_scalar(ext)}")
+
+            metrics = lang.get("metrics") or []
+            if metrics:
+                yaml_lines.append("    metrics:")
+                for index, metric in enumerate(metrics):
+                    metric_type = _dump_scalar(metric.get("type"))
+                    threshold = _dump_scalar(metric.get("threshold"))
+                    comparison = _dump_scalar(metric.get("comparison"))
+                    yaml_lines.append(f"      - type: {metric_type}")  # noqa: FURB113
+                    yaml_lines.append(f"        threshold: {threshold}")
+                    yaml_lines.append(f"        comparison: {comparison}")
+                    if index < len(metrics) - 1:
+                        yaml_lines.append("")
+            else:
+                yaml_lines.append("    metrics: []")
+    else:
+        yaml_lines.append("languages: []")
 
     yaml_lines.append("")  # noqa: FURB113
     yaml_lines.append("# Files and patterns to ignore during analysis")
@@ -59,17 +91,24 @@ def save_config(config: AntipastaConfig, output: Path) -> None:
     if patterns:
         yaml_lines.append("ignore_patterns:")
         for pattern in patterns:
-            yaml_lines.append(f'  - "{pattern}"')
+            yaml_lines.append(f"  - {_dump_scalar(pattern)}")
     else:
         yaml_lines.append("ignore_patterns: []")
 
     yaml_lines.append("")  # noqa: FURB113
     yaml_lines.append("# Whether to use .gitignore file for excluding files")
-    yaml_lines.append(f"use_gitignore: {str(data.get('use_gitignore', True)).lower()}")
+    yaml_lines.append(f"use_gitignore: {_dump_scalar(data.get('use_gitignore', True))}")
 
     # Write file
     try:
-        Path(output).write_text("\n".join(yaml_lines) + "\n")
+        output_path = Path(output)
+        parent_dir = output_path.parent
+        if parent_dir and not parent_dir.exists():
+            try:
+                parent_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as exc:
+                raise PermissionError("Permission denied") from exc
+        output_path.write_text("\n".join(yaml_lines) + "\n")
 
         click.echo(f"✅ Configuration saved to {output}")
         click.echo(f"\nRun 'antipasta config validate {output}' to verify.")
