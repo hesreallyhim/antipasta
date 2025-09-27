@@ -12,6 +12,7 @@ Requires:  pip install plotly pandas radon
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 from collections.abc import Iterable
 import os
 from pathlib import Path
@@ -130,14 +131,8 @@ def metric_from_radon(text: str, which: str) -> int:
 def build_rows(
     root: Path, files: Iterable[tuple[Path, int]], which: str, min_lines: int
 ) -> pd.DataFrame:
-    """
-    Construct a dataframe with columns:
-      - level_0, level_1, ..., 'name' (leaf filename)
-      - value (chosen metric)
-      - full_path
-    """
+    """Create rows for each Python file and retain directory parts."""
     rows: list[dict[str, Any]] = []
-    max_parts = 1
 
     for fpath, _depth in files:
         try:
@@ -149,7 +144,6 @@ def build_rows(
             continue
         rel = fpath.relative_to(root)
         parts = list(rel.parts)
-        max_parts = max(max_parts, len(parts))
         rows.append(
             {
                 "parts": parts[:-1],
@@ -162,12 +156,62 @@ def build_rows(
     if not rows:
         return pd.DataFrame(columns=["name", "value", "full_path"])
 
-    # Normalize hierarchy columns
-    for i in range(max_parts - 1):  # exclude the file leaf
-        for r in rows:
-            r[f"level_{i}"] = r["parts"][i] if i < len(r["parts"]) else None
+    return pd.DataFrame(rows)
 
-    return pd.DataFrame(rows).drop(columns=["parts"])
+
+def build_tree_dataframe(df: pd.DataFrame, root: Path) -> pd.DataFrame:
+    """Create a dataframe suitable for Plotly treemap with directory aggregation."""
+
+    dir_totals: dict[tuple[str, ...], int] = defaultdict(int)
+    total_value = int(df["value"].sum())
+
+    for parts, value in zip(df["parts"], df["value"], strict=False):
+        for i in range(1, len(parts) + 1):
+            dir_totals[tuple(parts[:i])] += int(value)
+
+    root_label = root.name or str(root)
+    root_id = root_label or "[root]"
+
+    nodes: list[dict[str, Any]] = [
+        {
+            "id": root_id,
+            "label": root_label or str(root),
+            "parent": "",
+            "value": total_value,
+            "full_path": ".",
+            "is_dir": True,
+        }
+    ]
+
+    for path_tuple, value in sorted(dir_totals.items()):
+        node_id = "/".join(path_tuple)
+        parent_id = root_id if len(path_tuple) == 1 else "/".join(path_tuple[:-1])
+        nodes.append(
+            {
+                "id": node_id,
+                "label": path_tuple[-1],
+                "parent": parent_id,
+                "value": value,
+                "full_path": node_id,
+                "is_dir": True,
+            }
+        )
+
+    for _, row in df.iterrows():
+        parts = row["parts"]
+        parent_id = root_id if not parts else "/".join(parts)
+        nodes.append(
+            {
+                "id": row["full_path"],
+                "label": row["name"],
+                "parent": parent_id,
+                "value": int(row["value"]),
+                "full_path": row["full_path"],
+                "is_dir": False,
+            }
+        )
+
+    return pd.DataFrame(nodes)
 
 
 def main() -> int:
@@ -193,18 +237,18 @@ def main() -> int:
         print("No Python files matched the criteria.", file=sys.stderr)
         return 1
 
-    level_cols = sorted(
-        [c for c in df.columns if c.startswith("level_")], key=lambda c: int(c.split("_")[1])
-    )
-    path_cols = level_cols + ["name"]
+    tree_df = build_tree_dataframe(df, root)
 
     title_metric = args.metric.upper()
     fig = px.treemap(
-        df,
-        path=path_cols,
+        tree_df,
+        ids="id",
+        names="label",
+        parents="parent",
         values="value",
+        branchvalues="total",
+        hover_data={"full_path": True, "is_dir": True},
         title=f"Python {title_metric} Treemap — {root}",
-        hover_data={"full_path": True, "value": True, **dict.fromkeys(level_cols, False)},
     )
     fig.update_traces(
         hovertemplate="<b>%{label}</b><br>path=%{customdata[0]}<br>"

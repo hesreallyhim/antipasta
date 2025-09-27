@@ -17,7 +17,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: help venv install install-dev install-prod format lint type-check test test-cov check clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe
+.PHONY: help venv install install-dev install-prod format lint type-check test test-cov check clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -107,6 +107,12 @@ self-check: install  ## Run antipasta on its own source code
 	@$(VENV_DIR)/bin/antipasta metrics -d src/antipasta || (echo ""; echo "⚠️  Some violations detected. Consider refactoring complex code."; exit 1)
 	@echo ""
 	@echo "✅ All complexity checks passed!"
+
+TREEMAP_METRIC ?= sloc
+TREEMAP_OUTPUT ?= treemap_loc.html
+
+treemap: install-dev  ## Generate Plotly treemap for src (override METRIC=loc|sloc|lloc)
+	$(PYTHON) treemap_loc.py --root src --metric $(TREEMAP_METRIC) --output $(TREEMAP_OUTPUT)
 
 check-all: check metrics-quiet  ## Run all checks including complexity metrics
 
