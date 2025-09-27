@@ -15,7 +15,6 @@ All 10 tests pass and verify the decomposed functions.
 """
 
 from pathlib import Path
-from tkinter import N
 from unittest.mock import MagicMock, patch
 
 import pytest
