@@ -96,7 +96,7 @@ force-sort-within-sections = true
 [tool.black]
 line-length = 100
 target-version = ["py311"]
-extend-exclude = "__INTERNAL__"
+extend-exclude = "__INTERNAL__|DEMOS"
 
 [tool.mypy]
 python_version = "3.11"
@@ -113,7 +113,7 @@ warn_no_return = true
 pretty = true
 show_error_codes = true
 show_error_context = true
-exclude = ["__INTERNAL__"]
+exclude = ["__INTERNAL__", "DEMOS"]
 
 [[tool.mypy.overrides]]
 module = ["radon.*", "complexipy.*"]
@@ -136,7 +136,7 @@ source = ["src/antipasta"]
 parallel = false
 concurrency = []
 disable_warnings = ["module-not-measured"]
-omit = ["*/__INTERNAL__/*"]
+omit = ["*/__INTERNAL__/*", "*/DEMOS/*", "*/INTERNAL/*"]
 
 [tool.coverage.report]
 exclude_lines = [
