@@ -17,7 +17,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: help venv install install-dev install-prod format lint type-check test test-cov check clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe
+.PHONY: help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -55,6 +55,13 @@ type-check: install-dev  ## Run type checking with mypy
 
 test: install-dev  ## Run tests with pytest
 	$(VENV_DIR)/bin/pytest --no-cov
+
+test-fast: install-dev  ## Run targeted tests with pytest-testmon
+	@mkdir -p .cache
+	TESTMON_DATAFILE=.cache/testmon.sqlite $(VENV_DIR)/bin/pytest --testmon
+
+test-fast-clean:  ## Remove cached testmon data to force a full run
+	rm -f .cache/testmon.sqlite .cache/testmon.sqlite-shm .cache/testmon.sqlite-wal .testmondata*
 
 test-cov: install-dev  ## Run tests with coverage report
 	# Clean up any existing coverage data

@@ -519,12 +519,20 @@ CYCLOMATIC COMPLEXITY STATISTICS:
 # Run all tests
 make test
 
+# Run only tests affected by your recent changes (requires initial baseline run)
+make test-fast
+
+# Clear pytest-testmon cache to force a full recalculation
+make test-fast-clean
+
 # Run with coverage
 make test-coverage
 
 # Run specific test file
 pytest tests/unit/test_config.py -v
 ```
+
+The `make test-fast` target automatically stores its SQLite cache under `.cache/testmon.sqlite` via the `TESTMON_DATAFILE` environment variable so the repository root stays clean. If the cache ever gets out of date (for example after switching branches), run `make test-fast-clean` to remove the `.cache/testmon.sqlite*` files and trigger a fresh baseline on the next `make test-fast`.
 
 ### Code Quality
 

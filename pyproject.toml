@@ -41,6 +41,7 @@ dependencies = [
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
+    "pytest-testmon>=2.0.20",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "mypy>=1.7.0",
