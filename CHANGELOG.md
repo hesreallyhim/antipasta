@@ -5,6 +5,76 @@ All notable changes to antipasta will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-27
+
+### Added
+- **CLI Threshold Override Features**
+  - Dynamic threshold overrides via command-line arguments
+  - Three-letter prefix support for metric names (e.g., "cyc" for cyclomatic_complexity)
+  - Validation for CLI override values and operators
+  - Enhanced configuration override system (`config_override.py`)
+
+- **Comprehensive Test Coverage**
+  - Tests for refactored stats modules
+  - Config override validation tests
+  - Metrics utility tests
+  - Test coverage for all new submodules
+
+### Changed
+- **Major Codebase Refactoring** - antipasta now meets its own complexity constraints
+  - **Modularization of Large Files**
+    - `cli/stats.py` (906 lines) → organized submodules under `cli/stats/`:
+      - `aggregation/` - Directory and module aggregation logic
+      - `collection/` - Metrics collection and analysis
+      - `output/` - Display formatting and output handling
+      - `utils.py` - Shared utilities
+      - `command.py` - Main command orchestration
+    - `cli/config_generate.py` (421 lines) → `cli/config/config_generate/` submodules:
+      - `main.py` - Command entry point
+      - `interactive_prompts.py` - User interaction logic
+      - `language_config.py` - Language-specific configuration
+      - `project_config.py` - Project configuration handling
+      - `file_operations.py` - File I/O operations
+      - `validation.py` - Config validation logic
+    - `cli/config_view.py` (242 lines) → `cli/config/config_view/` submodules:
+      - `main.py` - Command entry point
+      - `display_formats.py` - Format handling (JSON, YAML)
+      - `table_display.py` - Table formatting logic
+    - `cli/metrics.py` (210 lines) → `cli/metrics/` submodules:
+      - `metrics.py` - Main command logic
+      - `metrics_utils_*.py` - Specialized utility modules
+
+  - **Complexity Reduction Techniques**
+    - Applied Compose Method pattern throughout to reduce cyclomatic complexity
+    - Extracted complex conditionals into named functions
+    - Replaced nested structures with dictionary dispatch patterns
+    - Improved maintainability indices across all modules (target: 50+)
+    - Reduced maximum function complexity to meet thresholds
+
+  - **Architecture Improvements**
+    - Better separation of concerns throughout the codebase
+    - Enhanced modularity and reusability
+    - Clear module boundaries and responsibilities
+    - Consistent patterns across similar modules
+
+### Fixed
+- Type hint issues throughout the codebase
+- Test failures after refactoring
+- Import path issues after module reorganization
+
+### Technical Improvements
+- **Code Quality Metrics**
+  - All source code now passes antipasta's own complexity checks
+  - Largest files reduced from 900+ lines to under 310 lines
+  - Cyclomatic complexity kept within configured thresholds
+  - Maintainability index improved across all modules
+
+- **Developer Experience**
+  - More intuitive module organization
+  - Enhanced code readability and maintainability
+  - Better testability through modular design
+  - Clearer separation between business logic and presentation
+
 ## [1.0.0] - 2025-01-21
 
 ### Added
