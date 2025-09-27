@@ -24,7 +24,8 @@ class TestStatsOverrides:
             test_dir = Path(tmpdir) / "tests"
             test_dir.mkdir()
             test_file = test_dir / "test_example.py"
-            test_file.write_text("""
+            test_file.write_text(
+                """
 def test_one():
     assert 1 == 1
 
@@ -32,15 +33,18 @@ def test_two():
     for i in range(10):
         if i > 5:
             print(i)
-""")
+"""
+            )
 
             src_dir = Path(tmpdir) / "src"
             src_dir.mkdir()
             src_file = src_dir / "module.py"
-            src_file.write_text("""
+            src_file.write_text(
+                """
 def calculate(x):
     return x * 2
-""")
+"""
+            )
 
             # Create gitignore that excludes tests
             gitignore = Path(tmpdir) / ".gitignore"
@@ -199,14 +203,16 @@ def calculate(x):
             deep_path = Path(tmpdir) / "src" / "app" / "modules" / "core"
             deep_path.mkdir(parents=True)
             deep_file = deep_path / "engine.py"
-            deep_file.write_text("""
+            deep_file.write_text(
+                """
 def process():
     data = []
     for i in range(100):
         if i % 2 == 0:
             data.append(i)
     return data
-""")
+"""
+            )
 
             # Ignored by default
             test_path = Path(tmpdir) / "src" / "app" / "tests"
@@ -244,14 +250,16 @@ def process():
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create test file
             src_file = Path(tmpdir) / "main.py"
-            src_file.write_text("""
+            src_file.write_text(
+                """
 def calculate(x, y):
     if x > 0:
         if y > 0:
             return x + y
         return x - y
     return -x
-""")
+"""
+            )
 
             with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()

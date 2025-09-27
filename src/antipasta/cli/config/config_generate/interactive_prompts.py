@@ -119,7 +119,4 @@ def should_configure_advanced_metrics() -> bool:
     Returns:
         True if user wants to configure advanced metrics, False otherwise.
     """
-    return click.confirm(
-        "\nWould you like to configure advanced Halstead metrics?",
-        default=False
-    )
+    return click.confirm("\nWould you like to configure advanced Halstead metrics?", default=False)

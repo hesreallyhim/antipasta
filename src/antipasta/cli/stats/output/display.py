@@ -239,10 +239,12 @@ def display_csv(stats_data: dict[str, Any]) -> None:
 
         # Add function complexity or LOC metrics
         if "avg_complexity" in stats_data["functions"]:
-            writer.writerow([
-                "Average Function Complexity",
-                stats_data["functions"]["avg_complexity"],
-            ])
+            writer.writerow(
+                [
+                    "Average Function Complexity",
+                    stats_data["functions"]["avg_complexity"],
+                ]
+            )
         elif "avg_loc" in stats_data["functions"]:
             writer.writerow(["Average LOC per Function", stats_data["functions"]["avg_loc"]])
     else:

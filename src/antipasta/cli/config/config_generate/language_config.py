@@ -80,18 +80,20 @@ def create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
     # For JS/TS, we only support cyclomatic and cognitive complexity currently
     metrics: list[dict[str, Any]] = []
 
-    metrics.extend((
-        {
-            "type": "cyclomatic_complexity",
-            "threshold": defaults["max_cyclomatic_complexity"],
-            "comparison": "<=",
-        },
-        {
-            "type": "cognitive_complexity",
-            "threshold": defaults["max_cognitive_complexity"],
-            "comparison": "<=",
-        },
-    ))
+    metrics.extend(
+        (
+            {
+                "type": "cyclomatic_complexity",
+                "threshold": defaults["max_cyclomatic_complexity"],
+                "comparison": "<=",
+            },
+            {
+                "type": "cognitive_complexity",
+                "threshold": defaults["max_cognitive_complexity"],
+                "comparison": "<=",
+            },
+        )
+    )
 
     return {
         "name": "javascript",

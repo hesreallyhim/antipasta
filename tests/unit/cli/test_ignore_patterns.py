@@ -18,19 +18,21 @@ class TestIgnorePatternInput:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "multi-pattern.yaml"
 
-            user_input = "\n".join([
-                "10",  # cyclomatic
-                "15",  # cognitive
-                "50",  # maintainability
-                "n",  # no advanced
-                "y",  # Python
-                "y",  # use gitignore
-                "y",  # use default test patterns
-                "*.pyc",  # first additional pattern
-                "__pycache__/**",  # second additional pattern
-                "*.log",  # third additional pattern
-                "",  # empty to finish
-            ])
+            user_input = "\n".join(
+                [
+                    "10",  # cyclomatic
+                    "15",  # cognitive
+                    "50",  # maintainability
+                    "n",  # no advanced
+                    "y",  # Python
+                    "y",  # use gitignore
+                    "y",  # use default test patterns
+                    "*.pyc",  # first additional pattern
+                    "__pycache__/**",  # second additional pattern
+                    "*.log",  # third additional pattern
+                    "",  # empty to finish
+                ]
+            )
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -56,17 +58,19 @@ class TestIgnorePatternInput:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "no-defaults.yaml"
 
-            user_input = "\n".join([
-                "10",  # cyclomatic
-                "15",  # cognitive
-                "50",  # maintainability
-                "n",  # no advanced
-                "y",  # Python
-                "y",  # use gitignore
-                "n",  # NO default test patterns
-                "build/**",  # only custom pattern
-                "",  # empty to finish
-            ])
+            user_input = "\n".join(
+                [
+                    "10",  # cyclomatic
+                    "15",  # cognitive
+                    "50",  # maintainability
+                    "n",  # no advanced
+                    "y",  # Python
+                    "y",  # use gitignore
+                    "n",  # NO default test patterns
+                    "build/**",  # only custom pattern
+                    "",  # empty to finish
+                ]
+            )
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -86,16 +90,18 @@ class TestIgnorePatternInput:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "no-patterns.yaml"
 
-            user_input = "\n".join([
-                "10",  # cyclomatic
-                "15",  # cognitive
-                "50",  # maintainability
-                "n",  # no advanced
-                "y",  # Python
-                "y",  # use gitignore
-                "n",  # no default test patterns
-                "",  # no custom patterns either
-            ])
+            user_input = "\n".join(
+                [
+                    "10",  # cyclomatic
+                    "15",  # cognitive
+                    "50",  # maintainability
+                    "n",  # no advanced
+                    "y",  # Python
+                    "y",  # use gitignore
+                    "n",  # no default test patterns
+                    "",  # no custom patterns either
+                ]
+            )
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -111,17 +117,19 @@ class TestIgnorePatternInput:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "feedback.yaml"
 
-            user_input = "\n".join([
-                "10",  # cyclomatic
-                "15",  # cognitive
-                "50",  # maintainability
-                "n",  # no advanced
-                "y",  # Python
-                "y",  # use gitignore
-                "y",  # use default test patterns
-                "*.tmp",  # one custom pattern
-                "",  # finish
-            ])
+            user_input = "\n".join(
+                [
+                    "10",  # cyclomatic
+                    "15",  # cognitive
+                    "50",  # maintainability
+                    "n",  # no advanced
+                    "y",  # Python
+                    "y",  # use gitignore
+                    "y",  # use default test patterns
+                    "*.tmp",  # one custom pattern
+                    "",  # finish
+                ]
+            )
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
@@ -136,18 +144,20 @@ class TestIgnorePatternInput:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "whitespace.yaml"
 
-            user_input = "\n".join([
-                "10",  # cyclomatic
-                "15",  # cognitive
-                "50",  # maintainability
-                "n",  # no advanced
-                "y",  # Python
-                "y",  # use gitignore
-                "n",  # no default test patterns
-                "  *.spaces  ",  # pattern with leading/trailing spaces
-                "*.tabs\t",  # pattern with trailing tab
-                "",  # finish
-            ])
+            user_input = "\n".join(
+                [
+                    "10",  # cyclomatic
+                    "15",  # cognitive
+                    "50",  # maintainability
+                    "n",  # no advanced
+                    "y",  # Python
+                    "y",  # use gitignore
+                    "n",  # no default test patterns
+                    "  *.spaces  ",  # pattern with leading/trailing spaces
+                    "*.tabs\t",  # pattern with trailing tab
+                    "",  # finish
+                ]
+            )
 
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
