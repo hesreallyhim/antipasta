@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "ComparisonOperator": {
+      "description": "Valid comparison operators for metric thresholds.",
+      "enum": [
+        "<",
+        "<=",
+        ">",
+        ">=",
+        "==",
+        "!="
+      ],
+      "title": "ComparisonOperator",
+      "type": "string"
+    },
+    "DefaultsConfig": {
+      "description": "Default configuration values.",
+      "properties": {
+        "max_cyclomatic_complexity": {
+          "default": 10,
+          "title": "Max Cyclomatic Complexity",
+          "type": "number"
+        },
+        "min_maintainability_index": {
+          "default": 50,
+          "title": "Min Maintainability Index",
+          "type": "number"
+        },
+        "max_halstead_volume": {
+          "default": 1000,
+          "title": "Max Halstead Volume",
+          "type": "number"
+        },
+        "max_halstead_difficulty": {
+          "default": 10,
+          "title": "Max Halstead Difficulty",
+          "type": "number"
+        },
+        "max_halstead_effort": {
+          "default": 10000,
+          "title": "Max Halstead Effort",
+          "type": "number"
+        },
+        "max_cognitive_complexity": {
+          "default": 15,
+          "title": "Max Cognitive Complexity",
+          "type": "number"
+        }
+      },
+      "title": "DefaultsConfig",
+      "type": "object"
+    },
+    "LanguageConfig": {
+      "description": "Configuration for a specific language.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "extensions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricConfig"
+          },
+          "title": "Metrics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "metrics"
+      ],
+      "title": "LanguageConfig",
+      "type": "object"
+    },
+    "MetricConfig": {
+      "description": "Configuration for a single metric.",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/MetricType"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        },
+        "comparison": {
+          "$ref": "#/$defs/ComparisonOperator",
+          "default": "<="
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "threshold"
+      ],
+      "title": "MetricConfig",
+      "type": "object"
+    },
+    "MetricType": {
+      "description": "Types of code metrics supported.",
+      "enum": [
+        "cyclomatic_complexity",
+        "maintainability_index",
+        "halstead_volume",
+        "halstead_difficulty",
+        "halstead_effort",
+        "halstead_time",
+        "halstead_bugs",
+        "cognitive_complexity",
+        "lines_of_code",
+        "logical_lines_of_code",
+        "source_lines_of_code",
+        "comment_lines",
+        "blank_lines"
+      ],
+      "title": "MetricType",
+      "type": "string"
+    }
+  },
+  "description": "Schema for .antipasta.yaml configuration files",
+  "properties": {
+    "defaults": {
+      "$ref": "#/$defs/DefaultsConfig"
+    },
+    "languages": {
+      "items": {
+        "$ref": "#/$defs/LanguageConfig"
+      },
+      "title": "Languages",
+      "type": "array"
+    },
+    "ignore_patterns": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Ignore Patterns",
+      "type": "array"
+    }
+  },
+  "title": "Antipasta Configuration Schema",
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,25 @@
+Found 2315 files matching patterns
+  - 2254 ignored (matching .gitignore or ignore patterns)
+  - 61 python files ✓
+
+Analyzing 61 Python files...
+{
+  "files": {
+    "count": 61,
+    "total_loc": 9013.0,
+    "avg_loc": 163.87272727272727,
+    "min_loc": 1.0,
+    "max_loc": 577.0,
+    "std_dev": 133.30222616927108
+  },
+  "functions": {
+    "count": 637,
+    "total_loc": 0,
+    "avg_loc": 0.0,
+    "min_loc": 0,
+    "max_loc": 0,
+    "avg_complexity": 4.046575342465753,
+    "min_complexity": 1.0,
+    "max_complexity": 68.0
+  }
+}
