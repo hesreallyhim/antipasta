@@ -37,7 +37,7 @@ from antipasta.core.config_override import ConfigOverride
 class TestRefactoredMetricsComponents:
     """Test the decomposed methods from the metrics function refactoring."""
 
-    def test_prepare_configuration_loads_config(self, tmp_path):
+    def test_prepare_configuration_loads_config(self, tmp_path: Path) -> None:
         """Test that _prepare_configuration correctly loads configuration."""
         config_file = tmp_path / ".antipasta.yaml"
         config_file.write_text("defaults:\n  max_cyclomatic_complexity: 15")
@@ -47,7 +47,7 @@ class TestRefactoredMetricsComponents:
         assert isinstance(result, AntipastaConfig)
         assert result.defaults.max_cyclomatic_complexity == 15
 
-    def test_create_and_configure_override(self):
+    def test_create_and_configure_override(self) -> None:
         """Test that override creation works with all parameters."""
         override = create_and_configure_override(
             include_pattern=("*.py",),
@@ -63,7 +63,7 @@ class TestRefactoredMetricsComponents:
         assert override.disable_gitignore is True
         assert override.force_analyze is False
 
-    def test_apply_overrides_to_configuration(self):
+    def test_apply_overrides_to_configuration(self) -> None:
         """Test that configuration overrides are applied correctly."""
         config = AntipastaConfig.generate_default()
         override = ConfigOverride(force_analyze=True)
@@ -84,7 +84,9 @@ class TestRefactoredMetricsComponents:
     @patch("click.echo")
     @patch("antipasta.cli.metrics.metrics_utils_analysis.validate_files_found")
     @patch("antipasta.cli.metrics.metrics_utils_analysis.collect_files")
-    def test_determine_files_to_analyze(self, mock_collect, mock_validate, mock_echo):
+    def test_determine_files_to_analyze(
+        self, mock_collect: MagicMock, mock_validate: MagicMock, mock_echo: MagicMock
+    ) -> None:
         """Test file determination logic."""
         mock_collect.return_value = [Path("test.py")]
 
@@ -102,7 +104,7 @@ class TestRefactoredMetricsComponents:
         mock_echo.assert_not_called()
 
     @patch("antipasta.cli.metrics.metrics_utils_analysis.MetricAggregator")
-    def test_execute_analysis(self, mock_aggregator_class):
+    def test_execute_analysis(self, mock_aggregator_class: MagicMock) -> None:
         """Test analysis execution."""
         # Create mock aggregator
         mock_aggregator = MagicMock()
@@ -126,7 +128,7 @@ class TestRefactoredMetricsComponents:
         mock_aggregator.analyze_files.assert_called_once_with([Path("test.py")])
 
     @patch("click.echo")
-    def test_output_results_json_format(self, mock_echo):
+    def test_output_results_json_format(self, mock_echo: MagicMock) -> None:
         """Test JSON output format selection."""
         results = {"reports": [], "summary": {"success": True}}
 
@@ -138,7 +140,7 @@ class TestRefactoredMetricsComponents:
         assert "summary" in call_args  # Check that JSON string contains summary
 
     @patch("antipasta.cli.metrics.metrics_utils_output.print_results")
-    def test_output_results_text_format(self, mock_print_results):
+    def test_output_results_text_format(self, mock_print_results: MagicMock) -> None:
         """Test text output format selection."""
         results = {"reports": [], "summary": {"success": True}}
 
@@ -146,14 +148,14 @@ class TestRefactoredMetricsComponents:
 
         mock_print_results.assert_called_once_with([], {"success": True}, False)
 
-    def test_exit_with_appropriate_code_success(self):
+    def test_exit_with_appropriate_code_success(self) -> None:
         """Test exit code for successful analysis."""
         with pytest.raises(SystemExit) as exc_info:
             exit_with_appropriate_code({"success": True})
 
         assert exc_info.value.code == 0
 
-    def test_exit_with_appropriate_code_failure(self):
+    def test_exit_with_appropriate_code_failure(self) -> None:
         """Test exit code for failed analysis."""
         with pytest.raises(SystemExit) as exc_info:
             exit_with_appropriate_code({"success": False})

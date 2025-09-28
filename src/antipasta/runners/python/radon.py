@@ -206,33 +206,35 @@ class RadonRunner(BaseRunner):
             # Check if this is an error response or has expected structure
             if isinstance(file_data, dict) and "total" in file_data:
                 hal_data = file_data["total"]
-                metrics.extend([
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.HALSTEAD_VOLUME,
-                        value=float(hal_data.get("volume", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.HALSTEAD_DIFFICULTY,
-                        value=float(hal_data.get("difficulty", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.HALSTEAD_EFFORT,
-                        value=float(hal_data.get("effort", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.HALSTEAD_TIME,
-                        value=float(hal_data.get("time", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.HALSTEAD_BUGS,
-                        value=float(hal_data.get("bugs", 0)),
-                    ),
-                ])
+                metrics.extend(
+                    [
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.HALSTEAD_VOLUME,
+                            value=float(hal_data.get("volume", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.HALSTEAD_DIFFICULTY,
+                            value=float(hal_data.get("difficulty", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.HALSTEAD_EFFORT,
+                            value=float(hal_data.get("effort", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.HALSTEAD_TIME,
+                            value=float(hal_data.get("time", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.HALSTEAD_BUGS,
+                            value=float(hal_data.get("bugs", 0)),
+                        ),
+                    ]
+                )
 
         return metrics
 
@@ -246,32 +248,34 @@ class RadonRunner(BaseRunner):
             raw_data = data[str(file_path)]
             # Check if this is a valid response with expected fields
             if isinstance(raw_data, dict) and "loc" in raw_data:
-                metrics.extend([
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.LINES_OF_CODE,
-                        value=float(raw_data.get("loc", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.LOGICAL_LINES_OF_CODE,
-                        value=float(raw_data.get("lloc", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.SOURCE_LINES_OF_CODE,
-                        value=float(raw_data.get("sloc", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.COMMENT_LINES,
-                        value=float(raw_data.get("comments", 0)),
-                    ),
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.BLANK_LINES,
-                        value=float(raw_data.get("blank", 0)),
-                    ),
-                ])
+                metrics.extend(
+                    [
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.LINES_OF_CODE,
+                            value=float(raw_data.get("loc", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.LOGICAL_LINES_OF_CODE,
+                            value=float(raw_data.get("lloc", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.SOURCE_LINES_OF_CODE,
+                            value=float(raw_data.get("sloc", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.COMMENT_LINES,
+                            value=float(raw_data.get("comments", 0)),
+                        ),
+                        MetricResult(
+                            file_path=file_path,
+                            metric_type=MetricType.BLANK_LINES,
+                            value=float(raw_data.get("blank", 0)),
+                        ),
+                    ]
+                )
 
         return metrics

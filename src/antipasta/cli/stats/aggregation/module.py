@@ -4,8 +4,8 @@ from collections import defaultdict
 import statistics
 from typing import Any
 
-from .directory import extract_file_locs_from_reports
 from ..utils import should_collect_loc_metrics
+from .directory import extract_file_locs_from_reports
 
 
 def determine_module_name(report: Any) -> str:

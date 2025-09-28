@@ -3,6 +3,7 @@
 import click
 
 from antipasta.cli.validation_utils import get_metric_constraints
+
 from .validation import prompt_with_validation, validate_with_pydantic
 
 
@@ -118,7 +119,4 @@ def should_configure_advanced_metrics() -> bool:
     Returns:
         True if user wants to configure advanced metrics, False otherwise.
     """
-    return click.confirm(
-        "\nWould you like to configure advanced Halstead metrics?",
-        default=False
-    )
+    return click.confirm("\nWould you like to configure advanced Halstead metrics?", default=False)
