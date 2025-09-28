@@ -143,4 +143,4 @@ target/
 test.csv
 
 # Internal development files
-!__INTERNAL__/
+__INTERNAL__/
