@@ -17,7 +17,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
+.PHONY: help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-all clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
