@@ -1,0 +1,31 @@
+Metric,Category,Description,Interpretation / Threshold,Python Libraries / Source
+LCOM (Lack of Cohesion of Methods),Cohesion & Coupling,Measures how well methods in a class use the same fields. Low cohesion (high LCOM) indicates the class may have too many responsibilities.,Lower is better. LCOM = 0 ideal.,"Python: lcom, cohesion; Theoretical: Chidamber & Kemerer (1994)"
+CBO (Coupling Between Objects),Cohesion & Coupling,Number of classes to which a class is coupled. High coupling implies interdependence.,Lower is better. Avoid >10.,General static analysis; CK metrics suite
+Afferent Coupling (Ca),Cohesion & Coupling,"Number of modules that depend on this one. High Ca indicates a stable, reused module.",Higher can be good for core modules.,Python: module-coupling-metrics
+Efferent Coupling (Ce),Cohesion & Coupling,Number of external modules this one depends on. High Ce = high dependency.,Lower is better.,Python: module-coupling-metrics
+Instability (I),Cohesion & Coupling,I = Ce / (Ca + Ce). Measures how prone a module is to change.,"0 = stable, 1 = unstable.",Python: module-coupling-metrics; Robert C. Martin
+Abstractness (A),Cohesion & Coupling,Ratio of abstract classes/interfaces to total classes in a module.,"A in [0,1]; ~0.5 ideal for balanced design.",Python: module-coupling-metrics; Martin metrics
+Distance from Main Sequence (D),Cohesion & Coupling,D = |A + I - 1|; deviation from ideal balance between abstraction and stability.,0 ideal.,General tools; Martin metrics
+Cyclomatic Complexity (CC),Complexity,Number of linearly independent paths through a method.,<10 per method recommended.,"Python: radon, pylint"
+Halstead Metrics,Complexity,"Measures program vocabulary, length, volume, effort, and estimated bugs.",Lower volume and effort preferred.,Python: radon
+Weighted Methods per Class (WMC),Complexity,Sum of method complexities in a class; reflects overall class complexity.,<50 typical upper limit.,General; CK metrics
+Response For Class (RFC),Complexity,Number of methods that can be invoked in response to a message to the class.,Lower is better.,General; CK metrics
+Depth of Inheritance Tree (DIT),Inheritance & Hierarchy,Maximum inheritance depth from root class to leaf.,<6 recommended.,General; CK metrics
+Number of Children (NOC),Inheritance & Hierarchy,Number of immediate subclasses.,"Varies by context; higher implies reuse, too high = fragility.",General; CK metrics
+Polymorphism Factor (PF),Inheritance & Hierarchy,Ratio of overridden methods to potential polymorphic methods.,Closer to 1 = more polymorphism.,MOOD metrics
+Modularity Index (MIx),Architecture & Modularity,"Composite measure of modularity from size, complexity, cohesion, coupling.",Higher = better modularity.,Research; custom computation
+Package Cohesion (PC),Architecture & Modularity,Degree to which classes in a package are related.,Higher is better.,General; derived from LCOM/CBO
+Package Coupling (PCA/PCE),Architecture & Modularity,Incoming/outgoing dependencies between packages.,Lower PCE preferred.,General; dependency analysis
+Dependency Cycles,Architecture & Modularity,Number of cycles in dependency graph.,0 ideal.,Python: pydeps
+Acyclic Dependencies Principle (ADP),Architecture & Modularity,Tracks violations of the ADP by detecting cycles.,Should be zero violations.,General; dependency tools
+Stable Dependencies Principle (SDP),Architecture & Modularity,Measures if dependencies point from unstable to stable modules.,Should point toward stability.,General; module-coupling-metrics
+Maintainability Index (MI),Maintainability & Quality,"Composite metric from CC, LOC, Halstead Volume, comment density.","MI > 85 good, <65 poor.",Python: radon
+Comment Density,Maintainability & Quality,Proportion of comment lines to total LOC.,5–25% typical.,Static analysis tools
+Code Churn,Maintainability & Quality,Number of lines added/removed per commit or release.,Lower churn = more stability.,VCS-based; gitstats
+Change Coupling,Evolutionary & Change,Measures how often two modules change together over time.,Lower is better.,VCS mining tools (git log analysis)
+Temporal Cohesion,Evolutionary & Change,Extent to which components modified together serve the same purpose.,Higher indicates better modularity.,VCS analysis
+Commit Frequency,Evolutionary & Change,How often changes occur in a component.,Stable architecture = lower frequency.,Git analytics
+SRP Violation Index,Design Principles,"Composite indicator of single responsibility violations (large classes, low cohesion).",Lower is better.,Derived metric (LCOM + LOC thresholds)
+ISP Violation Ratio,Design Principles,Ratio of unused interface methods to total methods used by a client.,Lower = better adherence to ISP.,Custom analysis
+DIP Compliance,Design Principles,Degree to which dependencies are on abstractions rather than concretes.,Higher = better.,Custom/static analysis
+OCP Flexibility Index,Design Principles,Measures ratio of extensions vs modifications needed for new behavior.,Higher = better extensibility.,Custom metric
