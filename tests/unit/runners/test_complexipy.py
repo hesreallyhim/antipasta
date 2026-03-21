@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import subprocess
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -26,25 +25,48 @@ class TestComplexipyRunner:
         """Test that runner reports supported metrics."""
         assert runner.supported_metrics == [MetricType.COGNITIVE_COMPLEXITY.value]
 
+    def test_resolve_executable_prefers_sibling(self, tmp_path: Path) -> None:
+        """Test that sibling executable to sys.executable is preferred."""
+        fake_python = tmp_path / "venv" / "bin" / "python"
+        fake_python.parent.mkdir(parents=True)
+        fake_python.write_text("")
+        sibling_complexipy = fake_python.with_name("complexipy")
+        sibling_complexipy.write_text("")
+
+        runner = ComplexipyRunner()
+        with patch("sys.executable", str(fake_python)), patch("shutil.which", return_value=None):
+            resolved = runner._resolve_complexipy_executable()
+
+        assert resolved == sibling_complexipy
+
+    def test_resolve_executable_falls_back_to_path(self) -> None:
+        """Test fallback resolution via PATH when sibling executable is missing."""
+        runner = ComplexipyRunner()
+        with (
+            patch("sys.executable", "/tmp/fake-python"),
+            patch("pathlib.Path.exists", return_value=False),
+            patch("shutil.which", return_value="/usr/local/bin/complexipy"),
+        ):
+            resolved = runner._resolve_complexipy_executable()
+
+        assert resolved == Path("/usr/local/bin/complexipy")
+
     @patch("subprocess.run")
     def test_is_available_true(self, mock_run: MagicMock, runner: ComplexipyRunner) -> None:
-        """Test availability check when complexipy is installed."""
+        """Test availability check when complexipy is available."""
         mock_run.return_value.returncode = 0
-        assert runner.is_available() is True
 
-        # Should cache the result
-        assert runner.is_available() is True
+        with patch.object(runner, "_get_complexipy_command", return_value=["/tmp/complexipy"]):
+            assert runner.is_available() is True
+            assert runner.is_available() is True
+
         mock_run.assert_called_once()
 
-    @patch("subprocess.run")
-    def test_is_available_false(self, mock_run: MagicMock, runner: ComplexipyRunner) -> None:
-        """Test availability check when complexipy is not installed."""
-        mock_run.side_effect = FileNotFoundError()
-        assert runner.is_available() is False
-
-        # Should cache the result
-        assert runner.is_available() is False
-        mock_run.assert_called_once()
+    def test_is_available_false_no_command(self, runner: ComplexipyRunner) -> None:
+        """Test availability check when command cannot be resolved."""
+        with patch.object(runner, "_get_complexipy_command", return_value=None):
+            assert runner.is_available() is False
+            assert runner.is_available() is False
 
     def test_analyze_not_available(self, runner: ComplexipyRunner) -> None:
         """Test analyze when complexipy is not available."""
@@ -55,155 +77,135 @@ class TestComplexipyRunner:
         assert result.metrics == []
         assert result.error == "Complexipy is not installed. Install with: pip install complexipy"
 
-    @patch("subprocess.run")
-    @patch("pathlib.Path.exists")
-    @patch("pathlib.Path.unlink")
-    def test_analyze_simple_function(
-        self,
-        mock_unlink: MagicMock,
-        mock_exists: MagicMock,
-        mock_run: MagicMock,
-        runner: ComplexipyRunner,
-    ) -> None:
+    def test_analyze_simple_function(self, runner: ComplexipyRunner) -> None:
         """Test analyzing a simple function."""
-        # Mock subprocess output
-        mock_run.return_value.returncode = 0
-
-        # Mock JSON file existence and content
-        mock_exists.return_value = True
-        mock_json_data = [
-            {
-                "complexity": 5,
-                "file_name": "test.py",
-                "function_name": "simple_function",
-                "path": "test.py",
-            }
-        ]
-
-        with patch("builtins.open", mock_open(read_data=json.dumps(mock_json_data))):
+        with patch.object(
+            runner,
+            "_run_complexipy_command",
+            return_value=[
+                {
+                    "complexity": 5,
+                    "file_name": "test.py",
+                    "function_name": "simple_function",
+                    "path": "test.py",
+                }
+            ],
+        ):
             result = runner.analyze(Path("test.py"))
 
-        assert len(result.metrics) == 2  # Function + file maximum
+        assert len(result.metrics) == 2  # function + file maximum
+        assert result.metrics[0].metric_type == MetricType.COGNITIVE_COMPLEXITY
+        assert result.metrics[0].value == 5.0
+        assert result.metrics[0].function_name == "simple_function"
+        assert result.metrics[1].details is not None
+        assert result.metrics[1].details["type"] == "file_maximum"
 
-        # Check function metric
-        func_metric = result.metrics[0]
-        assert func_metric.metric_type == MetricType.COGNITIVE_COMPLEXITY
-        assert func_metric.value == 5.0
-        assert func_metric.function_name == "simple_function"
-
-        # Check file maximum metric
-        file_metric = result.metrics[1]
-        assert file_metric.metric_type == MetricType.COGNITIVE_COMPLEXITY
-        assert file_metric.value == 5.0
-        assert file_metric.details is not None
-        assert file_metric.details["type"] == "file_maximum"
-
-        # Verify cleanup
-        mock_unlink.assert_called_once()
-
-    @patch("subprocess.run")
-    @patch("pathlib.Path.exists")
-    @patch("pathlib.Path.unlink")
-    def test_analyze_multiple_functions(
-        self,
-        mock_unlink: MagicMock,
-        mock_exists: MagicMock,
-        mock_run: MagicMock,
-        runner: ComplexipyRunner,
-    ) -> None:
+    def test_analyze_multiple_functions(self, runner: ComplexipyRunner) -> None:
         """Test analyzing multiple functions."""
-        mock_run.return_value.returncode = 0
-        mock_exists.return_value = True
-
-        mock_json_data = [
-            {"complexity": 3, "file_name": "test.py", "function_name": "func1", "path": "test.py"},
-            {"complexity": 10, "file_name": "test.py", "function_name": "func2", "path": "test.py"},
-            {"complexity": 7, "file_name": "test.py", "function_name": "func3", "path": "test.py"},
-        ]
-
-        with patch("builtins.open", mock_open(read_data=json.dumps(mock_json_data))):
+        with patch.object(
+            runner,
+            "_run_complexipy_command",
+            return_value=[
+                {
+                    "complexity": 3,
+                    "file_name": "test.py",
+                    "function_name": "func1",
+                    "path": "test.py",
+                },
+                {
+                    "complexity": 10,
+                    "file_name": "test.py",
+                    "function_name": "func2",
+                    "path": "test.py",
+                },
+                {
+                    "complexity": 7,
+                    "file_name": "test.py",
+                    "function_name": "func3",
+                    "path": "test.py",
+                },
+            ],
+        ):
             result = runner.analyze(Path("test.py"))
 
         assert len(result.metrics) == 4  # 3 functions + 1 file maximum
-
-        # Check maximum is correct
-        file_metric = result.metrics[-1]
-        assert file_metric.value == 10.0  # Maximum complexity
-        assert file_metric.details is not None
-        assert file_metric.details["function_count"] == 3
+        assert result.metrics[-1].value == 10.0
+        assert result.metrics[-1].details is not None
+        assert result.metrics[-1].details["function_count"] == 3
 
     @patch("subprocess.run")
-    @patch("pathlib.Path.exists")
-    def test_analyze_json_parse_error(
-        self, mock_exists: MagicMock, mock_run: MagicMock, runner: ComplexipyRunner
+    def test_run_command_uses_temp_dir_and_no_workspace_artifact(
+        self, mock_run: MagicMock, tmp_path: Path, runner: ComplexipyRunner
     ) -> None:
-        """Test handling of JSON parse errors."""
-        mock_run.return_value.returncode = 0
-        mock_exists.return_value = True
+        """Test that JSON output is read from a temp dir, not workspace."""
+        source_file = tmp_path / "sample.py"
+        source_file.write_text("def sample():\n    return 1\n")
+        workspace_json = tmp_path / "complexipy.json"
+        assert not workspace_json.exists()
 
-        with patch("builtins.open", mock_open(read_data="invalid json")):
-            result = runner.analyze(Path("test.py"))
+        runner._command = ["/tmp/complexipy"]
 
-        assert result.metrics == []
-        assert result.error is None  # No error reported, just empty metrics
+        def side_effect(*_args: object, **kwargs: object) -> MagicMock:
+            cwd = kwargs.get("cwd")
+            assert isinstance(cwd, str)
+            output_file = Path(cwd) / "complexipy.json"
+            output_file.write_text(
+                json.dumps(
+                    [
+                        {
+                            "complexity": 2,
+                            "file_name": str(source_file),
+                            "function_name": "sample",
+                            "path": str(source_file),
+                        }
+                    ]
+                )
+            )
+            return MagicMock(returncode=0)
+
+        mock_run.side_effect = side_effect
+
+        data = runner._run_complexipy_command(source_file)
+
+        assert data is not None
+        assert data[0]["complexity"] == 2
+        assert not workspace_json.exists()
+
+        args, kwargs = mock_run.call_args
+        command = args[0]
+        assert isinstance(command, list)
+        assert command[-1] == str(source_file.resolve())
+        assert "cwd" in kwargs
+        assert kwargs["cwd"] != str(tmp_path)
 
     @patch("subprocess.run")
-    @patch("pathlib.Path.exists")
-    def test_analyze_no_json_file(
-        self, mock_exists: MagicMock, mock_run: MagicMock, runner: ComplexipyRunner
+    def test_run_command_json_parse_error(
+        self, mock_run: MagicMock, tmp_path: Path, runner: ComplexipyRunner
     ) -> None:
-        """Test when complexipy doesn't create JSON file."""
-        mock_run.return_value.returncode = 0
-        mock_exists.return_value = False  # JSON file doesn't exist
+        """Test handling invalid JSON output."""
+        source_file = tmp_path / "invalid.py"
+        source_file.write_text("def invalid():\n    pass\n")
+        runner._command = ["/tmp/complexipy"]
 
-        result = runner.analyze(Path("test.py"))
+        def side_effect(*_args: object, **kwargs: object) -> MagicMock:
+            cwd = kwargs.get("cwd")
+            assert isinstance(cwd, str)
+            (Path(cwd) / "complexipy.json").write_text("invalid json")
+            return MagicMock(returncode=0)
 
-        assert result.metrics == []
-        assert result.error is None
+        mock_run.side_effect = side_effect
 
-    @patch("subprocess.run")
-    def test_analyze_subprocess_error(self, mock_run: MagicMock, runner: ComplexipyRunner) -> None:
-        """Test handling of subprocess errors."""
-        # First call is for is_available check, second is for analyze
-        mock_run.side_effect = [
-            MagicMock(returncode=0),  # is_available check
-            subprocess.SubprocessError("Command failed"),  # analyze call
-        ]
-
-        result = runner.analyze(Path("test.py"))
-
-        assert result.metrics == []
-        assert result.error is None  # Errors are silently ignored
+        assert runner._run_complexipy_command(source_file) is None
 
     @patch("subprocess.run")
-    @patch("pathlib.Path.exists")
-    @patch("pathlib.Path.unlink")
-    def test_analyze_high_complexity_exit_code(
-        self,
-        mock_unlink: MagicMock,
-        mock_exists: MagicMock,
-        mock_run: MagicMock,
-        runner: ComplexipyRunner,
+    def test_run_command_no_json_file(
+        self, mock_run: MagicMock, tmp_path: Path, runner: ComplexipyRunner
     ) -> None:
-        """Test that non-zero exit code doesn't prevent processing."""
-        # Mock is_available check first, then complexipy command
-        mock_run.side_effect = [
-            MagicMock(returncode=0),  # is_available check
-            MagicMock(returncode=1),  # complexipy command (returns non-zero for high complexity)
-        ]
-        mock_exists.return_value = True
+        """Test handling when complexipy does not emit a JSON file."""
+        source_file = tmp_path / "missing.py"
+        source_file.write_text("def missing():\n    pass\n")
+        runner._command = ["/tmp/complexipy"]
 
-        mock_json_data = [
-            {
-                "complexity": 50,
-                "file_name": "test.py",
-                "function_name": "complex_function",
-                "path": "test.py",
-            }
-        ]
+        mock_run.return_value = MagicMock(returncode=0)
 
-        with patch("builtins.open", mock_open(read_data=json.dumps(mock_json_data))):
-            result = runner.analyze(Path("test.py"))
-
-        assert len(result.metrics) == 2
-        assert result.metrics[0].value == 50.0
+        assert runner._run_complexipy_command(source_file) is None
