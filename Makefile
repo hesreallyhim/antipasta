@@ -210,14 +210,16 @@ gh-check-cli:  ## Check if GitHub CLI is installed
 
 gh-release: gh-check-cli  ## Create and publish a GitHub release (triggers PyPI deployment)
 	@echo "Creating GitHub release for version $(CURRENT_VERSION)..."
-	@if git rev-parse "v$(CURRENT_VERSION)" >/dev/null 2>&1; then \
+	@if git rev-parse "v$(CURRENT_VERSION)" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "refs/tags/v$(CURRENT_VERSION)" >/dev/null 2>&1; then \
 		echo "Error: Tag v$(CURRENT_VERSION) already exists. Bump version first."; \
 		exit 1; \
 	fi
 	@echo "Committing version changes..."
 	@git add -A
 	@git diff --staged --quiet || git commit -m "chore: release v$(CURRENT_VERSION)"
-	@git push origin HEAD
+	@echo "Tagging release commit..."
+	@git tag -a "v$(CURRENT_VERSION)" -m "v$(CURRENT_VERSION)"
+	@git push origin HEAD "v$(CURRENT_VERSION)"
 	@echo "Creating release v$(CURRENT_VERSION)..."
 	gh release create "v$(CURRENT_VERSION)" \
 		--title "v$(CURRENT_VERSION)" \
@@ -315,7 +317,8 @@ release-doctor:  ## Check all release prerequisites and system health
 	@echo ""
 	@echo "📋 Checking versions..."
 	@echo "  📌 Current version: $(CURRENT_VERSION)"
-	@echo "  📦 Latest PyPI release: 0.0.1"
+	@LATEST_PYPI_VERSION=$$($(PYTHON) -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/antipasta/json', timeout=5))['info']['version'])" 2>/dev/null || echo "unknown"); \
+	echo "  📦 Latest PyPI release: $$LATEST_PYPI_VERSION"
 	@NEW_VERSION=$$(echo $(CURRENT_VERSION) | awk -F. '{print $$1"."$$2"."$$3+1}'); \
 	echo "  🚀 Next patch version: $$NEW_VERSION"
 	@if git describe --tags --abbrev=0 2>/dev/null; then \
@@ -381,13 +384,6 @@ release-safety-check:  ## Ensure repository is in a safe state for release
 	@if [ "$$(git rev-parse HEAD)" != "$$(git rev-parse origin/main 2>/dev/null || echo 'no-remote')" ]; then \
 		echo "⚠️  WARNING: Local branch differs from origin/main"; \
 		echo "   Consider pulling latest changes"; \
-	fi
-	@# Check for existing tag
-	@if git rev-parse "v$(CURRENT_VERSION)" >/dev/null 2>&1; then \
-		echo "❌ ERROR: Tag v$(CURRENT_VERSION) already exists"; \
-		echo "   You must bump the version before releasing"; \
-		echo "   Run 'make version-bump-patch' to increment version"; \
-		exit 1; \
 	fi
 	@echo "✅ All safety checks passed!"
 	@echo ""

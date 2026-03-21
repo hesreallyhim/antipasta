@@ -106,10 +106,18 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
       - name: Wait for PyPI to update
         run: sleep 30
 
       - name: Install from PyPI
         run: |
-          pip install antipasta==0.0.1
+          VERSION=$(ls dist/antipasta-*.whl | head -n 1 | sed -E 's|.*antipasta-([0-9]+\.[0-9]+\.[0-9]+)-.*|\1|')
+          echo "Verifying antipasta==$VERSION from PyPI"
+          pip install "antipasta==$VERSION"
           python -c "import antipasta; print(f'Successfully installed antipasta {antipasta.__version__}')"

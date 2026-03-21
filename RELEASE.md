@@ -13,16 +13,16 @@ make release-doctor  # Check system health and prerequisites
 **Safe one-command releases (recommended):**
 
 ```bash
-make release-patch-safe  # Bug fixes (0.0.X) with safety checks
-make release-minor-safe  # New features (0.X.0) with safety checks
+make release-patch-safe  # Bug fixes (X.Y.Z -> X.Y.(Z+1)) with safety checks
+make release-minor-safe  # New features (X.Y.Z -> X.(Y+1).0) with safety checks
 make release-major-safe  # Breaking changes (X.0.0) with safety checks
 ```
 
 **Standard releases (without safety checks):**
 
 ```bash
-make release-patch  # Bug fixes (0.0.X)
-make release-minor  # New features (0.X.0)
+make release-patch  # Bug fixes (X.Y.Z -> X.Y.(Z+1))
+make release-minor  # New features (X.Y.Z -> X.(Y+1).0)
 make release-major  # Breaking changes (X.0.0)
 ```
 
@@ -93,13 +93,13 @@ The easiest and safest way to release is using the safe all-in-one commands:
 
 ```bash
 # Safe releases with automatic safety checks (recommended)
-make release-patch-safe  # Bug fixes (0.0.X)
-make release-minor-safe  # New features (0.X.0)
+make release-patch-safe  # Bug fixes (X.Y.Z -> X.Y.(Z+1))
+make release-minor-safe  # New features (X.Y.Z -> X.(Y+1).0)
 make release-major-safe  # Breaking changes (X.0.0)
 
 # Or standard releases without safety checks
-make release-patch       # Bug fixes (0.0.X)
-make release-minor       # New features (0.X.0)
+make release-patch       # Bug fixes (X.Y.Z -> X.Y.(Z+1))
+make release-minor       # New features (X.Y.Z -> X.(Y+1).0)
 make release-major       # Breaking changes (X.0.0)
 ```
 
@@ -153,14 +153,14 @@ For more control over the release process:
 
 **GitHub UI**
 - Navigate to your repo → Releases → "Draft a new release"
-- Click "Choose a tag" → Create new tag: `v0.1.1` (match your version)
-- Release title: `v0.1.1`
+- Click "Choose a tag" → Create new tag: `v1.1.1` (match your version)
+- Release title: `v1.1.1`
 - Click "Generate release notes" for automatic changelog
 - Click "Publish release"
 
 **GitHub CLI (manual)**
 ```bash
-gh release create v0.1.1 --generate-notes --title "v0.1.1"
+gh release create v1.1.1 --generate-notes --title "v1.1.1"
 ```
 
 ### Testing with GitHub Actions
@@ -249,13 +249,13 @@ This runs:
 Choose the appropriate version bump based on your changes:
 
 #### Patch Release (Bug Fixes)
-For backward-compatible bug fixes (0.0.X):
+For backward-compatible bug fixes (X.Y.Z -> X.Y.(Z+1)):
 ```bash
 make version-bump-patch
 ```
 
 #### Minor Release (New Features)
-For backward-compatible new features (0.X.0):
+For backward-compatible new features (X.Y.Z -> X.(Y+1).0):
 ```bash
 make version-bump-minor
 ```
@@ -266,7 +266,7 @@ For incompatible API changes (X.0.0):
 make version-bump-major
 ```
 
-The version will be updated in both `antipasta/__version__.py` and `pyproject.toml`.
+The version will be updated in both `src/antipasta/__version__.py` and `pyproject.toml`.
 
 ### Step 4: Build and Verify
 
@@ -375,12 +375,12 @@ Follow [Semantic Versioning](https://semver.org/):
   - Changing function signatures
   - Major behavior changes
 
-- **MINOR** (0.X.0): Backward-compatible functionality
+- **MINOR** (X.Y.Z -> X.(Y+1).0): Backward-compatible functionality
   - New features
   - New configuration options
   - Deprecations (but not removals)
 
-- **PATCH** (0.0.X): Backward-compatible bug fixes
+- **PATCH** (X.Y.Z -> X.Y.(Z+1)): Backward-compatible bug fixes
   - Bug fixes
   - Performance improvements
   - Documentation updates
