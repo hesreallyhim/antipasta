@@ -6,7 +6,7 @@ PIP := $(VENV_DIR)/bin/pip
 
 # Release configuration
 VERSION_FILE := src/antipasta/__version__.py
-CURRENT_VERSION := $(shell grep -oE '[0-9]+\.[0-9]+\.[0-9]+' $(VERSION_FILE))
+CURRENT_VERSION = $(shell grep -oE '[0-9]+\.[0-9]+\.[0-9]+' $(VERSION_FILE))
 
 # Detect OS for activation script
 ifeq ($(OS),Windows_NT)
