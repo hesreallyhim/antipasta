@@ -103,7 +103,7 @@ class ComplexipyRunner(BaseRunner):
                 )
 
                 # Complexipy writes JSON to a file, not stdout.
-                json_file = Path(temp_dir) / "complexipy.json"
+                json_file = self._find_output_json_file(Path(temp_dir))
                 if not json_file.exists():
                     return None
 
@@ -116,6 +116,26 @@ class ComplexipyRunner(BaseRunner):
 
         except (OSError, json.JSONDecodeError, subprocess.SubprocessError):
             return None
+
+    def _find_output_json_file(self, output_dir: Path) -> Path:
+        """Resolve the JSON output file produced by complexipy.
+
+        Complexipy 4.x emits ``complexipy.json`` while 5.x emits
+        ``complexipy_results_<timestamp>.json``.
+        """
+        legacy_file = output_dir / "complexipy.json"
+        if legacy_file.exists():
+            return legacy_file
+
+        result_files = sorted(
+            output_dir.glob("complexipy_results_*.json"),
+            key=lambda item: item.stat().st_mtime,
+            reverse=True,
+        )
+        if result_files:
+            return result_files[0]
+
+        return legacy_file
 
     def _get_complexipy_command(self) -> list[str] | None:
         """Get the command used to invoke complexipy."""

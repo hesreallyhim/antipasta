@@ -209,3 +209,37 @@ class TestComplexipyRunner:
         mock_run.return_value = MagicMock(returncode=0)
 
         assert runner._run_complexipy_command(source_file) is None
+
+    @patch("subprocess.run")
+    def test_run_command_supports_timestamped_output_file(
+        self, mock_run: MagicMock, tmp_path: Path, runner: ComplexipyRunner
+    ) -> None:
+        """Test support for complexipy 5.x timestamped JSON output files."""
+        source_file = tmp_path / "sample_v5.py"
+        source_file.write_text("def sample_v5():\n    return 2\n")
+        runner._command = ["/tmp/complexipy"]
+
+        def side_effect(*_args: object, **kwargs: object) -> MagicMock:
+            cwd = kwargs.get("cwd")
+            assert isinstance(cwd, str)
+            output_file = Path(cwd) / "complexipy_results_20260322010000.json"
+            output_file.write_text(
+                json.dumps(
+                    [
+                        {
+                            "complexity": 4,
+                            "file_name": str(source_file),
+                            "function_name": "sample_v5",
+                            "path": str(source_file),
+                        }
+                    ]
+                )
+            )
+            return MagicMock(returncode=0)
+
+        mock_run.side_effect = side_effect
+
+        data = runner._run_complexipy_command(source_file)
+
+        assert data is not None
+        assert data[0]["complexity"] == 4
