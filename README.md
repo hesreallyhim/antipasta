@@ -152,6 +152,11 @@ antipasta report --directory src/ --output report.html --open
 
 # Emit the raw JSON snapshot instead, plus the 10 worst functions on the terminal
 antipasta report --directory src/ --format json --output snapshot.json --top 10
+
+# Trend workflow: snapshot, refactor, then diff — delta-colored tiles, a regressions
+# table in the HTML, and a terminal summary of what your change did to complexity
+antipasta report --directory src/ --output report.html --save-baseline   # writes report.baseline.json
+antipasta report --directory src/ --output report.html --baseline report.baseline.json
 ```
 
 The HTML report is a single file with no network dependencies (d3 is embedded),
