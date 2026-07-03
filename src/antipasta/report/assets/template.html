@@ -22,9 +22,13 @@
     <label class="metric-picker">Color by
       <select id="metric-select"></select>
     </label>
+    <label class="baseline-toggle" id="baseline-toggle-wrap" hidden
+           title="Color tiles by change vs the baseline snapshot">
+      <input type="checkbox" id="baseline-toggle" checked> vs baseline
+    </label>
     <div class="legend" id="legend">
       <span class="legend-label" id="legend-low">ok</span>
-      <span class="legend-bar" aria-hidden="true"></span>
+      <span class="legend-bar" id="legend-bar" aria-hidden="true"></span>
       <span class="legend-label" id="legend-high">over threshold</span>
     </div>
     <div id="coverage-chips" class="coverage-chips" title="Metric coverage per language"></div>
@@ -53,6 +57,25 @@
         </div>
       </div>
     </aside>
+  </section>
+
+  <section class="worst-section regressions-section" id="regressions-section" hidden>
+    <h2>Regressions vs baseline <span class="muted" id="regressions-count"></span></h2>
+    <p class="hint">Functions whose complexity score (max of cyclomatic and cognitive) got worse
+      relative to the baseline; ⚠ marks new threshold violations. Click a row to inspect the file.</p>
+    <div class="table-scroll">
+      <table id="regressions-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h2 class="improvements-heading">Improvements <span class="muted" id="improvements-count"></span></h2>
+    <div class="table-scroll">
+      <table id="improvements-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="worst-section">

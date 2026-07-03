@@ -6,6 +6,9 @@
  *  - click-to-inspect detail panel with a sortable function table
  *  - a global "worst functions" table
  *  - per-language metric coverage chips (missing metrics render neutral)
+ *  - when DATA.baseline is present: "vs baseline" mode — delta tile coloring
+ *    (red = regressed, green = improved), a regressions table, and baseline
+ *    metadata in the header
  *
  * Framework-free ES6; d3 v7 is embedded in the same document.
  */
@@ -16,6 +19,9 @@
   const files = DATA.files || [];
   const thresholds = DATA.thresholds || {};
   const coverage = DATA.language_coverage || {};
+  const baseline = DATA.baseline || null;
+  const baselineAddedFiles = new Set(baseline ? baseline.files_added : []);
+  let baselineMode = Boolean(baseline);
 
   const CANONICAL_METRICS = [
     "cyclomatic_complexity", "cognitive_complexity", "maintainability_index",
@@ -104,12 +110,64 @@
     return th.direction === "min" ? value < th.threshold : value > th.threshold;
   }
 
+  // ----- baseline deltas ----------------------------------------------------
+
+  const UNCHANGED_FILL = "#eef1f4";
+  const NEW_FILE_FILL = "#cfdcec";
+  const regressRamp = d3.scaleLinear().domain([0, 1]).range(["#f6ebe8", "#c62828"]).clamp(true);
+  const improveRamp = d3.scaleLinear().domain([0, 1]).range(["#e8f0ea", "#1b7837"]).clamp(true);
+
+  function fmtDelta(value) {
+    if (value === null || value === undefined) return "—";
+    const text = fmt(Math.abs(value));
+    return value >= 0 ? `+${text}` : `−${text}`;
+  }
+
+  function baselineDelta(fileEntry, metricKey) {
+    const deltas = baseline.file_deltas[fileEntry.path];
+    return deltas ? deltas[metricKey] : undefined;
+  }
+
+  // Largest |delta| per metric across files, for red/green intensity.
+  const deltaScaleCache = {};
+  function deltaScale(metricKey) {
+    if (!(metricKey in deltaScaleCache)) {
+      let max = 0;
+      for (const deltas of Object.values(baseline.file_deltas)) {
+        const d = deltas[metricKey];
+        if (d !== undefined && d !== null) max = Math.max(max, Math.abs(d));
+      }
+      deltaScaleCache[metricKey] = max;
+    }
+    return deltaScaleCache[metricKey];
+  }
+
+  function deltaFill(fileEntry, metricKey) {
+    if (baselineAddedFiles.has(fileEntry.path)) return NEW_FILE_FILL;
+    const delta = baselineDelta(fileEntry, metricKey);
+    if (delta === undefined || delta === null || delta === 0) return UNCHANGED_FILL;
+    const th = thresholds[metricKey];
+    const worse = th && th.direction === "min" ? -delta : delta;
+    const scale = deltaScale(metricKey);
+    const intensity = scale > 0 ? Math.abs(worse) / scale : 0;
+    return worse > 0 ? regressRamp(intensity) : improveRamp(intensity);
+  }
+
+  function currentTileFill(fileEntry, metricKey) {
+    if (baselineMode && baseline) return deltaFill(fileEntry, metricKey);
+    return tileFill(fileEntry, metricKey);
+  }
+
   // ----- header -----------------------------------------------------------
 
   function renderHeader() {
     const meta = document.getElementById("meta-line");
     meta.textContent = `${DATA.root} · generated ${DATA.generated_at}` +
-      ` · antipasta v${DATA.tool_version} · schema v${DATA.schema_version}`;
+      ` · antipasta v${DATA.tool_version} · schema v${DATA.schema_version}` +
+      (baseline
+        ? ` · vs baseline ${baseline.label}` +
+          (baseline.generated_at ? ` (${baseline.generated_at})` : "")
+        : "");
 
     const chips = document.getElementById("summary-chips");
     const s = DATA.summary || {};
@@ -126,6 +184,27 @@
         ? `${violations} violations in ${s.files_with_violations} files`
         : "no violations",
     ));
+    if (baseline) renderBaselineChips(chips);
+  }
+
+  function renderBaselineChips(chips) {
+    const added = baseline.files_added.length;
+    const removed = baseline.files_removed.length;
+    if (added || removed) {
+      chips.append(el("span", { class: "chip" }, `files +${added} / −${removed}`));
+    }
+    const regressed = baseline.regressions.length;
+    const improved = baseline.improvements.length;
+    chips.append(el(
+      "span",
+      { class: `chip ${regressed > 0 ? "delta-reg" : "ok"}` },
+      `${regressed} regressed`,
+    ));
+    if (improved) chips.append(el("span", { class: "chip delta-imp" }, `${improved} improved`));
+    if (baseline.violations_added > 0) {
+      chips.append(el("span", { class: "chip alert" },
+        `+${baseline.violations_added} new violations`));
+    }
   }
 
   // ----- coverage chips ---------------------------------------------------
@@ -151,6 +230,13 @@
     const th = thresholds[selectedMetric];
     const low = document.getElementById("legend-low");
     const high = document.getElementById("legend-high");
+    const bar = document.getElementById("legend-bar");
+    bar.classList.toggle("delta", baselineMode && Boolean(baseline));
+    if (baselineMode && baseline) {
+      low.textContent = "improved";
+      high.textContent = "regressed vs baseline";
+      return;
+    }
     if (th && th.threshold > 0) {
       low.textContent = th.direction === "min" ? "high (good)" : "low (good)";
       high.textContent = `${th.direction === "min" ? "below" : "over"} threshold (${fmt(th.threshold)})`;
@@ -222,7 +308,7 @@
       .attr("x", (d) => d.x0).attr("y", (d) => d.y0)
       .attr("width", (d) => Math.max(0, d.x1 - d.x0))
       .attr("height", (d) => Math.max(0, d.y1 - d.y0))
-      .attr("fill", (d) => tileFill(files[d.data.file_index], selectedMetric))
+      .attr("fill", (d) => currentTileFill(files[d.data.file_index], selectedMetric))
       .on("mousemove", (event, d) => showTooltip(event, files[d.data.file_index], selectedMetricNow()))
       .on("mouseleave", hideTooltip)
       .on("click", (event, d) => selectFile(d.data.file_index, event.currentTarget));
@@ -251,7 +337,7 @@
 
   function recolorTreemap(selectedMetric) {
     if (leafSelection) {
-      leafSelection.attr("fill", (d) => tileFill(files[d.data.file_index], selectedMetric));
+      leafSelection.attr("fill", (d) => currentTileFill(files[d.data.file_index], selectedMetric));
     }
   }
 
@@ -259,9 +345,7 @@
 
   const tooltip = document.getElementById("tooltip");
 
-  function showTooltip(event, fileEntry, selectedMetric) {
-    clear(tooltip);
-    tooltip.append(el("div", { class: "tt-path" }, fileEntry.path));
+  function tooltipMetricsTable(fileEntry) {
     const table = el("table");
     const addRow = (label, value, over) => {
       const tr = el("tr");
@@ -278,7 +362,39 @@
           isOverThreshold(key, fileEntry.metrics[key]));
       }
     }
-    tooltip.append(table);
+    return table;
+  }
+
+  function baselineTooltipNote(fileEntry, selectedMetric) {
+    if (!baselineMode || !baseline) return null;
+    if (baselineAddedFiles.has(fileEntry.path)) {
+      return el("div", { class: "tt-note" }, "New file — not in baseline");
+    }
+    const delta = baselineDelta(fileEntry, selectedMetric);
+    const label = metricLabel(selectedMetric).toLowerCase();
+    return el("div", { class: "tt-note" },
+      delta === undefined || delta === null
+        ? `No ${label} change vs baseline`
+        : `Δ ${label} vs baseline: ${fmtDelta(delta)}`);
+  }
+
+  function positionTooltip(event) {
+    const pad = 14;
+    const rect = tooltip.getBoundingClientRect();
+    let x = event.clientX + pad;
+    let y = event.clientY + pad;
+    if (x + rect.width > window.innerWidth - 8) x = event.clientX - rect.width - pad;
+    if (y + rect.height > window.innerHeight - 8) y = event.clientY - rect.height - pad;
+    tooltip.style.left = `${Math.max(4, x)}px`;
+    tooltip.style.top = `${Math.max(4, y)}px`;
+  }
+
+  function showTooltip(event, fileEntry, selectedMetric) {
+    clear(tooltip);
+    tooltip.append(el("div", { class: "tt-path" }, fileEntry.path));
+    tooltip.append(tooltipMetricsTable(fileEntry));
+    const note = baselineTooltipNote(fileEntry, selectedMetric);
+    if (note) tooltip.append(note);
     if (!(selectedMetric in fileEntry.metrics)) {
       tooltip.append(el("div", { class: "tt-note" },
         `No ${metricLabel(selectedMetric).toLowerCase()} data for ${fileEntry.language} — shown neutral`));
@@ -291,14 +407,7 @@
       tooltip.append(el("div", { class: "tt-alert" }, `Analysis error: ${fileEntry.error}`));
     }
     tooltip.hidden = false;
-    const pad = 14;
-    const rect = tooltip.getBoundingClientRect();
-    let x = event.clientX + pad;
-    let y = event.clientY + pad;
-    if (x + rect.width > window.innerWidth - 8) x = event.clientX - rect.width - pad;
-    if (y + rect.height > window.innerHeight - 8) y = event.clientY - rect.height - pad;
-    tooltip.style.left = `${Math.max(4, x)}px`;
-    tooltip.style.top = `${Math.max(4, y)}px`;
+    positionTooltip(event);
   }
 
   function hideTooltip() {
@@ -340,15 +449,24 @@
       return String(av).localeCompare(String(bv)) * dir;
     };
 
+    const cellText = (col, value) => {
+      if (col.delta) return fmtDelta(value);
+      if (col.numeric) return fmt(value);
+      return value ?? "—";
+    };
+
+    const buildCell = (col, value) => {
+      const td = el("td", { class: col.numeric ? "num" : "" }, cellText(col, value));
+      if (col.metric && isOverThreshold(col.metric, value)) td.classList.add("cell-over");
+      if (col.delta && typeof value === "number" && value !== 0) {
+        td.classList.add(value > 0 ? "delta-pos" : "delta-neg");
+      }
+      return td;
+    };
+
     const buildRow = (row) => {
       const tr = el("tr");
-      for (const col of columns) {
-        const value = row[col.key];
-        const td = el("td", { class: col.numeric ? "num" : "" },
-          col.numeric ? fmt(value) : (value ?? "—"));
-        if (col.metric && isOverThreshold(col.metric, value)) td.classList.add("cell-over");
-        tr.append(td);
-      }
+      for (const col of columns) tr.append(buildCell(col, row[col.key]));
       if (onRowClick) tr.addEventListener("click", () => onRowClick(row));
       return tr;
     };
@@ -463,6 +581,50 @@
     });
   }
 
+  // ----- baseline regressions / improvements tables -------------------------
+
+  function baselineFunctionRow(entry, pathIndex) {
+    const cyc = entry.deltas.cyclomatic_complexity;
+    const cog = entry.deltas.cognitive_complexity;
+    return {
+      score_delta: entry.score_delta,
+      name: (entry.new_violation ? "⚠ " : "") + entry.name,
+      path: entry.path,
+      line: entry.line,
+      cyc_delta: cyc ? cyc.delta : null,
+      cog_delta: cog ? cog.delta : null,
+      fileIndex: pathIndex.has(entry.path) ? pathIndex.get(entry.path) : null,
+    };
+  }
+
+  function renderBaselineFunctionTable(tableId, countId, entries, pathIndex) {
+    const rows = entries.slice(0, 50).map((entry) => baselineFunctionRow(entry, pathIndex));
+    document.getElementById(countId).textContent =
+      entries.length > 50 ? `(top 50 of ${entries.length})` : `(${entries.length})`;
+    renderSortableTable(document.getElementById(tableId), [
+      { key: "score_delta", label: "Δ score", numeric: true, delta: true },
+      { key: "name", label: "Function" },
+      { key: "path", label: "File" },
+      { key: "line", label: "Line", numeric: true },
+      { key: "cyc_delta", label: "Δ cyc", numeric: true, delta: true },
+      { key: "cog_delta", label: "Δ cog", numeric: true, delta: true },
+    ], rows, (row) => {
+      if (row.fileIndex === null) return;
+      selectFile(row.fileIndex, null);
+      document.getElementById("detail-panel").scrollIntoView({ block: "nearest" });
+    });
+  }
+
+  function renderBaselineTables() {
+    if (!baseline) return;
+    document.getElementById("regressions-section").hidden = false;
+    const pathIndex = new Map(files.map((entry, index) => [entry.path, index]));
+    renderBaselineFunctionTable(
+      "regressions-table", "regressions-count", baseline.regressions, pathIndex);
+    renderBaselineFunctionTable(
+      "improvements-table", "improvements-count", baseline.improvements, pathIndex);
+  }
+
   // ----- boot -------------------------------------------------------------
 
   const metricSelect = document.getElementById("metric-select");
@@ -490,9 +652,22 @@
       renderCoverageChips(metric);
     });
 
+    if (baseline) {
+      const wrap = document.getElementById("baseline-toggle-wrap");
+      const toggle = document.getElementById("baseline-toggle");
+      wrap.hidden = false;
+      toggle.checked = baselineMode;
+      toggle.addEventListener("change", () => {
+        baselineMode = toggle.checked;
+        recolorTreemap(selectedMetricNow());
+        renderLegend(selectedMetricNow());
+      });
+    }
+
     renderTreemap(initial);
     renderLegend(initial);
     renderCoverageChips(initial);
+    renderBaselineTables();
     renderWorstFunctions();
   }
 

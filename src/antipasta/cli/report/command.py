@@ -6,8 +6,9 @@ report.
 
 Output discipline: stdout carries data (the JSON snapshot or HTML document
 when no ``--output`` is given), everything diagnostic goes to stderr.  The
-``--top`` ranking table goes to stdout when the data is written to a file,
-and to stderr otherwise so piped data stays clean.
+``--top`` ranking table and the ``--baseline`` delta summary go to stdout when
+the data is written to a file, and to stderr otherwise so piped data stays
+clean.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import tempfile
+from typing import Any
 import webbrowser
 
 import click
@@ -26,9 +28,12 @@ from antipasta.cli.metrics import (
     execute_analysis,
     load_configuration,
 )
+from antipasta.cli.report.diff_summary import format_diff_summary
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.config_override import ConfigOverride
 from antipasta.core.snapshot import build_snapshot, format_worst_functions_table
+from antipasta.core.snapshot_diff import SnapshotDiff, diff
+from antipasta.report.baseline import build_baseline_payload
 
 
 @click.command()
@@ -78,6 +83,22 @@ from antipasta.core.snapshot import build_snapshot, format_worst_functions_table
     help="Open the HTML report in a browser after writing it",
 )
 @click.option(
+    "--baseline",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help=(
+        "Baseline JSON snapshot to diff against: prints a delta summary and, "
+        "for HTML, renders the report in 'vs baseline' mode"
+    ),
+)
+@click.option(
+    "--save-baseline",
+    is_flag=True,
+    help=(
+        "Also write the JSON snapshot next to the output (<name>.baseline.json) "
+        "for a later --baseline run"
+    ),
+)
+@click.option(
     "--include-pattern",
     "-i",
     multiple=True,
@@ -110,6 +131,8 @@ def report(
     output_format: str,
     top: int,
     open_browser: bool,
+    baseline: Path | None,
+    save_baseline: bool,
     include_pattern: tuple[str, ...],
     exclude_pattern: tuple[str, ...],
     no_gitignore: bool,
@@ -121,6 +144,10 @@ def report(
     references; open it from any file:// URL.  With --format json the raw
     snapshot is emitted instead.  stdout carries only the report data;
     diagnostics go to stderr.
+
+    With --baseline, the report is diffed against a previous JSON snapshot
+    (see --save-baseline): a delta summary is printed and the HTML report
+    renders in "vs baseline" mode.
     """
     override = create_and_configure_override(
         include_pattern, exclude_pattern, (), no_gitignore, force_analyze
@@ -138,13 +165,22 @@ def report(
         root=directory or Path.cwd(),
         summary=results["summary"],
     )
-    payload = _render_payload(snapshot, output_format)
+    render_snapshot, baseline_diff = _apply_baseline(snapshot, baseline, output_format)
+    payload = _render_payload(render_snapshot, output_format)
     _emit(payload, output, output_format, open_browser)
+
+    if save_baseline:
+        # The pristine snapshot, never the one carrying an embedded diff.
+        _save_baseline_snapshot(snapshot, output)
+
+    # Keep stdout data-clean: the delta summary and --top table share stdout
+    # only when the data itself went to a file.
+    if baseline is not None and baseline_diff is not None:
+        summary = format_diff_summary(baseline_diff, baseline_label=str(baseline))
+        click.echo(summary, err=output is None)
 
     if top > 0:
         table = format_worst_functions_table(snapshot, top)
-        # Keep stdout data-clean: the table shares stdout only when the data
-        # itself went to a file.
         click.echo(table, err=output is None)
 
 
@@ -172,6 +208,47 @@ def _prepare_config(
         (),
         no_gitignore,
     )
+
+
+def _load_baseline_snapshot(path: Path) -> dict[str, Any]:
+    """Read and parse a baseline snapshot, failing with a clean CLI error."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise click.ClickException(f"Cannot read baseline snapshot {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise click.ClickException(f"Baseline snapshot {path} is not a JSON object")
+    return data
+
+
+def _apply_baseline(
+    snapshot: dict[str, Any], baseline: Path | None, output_format: str
+) -> tuple[dict[str, Any], SnapshotDiff | None]:
+    """Diff the snapshot against the baseline file, when one was given.
+
+    Returns the snapshot to render (for HTML, a copy carrying the embedded
+    ``baseline`` payload for "vs baseline" mode) and the diff result.  Schema
+    drift warnings go to stderr.
+    """
+    if baseline is None:
+        return snapshot, None
+    old = _load_baseline_snapshot(baseline)
+    baseline_diff = diff(old, snapshot)
+    for warning in baseline_diff.warnings:
+        click.echo(f"Warning: {warning}", err=True)
+    if output_format.lower() == "html":
+        payload = build_baseline_payload(baseline_diff, old, label=baseline.name)
+        snapshot = {**snapshot, "baseline": payload}
+    return snapshot, baseline_diff
+
+
+def _save_baseline_snapshot(snapshot: dict[str, Any], output: Path | None) -> None:
+    """Write the JSON snapshot next to the output for a later --baseline run."""
+    path = (
+        output.with_suffix(".baseline.json") if output is not None else Path("report.baseline.json")
+    )
+    path.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
+    click.echo(f"Baseline snapshot written to {path}", err=True)
 
 
 def _render_payload(snapshot: dict[str, object], output_format: str) -> str:

@@ -90,6 +90,13 @@ main { padding: 0 20px 40px; max-width: 1520px; margin: 0 auto; }
   border: 1px solid var(--line);
 }
 
+.legend-bar.delta {
+  background: linear-gradient(to right, #1b7837, #e8f0ea 45%, #f6ebe8 55%, #c62828);
+}
+
+.baseline-toggle { font-weight: 600; user-select: none; }
+.baseline-toggle input { vertical-align: -2px; }
+
 .coverage-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
 
 .viz-row { display: flex; gap: 16px; align-items: flex-start; }
@@ -166,6 +173,12 @@ th .arrow { font-size: 9px; margin-left: 3px; }
 .worst-section tbody tr:hover { background: #f0f4f8; }
 
 td.cell-over { color: var(--bad); font-weight: 700; }
+td.delta-pos { color: var(--bad); font-weight: 600; }
+td.delta-neg { color: var(--good); font-weight: 600; }
+
+.regressions-section .improvements-heading { margin-top: 16px; }
+.chip.delta-reg { border-color: #e5a3a0; background: #fdf1f0; color: #9b2c2c; }
+.chip.delta-imp { border-color: #a8d5b0; background: #f0f9f1; color: #22633a; }
 
 .tooltip {
   position: fixed;
