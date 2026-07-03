@@ -136,7 +136,7 @@ def complex_function(a, b, c, d):
         py_file = tmp_path / "test.py"
         py_file.write_text("def test(): pass")
 
-        # Create JavaScript file (will be skipped as no runner)
+        # Create JavaScript file (analyzed by the lizard runner)
         js_file = tmp_path / "test.js"
         js_file.write_text("function test() {}")
 
@@ -149,9 +149,11 @@ def complex_function(a, b, c, d):
 
         reports = aggregator.analyze_files([py_file, js_file, txt_file])
 
-        # Only Python file should be analyzed
-        assert len(reports) == 1
-        assert reports[0].file_path == py_file
+        # Python and JavaScript files are analyzed; unknown files are skipped
+        assert len(reports) == 2
+        assert {r.file_path for r in reports} == {py_file, js_file}
+        js_report = next(r for r in reports if r.file_path == js_file)
+        assert js_report.language == "javascript"
 
     def test_analyze_with_ignore_patterns(self, tmp_path: Path) -> None:
         """Test that ignored files are skipped."""

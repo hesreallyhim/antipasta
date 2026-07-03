@@ -11,6 +11,7 @@ from antipasta.core.detector import Language, LanguageDetector
 from antipasta.core.metrics import FileMetrics, MetricType
 from antipasta.core.violations import FileReport, Violation, check_metric_violation
 from antipasta.runners.base import BaseRunner
+from antipasta.runners.javascript.lizard_runner import LizardRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 from antipasta.runners.python.radon import RadonRunner
 
@@ -46,9 +47,13 @@ class MetricAggregator:
             if gitignore_path.exists():
                 self.detector.add_gitignore(gitignore_path)
 
-        # Initialize runners for each language
+        # Initialize runners for each language (JS and TS share one lizard
+        # instance; its availability check is cached).
+        lizard_runner = LizardRunner()
         self.runners: dict[Language, list[BaseRunner]] = {
             Language.PYTHON: [RadonRunner(), ComplexipyRunner()],
+            Language.JAVASCRIPT: [lizard_runner],
+            Language.TYPESCRIPT: [lizard_runner],
         }
 
     def analyze_files(self, file_paths: list[Path]) -> list[FileReport]:
@@ -223,6 +228,16 @@ class MetricAggregator:
                 MetricConfig(
                     type=MetricType.COGNITIVE_COMPLEXITY,
                     threshold=self.config.defaults.max_cognitive_complexity,
+                    comparison=ComparisonOperator.LE,
+                ),
+            ]
+        elif language in (Language.JAVASCRIPT, Language.TYPESCRIPT):
+            # lizard produces cyclomatic complexity only; enabling other
+            # metric thresholds here would silently never fire.
+            default_metrics = [
+                MetricConfig(
+                    type=MetricType.CYCLOMATIC_COMPLEXITY,
+                    threshold=self.config.defaults.max_cyclomatic_complexity,
                     comparison=ComparisonOperator.LE,
                 ),
             ]
