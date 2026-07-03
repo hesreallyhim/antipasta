@@ -14,6 +14,19 @@ from antipasta.runners.base import BaseRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 from antipasta.runners.python.radon import RadonRunner
 
+# Per-function Halstead rows are informational: they feed `antipasta report`.
+# Thresholds keep applying to the file-level Halstead totals only, exactly as
+# they did before per-function Halstead extraction was added.
+_PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset(
+    {
+        MetricType.HALSTEAD_VOLUME,
+        MetricType.HALSTEAD_DIFFICULTY,
+        MetricType.HALSTEAD_EFFORT,
+        MetricType.HALSTEAD_TIME,
+        MetricType.HALSTEAD_BUGS,
+    }
+)
+
 
 class MetricAggregator:
     """Aggregates metrics and violations across multiple files."""
@@ -150,6 +163,13 @@ class MetricAggregator:
         for metric in file_metrics.metrics:
             # Skip metrics without configuration
             if metric.metric_type not in config_map:
+                continue
+
+            # Skip informational per-function rows (see _PER_FUNCTION_INFORMATIONAL)
+            if (
+                metric.function_name is not None
+                and metric.metric_type in _PER_FUNCTION_INFORMATIONAL
+            ):
                 continue
 
             config = config_map[metric.metric_type]

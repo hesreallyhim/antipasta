@@ -115,7 +115,7 @@ antipasta provides the following commands:
 | `config view` | View configuration in various formats | Shows configuration summary |
 | `metrics` | Analyze code metrics for specified files | Uses `.antipasta.yaml` config, shows helpful message if missing |
 | `stats` | Collect and display code metrics statistics | Analyzes files matching the specified pattern |
-| `tui` | Launch terminal UI dashboard (interactive) | Shows real-time metrics analysis |
+| `report` | Generate a visual complexity report (offline HTML or JSON) | Writes a single self-contained HTML file |
 
 > **Note**: The old commands `generate-config` and `validate-config` are deprecated but still work for backward compatibility. They will show a deprecation warning. Please use `config generate` and `config validate` instead.
 
@@ -143,6 +143,23 @@ antipasta metrics --format json --directory src/
 **Note**: If `.antipasta.yaml` doesn't exist, antipasta will:
 1. Show a helpful message: "Configuration file '.antipasta.yaml' not found. Run 'antipasta config generate' to create a configuration file."
 2. Continue with default settings for the analysis
+
+### Visual Report
+
+```bash
+# Generate a self-contained offline HTML report (treemap, per-function tables)
+antipasta report --directory src/ --output report.html --open
+
+# Emit the raw JSON snapshot instead, plus the 10 worst functions on the terminal
+antipasta report --directory src/ --format json --output snapshot.json --top 10
+```
+
+The HTML report is a single file with no network dependencies (d3 is embedded),
+so it can be opened from any `file://` URL or attached to a CI run. Tile area is
+source lines of code; tile color is the selected metric against its configured
+threshold. JavaScript/TypeScript files are analyzed via lizard (cyclomatic
+complexity and line counts); metrics a language lacks render neutral, never
+"good".
 
 ### Validate Configuration
 

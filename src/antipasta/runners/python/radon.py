@@ -12,6 +12,15 @@ from antipasta.core.detector import Language
 from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
 
+# Halstead metric types and their key in radon's `hal -j` JSON records.
+_HALSTEAD_FIELDS: tuple[tuple[MetricType, str], ...] = (
+    (MetricType.HALSTEAD_VOLUME, "volume"),
+    (MetricType.HALSTEAD_DIFFICULTY, "difficulty"),
+    (MetricType.HALSTEAD_EFFORT, "effort"),
+    (MetricType.HALSTEAD_TIME, "time"),
+    (MetricType.HALSTEAD_BUGS, "bugs"),
+)
+
 
 class RadonRunner(BaseRunner):
     """Runner for Python metrics using Radon."""
@@ -196,7 +205,7 @@ class RadonRunner(BaseRunner):
         return None
 
     def _get_halstead_metrics(self, file_path: Path) -> list[MetricResult]:
-        """Get Halstead metrics."""
+        """Get Halstead metrics (file-level totals plus per-function rows)."""
         command = [sys.executable, "-m", "radon", "hal", "-j", str(file_path)]
         data = self._run_radon_command(command)
 
@@ -205,38 +214,48 @@ class RadonRunner(BaseRunner):
             file_data = data[str(file_path)]
             # Check if this is an error response or has expected structure
             if isinstance(file_data, dict) and "total" in file_data:
-                hal_data = file_data["total"]
-                metrics.extend(
-                    [
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.HALSTEAD_VOLUME,
-                            value=float(hal_data.get("volume", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.HALSTEAD_DIFFICULTY,
-                            value=float(hal_data.get("difficulty", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.HALSTEAD_EFFORT,
-                            value=float(hal_data.get("effort", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.HALSTEAD_TIME,
-                            value=float(hal_data.get("time", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.HALSTEAD_BUGS,
-                            value=float(hal_data.get("bugs", 0)),
-                        ),
-                    ]
-                )
+                # File-level totals: unchanged, these are what thresholds check.
+                metrics.extend(self._build_halstead_results(file_path, file_data["total"]))
+                # Per-function rows: informational (feed `antipasta report`).
+                for name, function_data in self._iter_halstead_functions(file_data):
+                    metrics.extend(
+                        self._build_halstead_results(file_path, function_data, function_name=name)
+                    )
 
         return metrics
+
+    @staticmethod
+    def _iter_halstead_functions(file_data: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+        """Normalize the ``functions`` payload of ``radon hal -j``.
+
+        Depending on the radon version this is either a mapping of
+        ``name -> metrics`` or a list of ``[name, metrics]`` pairs.
+        """
+        functions = file_data.get("functions", {})
+        items = functions.items() if isinstance(functions, dict) else functions
+        return [
+            (name, function_data)
+            for name, function_data in items
+            if isinstance(name, str) and isinstance(function_data, dict)
+        ]
+
+    @staticmethod
+    def _build_halstead_results(
+        file_path: Path,
+        hal_data: dict[str, Any],
+        function_name: str | None = None,
+    ) -> list[MetricResult]:
+        """Build the five Halstead metric results from one radon hal record."""
+        return [
+            MetricResult(
+                file_path=file_path,
+                metric_type=metric_type,
+                value=float(hal_data.get(key, 0)),
+                function_name=function_name,
+                details={"type": "function"} if function_name is not None else None,
+            )
+            for metric_type, key in _HALSTEAD_FIELDS
+        ]
 
     def _get_raw_metrics(self, file_path: Path) -> list[MetricResult]:
         """Get raw metrics (LOC, SLOC, etc.)."""

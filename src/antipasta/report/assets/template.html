@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>antipasta report</title>
+<style>
+/*__ANTIPASTA_CSS__*/
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="title-block">
+    <h1>antipasta report</h1>
+    <p id="meta-line" class="meta"></p>
+  </div>
+  <div id="summary-chips" class="summary-chips"></div>
+</header>
+
+<main>
+  <section class="controls" aria-label="Report controls">
+    <label class="metric-picker">Color by
+      <select id="metric-select"></select>
+    </label>
+    <div class="legend" id="legend">
+      <span class="legend-label" id="legend-low">ok</span>
+      <span class="legend-bar" aria-hidden="true"></span>
+      <span class="legend-label" id="legend-high">over threshold</span>
+    </div>
+    <div id="coverage-chips" class="coverage-chips" title="Metric coverage per language"></div>
+  </section>
+
+  <section class="viz-row">
+    <div class="treemap-wrap">
+      <svg id="treemap" viewBox="0 0 1160 640" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="Complexity treemap; tile area is source lines of code"></svg>
+      <p class="hint">Tile area = source lines of code. Hover for metrics, click for the
+        function table. Badged tiles have threshold violations.</p>
+    </div>
+    <aside class="detail-panel" id="detail-panel">
+      <h2 id="detail-title">File details</h2>
+      <p id="detail-placeholder">Click a tile to inspect a file.</p>
+      <div id="detail-body" hidden>
+        <p id="detail-path" class="detail-path"></p>
+        <div id="detail-meta" class="detail-meta"></div>
+        <div id="detail-violations"></div>
+        <h3>Functions</h3>
+        <div class="table-scroll">
+          <table id="function-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="worst-section">
+    <h2>Worst functions <span class="muted" id="worst-count"></span></h2>
+    <p class="hint">Ranked by the larger of cyclomatic and cognitive complexity.
+      Click a row to open its file in the detail panel.</p>
+    <div class="table-scroll">
+      <table id="worst-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div id="tooltip" class="tooltip" hidden></div>
+
+<script>/*__D3_JS__*/</script>
+<script>window.ANTIPASTA_DATA = /*__ANTIPASTA_DATA__*/;</script>
+<script>/*__ANTIPASTA_JS__*/</script>
+</body>
+</html>

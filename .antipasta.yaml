@@ -46,6 +46,8 @@ ignore_patterns:
   - "**/test_*.py"
   - "**/*_test.py"
   - "**/tests/**"
+  # Vendored third-party assets (e.g. the d3 bundle shipped with `antipasta report`)
+  - "**/report/assets/vendor/**"
 
 # Whether to use .gitignore file for excluding files
 use_gitignore: true

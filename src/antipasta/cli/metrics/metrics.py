@@ -102,7 +102,7 @@ def metrics(
 
     Exits with code 0 if all metrics pass, 2 if violations found.
 
-    For an interactive terminal UI, use 'antipasta tui' instead.
+    For a visual report, use 'antipasta report'.
     """
     configuration = prepare_configuration(config, threshold, quiet)
     override = create_and_configure_override(
