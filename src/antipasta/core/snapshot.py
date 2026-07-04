@@ -61,11 +61,18 @@ def build_snapshot(
     if summary is None:
         summary = MetricAggregator(config).generate_summary(reports)
 
+    # Machine-neutral root when possible: snapshots get committed to git
+    # (metrics history), and an absolute path would churn across machines.
+    try:
+        root_label = str(root_path.relative_to(Path.cwd()))
+    except ValueError:
+        root_label = str(root_path)
+
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "tool_version": __version__,
-        "root": str(root_path),
+        "root": root_label,
         "summary": summary,
         "thresholds": _build_thresholds(config),
         "language_coverage": _build_language_coverage(files),

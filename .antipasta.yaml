@@ -5,12 +5,17 @@
 #   with the house style (compose method drives both toward zero).
 # - DEMOTED to informational (still computed, no thresholds): maintainability
 #   index and file-level Halstead volume/effort. All three penalize file
-#   LENGTH (MI has a ln(LOC) term; volume/effort accumulate per function),
-#   which is direct pressure AGAINST newspaper-style extraction. MI is
-#   additionally a 1990s composite with coefficients the owner finds
-#   unpredictable and does not trust as a gate.
+#   length as a side effect of their formulas (maintainability index carries
+#   a log-of-lines term; volume/effort accumulate per function), which is
+#   direct pressure AGAINST newspaper-style extraction. The maintainability
+#   index is additionally a 1990s composite with coefficients the owner
+#   finds unpredictable and does not trust as a gate.
 # - Halstead difficulty kept: it is roughly size-independent (vocabulary
 #   reuse), so it does not fight the style.
+# - lines_of_code gate ADDED (owner, 2026-07-04): a direct per-file length
+#   cap (1000) is the honest replacement for the demoted composites — the
+#   owner cares about file length itself, not formulas that smuggle it in.
+#   Newspaper style grows total lines but stays compatible with a per-file cap.
 # - Policy: dogfooding never blocks implementation. New metrics land
 #   informational-first and are promoted to gates only after being observed
 #   on this repo (see the adoption plan's closing checklist).
@@ -41,6 +46,10 @@ languages:
 
       - type: cognitive_complexity
         threshold: 15.0
+        comparison: "<="
+
+      - type: lines_of_code
+        threshold: 1000.0
         comparison: "<="
 
 # Files and patterns to ignore during analysis
