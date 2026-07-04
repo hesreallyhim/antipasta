@@ -73,6 +73,12 @@ class MetricType(StrEnum):
     # Duplication (track A, pydry engine). Config-gated.
     DUPLICATION_RATIO = "duplication_ratio"
     CLONE_OCCURRENCES = "clone_occurrences"
+    # Version-control mining (track B; opt-in command, never the default path).
+    CODE_CHURN = "code_churn"
+    CHANGE_COUPLING = "change_coupling"
+    HOTSPOT = "hotspot"
+    TEST_CHURN_RATIO = "test_churn_ratio"
+    CO_CHURN_MULTIPLICITY = "co_churn_multiplicity"
 
 
 @dataclass
