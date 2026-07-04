@@ -365,6 +365,11 @@ single-responsibility index. None requires new infrastructure beyond the Python
 syntax-tree pass that the class-scope analyzer (Round 1, capability B) already
 needs — abstraction purity and step-down ordering are the same kind of walk.
 
+> **Superseded by a full design:** this profile grew into the **Narrative
+> Index** — five components (narration ratio, expression flatness, pipeline
+> linearity, context-aware name clarity, step-down ordering) with a working
+> discrimination probe. See `docs/design/narrative-index.md`.
+
 ## Module Tree Shape (the Modularity Index verdict, overturned)
 
 Round 1 abandoned "Modularity Index" as *a research composite with no agreed
