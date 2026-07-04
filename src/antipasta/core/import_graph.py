@@ -65,9 +65,22 @@ def _build_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
         if source is None:
             continue
         for target in _resolved_targets(facts, source, known):
-            if target != source:
+            if target != source and not _is_ancestor_edge(source, target):
                 graph[source].add(target)
     return graph
+
+
+def _is_ancestor_edge(source: str, target: str) -> bool:
+    """A module importing its own ancestor package is re-export plumbing.
+
+    Owner decision (2026-07-04): the cycles metric should mean VICIOUS
+    circles. Child→ancestor edges (``cli.main`` importing ``cli``) exist in
+    every package that re-exports its members and would otherwise report
+    every such package as a cycle; dropping them leaves only cycles between
+    genuinely separate modules. Parent→child edges are kept — a package
+    aggregating its children is acyclic on its own.
+    """
+    return source.startswith(target + ".")
 
 
 def _module_name(file_path: Path, root: Path) -> str | None:

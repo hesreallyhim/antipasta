@@ -135,6 +135,32 @@ class TestPackageRollup:
         assert lib["afferent_coupling"] == 1.0
 
 
+class TestAncestorEdges:
+    def test_child_importing_ancestor_is_not_an_edge(self, tmp_path: Path) -> None:
+        # The classic package re-export loop: pkg/__init__ imports its child,
+        # the child imports the parent namespace back. Vicious? No — plumbing.
+        sources = {
+            "pkg/__init__.py": "from pkg import main\n",
+            "pkg/main.py": "import pkg\n\ndef go():\n    return pkg\n",
+        }
+        reports = _derive(tmp_path, sources)
+
+        assert not [r for r in reports if r.subject.startswith("cycle:")]
+        main = _module_rows(reports, "pkg.main")
+        assert main["efferent_coupling"] == 0.0  # ancestor edge dropped
+
+    def test_sibling_cycles_still_detected(self, tmp_path: Path) -> None:
+        sources = {
+            "pkg/__init__.py": "",
+            "pkg/alpha.py": "from pkg import beta\n",
+            "pkg/beta.py": "from pkg import alpha\n",
+        }
+        reports = _derive(tmp_path, sources)
+
+        cycles = [r for r in reports if r.subject.startswith("cycle:")]
+        assert len(cycles) == 1  # genuinely mutual siblings still report
+
+
 class TestGraphHygiene:
     def test_self_imports_dropped_and_empty_ok(self, tmp_path: Path) -> None:
         sources = {"only.py": "import only\n\ndef go():\n    return 1\n"}

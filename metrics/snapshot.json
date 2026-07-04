@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T07:10:02+00:00",
+  "generated_at": "2026-07-04T08:09:56+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
@@ -6799,21 +6799,21 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 3.608695652173913,
-        "maintainability_index": 38.590996690790305,
-        "halstead_volume": 809.7093590924643,
-        "halstead_difficulty": 8.556338028169014,
-        "halstead_effort": 6928.146980967212,
-        "halstead_time": 384.8970544981784,
-        "halstead_bugs": 0.2699031196974881,
-        "lines_of_code": 338.0,
-        "logical_lines_of_code": 219.0,
-        "source_lines_of_code": 244.0,
+        "cyclomatic_complexity": 3.5416666666666665,
+        "maintainability_index": 39.99486004038957,
+        "halstead_volume": 872.0444817866253,
+        "halstead_difficulty": 8.486842105263158,
+        "halstead_effort": 7400.903825689122,
+        "halstead_time": 411.1613236493956,
+        "halstead_bugs": 0.2906814939288751,
+        "lines_of_code": 351.0,
+        "logical_lines_of_code": 222.0,
+        "source_lines_of_code": 246.0,
         "comment_lines": 7.0,
-        "blank_lines": 59.0,
+        "blank_lines": 62.0,
         "cognitive_complexity": 13.0,
         "marker_density": 0.0,
-        "comment_density": 2.0710059171597637
+        "comment_density": 1.9943019943019942
       },
       "violations": [],
       "functions": [
@@ -6842,13 +6842,13 @@
           "name": "_build_graph",
           "line": 52,
           "metrics": {
-            "cyclomatic_complexity": 8.0,
-            "halstead_volume": 25.26619429851844,
-            "halstead_difficulty": 2.25,
-            "halstead_effort": 56.848937171666485,
-            "halstead_time": 3.158274287314805,
-            "halstead_bugs": 0.008422064766172813,
-            "cognitive_complexity": 11.0,
+            "cyclomatic_complexity": 9.0,
+            "halstead_volume": 50.18947501009619,
+            "halstead_difficulty": 3.2142857142857144,
+            "halstead_effort": 161.32331253245204,
+            "halstead_time": 8.962406251802891,
+            "halstead_bugs": 0.016729825003365395,
+            "cognitive_complexity": 12.0,
             "message_chain_depth": 2.0,
             "function_arity": 1.0,
             "boolean_flag_parameters": 0.0,
@@ -6860,8 +6860,29 @@
           }
         },
         {
-          "name": "_module_name",
+          "name": "_is_ancestor_edge",
           "line": 73,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_module_name",
+          "line": 86,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 30.0,
@@ -6882,7 +6903,7 @@
         },
         {
           "name": "_resolved_targets",
-          "line": 84,
+          "line": 97,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -6903,7 +6924,7 @@
         },
         {
           "name": "_import_prefix",
-          "line": 95,
+          "line": 108,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 34.86917501586544,
@@ -6924,7 +6945,7 @@
         },
         {
           "name": "_resolve_statement",
-          "line": 103,
+          "line": 116,
           "metrics": {
             "cyclomatic_complexity": 9.0,
             "halstead_volume": 34.86917501586544,
@@ -6945,7 +6966,7 @@
         },
         {
           "name": "_match_known",
-          "line": 124,
+          "line": 137,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 50.18947501009619,
@@ -6966,7 +6987,7 @@
         },
         {
           "name": "_module_reports",
-          "line": 141,
+          "line": 154,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 2.0,
@@ -6987,7 +7008,7 @@
         },
         {
           "name": "_afferent_counts",
-          "line": 154,
+          "line": 167,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7008,7 +7029,7 @@
         },
         {
           "name": "_instability_map",
-          "line": 162,
+          "line": 175,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -7029,7 +7050,7 @@
         },
         {
           "name": "_coupling_rows",
-          "line": 173,
+          "line": 186,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 28.529325012980813,
@@ -7050,7 +7071,7 @@
         },
         {
           "name": "_sdp_violations",
-          "line": 201,
+          "line": 214,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7071,7 +7092,7 @@
         },
         {
           "name": "_cycle_reports",
-          "line": 213,
+          "line": 226,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 57.110323830864054,
@@ -7092,7 +7113,7 @@
         },
         {
           "name": "_strongly_connected",
-          "line": 237,
+          "line": 250,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -7113,7 +7134,7 @@
         },
         {
           "name": "_Tarjan",
-          "line": 242,
+          "line": 255,
           "metrics": {
             "weighted_methods_per_class": 17.0,
             "lack_of_cohesion": 1.0,
@@ -7122,7 +7143,7 @@
         },
         {
           "name": "_Tarjan::__init__",
-          "line": 245,
+          "line": 258,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -7143,7 +7164,7 @@
         },
         {
           "name": "_Tarjan::components",
-          "line": 254,
+          "line": 267,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7164,7 +7185,7 @@
         },
         {
           "name": "_Tarjan::_explore",
-          "line": 260,
+          "line": 273,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 2.0,
@@ -7185,7 +7206,7 @@
         },
         {
           "name": "_Tarjan::_open",
-          "line": 271,
+          "line": 284,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 4.754887502163469,
@@ -7206,7 +7227,7 @@
         },
         {
           "name": "_Tarjan::_visit",
-          "line": 277,
+          "line": 290,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -7227,7 +7248,7 @@
         },
         {
           "name": "_Tarjan::_close",
-          "line": 284,
+          "line": 297,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 11.60964047443681,
@@ -7248,7 +7269,7 @@
         },
         {
           "name": "_Tarjan::_pop_component",
-          "line": 291,
+          "line": 304,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7269,7 +7290,7 @@
         },
         {
           "name": "_package_reports",
-          "line": 304,
+          "line": 317,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 4.754887502163469,
@@ -7290,7 +7311,7 @@
         },
         {
           "name": "_package_of",
-          "line": 337,
+          "line": 350,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -12121,14 +12142,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 242,
+          "line_number": 255,
           "function_name": "_Tarjan"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 242,
+          "line_number": 255,
           "function_name": "_Tarjan"
         }
       ],
@@ -12540,21 +12561,21 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 5.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "instability",
-          "value": 0.1667,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "stable_dependencies_violations",
-          "value": 1.0,
+          "value": 0.0,
           "details": {
             "tolerance": 0.2
           },
@@ -12576,14 +12597,14 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 3.0,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "instability",
-          "value": 0.5,
+          "value": 0.75,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -12605,7 +12626,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -12619,7 +12640,7 @@
         },
         {
           "type": "instability",
-          "value": 0.3333,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -12893,7 +12914,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -12907,7 +12928,7 @@
         },
         {
           "type": "instability",
-          "value": 0.5,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13073,7 +13094,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 2.0,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13087,7 +13108,7 @@
         },
         {
           "type": "instability",
-          "value": 0.6667,
+          "value": 0.5,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13325,7 +13346,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13339,7 +13360,7 @@
         },
         {
           "type": "instability",
-          "value": 0.5,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13433,21 +13454,21 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "afferent_coupling",
-          "value": 4.0,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "instability",
-          "value": 0.2,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13469,7 +13490,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 2.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13483,7 +13504,7 @@
         },
         {
           "type": "instability",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13577,7 +13598,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13591,7 +13612,7 @@
         },
         {
           "type": "instability",
-          "value": 1.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13793,7 +13814,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 2.0,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -13807,7 +13828,7 @@
         },
         {
           "type": "instability",
-          "value": 0.6667,
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15085,45 +15106,6 @@
       "violations": []
     },
     {
-      "subject": "cycle: cli.config <-> cli.config.config_generate <-> cli.config.config_view",
-      "metrics": [
-        {
-          "type": "dependency_cycles",
-          "value": 3.0,
-          "details": {
-            "members": [
-              "cli.config",
-              "cli.config.config_generate",
-              "cli.config.config_view"
-            ]
-          },
-          "line_number": null,
-          "function_name": null
-        }
-      ],
-      "violations": []
-    },
-    {
-      "subject": "cycle: cli <-> cli.main <-> cli.report <-> cli.stats",
-      "metrics": [
-        {
-          "type": "dependency_cycles",
-          "value": 4.0,
-          "details": {
-            "members": [
-              "cli",
-              "cli.main",
-              "cli.report",
-              "cli.stats"
-            ]
-          },
-          "line_number": null,
-          "function_name": null
-        }
-      ],
-      "violations": []
-    },
-    {
       "subject": "package (top)",
       "metrics": [
         {
@@ -15135,7 +15117,7 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 3.0,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15148,14 +15130,14 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 4.0,
+          "value": 3.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "afferent_coupling",
-          "value": 6.0,
+          "value": 4.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15168,7 +15150,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 2.0,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15268,7 +15250,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 4.0,
+          "value": 2.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15491,7 +15473,7 @@
       "label": "antipasta",
       "aggregate": {
         "files": 79,
-        "value": 6194.0,
+        "value": 6196.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -15499,7 +15481,7 @@
             "path": "__init__.py"
           },
           "halstead_volume": {
-            "value": 809.7093590924643,
+            "value": 872.0444817866253,
             "path": "core/import_graph.py"
           },
           "halstead_difficulty": {
@@ -15507,15 +15489,15 @@
             "path": "core/aggregator.py"
           },
           "halstead_effort": {
-            "value": 6928.146980967212,
+            "value": 7400.903825689122,
             "path": "core/import_graph.py"
           },
           "halstead_time": {
-            "value": 384.8970544981784,
+            "value": 411.1613236493956,
             "path": "core/import_graph.py"
           },
           "halstead_bugs": {
-            "value": 0.2699031196974881,
+            "value": 0.2906814939288751,
             "path": "core/import_graph.py"
           },
           "lines_of_code": {
@@ -15523,7 +15505,7 @@
             "path": "report/assets/report.js"
           },
           "logical_lines_of_code": {
-            "value": 219.0,
+            "value": 222.0,
             "path": "core/import_graph.py"
           },
           "source_lines_of_code": {
@@ -16570,7 +16552,7 @@
       "label": "core",
       "aggregate": {
         "files": 17,
-        "value": 2071.0,
+        "value": 2073.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -16578,7 +16560,7 @@
             "path": "core/__init__.py"
           },
           "halstead_volume": {
-            "value": 809.7093590924643,
+            "value": 872.0444817866253,
             "path": "core/import_graph.py"
           },
           "halstead_difficulty": {
@@ -16586,15 +16568,15 @@
             "path": "core/aggregator.py"
           },
           "halstead_effort": {
-            "value": 6928.146980967212,
+            "value": 7400.903825689122,
             "path": "core/import_graph.py"
           },
           "halstead_time": {
-            "value": 384.8970544981784,
+            "value": 411.1613236493956,
             "path": "core/import_graph.py"
           },
           "halstead_bugs": {
-            "value": 0.2699031196974881,
+            "value": 0.2906814939288751,
             "path": "core/import_graph.py"
           },
           "lines_of_code": {
@@ -16602,7 +16584,7 @@
             "path": "core/aggregator.py"
           },
           "logical_lines_of_code": {
-            "value": 219.0,
+            "value": 222.0,
             "path": "core/import_graph.py"
           },
           "source_lines_of_code": {
@@ -16696,7 +16678,7 @@
       "id": "core/import_graph.py",
       "parent": "core",
       "label": "import_graph.py",
-      "value": 244.0,
+      "value": 246.0,
       "file_index": 49
     },
     {

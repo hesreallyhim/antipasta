@@ -13,6 +13,30 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Owner decision round — 2026-07-04** (start of `feat/metrics-phase-4`):
+  (a) Branch stack continues as a long merge queue (phases are strictly
+  additive; no coupling requires early merges). (b) pydry integration waits
+  on the owner's PyPI v0.0.1 — confirmed antipasta needs only the engine +
+  JSON report, NOT the TUI (owner is cutting it). (c) No gate promotions
+  yet. (d) **exception_discipline reclassified as lint-adjacent** (owner
+  judgment, accepted): bare/broad/silent handlers are line-level rules a
+  linter owns (ruff E722/BLE001/S110); it stays because it is already built
+  and its *history* (via committed snapshots) is something linters don't
+  provide, but it is demoted from ever being a headline metric and excluded
+  from future composites. (e) **Cycle semantics: vicious circles only** —
+  child→ancestor package edges (re-export plumbing) are exempt from the
+  graph by fixed rule; the two cli `__init__` loops correctly vanish while
+  sibling cycles still report (pinned by tests). (f) **core/ split deferred
+  and reshaped into an experiment**: implementation has priority over
+  dogfooding; when Phase 4 lands, run the "golden set" protocol — plan
+  sub-layers using the tool's own dependency/cohesion data, checkpoint the
+  flat pre-refactor state, execute the split, and keep the before/after pair
+  as the first test case for the mechanical-remediation product direction.
+  (g) Snapshot refresh wired into a committed pre-commit hook
+  (`.githooks/pre-commit`, `make install-hooks`; stages only when something
+  besides the timestamp changed). (h) Wordlist vendoring approved; LLM track
+  deferred until after the static phases.
+
 - **Phase 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-3`). The
   import graph: raw import facts resolved against the analyzed module set
   (relative dots, `from X import name` submodule-vs-symbol with

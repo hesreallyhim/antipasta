@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Refresh metrics/snapshot.json before each commit (owner convention: the
+# repo carries its own metrics history; see docs/design/metrics-adoption-plan.md).
+# The snapshot is only staged when something besides the generated_at
+# timestamp changed, so docs-only commits don't accrue timestamp churn.
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+[ -x venv/bin/antipasta ] || exit 0
+
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+if ! venv/bin/antipasta report -d src/antipasta --format json -o "$tmp" 2>/dev/null; then
+    exit 0  # never block a commit on the snapshot refresh
+fi
+
+if venv/bin/python - "$tmp" metrics/snapshot.json <<'PYEOF'
+import json
+import sys
+
+with open(sys.argv[1]) as handle:
+    fresh = json.load(handle)
+try:
+    with open(sys.argv[2]) as handle:
+        committed = json.load(handle)
+except (OSError, json.JSONDecodeError):
+    sys.exit(1)  # missing/corrupt: stage the fresh one
+fresh.pop("generated_at", None)
+committed.pop("generated_at", None)
+sys.exit(0 if fresh == committed else 1)
+PYEOF
+then
+    exit 0  # metrics unchanged; keep the committed snapshot
+fi
+
+mkdir -p metrics
+cp "$tmp" metrics/snapshot.json
+git add metrics/snapshot.json
