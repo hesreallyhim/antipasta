@@ -19,9 +19,9 @@ import ast
 from pathlib import Path
 
 from antipasta.core.detector import Language
-from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
+from antipasta.core.metrics import FactRow, FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
-from antipasta.runners.python.house_style import comments, expressions, structure
+from antipasta.runners.python.house_style import cohesion, comments, expressions, structure
 from antipasta.runners.python.house_style.facts import extract_facts
 
 
@@ -42,6 +42,8 @@ class HouseStyleRunner(BaseRunner):
             MetricType.PIPELINE_LINEARITY.value,
             MetricType.MARKER_DENSITY.value,
             MetricType.COMMENT_DENSITY.value,
+            MetricType.LACK_OF_COHESION.value,
+            MetricType.COUPLING_BETWEEN_OBJECTS.value,
         ]
 
     def is_available(self) -> bool:
@@ -69,15 +71,17 @@ class HouseStyleRunner(BaseRunner):
                 file_path=file_path, language=Language.PYTHON.value, metrics=[]
             )
 
+        facts = extract_facts(module)
         rows = [
             *self._function_rows(file_path, module),
+            *self._class_rows(file_path, module, facts),
             *self._file_rows(file_path, content),
         ]
         return FileMetrics(
             file_path=file_path,
             language=Language.PYTHON.value,
             metrics=rows,
-            facts=extract_facts(module),
+            facts=facts,
         )
 
     def _function_rows(self, file_path: Path, module: ast.Module) -> list[MetricResult]:
@@ -89,6 +93,45 @@ class HouseStyleRunner(BaseRunner):
                 is_method = id(node) in method_owners
                 rows.extend(
                     _rows_for_function(file_path, node, is_method, mutable_names)
+                )
+        return rows
+
+    def _class_rows(
+        self, file_path: Path, module: ast.Module, facts: list[FactRow]
+    ) -> list[MetricResult]:
+        """Per-class cohesion and coupling rows (Phase 2)."""
+        imported = cohesion.imported_name_set(module)
+        class_nodes = {
+            node.name: node for node in ast.walk(module) if isinstance(node, ast.ClassDef)
+        }
+        rows: list[MetricResult] = []
+        for fact in facts:
+            if fact.kind != "class":
+                continue
+            payload = fact.payload
+            rows.append(
+                MetricResult(
+                    file_path=file_path,
+                    metric_type=MetricType.LACK_OF_COHESION,
+                    value=float(cohesion.lack_of_cohesion(payload["methods"])),
+                    line_number=payload["lineno"],
+                    function_name=payload["name"],
+                    details={"methods": len(payload["methods"])},
+                )
+            )
+            class_node = class_nodes.get(payload["name"])
+            if class_node is not None:
+                rows.append(
+                    MetricResult(
+                        file_path=file_path,
+                        metric_type=MetricType.COUPLING_BETWEEN_OBJECTS,
+                        value=float(
+                            cohesion.coupling_between_objects(class_node, imported)
+                        ),
+                        line_number=payload["lineno"],
+                        function_name=payload["name"],
+                        details={"approximate": True},
+                    )
                 )
         return rows
 

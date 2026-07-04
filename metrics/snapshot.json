@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T06:57:58+00:00",
+  "generated_at": "2026-07-04T07:03:10+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
-    "total_files": 76,
+    "total_files": 78,
     "files_with_violations": 0,
     "total_violations": 0,
     "violations_by_type": {},
     "files_by_language": {
-      "python": 75,
+      "python": 77,
       "javascript": 1
     },
     "success": true
@@ -52,6 +52,7 @@
       "cognitive_complexity",
       "comment_density",
       "comment_lines",
+      "coupling_between_objects",
       "cyclomatic_complexity",
       "exception_discipline",
       "expression_flatness",
@@ -63,13 +64,15 @@
       "halstead_effort",
       "halstead_time",
       "halstead_volume",
+      "lack_of_cohesion",
       "lines_of_code",
       "logical_lines_of_code",
       "maintainability_index",
       "marker_density",
       "message_chain_depth",
       "pipeline_linearity",
-      "source_lines_of_code"
+      "source_lines_of_code",
+      "weighted_methods_per_class"
     ]
   },
   "files": [
@@ -3475,20 +3478,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 4.428571428571429,
-        "maintainability_index": 48.82171499407932,
+        "maintainability_index": 48.75295018911037,
         "halstead_volume": 565.6486494867532,
         "halstead_difficulty": 9.041666666666666,
         "halstead_effort": 5114.406539109394,
         "halstead_time": 284.13369661718855,
         "halstead_bugs": 0.18854954982891775,
-        "lines_of_code": 453.0,
-        "logical_lines_of_code": 210.0,
-        "source_lines_of_code": 289.0,
+        "lines_of_code": 454.0,
+        "logical_lines_of_code": 211.0,
+        "source_lines_of_code": 290.0,
         "comment_lines": 33.0,
         "blank_lines": 68.0,
         "cognitive_complexity": 12.0,
         "marker_density": 0.0,
-        "comment_density": 7.28476821192053
+        "comment_density": 7.268722466960352
       },
       "violations": [],
       "functions": [
@@ -3550,14 +3553,14 @@
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
-            "function_statements": 3.0,
+            "function_statements": 4.0,
             "expression_flatness": 1.0,
             "pipeline_linearity": 1.0
           }
         },
         {
           "name": "_resolve_jobs",
-          "line": 89,
+          "line": 90,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 38.03910001730775,
@@ -3577,8 +3580,17 @@
           }
         },
         {
+          "name": "MetricAggregator",
+          "line": 117,
+          "metrics": {
+            "weighted_methods_per_class": 49.0,
+            "lack_of_cohesion": 2.0,
+            "coupling_between_objects": 24.0
+          }
+        },
+        {
           "name": "MetricAggregator::__init__",
-          "line": 119,
+          "line": 120,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 12.0,
@@ -3599,7 +3611,7 @@
         },
         {
           "name": "MetricAggregator::analyze_files",
-          "line": 152,
+          "line": 153,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3620,7 +3632,7 @@
         },
         {
           "name": "MetricAggregator::analyze",
-          "line": 160,
+          "line": 161,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 6.339850002884625,
@@ -3641,7 +3653,7 @@
         },
         {
           "name": "MetricAggregator::_derive",
-          "line": 217,
+          "line": 218,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 11.60964047443681,
@@ -3662,7 +3674,7 @@
         },
         {
           "name": "MetricAggregator::_collect_with_cache",
-          "line": 237,
+          "line": 238,
           "metrics": {
             "cyclomatic_complexity": 8.0,
             "halstead_volume": 69.76048999263462,
@@ -3683,7 +3695,7 @@
         },
         {
           "name": "MetricAggregator::_collect_all",
-          "line": 277,
+          "line": 278,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 27.0,
@@ -3704,7 +3716,7 @@
         },
         {
           "name": "MetricAggregator::_finalize_report",
-          "line": 290,
+          "line": 291,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 11.60964047443681,
@@ -3725,7 +3737,7 @@
         },
         {
           "name": "MetricAggregator::_check_violations",
-          "line": 323,
+          "line": 324,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 41.51317942364757,
@@ -3746,7 +3758,7 @@
         },
         {
           "name": "MetricAggregator::_create_default_language_config",
-          "line": 359,
+          "line": 360,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -3767,7 +3779,7 @@
         },
         {
           "name": "MetricAggregator::generate_summary",
-          "line": 422,
+          "line": 423,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 25.26619429851844,
@@ -3911,6 +3923,199 @@
             "halstead_time": 0.3869880158145604,
             "halstead_bugs": 0.004643856189774725,
             "cognitive_complexity": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "path": "core/class_registry.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 5.125,
+        "maintainability_index": 50.335399929930496,
+        "halstead_volume": 466.2278340329935,
+        "halstead_difficulty": 7.285714285714286,
+        "halstead_effort": 3396.8027908118097,
+        "halstead_time": 188.71126615621165,
+        "halstead_bugs": 0.15540927801099783,
+        "lines_of_code": 173.0,
+        "logical_lines_of_code": 109.0,
+        "source_lines_of_code": 136.0,
+        "comment_lines": 5.0,
+        "blank_lines": 22.0,
+        "cognitive_complexity": 13.0,
+        "marker_density": 0.0,
+        "comment_density": 2.8901734104046244
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "derive_class_registry",
+          "line": 26,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 2.0,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 1.0,
+            "halstead_time": 0.05555555555555555,
+            "halstead_bugs": 0.0006666666666666666,
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 0.7272727272727273,
+            "pipeline_linearity": 0.5714285714285714
+          }
+        },
+        {
+          "name": "_build_registry",
+          "line": 42,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 13.0,
+            "expression_flatness": 0.6923076923076923,
+            "pipeline_linearity": 0.42857142857142855
+          }
+        },
+        {
+          "name": "_module_of",
+          "line": 64,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_imported_name_targets",
+          "line": 72,
+          "metrics": {
+            "cyclomatic_complexity": 7.0,
+            "halstead_volume": 28.529325012980813,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 42.793987519471216,
+            "halstead_time": 2.377443751081734,
+            "halstead_bugs": 0.009509775004326938,
+            "cognitive_complexity": 13.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 13.0,
+            "expression_flatness": 0.38461538461538464,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_resolve_base",
+          "line": 88,
+          "metrics": {
+            "cyclomatic_complexity": 7.0,
+            "halstead_volume": 68.0,
+            "halstead_difficulty": 2.5,
+            "halstead_effort": 170.0,
+            "halstead_time": 9.444444444444445,
+            "halstead_bugs": 0.02266666666666667,
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 13.0,
+            "expression_flatness": 0.46153846153846156,
+            "pipeline_linearity": 0.2857142857142857
+          }
+        },
+        {
+          "name": "_depth_of",
+          "line": 109,
+          "metrics": {
+            "cyclomatic_complexity": 9.0,
+            "halstead_volume": 119.20902501875008,
+            "halstead_difficulty": 4.25,
+            "halstead_effort": 506.63835632968784,
+            "halstead_time": 28.146575351649325,
+            "halstead_bugs": 0.039736341672916696,
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 18.0,
+            "expression_flatness": 0.6111111111111112,
+            "pipeline_linearity": 0.25
+          }
+        },
+        {
+          "name": "_count_children",
+          "line": 135,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 57.110323830864054,
+            "halstead_difficulty": 2.7777777777777777,
+            "halstead_effort": 158.6397884190668,
+            "halstead_time": 8.813321578837044,
+            "halstead_bugs": 0.019036774610288017,
+            "cognitive_complexity": 10.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 9.0,
+            "expression_flatness": 0.4444444444444444,
+            "pipeline_linearity": 0.2
+          }
+        },
+        {
+          "name": "_class_report",
+          "line": 147,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 5.0,
+            "boolean_flag_parameters": 1.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.25,
+            "pipeline_linearity": 0.6666666666666666
           }
         }
       ]
@@ -4638,26 +4843,43 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 66.90904066092706,
+        "maintainability_index": 66.38082812563616,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 140.0,
-        "logical_lines_of_code": 100.0,
-        "source_lines_of_code": 85.0,
-        "comment_lines": 3.0,
+        "lines_of_code": 146.0,
+        "logical_lines_of_code": 105.0,
+        "source_lines_of_code": 90.0,
+        "comment_lines": 4.0,
         "blank_lines": 25.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 2.142857142857143
+        "comment_density": 2.73972602739726
       },
       "violations": [],
       "functions": [
         {
+          "name": "MetricType",
+          "line": 15,
+          "metrics": {
+            "lack_of_cohesion": 0.0,
+            "coupling_between_objects": 1.0
+          }
+        },
+        {
+          "name": "MetricResult",
+          "line": 54,
+          "metrics": {
+            "weighted_methods_per_class": 4.0,
+            "lack_of_cohesion": 2.0,
+            "coupling_between_objects": 3.0
+          }
+        },
+        {
           "name": "MetricResult::__post_init__",
-          "line": 58,
+          "line": 64,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -4665,7 +4887,7 @@
         },
         {
           "name": "__post_init__",
-          "line": 58,
+          "line": 64,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -4684,7 +4906,7 @@
         },
         {
           "name": "MetricResult::to_dict",
-          "line": 63,
+          "line": 69,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -4692,7 +4914,7 @@
         },
         {
           "name": "to_dict",
-          "line": 63,
+          "line": 69,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -4711,7 +4933,7 @@
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 73,
+          "line": 79,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -4719,7 +4941,7 @@
         },
         {
           "name": "from_dict",
-          "line": 74,
+          "line": 80,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -4737,8 +4959,17 @@
           }
         },
         {
+          "name": "FactRow",
+          "line": 97,
+          "metrics": {
+            "weighted_methods_per_class": 2.0,
+            "lack_of_cohesion": 2.0,
+            "coupling_between_objects": 2.0
+          }
+        },
+        {
           "name": "FactRow::to_dict",
-          "line": 106,
+          "line": 112,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -4746,15 +4977,24 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 110,
+          "line": 116,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
           }
         },
         {
+          "name": "FileMetrics",
+          "line": 123,
+          "metrics": {
+            "weighted_methods_per_class": 8.0,
+            "lack_of_cohesion": 1.0,
+            "coupling_between_objects": 3.0
+          }
+        },
+        {
           "name": "FileMetrics::__post_init__",
-          "line": 126,
+          "line": 132,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -4762,7 +5002,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 131,
+          "line": 137,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -4783,7 +5023,7 @@
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 138,
+          "line": 144,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -6602,24 +6842,33 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 2.4285714285714284,
-        "maintainability_index": 68.77852880614434,
-        "halstead_volume": 15.509775004326936,
-        "halstead_difficulty": 1.0,
-        "halstead_effort": 15.509775004326936,
-        "halstead_time": 0.861654166907052,
-        "halstead_bugs": 0.005169925001442312,
-        "lines_of_code": 162.0,
-        "logical_lines_of_code": 60.0,
-        "source_lines_of_code": 126.0,
+        "cyclomatic_complexity": 2.875,
+        "maintainability_index": 60.18535402197397,
+        "halstead_volume": 43.01955000865388,
+        "halstead_difficulty": 2.0,
+        "halstead_effort": 86.03910001730776,
+        "halstead_time": 4.779950000961542,
+        "halstead_bugs": 0.014339850002884626,
+        "lines_of_code": 205.0,
+        "logical_lines_of_code": 79.0,
+        "source_lines_of_code": 167.0,
         "comment_lines": 1.0,
-        "blank_lines": 18.0,
+        "blank_lines": 19.0,
         "cognitive_complexity": 10.0,
         "marker_density": 0.0,
-        "comment_density": 0.6172839506172839
+        "comment_density": 0.4878048780487805
       },
       "violations": [],
       "functions": [
+        {
+          "name": "HouseStyleRunner",
+          "line": 28,
+          "metrics": {
+            "weighted_methods_per_class": 16.0,
+            "lack_of_cohesion": 3.0,
+            "coupling_between_objects": 12.0
+          }
+        },
         {
           "name": "HouseStyleRunner::supported_metrics",
           "line": 31,
@@ -6643,7 +6892,7 @@
         },
         {
           "name": "HouseStyleRunner::is_available",
-          "line": 47,
+          "line": 49,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -6664,7 +6913,7 @@
         },
         {
           "name": "HouseStyleRunner::analyze",
-          "line": 51,
+          "line": 53,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 4.754887502163469,
@@ -6678,14 +6927,14 @@
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 1.0,
             "global_state_reach": 0.0,
-            "function_statements": 10.0,
-            "expression_flatness": 0.7,
-            "pipeline_linearity": 0.3333333333333333
+            "function_statements": 11.0,
+            "expression_flatness": 0.8181818181818182,
+            "pipeline_linearity": 0.25
           }
         },
         {
           "name": "HouseStyleRunner::_function_rows",
-          "line": 83,
+          "line": 87,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -6705,8 +6954,29 @@
           }
         },
         {
+          "name": "HouseStyleRunner::_class_rows",
+          "line": 99,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 5.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 13.0,
+            "expression_flatness": 0.46153846153846156,
+            "pipeline_linearity": 0.2857142857142857
+          }
+        },
+        {
           "name": "HouseStyleRunner::_file_rows",
-          "line": 95,
+          "line": 138,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -6727,7 +6997,7 @@
         },
         {
           "name": "_method_owner_ids",
-          "line": 114,
+          "line": 157,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 0.0,
@@ -6748,7 +7018,7 @@
         },
         {
           "name": "_rows_for_function",
-          "line": 124,
+          "line": 167,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -6765,6 +7035,185 @@
             "function_statements": 3.0,
             "expression_flatness": 0.3333333333333333,
             "pipeline_linearity": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "path": "runners/python/house_style/cohesion.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 5.0,
+        "maintainability_index": 67.54555614974163,
+        "halstead_volume": 161.66617507355795,
+        "halstead_difficulty": 3.142857142857143,
+        "halstead_effort": 508.093693088325,
+        "halstead_time": 28.227427393795832,
+        "halstead_bugs": 0.053888725024519316,
+        "lines_of_code": 84.0,
+        "logical_lines_of_code": 58.0,
+        "source_lines_of_code": 50.0,
+        "comment_lines": 0.0,
+        "blank_lines": 19.0,
+        "cognitive_complexity": 7.0,
+        "marker_density": 0.0,
+        "comment_density": 0.0
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "lack_of_cohesion",
+          "line": 22,
+          "metrics": {
+            "cyclomatic_complexity": 7.0,
+            "halstead_volume": 11.60964047443681,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 11.60964047443681,
+            "halstead_time": 0.6449800263576005,
+            "halstead_bugs": 0.0038698801581456034,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 0.6363636363636364,
+            "pipeline_linearity": 0.16666666666666666
+          }
+        },
+        {
+          "name": "find",
+          "line": 30,
+          "metrics": {
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.25,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "union",
+          "line": 36,
+          "metrics": {
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_is_considered",
+          "line": 44,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 38.053747805010275,
+            "halstead_difficulty": 2.0,
+            "halstead_effort": 76.10749561002055,
+            "halstead_time": 4.228194200556697,
+            "halstead_bugs": 0.012684582601670092,
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_connect_shared_fields",
+          "line": 49,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 7.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.16666666666666666,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_connect_local_calls",
+          "line": 59,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.4,
+            "pipeline_linearity": 0.3333333333333333
+          }
+        },
+        {
+          "name": "coupling_between_objects",
+          "line": 67,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "imported_name_set",
+          "line": 76,
+          "metrics": {
+            "cyclomatic_complexity": 8.0,
+            "halstead_volume": 12.0,
+            "halstead_difficulty": 0.6666666666666666,
+            "halstead_effort": 8.0,
+            "halstead_time": 0.4444444444444444,
+            "halstead_bugs": 0.004,
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.625,
+            "pipeline_linearity": 0.0
           }
         }
       ]
@@ -7581,22 +8030,33 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 2.9,
-        "maintainability_index": 58.85984359717627,
-        "halstead_volume": 77.66179398375645,
-        "halstead_difficulty": 2.5,
-        "halstead_effort": 194.15448495939114,
-        "halstead_time": 10.78636027552173,
-        "halstead_bugs": 0.02588726466125215,
-        "lines_of_code": 241.0,
-        "logical_lines_of_code": 107.0,
-        "source_lines_of_code": 170.0,
-        "comment_lines": 9.0,
-        "blank_lines": 38.0,
-        "cognitive_complexity": 5.0
+        "cyclomatic_complexity": 3.090909090909091,
+        "maintainability_index": 56.35189397745667,
+        "halstead_volume": 130.02797331369229,
+        "halstead_difficulty": 3.5,
+        "halstead_effort": 455.097906597923,
+        "halstead_time": 25.283217033217944,
+        "halstead_bugs": 0.04334265777123076,
+        "lines_of_code": 273.0,
+        "logical_lines_of_code": 123.0,
+        "source_lines_of_code": 193.0,
+        "comment_lines": 12.0,
+        "blank_lines": 40.0,
+        "cognitive_complexity": 5.0,
+        "marker_density": 0.0,
+        "comment_density": 4.395604395604396
       },
       "violations": [],
       "functions": [
+        {
+          "name": "RadonRunner",
+          "line": 42,
+          "metrics": {
+            "weighted_methods_per_class": 34.0,
+            "lack_of_cohesion": 2.0,
+            "coupling_between_objects": 15.0
+          }
+        },
         {
           "name": "RadonRunner::__init__",
           "line": 45,
@@ -7607,7 +8067,15 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         },
         {
@@ -7620,7 +8088,15 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
           }
         },
         {
@@ -7633,7 +8109,15 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 1.0
           }
         },
         {
@@ -7646,7 +8130,15 @@
             "halstead_effort": 11.60964047443681,
             "halstead_time": 0.6449800263576005,
             "halstead_bugs": 0.0038698801581456034,
-            "cognitive_complexity": 4.0
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 15.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
           }
         },
         {
@@ -7659,12 +8151,41 @@
             "halstead_effort": 11.60964047443681,
             "halstead_time": 0.6449800263576005,
             "halstead_bugs": 0.0038698801581456034,
-            "cognitive_complexity": 5.0
+            "cognitive_complexity": 5.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 17.0,
+            "expression_flatness": 0.7647058823529411,
+            "pipeline_linearity": 0.6666666666666666
+          }
+        },
+        {
+          "name": "RadonRunner::_weighted_methods_rows",
+          "line": 161,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 27.0,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 27.0,
+            "halstead_time": 1.5,
+            "halstead_bugs": 0.009,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 9.0,
+            "expression_flatness": 0.3333333333333333,
+            "pipeline_linearity": 0.2
           }
         },
         {
           "name": "RadonRunner::_build_cc_result",
-          "line": 156,
+          "line": 188,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -7672,12 +8193,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "RadonRunner::_get_maintainability_index",
-          "line": 172,
+          "line": 204,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -7685,12 +8214,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "RadonRunner::_get_halstead_metrics",
-          "line": 188,
+          "line": 220,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 0.0,
@@ -7698,12 +8235,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 9.0,
+            "expression_flatness": 0.8888888888888888,
+            "pipeline_linearity": 0.5
           }
         },
         {
           "name": "RadonRunner::_build_halstead_results",
-          "line": 207,
+          "line": 239,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7711,12 +8256,20 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "RadonRunner::_get_raw_metrics",
-          "line": 225,
+          "line": 257,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 0.0,
@@ -7724,7 +8277,15 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.8333333333333334,
+            "pipeline_linearity": 1.0
           }
         }
       ]
@@ -7981,7 +8542,7 @@
       "metrics": [
         {
           "type": "directory_children",
-          "value": 14.0,
+          "value": 15.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -8059,7 +8620,7 @@
       "metrics": [
         {
           "type": "directory_children",
-          "value": 4.0,
+          "value": 5.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -8079,6 +8640,284 @@
         }
       ],
       "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.aggregator::MetricAggregator",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 1.0,
+          "details": null,
+          "line_number": 117,
+          "function_name": "MetricAggregator"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 117,
+          "function_name": "MetricAggregator"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.config::AntipastaConfig",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 122,
+          "function_name": "AntipastaConfig"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 122,
+          "function_name": "AntipastaConfig"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.config::ComparisonOperator",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 36,
+          "function_name": "ComparisonOperator"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 36,
+          "function_name": "ComparisonOperator"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.config::DefaultsConfig",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 81,
+          "function_name": "DefaultsConfig"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 81,
+          "function_name": "DefaultsConfig"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.config::LanguageConfig",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 64,
+          "function_name": "LanguageConfig"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 64,
+          "function_name": "LanguageConfig"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.config::MetricConfig",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 47,
+          "function_name": "MetricConfig"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 47,
+          "function_name": "MetricConfig"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.config::TreeShapeConfig",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 96,
+          "function_name": "TreeShapeConfig"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 96,
+          "function_name": "TreeShapeConfig"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.metrics::FactRow",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 1.0,
+          "details": null,
+          "line_number": 97,
+          "function_name": "FactRow"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 97,
+          "function_name": "FactRow"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.metrics::FileMetrics",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 1.0,
+          "details": null,
+          "line_number": 123,
+          "function_name": "FileMetrics"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 123,
+          "function_name": "FileMetrics"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.metrics::MetricResult",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 1.0,
+          "details": null,
+          "line_number": 54,
+          "function_name": "MetricResult"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 54,
+          "function_name": "MetricResult"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.core.metrics::MetricType",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 15,
+          "function_name": "MetricType"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 15,
+          "function_name": "MetricType"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.runners.python.house_style.__init__::HouseStyleRunner",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 28,
+          "function_name": "HouseStyleRunner"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 28,
+          "function_name": "HouseStyleRunner"
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src.antipasta.runners.python.radon::RadonRunner",
+      "metrics": [
+        {
+          "type": "depth_of_inheritance_tree",
+          "value": 2.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": 42,
+          "function_name": "RadonRunner"
+        },
+        {
+          "type": "number_of_children",
+          "value": 0.0,
+          "details": null,
+          "line_number": 42,
+          "function_name": "RadonRunner"
+        }
+      ],
+      "violations": []
     }
   ],
   "treemap": [
@@ -8087,8 +8926,8 @@
       "parent": null,
       "label": "antipasta",
       "aggregate": {
-        "files": 76,
-        "value": 5663.0,
+        "files": 78,
+        "value": 5919.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -8120,7 +8959,7 @@
             "path": "report/assets/report.js"
           },
           "logical_lines_of_code": {
-            "value": 210.0,
+            "value": 211.0,
             "path": "core/aggregator.py"
           },
           "source_lines_of_code": {
@@ -8148,7 +8987,7 @@
             "path": "cli/report/command.py"
           },
           "comment_density": {
-            "value": 7.28476821192053,
+            "value": 7.268722466960352,
             "path": "core/aggregator.py"
           }
         }
@@ -9102,8 +9941,8 @@
       "parent": ".",
       "label": "core",
       "aggregate": {
-        "files": 15,
-        "value": 1659.0,
+        "files": 16,
+        "value": 1801.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -9131,15 +9970,15 @@
             "path": "core/snapshot_diff.py"
           },
           "lines_of_code": {
-            "value": 453.0,
+            "value": 454.0,
             "path": "core/aggregator.py"
           },
           "logical_lines_of_code": {
-            "value": 210.0,
+            "value": 211.0,
             "path": "core/aggregator.py"
           },
           "source_lines_of_code": {
-            "value": 289.0,
+            "value": 290.0,
             "path": "core/aggregator.py"
           },
           "comment_lines": {
@@ -9151,19 +9990,19 @@
             "path": "core/aggregator.py"
           },
           "cyclomatic_complexity": {
-            "value": 5.0,
-            "path": "core/treemap.py"
+            "value": 5.125,
+            "path": "core/class_registry.py"
           },
           "cognitive_complexity": {
             "value": 13.0,
-            "path": "core/treemap.py"
+            "path": "core/class_registry.py"
           },
           "marker_density": {
             "value": 0.0,
             "path": "core/aggregator.py"
           },
           "comment_density": {
-            "value": 7.28476821192053,
+            "value": 7.268722466960352,
             "path": "core/aggregator.py"
           }
         }
@@ -9180,7 +10019,7 @@
       "id": "core/aggregator.py",
       "parent": "core",
       "label": "aggregator.py",
-      "value": 289.0,
+      "value": 290.0,
       "file_index": 42
     },
     {
@@ -9191,88 +10030,95 @@
       "file_index": 43
     },
     {
+      "id": "core/class_registry.py",
+      "parent": "core",
+      "label": "class_registry.py",
+      "value": 136.0,
+      "file_index": 44
+    },
+    {
       "id": "core/config.py",
       "parent": "core",
       "label": "config.py",
       "value": 167.0,
-      "file_index": 44
+      "file_index": 45
     },
     {
       "id": "core/config_override.py",
       "parent": "core",
       "label": "config_override.py",
       "value": 158.0,
-      "file_index": 45
+      "file_index": 46
     },
     {
       "id": "core/derivation.py",
       "parent": "core",
       "label": "derivation.py",
       "value": 23.0,
-      "file_index": 46
+      "file_index": 47
     },
     {
       "id": "core/detector.py",
       "parent": "core",
       "label": "detector.py",
       "value": 81.0,
-      "file_index": 47
+      "file_index": 48
     },
     {
       "id": "core/metric_models.py",
       "parent": "core",
       "label": "metric_models.py",
       "value": 41.0,
-      "file_index": 48
+      "file_index": 49
     },
     {
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 85.0,
-      "file_index": 49
+      "value": 90.0,
+      "file_index": 50
     },
     {
       "id": "core/snapshot.py",
       "parent": "core",
       "label": "snapshot.py",
       "value": 194.0,
-      "file_index": 50
+      "file_index": 51
     },
     {
       "id": "core/snapshot_diff.py",
       "parent": "core",
       "label": "snapshot_diff.py",
       "value": 185.0,
-      "file_index": 51
+      "file_index": 52
     },
     {
       "id": "core/snapshot_diff_types.py",
       "parent": "core",
       "label": "snapshot_diff_types.py",
       "value": 69.0,
-      "file_index": 52
+      "file_index": 53
     },
     {
       "id": "core/tree_shape.py",
       "parent": "core",
       "label": "tree_shape.py",
       "value": 79.0,
-      "file_index": 53
+      "file_index": 54
     },
     {
       "id": "core/treemap.py",
       "parent": "core",
       "label": "treemap.py",
       "value": 67.0,
-      "file_index": 54
+      "file_index": 55
     },
     {
       "id": "core/violations.py",
       "parent": "core",
       "label": "violations.py",
       "value": 127.0,
-      "file_index": 55
+      "file_index": 56
     },
     {
       "id": "hooks",
@@ -9335,7 +10181,7 @@
       "parent": "hooks",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 56
+      "file_index": 57
     },
     {
       "id": "report",
@@ -9406,7 +10252,7 @@
       "parent": "report",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 57
+      "file_index": 58
     },
     {
       "id": "report/assets",
@@ -9437,29 +10283,29 @@
       "parent": "report/assets",
       "label": "report.js",
       "value": 606.0,
-      "file_index": 58
+      "file_index": 59
     },
     {
       "id": "report/baseline.py",
       "parent": "report",
       "label": "baseline.py",
       "value": 35.0,
-      "file_index": 59
+      "file_index": 60
     },
     {
       "id": "report/html.py",
       "parent": "report",
       "label": "html.py",
       "value": 34.0,
-      "file_index": 60
+      "file_index": 61
     },
     {
       "id": "runners",
       "parent": ".",
       "label": "runners",
       "aggregate": {
-        "files": 13,
-        "value": 824.0,
+        "files": 14,
+        "value": 938.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -9487,23 +10333,23 @@
             "path": "runners/python/house_style/structure.py"
           },
           "lines_of_code": {
-            "value": 241.0,
+            "value": 273.0,
             "path": "runners/python/radon.py"
           },
           "logical_lines_of_code": {
-            "value": 107.0,
+            "value": 123.0,
             "path": "runners/python/radon.py"
           },
           "source_lines_of_code": {
-            "value": 170.0,
+            "value": 193.0,
             "path": "runners/python/radon.py"
           },
           "comment_lines": {
-            "value": 10.0,
-            "path": "runners/python/complexipy_runner.py"
+            "value": 12.0,
+            "path": "runners/python/radon.py"
           },
           "blank_lines": {
-            "value": 38.0,
+            "value": 40.0,
             "path": "runners/python/radon.py"
           },
           "cyclomatic_complexity": {
@@ -9519,8 +10365,8 @@
             "path": "runners/python/house_style/__init__.py"
           },
           "comment_density": {
-            "value": 2.5316455696202533,
-            "path": "runners/python/house_style/expressions.py"
+            "value": 4.395604395604396,
+            "path": "runners/python/radon.py"
           }
         }
       }
@@ -9530,14 +10376,14 @@
       "parent": "runners",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 61
+      "file_index": 62
     },
     {
       "id": "runners/base.py",
       "parent": "runners",
       "label": "base.py",
       "value": 12.0,
-      "file_index": 62
+      "file_index": 63
     },
     {
       "id": "runners/javascript",
@@ -9608,22 +10454,22 @@
       "parent": "runners/javascript",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 63
+      "file_index": 64
     },
     {
       "id": "runners/javascript/lizard_runner.py",
       "parent": "runners/javascript",
       "label": "lizard_runner.py",
       "value": 112.0,
-      "file_index": 64
+      "file_index": 65
     },
     {
       "id": "runners/python",
       "parent": "runners",
       "label": "python",
       "aggregate": {
-        "files": 8,
-        "value": 696.0,
+        "files": 9,
+        "value": 810.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -9651,23 +10497,23 @@
             "path": "runners/python/house_style/structure.py"
           },
           "lines_of_code": {
-            "value": 241.0,
+            "value": 273.0,
             "path": "runners/python/radon.py"
           },
           "logical_lines_of_code": {
-            "value": 107.0,
+            "value": 123.0,
             "path": "runners/python/radon.py"
           },
           "source_lines_of_code": {
-            "value": 170.0,
+            "value": 193.0,
             "path": "runners/python/radon.py"
           },
           "comment_lines": {
-            "value": 10.0,
-            "path": "runners/python/complexipy_runner.py"
+            "value": 12.0,
+            "path": "runners/python/radon.py"
           },
           "blank_lines": {
-            "value": 38.0,
+            "value": 40.0,
             "path": "runners/python/radon.py"
           },
           "cyclomatic_complexity": {
@@ -9683,8 +10529,8 @@
             "path": "runners/python/house_style/__init__.py"
           },
           "comment_density": {
-            "value": 2.5316455696202533,
-            "path": "runners/python/house_style/expressions.py"
+            "value": 4.395604395604396,
+            "path": "runners/python/radon.py"
           }
         }
       }
@@ -9694,22 +10540,22 @@
       "parent": "runners/python",
       "label": "__init__.py",
       "value": 3.0,
-      "file_index": 65
+      "file_index": 66
     },
     {
       "id": "runners/python/complexipy_runner.py",
       "parent": "runners/python",
       "label": "complexipy_runner.py",
       "value": 70.0,
-      "file_index": 66
+      "file_index": 67
     },
     {
       "id": "runners/python/house_style",
       "parent": "runners/python",
       "label": "house_style",
       "aggregate": {
-        "files": 5,
-        "value": 453.0,
+        "files": 6,
+        "value": 544.0,
         "violations": 0,
         "metrics_max": {
           "cyclomatic_complexity": {
@@ -9717,8 +10563,8 @@
             "path": "runners/python/house_style/expressions.py"
           },
           "maintainability_index": {
-            "value": 68.77852880614434,
-            "path": "runners/python/house_style/__init__.py"
+            "value": 67.54555614974163,
+            "path": "runners/python/house_style/cohesion.py"
           },
           "halstead_volume": {
             "value": 502.091513573993,
@@ -9741,7 +10587,7 @@
             "path": "runners/python/house_style/structure.py"
           },
           "lines_of_code": {
-            "value": 162.0,
+            "value": 205.0,
             "path": "runners/python/house_style/__init__.py"
           },
           "logical_lines_of_code": {
@@ -9749,7 +10595,7 @@
             "path": "runners/python/house_style/expressions.py"
           },
           "source_lines_of_code": {
-            "value": 126.0,
+            "value": 167.0,
             "path": "runners/python/house_style/__init__.py"
           },
           "comment_lines": {
@@ -9779,43 +10625,50 @@
       "id": "runners/python/house_style/__init__.py",
       "parent": "runners/python/house_style",
       "label": "__init__.py",
-      "value": 126.0,
-      "file_index": 67
+      "value": 167.0,
+      "file_index": 68
+    },
+    {
+      "id": "runners/python/house_style/cohesion.py",
+      "parent": "runners/python/house_style",
+      "label": "cohesion.py",
+      "value": 50.0,
+      "file_index": 69
     },
     {
       "id": "runners/python/house_style/comments.py",
       "parent": "runners/python/house_style",
       "label": "comments.py",
       "value": 29.0,
-      "file_index": 68
+      "file_index": 70
     },
     {
       "id": "runners/python/house_style/expressions.py",
       "parent": "runners/python/house_style",
       "label": "expressions.py",
       "value": 103.0,
-      "file_index": 69
+      "file_index": 71
     },
     {
       "id": "runners/python/house_style/facts.py",
       "parent": "runners/python/house_style",
       "label": "facts.py",
       "value": 103.0,
-      "file_index": 70
+      "file_index": 72
     },
     {
       "id": "runners/python/house_style/structure.py",
       "parent": "runners/python/house_style",
       "label": "structure.py",
       "value": 92.0,
-      "file_index": 71
+      "file_index": 73
     },
     {
       "id": "runners/python/radon.py",
       "parent": "runners/python",
       "label": "radon.py",
-      "value": 170.0,
-      "file_index": 72
+      "value": 193.0,
+      "file_index": 74
     },
     {
       "id": "runners/typescript",
@@ -9878,7 +10731,7 @@
       "parent": "runners/typescript",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 73
+      "file_index": 75
     },
     {
       "id": "utils",
@@ -9949,14 +10802,14 @@
       "parent": "utils",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 74
+      "file_index": 76
     },
     {
       "id": "utils/schema_generator.py",
       "parent": "utils",
       "label": "schema_generator.py",
       "value": 19.0,
-      "file_index": 75
+      "file_index": 77
     }
   ]
 }

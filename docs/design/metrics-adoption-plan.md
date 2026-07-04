@@ -13,6 +13,31 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 2 — LANDED 2026-07-04** (branch `feat/metrics-phase-2`). Class
+  scope complete: lack of cohesion (connected-components formulation; edges
+  = shared fields ∪ local calls; dunders excluded except ``__init__``) and
+  coupling-between-objects (labeled approximation: distinct imported names
+  referenced) computed in the house-style walk from the Phase 1 class facts;
+  weighted-methods-per-class emitted by the radon runner (its per-method
+  rows already carry class names — one aggregation, no second parse);
+  depth-of-inheritance + number-of-children via a new cross-file class
+  registry deriver (same-module + import-fact resolution; external bases
+  contribute one level and are labeled approximate; cycle-safe). All
+  informational-first. QA: 413 tests green (12 new: cohesive/God-class
+  twins, call-edge connectivity, dunder policy, coupling counting, weighted
+  sums with the file-average protected by a regression test, same-module and
+  cross-module inheritance chains, external-base flagging, inheritance-cycle
+  survival); ruff/mypy clean; dogfood green.
+  **Reckoning observations:** five classes show cohesion components > 1 —
+  HouseStyleRunner at 3 (it aggregates three row families; a fair candidate
+  for a later split), and MetricResult/FactRow at 2, which is the known
+  LCOM caveat for data carriers (serialization pairs share no fields with
+  accessors) — evidence for validating the Single-Responsibility composite
+  against real God-classes before trusting it, exactly as Round 1 warned.
+  Zero classes deeper than inheritance depth 2: the codebase is flat, as the
+  house style wants. Deviation: the Single-Responsibility index rider
+  deferred to Phase 4 with the composite work (needs the validation pass).
+
 - **Phase 1 — LANDED 2026-07-04** (branch `feat/metrics-phase-1`). Ten
   house-style metrics live (chain depth, arity, boolean flags, exception
   discipline, global-state reach, statement count, expression flatness,

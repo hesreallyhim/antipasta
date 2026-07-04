@@ -40,6 +40,12 @@ class MetricType(StrEnum):
     FUNCTION_STATEMENTS = "function_statements"
     EXPRESSION_FLATNESS = "expression_flatness"
     PIPELINE_LINEARITY = "pipeline_linearity"
+    # Class-scope metrics (adoption plan, Phase 2). Informational-first.
+    LACK_OF_COHESION = "lack_of_cohesion"
+    WEIGHTED_METHODS_PER_CLASS = "weighted_methods_per_class"
+    COUPLING_BETWEEN_OBJECTS = "coupling_between_objects"
+    DEPTH_OF_INHERITANCE_TREE = "depth_of_inheritance_tree"
+    NUMBER_OF_CHILDREN = "number_of_children"
     # Project-scope metrics (derivation stage).
     DIRECTORY_CHILDREN = "directory_children"
 
