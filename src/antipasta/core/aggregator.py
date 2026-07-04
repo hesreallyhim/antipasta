@@ -1,19 +1,89 @@
-"""Aggregator for collecting and processing metrics across files."""
+"""Aggregator for collecting and processing metrics across files.
+
+Metric collection is a pure function of file content, so it fans out across a
+process pool for large file sets (Python 3.11: processes, not threads — the
+parsers are CPU-bound and hold the GIL). Violation checking is cheap and
+config-dependent, so it always runs in the parent after collection.
+"""
 
 from __future__ import annotations
 
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
+import os
 from pathlib import Path
 from typing import Any
 
 from antipasta.core.config import AntipastaConfig, ComparisonOperator, LanguageConfig, MetricConfig
 from antipasta.core.detector import Language, LanguageDetector
-from antipasta.core.metrics import FileMetrics, MetricType
+from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.core.violations import FileReport, Violation, check_metric_violation
 from antipasta.runners.base import BaseRunner
 from antipasta.runners.javascript.lizard_runner import LizardRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 from antipasta.runners.python.radon import RadonRunner
+
+# Below this many files a process pool costs more in spawn overhead (~0.5s on
+# macOS spawn semantics) than it saves; stay sequential.
+PARALLEL_THRESHOLD = 32
+
+
+def _build_runners() -> dict[Language, list[BaseRunner]]:
+    """Construct the language → runners table (JS and TS share one lizard
+    instance; its availability check is cached)."""
+    lizard_runner = LizardRunner()
+    return {
+        Language.PYTHON: [RadonRunner(), ComplexipyRunner()],
+        Language.JAVASCRIPT: [lizard_runner],
+        Language.TYPESCRIPT: [lizard_runner],
+    }
+
+
+# Per-process runner table for pool workers, built lazily after spawn (runner
+# construction and availability checks then happen once per worker, not once
+# per file).
+_worker_runners: dict[Language, list[BaseRunner]] | None = None
+
+
+def _collect_file_metrics(task: tuple[str, str]) -> tuple[list[MetricResult], list[str]]:
+    """Collect raw metrics for one file — worker-safe.
+
+    Takes and returns only picklable data, needs no config, and touches no
+    aggregator state; this is the unit of work shipped to pool workers (and
+    the same code path the sequential mode runs in-process).
+    """
+    global _worker_runners
+    if _worker_runners is None:
+        _worker_runners = _build_runners()
+
+    path_string, language_value = task
+    file_path = Path(path_string)
+    language = Language(language_value)
+
+    all_metrics: list[MetricResult] = []
+    errors: list[str] = []
+    for runner in _worker_runners.get(language, []):
+        if runner.is_available():
+            file_metrics = runner.analyze(file_path)
+            if file_metrics.error:
+                errors.append(file_metrics.error)
+            else:
+                all_metrics.extend(file_metrics.metrics)
+    return all_metrics, errors
+
+
+def _resolve_jobs(requested: int | None, task_count: int) -> int:
+    """Resolve the worker count: explicit arg > ANTIPASTA_JOBS env > auto."""
+    if requested is None:
+        env_value = os.environ.get("ANTIPASTA_JOBS", "").strip()
+        if env_value.isdigit():
+            requested = int(env_value)
+    if requested is None:
+        if task_count < PARALLEL_THRESHOLD:
+            return 1
+        requested = os.cpu_count() or 1
+    return max(1, min(requested, task_count))
+
 
 # Per-function Halstead rows are informational: they feed `antipasta report`.
 # Thresholds keep applying to the file-level Halstead totals only, exactly as
@@ -47,88 +117,76 @@ class MetricAggregator:
             if gitignore_path.exists():
                 self.detector.add_gitignore(gitignore_path)
 
-        # Initialize runners for each language (JS and TS share one lizard
-        # instance; its availability check is cached).
-        lizard_runner = LizardRunner()
-        self.runners: dict[Language, list[BaseRunner]] = {
-            Language.PYTHON: [RadonRunner(), ComplexipyRunner()],
-            Language.JAVASCRIPT: [lizard_runner],
-            Language.TYPESCRIPT: [lizard_runner],
-        }
+        # Runner table (kept as an attribute: tests and callers introspect it;
+        # pool workers build their own per-process copy via _build_runners).
+        self.runners: dict[Language, list[BaseRunner]] = _build_runners()
 
-    def analyze_files(self, file_paths: list[Path]) -> list[FileReport]:
+    def analyze_files(self, file_paths: list[Path], jobs: int | None = None) -> list[FileReport]:
         """Analyze multiple files and generate reports.
 
         Args:
             file_paths: List of files to analyze
+            jobs: Worker process count (None = auto: sequential for small
+                sets, one worker per CPU beyond PARALLEL_THRESHOLD files;
+                overridable via the ANTIPASTA_JOBS environment variable)
 
         Returns:
             List of file reports with metrics and violations
         """
-        reports = []
-
-        # Group files by language
+        # Group files by language and resolve each language's config once
         files_by_language = self.detector.group_by_language(file_paths)
 
+        work: list[tuple[Path, Language, LanguageConfig]] = []
         for language, files in files_by_language.items():
-            # Get the runners for this language
-            runners = self.runners.get(language, [])
-            if not runners:
+            if not self.runners.get(language, []):
                 # Skip unsupported languages
                 continue
 
-            # Get language configuration
             lang_config = self.config.get_language_config(language.value)
             if not lang_config:
                 # Use defaults if no specific config
                 lang_config = self._create_default_language_config(language)
 
-            # Analyze each file
             for file_path in files:
-                report = self._analyze_file(file_path, language, runners, lang_config.metrics)
-                reports.append(report)
+                work.append((file_path, language, lang_config))
 
-        return reports
+        # Collect metrics (the expensive, config-free part — parallelizable),
+        # then derive violations in the parent (cheap, config-dependent).
+        collected = self._collect_all([(str(p), lang.value) for p, lang, _ in work], jobs)
 
-    def _analyze_file(
+        paired = zip(work, collected, strict=True)
+        return [
+            self._finalize_report(file_path, language, metrics, errors, lang_config.metrics)
+            for (file_path, language, lang_config), (metrics, errors) in paired
+        ]
+
+    def _collect_all(
+        self, tasks: list[tuple[str, str]], jobs: int | None
+    ) -> list[tuple[list[MetricResult], list[str]]]:
+        """Run metric collection for every task, in-process or via a pool."""
+        worker_count = _resolve_jobs(jobs, len(tasks))
+        if worker_count <= 1:
+            return [_collect_file_metrics(task) for task in tasks]
+
+        chunksize = max(1, len(tasks) // (worker_count * 4))
+        with ProcessPoolExecutor(max_workers=worker_count) as pool:
+            # map preserves input order, keeping report order deterministic.
+            return list(pool.map(_collect_file_metrics, tasks, chunksize=chunksize))
+
+    def _finalize_report(
         self,
         file_path: Path,
         language: Language,
-        runners: list[BaseRunner],
+        all_metrics: list[MetricResult],
+        errors: list[str],
         metric_configs: list[MetricConfig],
     ) -> FileReport:
-        """Analyze a single file with multiple runners.
-
-        Args:
-            file_path: Path to the file
-            language: Detected language
-            runners: List of runners to use for analysis
-            metric_configs: Metric configurations to check
-
-        Returns:
-            FileReport with metrics and violations
-        """
-        # Collect metrics from all available runners
-        all_metrics = []
-        errors = []
-
-        for runner in runners:
-            if runner.is_available():
-                # Run the analysis
-                file_metrics = runner.analyze(file_path)
-
-                if file_metrics.error:
-                    errors.append(file_metrics.error)
-                else:
-                    all_metrics.extend(file_metrics.metrics)
-
-        # Combine errors if any
+        """Combine collected metrics with config-derived violations."""
+        # Only report errors if no metrics were collected
         error = None
         if errors and not all_metrics:
-            # Only report errors if no metrics were collected
             error = "; ".join(errors)
 
-        # Check for violations
         violations = []
         if all_metrics:
             # Create a temporary FileMetrics object for violation checking
