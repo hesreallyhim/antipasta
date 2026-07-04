@@ -114,6 +114,11 @@ contradictions ARE checkable and worth adopting. Full semantic verification is
 model-assisted territory — a possible future opt-in mode, never the static
 core, and never silently blended into this score.
 
+> **Addendum (2026-07-04):** that opt-in mode now has a design — the blind
+> reading test (a model summarizes the function with all helpers hidden; an
+> informed reading with callees visible is the ground truth; a judge compares).
+> See `docs/design/llm-assisted-evaluation.md`.
+
 ### 5. Step-down ordering (per module)
 
 Already adopted in the review's Round 2: the fraction of intra-module calls

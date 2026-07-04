@@ -107,6 +107,14 @@ only changed files' fingerprints.
 Last, behind `--vcs`, cached per commit range: code churn (× complexity =
 the hotspot map, pairs with the treemap) and change coupling.
 
+## Independent track C — LLM-assisted evaluation (M, opt-in, advisory)
+
+The blind reading test (`docs/design/llm-assisted-evaluation.md`): a model
+summarizes a function with its helpers hidden; an informed reading is the
+ground truth; a judge compares. Needs Phase 0 only; benefits from Phase 4's
+narrator classification for scoping. Tier-1 classifier can ship as an
+experiment alongside Phase 1.
+
 ## Per-phase closing checklist
 
 - `pytest` green · `ruff` · `mypy` · **dogfood reckoning** (antipasta passes
