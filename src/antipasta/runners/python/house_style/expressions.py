@@ -129,6 +129,11 @@ def expression_flatness(function: ast.FunctionDef | ast.AsyncFunctionDef) -> flo
     return flat / len(statements)
 
 
+def statement_operation_weight(statement: ast.stmt) -> int:
+    """Public alias: the fixed operation weight of one statement."""
+    return _operation_weight(statement)
+
+
 def _operation_weight(statement: ast.stmt) -> int:
     weight = 0
     for node in _own_expression_nodes(statement):
@@ -137,6 +142,77 @@ def _operation_weight(statement: ast.stmt) -> int:
         elif isinstance(node, _OPERATION_NODES):
             weight += 2
     return weight
+
+
+_NESTING_STATEMENTS = (
+    ast.For,
+    ast.AsyncFor,
+    ast.While,
+    ast.If,
+    ast.With,
+    ast.AsyncWith,
+    ast.Try,
+    ast.Match,
+)
+
+
+def max_nesting(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Deepest control-flow nesting within the function's own statements.
+
+    Nested function/class scopes are excluded (they carry their own rows);
+    the computer-class leaf budget caps this at 1 in the extreme profile.
+    """
+
+    def depth_of(body: list[ast.stmt], depth: int) -> int:
+        deepest = depth
+        for statement in body:
+            if isinstance(statement, _NESTED_SCOPES):
+                continue
+            child_depth = depth + (1 if isinstance(statement, _NESTING_STATEMENTS) else 0)
+            for inner in _nested_bodies(statement):
+                deepest = max(deepest, depth_of(inner, child_depth))
+        return deepest
+
+    return depth_of(function.body, 0)
+
+
+def call_names(function: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
+    """Names this function calls: plain calls plus self-method calls.
+
+    Self-method calls contribute the bare method name — intra-class steps
+    are narrative steps, and method names live in the project symbol table
+    via the callable facts.
+    """
+    names: set[str] = set()
+    for statement in own_statements(function):
+        for node in _own_expression_nodes(statement):
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name):
+                    names.add(node.func.id)
+                elif (
+                    isinstance(node.func, ast.Attribute)
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id in ("self", "cls")
+                ):
+                    names.add(node.func.attr)
+    return sorted(names)
+
+
+def total_computation_weight(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Sum of RAW computation over the function's own statements.
+
+    Calls are excluded on purpose: a call is a narrative step, not
+    computation — this feeds the narrator/computer/MIXED classification,
+    where only arithmetic/comparison/subscript/comprehension forms count as
+    operating at the lower altitude. (The flatness metric, by contrast,
+    weighs calls too: one idea per line is a different question.)
+    """
+    total = 0
+    for statement in own_statements(function):
+        for node in _own_expression_nodes(statement):
+            if isinstance(node, _OPERATION_NODES):
+                total += 2
+    return total
 
 
 def pipeline_linearity(function: ast.FunctionDef | ast.AsyncFunctionDef) -> float:

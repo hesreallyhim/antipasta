@@ -13,6 +13,31 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 4, part 2 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  the Narrative Index core. Callable facts gained the narrative ingredients
+  (call names incl. self-method calls, RAW computation weight — calls are
+  steps, never computation; a semantics bug caught by the prose fixture —
+  statement count, nesting, return info). New deriver classifies every
+  function narrator/computer/MIXED/trivial against the whole-program symbol
+  table (classes count: constructors are named steps) with ambient-
+  vocabulary exclusion (called by ≥20% of functions and ≥5 callers), applies
+  the altitude budgets, and computes per-module step-down ordering. Reports
+  are compact per-module counts with offender names in details. Gating
+  opt-in via a `narrative` config block. **The profile dial got its first
+  real consumer**: mixing tolerance (extreme 0 / standard 4 / relaxed 8, or
+  explicit) decides how much raw computation a narrator may carry —
+  derivation-side, so the cache is untouched by profile changes.
+  QA: 454 tests green (16 new); all gates green.
+  **Reckoning (the most instructive yet):** at extreme, 148 functions across
+  47 antipasta modules are mixed-altitude — including this session's own
+  reviewed code — confirming extreme is aspirational; at standard the count
+  is 90. One over-budget narrator (`check_metric_violation`), 37 over-budget
+  computers, 14 modules with step-down under 0.5 (the cli display modules
+  are written bottom-up). These are the tool's richest observations so far
+  and exactly the remediation backlog the golden-set experiment wants.
+  **Remaining for Phase 4:** layering half, lexicon/name clarity +
+  linguistic antipatterns, Single-Responsibility composite validation.
+
 - **Phase 4, part 1 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
   the Main-Sequence composites. Class facts now carry raw decorator and
   metaclass-keyword markers (judgment-free; classification stays

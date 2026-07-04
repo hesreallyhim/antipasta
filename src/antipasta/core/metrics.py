@@ -60,6 +60,12 @@ class MetricType(StrEnum):
     ABSTRACTNESS = "abstractness"
     DISTANCE_FROM_MAIN_SEQUENCE = "distance_from_main_sequence"
     DEPENDENCY_INVERSION = "dependency_inversion"
+    # Narrative Index (adoption plan, Phase 4). Per-module counts;
+    # informational-first.
+    NARRATIVE_MIXED_FUNCTIONS = "narrative_mixed_functions"
+    NARRATOR_BUDGET_EXCEEDED = "narrator_budget_exceeded"
+    COMPUTER_BUDGET_EXCEEDED = "computer_budget_exceeded"
+    STEP_DOWN_ORDERING = "step_down_ordering"
 
 
 @dataclass

@@ -14,6 +14,12 @@ import ast
 from typing import Any, TypeGuard
 
 from antipasta.core.metrics import FactRow
+from antipasta.runners.python.house_style.expressions import (
+    call_names,
+    max_nesting,
+    own_statements,
+    total_computation_weight,
+)
 
 
 def extract_facts(module: ast.Module) -> list[FactRow]:
@@ -63,10 +69,28 @@ def _callable_facts(module: ast.Module) -> list[FactRow]:
                         "lineno": node.lineno,
                         "is_method": id(node) in method_names,
                         "class_name": method_names.get(id(node)),
+                        # Narrative ingredients (fixed rules; classification
+                        # is derivation-side): what it calls, how much raw
+                        # computation it holds, and its size/shape budget data.
+                        "call_names": call_names(node),
+                        "computation_weight": total_computation_weight(node),
+                        "statements": len(own_statements(node)),
+                        "nesting": max_nesting(node),
+                        "returns_value": _returns_value(node),
+                        "return_annotation": (
+                            ast.unparse(node.returns) if node.returns else None
+                        ),
                     },
                 )
             )
     return facts
+
+
+def _returns_value(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    return any(
+        isinstance(statement, ast.Return) and statement.value is not None
+        for statement in own_statements(function)
+    )
 
 
 def _method_name_ids(module: ast.Module) -> dict[int, str]:

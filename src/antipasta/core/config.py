@@ -144,6 +144,45 @@ class ImportGraphConfig(BaseModel):
         )
 
 
+#: Raw-computation weight a narrator may carry before it counts as MIXED,
+#: per strictness profile. Extreme: any computation mixes; standard: a couple
+#: of prose-grade operations (one comparison ~2) are tolerated; relaxed: a
+#: handful. The facts stay fixed — only this derivation-side judgment moves,
+#: so the cache is untouched by profile changes.
+MIXING_TOLERANCE_BY_PROFILE: dict[str, int] = {
+    "extreme": 0,
+    "standard": 4,
+    "relaxed": 8,
+}
+
+
+class NarrativeConfig(BaseModel):
+    """Narrative Index gating (altitude budgets). Presence of this block
+    turns mixed-altitude and budget counts into enforceable violations;
+    without it the deriver stays informational (defaults still shape the
+    informational counts)."""
+
+    narrator_step_budget: int = Field(default=9, ge=1)
+    computer_statement_budget: int = Field(default=8, ge=1)
+    computer_nesting_budget: int = Field(default=1, ge=0)
+    #: None = follow the profile (see MIXING_TOLERANCE_BY_PROFILE).
+    mixing_tolerance: int | None = Field(default=None, ge=0)
+
+    def effective_mixing_tolerance(self, profile: str) -> int:
+        """Explicit setting wins; otherwise the profile decides."""
+        if self.mixing_tolerance is not None:
+            return self.mixing_tolerance
+        return MIXING_TOLERANCE_BY_PROFILE.get(profile, 4)
+
+    def count_gate(self, metric_type: MetricType) -> MetricConfig:
+        """Any nonzero offender count violates."""
+        return MetricConfig(
+            type=metric_type,
+            threshold=0.0,
+            comparison=ComparisonOperator.LE,
+        )
+
+
 class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
@@ -154,6 +193,7 @@ class AntipastaConfig(BaseModel):
     profile: ProfileName = Field(default="standard")
     tree_shape: TreeShapeConfig | None = Field(default=None)
     import_graph: ImportGraphConfig | None = Field(default=None)
+    narrative: NarrativeConfig | None = Field(default=None)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:
