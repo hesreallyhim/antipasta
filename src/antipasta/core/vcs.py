@@ -27,6 +27,7 @@ from pathlib import Path
 import statistics
 import subprocess
 
+from antipasta.core.detector import is_test_path
 from antipasta.core.metrics import MetricResult, MetricType
 from antipasta.core.violations import ProjectReport
 
@@ -128,16 +129,6 @@ def _fold_suite_split(history: MinedHistory, paths: list[str]) -> None:
     test_paths = [path for path in paths if is_test_path(path)]
     if source_paths:
         history.test_files_per_source_commit.append(len(test_paths))
-
-
-def is_test_path(path: str) -> bool:
-    name = Path(path).name
-    return (
-        "/tests/" in f"/{path}"
-        or path.startswith("tests/")
-        or name.startswith("test_")
-        or name.endswith("_test.py")
-    )
 
 
 # ── reports ─────────────────────────────────────────────────────────────────

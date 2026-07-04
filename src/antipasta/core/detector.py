@@ -167,3 +167,16 @@ class LanguageDetector:
             List of file paths for the specified language
         """
         return [path for path in file_paths if self.detect_language(path) == language]
+
+
+def is_test_path(path: str) -> bool:
+    """Path-convention test detection (pytest naming + tests directories)."""
+    from pathlib import PurePosixPath
+
+    name = PurePosixPath(path).name
+    return (
+        "/tests/" in f"/{path}"
+        or path.startswith("tests/")
+        or name.startswith("test_")
+        or name.endswith("_test.py")
+    )

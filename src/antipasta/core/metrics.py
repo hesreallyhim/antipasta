@@ -74,6 +74,11 @@ class MetricType(StrEnum):
     DUPLICATION_RATIO = "duplication_ratio"
     CLONE_OCCURRENCES = "clone_occurrences"
     # Version-control mining (track B; opt-in command, never the default path).
+    # Test-suite health, static smells (track D1). Rows appear only for
+    # test functions in test-looking files.
+    ASSERTIONS_PER_TEST = "assertions_per_test"
+    MOCK_CALL_ASSERTIONS = "mock_call_assertions"
+    BIG_LITERAL_ASSERTIONS = "big_literal_assertions"
     CODE_CHURN = "code_churn"
     CHANGE_COUPLING = "change_coupling"
     HOTSPOT = "hotspot"

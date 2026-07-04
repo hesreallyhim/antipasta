@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T10:19:18+00:00",
+  "generated_at": "2026-07-04T10:21:53+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
@@ -7035,21 +7035,21 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 3.75,
-        "maintainability_index": 66.32410117891641,
-        "halstead_volume": 289.30780824937654,
-        "halstead_difficulty": 4.921875,
-        "halstead_effort": 1423.9368687274002,
-        "halstead_time": 79.1076038181889,
-        "halstead_bugs": 0.0964359360831255,
-        "lines_of_code": 169.0,
-        "logical_lines_of_code": 79.0,
-        "source_lines_of_code": 81.0,
+        "cyclomatic_complexity": 3.7777777777777777,
+        "maintainability_index": 64.90925057988079,
+        "halstead_volume": 346.2676750447117,
+        "halstead_difficulty": 5.394736842105263,
+        "halstead_effort": 1868.0229837938396,
+        "halstead_time": 103.77905465521332,
+        "halstead_bugs": 0.11542255834823724,
+        "lines_of_code": 182.0,
+        "logical_lines_of_code": 84.0,
+        "source_lines_of_code": 90.0,
         "comment_lines": 15.0,
-        "blank_lines": 35.0,
+        "blank_lines": 38.0,
         "cognitive_complexity": 7.0,
         "marker_density": 0.0,
-        "comment_density": 8.875739644970414
+        "comment_density": 8.241758241758241
       },
       "violations": [],
       "functions": [
@@ -7235,6 +7235,27 @@
             "global_state_reach": 0.0,
             "function_statements": 2.0,
             "expression_flatness": 0.5,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "is_test_path",
+          "line": 172,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 24.0,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 24.0,
+            "halstead_time": 1.3333333333333333,
+            "halstead_bugs": 0.008,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.75,
             "pipeline_linearity": 0.0
           }
         }
@@ -8243,20 +8264,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 65.24452492367946,
+        "maintainability_index": 65.33166688973327,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 177.0,
-        "logical_lines_of_code": 128.0,
-        "source_lines_of_code": 113.0,
-        "comment_lines": 12.0,
+        "lines_of_code": 182.0,
+        "logical_lines_of_code": 131.0,
+        "source_lines_of_code": 116.0,
+        "comment_lines": 14.0,
         "blank_lines": 25.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 6.779661016949152
+        "comment_density": 7.6923076923076925
       },
       "violations": [],
       "functions": [
@@ -8270,7 +8291,7 @@
         },
         {
           "name": "MetricResult",
-          "line": 85,
+          "line": 90,
           "metrics": {
             "weighted_methods_per_class": 4.0,
             "lack_of_cohesion": 2.0,
@@ -8279,7 +8300,7 @@
         },
         {
           "name": "MetricResult::__post_init__",
-          "line": 95,
+          "line": 100,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -8287,7 +8308,7 @@
         },
         {
           "name": "__post_init__",
-          "line": 95,
+          "line": 100,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -8306,7 +8327,7 @@
         },
         {
           "name": "MetricResult::to_dict",
-          "line": 100,
+          "line": 105,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8314,7 +8335,7 @@
         },
         {
           "name": "to_dict",
-          "line": 100,
+          "line": 105,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -8333,7 +8354,7 @@
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 110,
+          "line": 115,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8341,7 +8362,7 @@
         },
         {
           "name": "from_dict",
-          "line": 111,
+          "line": 116,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -8360,7 +8381,7 @@
         },
         {
           "name": "FactRow",
-          "line": 128,
+          "line": 133,
           "metrics": {
             "weighted_methods_per_class": 2.0,
             "lack_of_cohesion": 2.0,
@@ -8369,7 +8390,7 @@
         },
         {
           "name": "FactRow::to_dict",
-          "line": 143,
+          "line": 148,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8377,7 +8398,7 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 147,
+          "line": 152,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8385,7 +8406,7 @@
         },
         {
           "name": "FileMetrics",
-          "line": 154,
+          "line": 159,
           "metrics": {
             "weighted_methods_per_class": 8.0,
             "lack_of_cohesion": 1.0,
@@ -8394,7 +8415,7 @@
         },
         {
           "name": "FileMetrics::__post_init__",
-          "line": 163,
+          "line": 168,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -8402,7 +8423,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 168,
+          "line": 173,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -8423,7 +8444,7 @@
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 175,
+          "line": 180,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -9965,27 +9986,27 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 3.642857142857143,
-        "maintainability_index": 49.616278513841586,
-        "halstead_volume": 340.6827125439906,
-        "halstead_difficulty": 5.394736842105263,
-        "halstead_effort": 1837.8935808294227,
-        "halstead_time": 102.10519893496793,
-        "halstead_bugs": 0.11356090418133019,
-        "lines_of_code": 262.0,
-        "logical_lines_of_code": 130.0,
-        "source_lines_of_code": 196.0,
+        "cyclomatic_complexity": 3.6153846153846154,
+        "maintainability_index": 51.00533117954911,
+        "halstead_volume": 283.95025624475846,
+        "halstead_difficulty": 4.921875,
+        "halstead_effort": 1397.5676674546705,
+        "halstead_time": 77.64264819192614,
+        "halstead_bugs": 0.09465008541491948,
+        "lines_of_code": 253.0,
+        "logical_lines_of_code": 128.0,
+        "source_lines_of_code": 189.0,
         "comment_lines": 4.0,
-        "blank_lines": 40.0,
+        "blank_lines": 38.0,
         "cognitive_complexity": 10.0,
         "marker_density": 0.0,
-        "comment_density": 1.5267175572519083
+        "comment_density": 1.5810276679841897
       },
       "violations": [],
       "functions": [
         {
           "name": "MinedHistory",
-          "line": 41,
+          "line": 42,
           "metrics": {
             "weighted_methods_per_class": 1.0,
             "lack_of_cohesion": 1.0,
@@ -9994,7 +10015,7 @@
         },
         {
           "name": "MinedHistory::churn",
-          "line": 52,
+          "line": 53,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 4.754887502163469,
@@ -10015,7 +10036,7 @@
         },
         {
           "name": "mine_history",
-          "line": 56,
+          "line": 57,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -10036,7 +10057,7 @@
         },
         {
           "name": "_git_numstat",
-          "line": 65,
+          "line": 66,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -10057,7 +10078,7 @@
         },
         {
           "name": "_split_commits",
-          "line": 84,
+          "line": 85,
           "metrics": {
             "cyclomatic_complexity": 8.0,
             "halstead_volume": 31.699250014423125,
@@ -10078,7 +10099,7 @@
         },
         {
           "name": "_fold_commit",
-          "line": 102,
+          "line": 103,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -10099,7 +10120,7 @@
         },
         {
           "name": "_fold_line_counts",
-          "line": 110,
+          "line": 111,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 25.26619429851844,
@@ -10120,7 +10141,7 @@
         },
         {
           "name": "_fold_co_changes",
-          "line": 120,
+          "line": 121,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 12.0,
@@ -10141,7 +10162,7 @@
         },
         {
           "name": "_fold_suite_split",
-          "line": 126,
+          "line": 127,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 2.0,
@@ -10161,29 +10182,8 @@
           }
         },
         {
-          "name": "is_test_path",
-          "line": 133,
-          "metrics": {
-            "cyclomatic_complexity": 4.0,
-            "halstead_volume": 24.0,
-            "halstead_difficulty": 1.0,
-            "halstead_effort": 24.0,
-            "halstead_time": 1.3333333333333333,
-            "halstead_bugs": 0.008,
-            "cognitive_complexity": 1.0,
-            "message_chain_depth": 1.0,
-            "function_arity": 1.0,
-            "boolean_flag_parameters": 0.0,
-            "exception_discipline": 0.0,
-            "global_state_reach": 0.0,
-            "function_statements": 2.0,
-            "expression_flatness": 0.5,
-            "pipeline_linearity": 0.0
-          }
-        },
-        {
           "name": "history_reports",
-          "line": 146,
+          "line": 137,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -10204,7 +10204,7 @@
         },
         {
           "name": "_churn_reports",
-          "line": 157,
+          "line": 148,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -10225,7 +10225,7 @@
         },
         {
           "name": "_coupling_reports",
-          "line": 189,
+          "line": 180,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 13.931568569324174,
@@ -10246,7 +10246,7 @@
         },
         {
           "name": "_suite_health_report",
-          "line": 218,
+          "line": 209,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 11.60964047443681,
@@ -10267,7 +10267,7 @@
         },
         {
           "name": "complexity_from_snapshot",
-          "line": 249,
+          "line": 240,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 0.0,
@@ -11678,36 +11678,36 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 2.875,
-        "maintainability_index": 60.18535402197397,
-        "halstead_volume": 43.01955000865388,
-        "halstead_difficulty": 2.0,
-        "halstead_effort": 86.03910001730776,
-        "halstead_time": 4.779950000961542,
-        "halstead_bugs": 0.014339850002884626,
-        "lines_of_code": 205.0,
-        "logical_lines_of_code": 79.0,
-        "source_lines_of_code": 167.0,
+        "cyclomatic_complexity": 3.2222222222222223,
+        "maintainability_index": 54.862651287142,
+        "halstead_volume": 72.0,
+        "halstead_difficulty": 2.5,
+        "halstead_effort": 180.0,
+        "halstead_time": 10.0,
+        "halstead_bugs": 0.024,
+        "lines_of_code": 245.0,
+        "logical_lines_of_code": 93.0,
+        "source_lines_of_code": 205.0,
         "comment_lines": 1.0,
-        "blank_lines": 19.0,
+        "blank_lines": 20.0,
         "cognitive_complexity": 10.0,
         "marker_density": 0.0,
-        "comment_density": 0.4878048780487805
+        "comment_density": 0.40816326530612246
       },
       "violations": [],
       "functions": [
         {
           "name": "HouseStyleRunner",
-          "line": 28,
+          "line": 34,
           "metrics": {
-            "weighted_methods_per_class": 16.0,
+            "weighted_methods_per_class": 22.0,
             "lack_of_cohesion": 3.0,
-            "coupling_between_objects": 12.0
+            "coupling_between_objects": 14.0
           }
         },
         {
           "name": "HouseStyleRunner::supported_metrics",
-          "line": 31,
+          "line": 37,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -11728,7 +11728,7 @@
         },
         {
           "name": "HouseStyleRunner::is_available",
-          "line": 49,
+          "line": 58,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -11749,7 +11749,7 @@
         },
         {
           "name": "HouseStyleRunner::analyze",
-          "line": 53,
+          "line": 62,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 4.754887502163469,
@@ -11770,7 +11770,7 @@
         },
         {
           "name": "HouseStyleRunner::_function_rows",
-          "line": 87,
+          "line": 97,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -11791,7 +11791,7 @@
         },
         {
           "name": "HouseStyleRunner::_class_rows",
-          "line": 99,
+          "line": 109,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 15.509775004326936,
@@ -11811,8 +11811,29 @@
           }
         },
         {
+          "name": "HouseStyleRunner::_test_smell_rows",
+          "line": 148,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 12.0,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 6.0,
+            "halstead_time": 0.3333333333333333,
+            "halstead_bugs": 0.004,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 12.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.6
+          }
+        },
+        {
           "name": "HouseStyleRunner::_file_rows",
-          "line": 138,
+          "line": 178,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -11833,7 +11854,7 @@
         },
         {
           "name": "_method_owner_ids",
-          "line": 157,
+          "line": 197,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 0.0,
@@ -11854,7 +11875,7 @@
         },
         {
           "name": "_rows_for_function",
-          "line": 167,
+          "line": 207,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -14189,14 +14210,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 128,
+          "line_number": 133,
           "function_name": "FactRow"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 128,
+          "line_number": 133,
           "function_name": "FactRow"
         },
         {
@@ -14208,7 +14229,7 @@
             "statements": 4,
             "validated": false
           },
-          "line_number": 128,
+          "line_number": 133,
           "function_name": "FactRow"
         }
       ],
@@ -14221,14 +14242,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 154,
+          "line_number": 159,
           "function_name": "FileMetrics"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 154,
+          "line_number": 159,
           "function_name": "FileMetrics"
         },
         {
@@ -14240,7 +14261,7 @@
             "statements": 10,
             "validated": false
           },
-          "line_number": 154,
+          "line_number": 159,
           "function_name": "FileMetrics"
         }
       ],
@@ -14253,14 +14274,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 85,
+          "line_number": 90,
           "function_name": "MetricResult"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 85,
+          "line_number": 90,
           "function_name": "MetricResult"
         },
         {
@@ -14272,7 +14293,7 @@
             "statements": 7,
             "validated": false
           },
-          "line_number": 85,
+          "line_number": 90,
           "function_name": "MetricResult"
         }
       ],
@@ -14511,14 +14532,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 41,
+          "line_number": 42,
           "function_name": "MinedHistory"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 41,
+          "line_number": 42,
           "function_name": "MinedHistory"
         },
         {
@@ -14530,7 +14551,7 @@
             "statements": 1,
             "validated": false
           },
-          "line_number": 41,
+          "line_number": 42,
           "function_name": "MinedHistory"
         }
       ],
@@ -14743,26 +14764,26 @@
           "details": {
             "approximate": true
           },
-          "line_number": 28,
+          "line_number": 34,
           "function_name": "HouseStyleRunner"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 28,
+          "line_number": 34,
           "function_name": "HouseStyleRunner"
         },
         {
           "type": "single_responsibility_index",
-          "value": 7.59,
+          "value": 9.62,
           "details": {
             "cohesion_components": 3,
-            "weighted_methods": 16.0,
-            "statements": 39,
+            "weighted_methods": 22.0,
+            "statements": 51,
             "validated": false
           },
-          "line_number": 28,
+          "line_number": 34,
           "function_name": "HouseStyleRunner"
         }
       ],
@@ -16976,7 +16997,7 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 8.0,
+          "value": 9.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17551,7 +17572,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 2.0,
+          "value": 3.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17565,7 +17586,7 @@
         },
         {
           "type": "instability",
-          "value": 0.6667,
+          "value": 0.75,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17590,7 +17611,7 @@
         },
         {
           "type": "distance_from_main_sequence",
-          "value": 0.3333,
+          "value": 0.25,
           "details": {
             "approximate": true
           },
@@ -17602,7 +17623,7 @@
           "value": 0.0,
           "details": {
             "approximate": true,
-            "targets": 2
+            "targets": 3
           },
           "line_number": null,
           "function_name": null
@@ -21047,7 +21068,7 @@
         },
         {
           "type": "name_clarity",
-          "value": 0.8429,
+          "value": 0.8625,
           "details": {
             "worst": [
               "add_gitignore"
@@ -21726,14 +21747,14 @@
         },
         {
           "type": "step_down_ordering",
-          "value": 0.9091,
+          "value": 1.0,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "name_clarity",
-          "value": 0.7798,
+          "value": 0.7628,
           "details": {
             "worst": [
               "_git_numstat",
@@ -22095,10 +22116,11 @@
         },
         {
           "type": "narrator_budget_exceeded",
-          "value": 1.0,
+          "value": 2.0,
           "details": {
             "functions": [
-              "analyze"
+              "analyze",
+              "_test_smell_rows"
             ]
           },
           "line_number": null,
@@ -22124,7 +22146,7 @@
         },
         {
           "type": "name_clarity",
-          "value": 0.775,
+          "value": 0.8,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -22564,7 +22586,7 @@
       "label": "antipasta",
       "aggregate": {
         "files": 85,
-        "value": 7255.0,
+        "value": 7298.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -23650,7 +23672,7 @@
       "label": "core",
       "aggregate": {
         "files": 22,
-        "value": 2976.0,
+        "value": 2981.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -23702,7 +23724,7 @@
             "path": "core/__init__.py"
           },
           "comment_density": {
-            "value": 8.875739644970414,
+            "value": 8.241758241758241,
             "path": "core/detector.py"
           },
           "cyclomatic_complexity": {
@@ -23776,7 +23798,7 @@
       "id": "core/detector.py",
       "parent": "core",
       "label": "detector.py",
-      "value": 81.0,
+      "value": 90.0,
       "file_index": 50
     },
     {
@@ -23811,7 +23833,7 @@
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 113.0,
+      "value": 116.0,
       "file_index": 55
     },
     {
@@ -23860,7 +23882,7 @@
       "id": "core/vcs.py",
       "parent": "core",
       "label": "vcs.py",
-      "value": 196.0,
+      "value": 189.0,
       "file_index": 62
     },
     {
@@ -24071,7 +24093,7 @@
       "label": "runners",
       "aggregate": {
         "files": 14,
-        "value": 1011.0,
+        "value": 1049.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -24107,8 +24129,8 @@
             "path": "runners/python/house_style/expressions.py"
           },
           "source_lines_of_code": {
-            "value": 193.0,
-            "path": "runners/python/radon.py"
+            "value": 205.0,
+            "path": "runners/python/house_style/__init__.py"
           },
           "comment_lines": {
             "value": 12.0,
@@ -24243,7 +24265,7 @@
       "label": "python",
       "aggregate": {
         "files": 9,
-        "value": 883.0,
+        "value": 921.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -24279,8 +24301,8 @@
             "path": "runners/python/house_style/expressions.py"
           },
           "source_lines_of_code": {
-            "value": 193.0,
-            "path": "runners/python/radon.py"
+            "value": 205.0,
+            "path": "runners/python/house_style/__init__.py"
           },
           "comment_lines": {
             "value": 12.0,
@@ -24329,7 +24351,7 @@
       "label": "house_style",
       "aggregate": {
         "files": 6,
-        "value": 617.0,
+        "value": 655.0,
         "violations": 0,
         "metrics_max": {
           "cyclomatic_complexity": {
@@ -24361,15 +24383,15 @@
             "path": "runners/python/house_style/structure.py"
           },
           "lines_of_code": {
-            "value": 234.0,
-            "path": "runners/python/house_style/expressions.py"
+            "value": 245.0,
+            "path": "runners/python/house_style/__init__.py"
           },
           "logical_lines_of_code": {
             "value": 135.0,
             "path": "runners/python/house_style/expressions.py"
           },
           "source_lines_of_code": {
-            "value": 167.0,
+            "value": 205.0,
             "path": "runners/python/house_style/__init__.py"
           },
           "comment_lines": {
@@ -24399,7 +24421,7 @@
       "id": "runners/python/house_style/__init__.py",
       "parent": "runners/python/house_style",
       "label": "__init__.py",
-      "value": 167.0,
+      "value": 205.0,
       "file_index": 75
     },
     {

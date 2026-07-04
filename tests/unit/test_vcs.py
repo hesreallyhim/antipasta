@@ -7,11 +7,11 @@ import subprocess
 
 import pytest
 
+from antipasta.core.detector import is_test_path
 from antipasta.core.metrics import MetricType
 from antipasta.core.vcs import (
     complexity_from_snapshot,
     history_reports,
-    is_test_path,
     mine_history,
 )
 

@@ -18,10 +18,16 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from antipasta.core.detector import Language
+from antipasta.core.detector import Language, is_test_path
 from antipasta.core.metrics import FactRow, FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
-from antipasta.runners.python.house_style import cohesion, comments, expressions, structure
+from antipasta.runners.python.house_style import (
+    cohesion,
+    comments,
+    expressions,
+    structure,
+    test_smells,
+)
 from antipasta.runners.python.house_style.facts import extract_facts
 
 
@@ -44,6 +50,9 @@ class HouseStyleRunner(BaseRunner):
             MetricType.COMMENT_DENSITY.value,
             MetricType.LACK_OF_COHESION.value,
             MetricType.COUPLING_BETWEEN_OBJECTS.value,
+            MetricType.ASSERTIONS_PER_TEST.value,
+            MetricType.MOCK_CALL_ASSERTIONS.value,
+            MetricType.BIG_LITERAL_ASSERTIONS.value,
         ]
 
     def is_available(self) -> bool:
@@ -76,6 +85,7 @@ class HouseStyleRunner(BaseRunner):
             *self._function_rows(file_path, module),
             *self._class_rows(file_path, module, facts),
             *self._file_rows(file_path, content),
+            *self._test_smell_rows(file_path, module),
         ]
         return FileMetrics(
             file_path=file_path,
@@ -133,6 +143,36 @@ class HouseStyleRunner(BaseRunner):
                         details={"approximate": True},
                     )
                 )
+        return rows
+
+    def _test_smell_rows(self, file_path: Path, module: ast.Module) -> list[MetricResult]:
+        """Track D1 smells — only for test functions in test-looking files."""
+        if not is_test_path(str(file_path)):
+            return []
+        rows: list[MetricResult] = []
+        for node in ast.walk(module):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if not test_smells.is_test_function(node.name):
+                continue
+            values = [
+                (MetricType.ASSERTIONS_PER_TEST, test_smells.assertions_per_test(node)),
+                (MetricType.MOCK_CALL_ASSERTIONS, test_smells.mock_call_assertions(node)),
+                (
+                    MetricType.BIG_LITERAL_ASSERTIONS,
+                    test_smells.big_literal_assertions(node),
+                ),
+            ]
+            rows.extend(
+                MetricResult(
+                    file_path=file_path,
+                    metric_type=metric_type,
+                    value=float(value),
+                    line_number=node.lineno,
+                    function_name=node.name,
+                )
+                for metric_type, value in values
+            )
         return rows
 
     def _file_rows(self, file_path: Path, content: str) -> list[MetricResult]:
