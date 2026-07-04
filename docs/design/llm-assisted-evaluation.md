@@ -54,6 +54,63 @@ Complementary cheap probes sharing the machinery:
   strictness profile may be tuned too hard. The LLM mode thereby calibrates
   the static thresholds instead of competing with them.
 
+## Tier 4 — disclosure curves: test-outcome prediction (owner proposal, 2026-07-04)
+
+The blind/informed test made quantitative. Given a function with tests,
+**mask the expected side of each assertion**
+(`assert should_accept_new_users(directory) == ???`) and ask the model to
+reconstruct it from the test's setup plus a *graded disclosure* of the
+implementation:
+
+| Level | Model sees |
+|---|---|
+| 0 | name + signature only |
+| 1 | + docstring |
+| 2 | + body, helpers hidden (the blind-reading level) |
+| 3 | + helper implementations, one level down |
+| 4 | full transitive closure |
+
+Prediction accuracy per level forms the **disclosure curve**; ground truth is
+the real assertion, which CI already proves correct — so the probe is
+**execution-free** (no sandbox, no test run; pure reading). The ideal is a
+flat curve: deeper disclosure adds nothing because the names already carried
+the behavior.
+
+Why assertion reconstruction and not "will this test pass": real suites pass,
+so pass/fail prediction is degenerate ("pass" is a free right answer).
+Reconstruction has real information content per test, and parametrized tests
+give many data points cheaply.
+
+The curve decomposes into two independently meaningful gaps:
+
+- **Name gap (levels 0→2):** grades *contract quality*. A well-named predicate
+  is predictable from its name on qualitative cases; numeric edge thresholds
+  legitimately live in the body (a name cannot carry the 0.9 capacity
+  constant) — so score saturation level, don't demand level-0 perfection.
+- **Descent gap (levels 2→4):** grades *abstraction leakiness* — the
+  blind-reading property, quantified. If revealing helper implementations
+  improves prediction, the helper names were lying or the abstraction leaks.
+  This is the deep-vs-shallow module distinction as a number: a deep module
+  is one whose behavior is predictable long before its implementation is
+  visible.
+
+Caveats, honestly held:
+- **Scope-limited to tested functions** — which doubles as a feature: a test
+  whose outcome can't be predicted even at level 4 (opaque fixtures, mock
+  soup) is a *test readability* finding, a signal antipasta gets for free.
+- **Memorization risk**: public code (or well-known libraries) may be in the
+  model's training data, making prediction recall rather than comprehension.
+  Control: a masked-identifier run as baseline, and advisory labeling as
+  always.
+- **Grading must be equivalence-based, not exact-match** (a judge accepts
+  `3.0` for `3`, order-insensitive collections, etc.).
+- **Cost is the highest of any tier** (tests × levels); reserve for audits
+  and changed-function runs. The same content-addressed caching applies —
+  key on (test hash, disclosed-slice hash, model, prompt version).
+
+Tier 4 subsumes tier 2 conceptually (a zero descent gap implies
+blind/informed agreement) but costs more; tier 2 remains the routine mode.
+
 ## Worked example (the probe's own samples)
 
 Blind reader on the prose sample: `should_accept_new_users` — "decides
