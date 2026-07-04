@@ -65,7 +65,7 @@ def _unavailable_report() -> ProjectReport:
 
 
 def _exact_groups(root: Path, config: DuplicationConfig) -> list[Any]:
-    from pydry.engine import exact_groups  # type: ignore[import-untyped]
+    from pydry.engine import exact_groups
 
     groups: list[Any] = exact_groups(
         root,

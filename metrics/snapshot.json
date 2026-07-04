@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T10:14:08+00:00",
+  "generated_at": "2026-07-04T10:14:39+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
@@ -7116,7 +7116,7 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 3.0,
-        "maintainability_index": 60.929608783565065,
+        "maintainability_index": 60.40855014601223,
         "halstead_volume": 128.3789500201924,
         "halstead_difficulty": 3.7058823529411766,
         "halstead_effort": 475.7572853689484,
@@ -7125,11 +7125,11 @@
         "lines_of_code": 155.0,
         "logical_lines_of_code": 87.0,
         "source_lines_of_code": 113.0,
-        "comment_lines": 2.0,
+        "comment_lines": 1.0,
         "blank_lines": 26.0,
         "cognitive_complexity": 11.0,
         "marker_density": 0.0,
-        "comment_density": 1.2903225806451613
+        "comment_density": 0.6451612903225806
       },
       "violations": [],
       "functions": [
