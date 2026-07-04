@@ -13,6 +13,41 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-3`). The
+  import graph: raw import facts resolved against the analyzed module set
+  (relative dots, `from X import name` submodule-vs-symbol with
+  specific-wins-fallback, leading-package stripping for src layouts), then
+  per-module efferent/afferent coupling, instability, stable-dependencies
+  counts (0.2 tolerance), dependency cycles via iterative Tarjan, and
+  package-level rollups. Gating opt-in via an `import_graph` config block
+  (cycles = Acyclic Dependencies violations; stable-dependencies capped);
+  informational without it. QA: 423 tests green (10 new: coupling triples on
+  a chain, relative/src-layout resolution, cycle report + gating + acyclic
+  case, package rollup, self-import/external hygiene); ruff/mypy clean;
+  dogfood green.
+  **Two real bugs caught by the dogfood reckoning:** (1) the cache
+  fingerprint didn't include the metric roster, so entries cached before a
+  new runner existed still hit and silently lacked its rows/facts — fixed by
+  folding the MetricType enum into the fingerprint (any new runner adds
+  types → natural full miss); (2) the CLI never threaded the analysis root
+  into derivation (Phase 0 deferral come due) — module names carried a
+  src.antipasta prefix imports don't have, yielding a zero-edge graph; the
+  metrics/report commands now pass their -d directory as root.
+  **Reckoning findings:** 71 modules, 149 edges. Stable core confirmed:
+  core.config and core.metrics at afferent 19 (instability 0.14/0.0) — the
+  dependency arrows point exactly where the architecture wants. One
+  stable-dependencies breach (cli, count 1). **Two real import cycles
+  found**: `cli <-> cli.main <-> cli.report <-> cli.stats` and
+  `cli.config <-> config_generate <-> config_view` — package-__init__
+  re-export loops from Click wiring. Genuine cycles by Python import
+  semantics; whether __init__ re-export edges deserve an exemption knob is
+  an owner decision (refinement candidate for the config block). The
+  cognitive gate forced one refactor mid-build (iterative Tarjan at
+  cognitive 28 → decomposed into a named-steps class) — the seventh.
+  Deviation: tree-shape layering half (config-ordered layers) deferred to
+  Phase 4 alongside Abstractness/Distance, which its report view needs
+  anyway.
+
 - **Phase 2 — LANDED 2026-07-04** (branch `feat/metrics-phase-2`). Class
   scope complete: lack of cohesion (connected-components formulation; edges
   = shared fields ∪ local calls; dunders excluded except ``__init__``) and

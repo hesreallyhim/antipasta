@@ -56,10 +56,19 @@ def validate_files_found(file_paths: list[Path]) -> None:
         sys.exit(1)
 
 
-def execute_analysis(file_paths: list[Path], cfg: AntipastaConfig, quiet: bool) -> dict[str, Any]:
-    """Execute metrics analysis on the specified files."""
+def execute_analysis(
+    file_paths: list[Path],
+    cfg: AntipastaConfig,
+    quiet: bool,
+    root: Path | None = None,
+) -> dict[str, Any]:
+    """Execute metrics analysis on the specified files.
+
+    ``root`` anchors project-scoped derivation (module names, directory
+    subjects); the metrics/report commands pass their -d directory.
+    """
     aggregator = MetricAggregator(cfg)
-    result = aggregator.analyze(file_paths)
+    result = aggregator.analyze(file_paths, root=root)
     summary = aggregator.generate_summary(result.file_reports)
     _fold_project_findings(summary, result.project_reports)
 

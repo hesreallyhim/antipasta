@@ -124,7 +124,8 @@ class TestDerivationStage:
 
         result = aggregator.analyze([tmp_path / "module.py"], root=tmp_path)
 
-        assert [r.subject for r in result.project_reports] == ["."]
+        subjects = [r.subject for r in result.project_reports]
+        assert "." in subjects  # tree-shape root row from the default derivers
         assert not result.has_project_violations  # informational without config
 
     def test_analyze_files_still_returns_file_reports(self, tmp_path: Path) -> None:

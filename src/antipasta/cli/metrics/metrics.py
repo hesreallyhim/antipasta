@@ -120,6 +120,6 @@ def metrics(
     )
 
     target_files = determine_files_to_analyze(files, directory, final_config, override, quiet)
-    analysis_results = execute_analysis(target_files, final_config, quiet)
+    analysis_results = execute_analysis(target_files, final_config, quiet, root=directory)
     output_results(analysis_results, format, quiet)
     exit_with_appropriate_code(analysis_results["summary"])

@@ -48,6 +48,12 @@ class MetricType(StrEnum):
     NUMBER_OF_CHILDREN = "number_of_children"
     # Project-scope metrics (derivation stage).
     DIRECTORY_CHILDREN = "directory_children"
+    # Import-graph metrics (adoption plan, Phase 3). Informational-first.
+    EFFERENT_COUPLING = "efferent_coupling"
+    AFFERENT_COUPLING = "afferent_coupling"
+    INSTABILITY = "instability"
+    DEPENDENCY_CYCLES = "dependency_cycles"
+    STABLE_DEPENDENCIES_VIOLATIONS = "stable_dependencies_violations"
 
 
 @dataclass

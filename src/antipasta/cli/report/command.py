@@ -157,7 +157,7 @@ def report(
     )
     target_files = determine_files_to_analyze(files, directory, final_config, override, True)
     click.echo(f"Analyzing {len(target_files)} files...", err=True)
-    results = execute_analysis(target_files, final_config, True)
+    results = execute_analysis(target_files, final_config, True, root=directory)
 
     snapshot = build_snapshot(
         results["reports"],

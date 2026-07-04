@@ -36,7 +36,7 @@ import shutil
 import sys
 
 from antipasta.__version__ import __version__
-from antipasta.core.metrics import FactRow, MetricResult
+from antipasta.core.metrics import FactRow, MetricResult, MetricType
 
 # v2 (2026-07-04): entries carry a `facts` array (path-independent fact rows
 # for the derivation stage). Bumping this constant shifts the fingerprint,
@@ -52,6 +52,10 @@ def _fingerprint() -> str:
         f"entry=v{_ENTRY_VERSION}",
         f"antipasta={__version__}",
         f"python={sys.version_info.major}.{sys.version_info.minor}",
+        # The metric roster: a new runner introduces new metric types, so
+        # folding the enum in makes stale pre-runner entries miss naturally
+        # (found the hard way: Phase-1 rows were absent for cache hits).
+        "metrics=" + ",".join(sorted(member.value for member in MetricType)),
     ]
     for package in _ANALYZER_PACKAGES:
         try:

@@ -82,9 +82,10 @@ def _collect_file_metrics(
 def _default_derivers() -> list[Deriver]:
     """Derivers registered when the caller doesn't supply an explicit list."""
     from antipasta.core.class_registry import derive_class_registry
+    from antipasta.core.import_graph import derive_import_graph
     from antipasta.core.tree_shape import derive_tree_shape
 
-    return [derive_tree_shape, derive_class_registry]
+    return [derive_tree_shape, derive_class_registry, derive_import_graph]
 
 
 def _resolve_jobs(requested: int | None, task_count: int) -> int:

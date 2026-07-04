@@ -119,6 +119,31 @@ class TreeShapeConfig(BaseModel):
         )
 
 
+class ImportGraphConfig(BaseModel):
+    """Import-graph gating. Presence of this block turns cycle reports and
+    stable-dependencies counts into enforceable violations; without it the
+    deriver stays informational."""
+
+    forbid_cycles: bool = Field(default=True)
+    max_stable_dependencies_violations: int = Field(default=0, ge=0)
+
+    def cycles_config(self) -> MetricConfig:
+        """Any cycle (row value = member count >= 2) violates."""
+        return MetricConfig(
+            type=MetricType.DEPENDENCY_CYCLES,
+            threshold=0.0,
+            comparison=ComparisonOperator.LE,
+        )
+
+    def stable_dependencies_config(self) -> MetricConfig:
+        """Cap on edges pointing toward materially less stable modules."""
+        return MetricConfig(
+            type=MetricType.STABLE_DEPENDENCIES_VIOLATIONS,
+            threshold=float(self.max_stable_dependencies_violations),
+            comparison=ComparisonOperator.LE,
+        )
+
+
 class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
@@ -128,6 +153,7 @@ class AntipastaConfig(BaseModel):
     use_gitignore: bool = Field(default=True)
     profile: ProfileName = Field(default="standard")
     tree_shape: TreeShapeConfig | None = Field(default=None)
+    import_graph: ImportGraphConfig | None = Field(default=None)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:
