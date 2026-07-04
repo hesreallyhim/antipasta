@@ -64,6 +64,11 @@ def _abstractness_by_module(derivation_input: DerivationInput) -> dict[str, floa
 # ── graph construction ──────────────────────────────────────────────────────
 
 
+def build_module_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
+    """Public entry: the resolved module dependency graph (layering reuses it)."""
+    return _build_graph(derivation_input)
+
+
 def _build_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
     """module → set of analyzed modules it imports (self-edges dropped)."""
     root = derivation_input.root

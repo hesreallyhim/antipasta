@@ -101,6 +101,18 @@ class TreeShapeConfig(BaseModel):
     fan_out_min: int = Field(default=2, ge=1)
     fan_out_max: int = Field(default=7, ge=1)
     exclude: list[str] = Field(default_factory=list)
+    #: Layer order, top to bottom (e.g. [cli, report, runners, core]): a
+    #: module in an earlier layer may import later layers; the reverse is an
+    #: upward-import violation. Empty = no layering check (no invented order).
+    layers: list[str] = Field(default_factory=list)
+
+    def layering_config(self) -> MetricConfig:
+        """Any upward import violates."""
+        return MetricConfig(
+            type=MetricType.LAYERING_VIOLATIONS,
+            threshold=0.0,
+            comparison=ComparisonOperator.LE,
+        )
 
     def max_children_config(self) -> MetricConfig:
         """Threshold check for 'too many children' (missing layer)."""

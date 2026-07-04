@@ -84,9 +84,15 @@ def _default_derivers() -> list[Deriver]:
     from antipasta.core.class_registry import derive_class_registry
     from antipasta.core.import_graph import derive_import_graph
     from antipasta.core.narrative import derive_narrative
-    from antipasta.core.tree_shape import derive_tree_shape
+    from antipasta.core.tree_shape import derive_layering, derive_tree_shape
 
-    return [derive_tree_shape, derive_class_registry, derive_import_graph, derive_narrative]
+    return [
+        derive_tree_shape,
+        derive_layering,
+        derive_class_registry,
+        derive_import_graph,
+        derive_narrative,
+    ]
 
 
 def _resolve_jobs(requested: int | None, task_count: int) -> int:

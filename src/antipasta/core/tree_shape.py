@@ -31,6 +31,59 @@ ROOT_SUBJECT = "."
 _NON_CHILD_FILES = frozenset({"__init__.py", "__main__.py"})
 
 
+def derive_layering(derivation_input: DerivationInput) -> list[ProjectReport]:
+    """Upward-import checks against the configured layer order.
+
+    Layers are listed top to bottom; an earlier layer may import later ones
+    (cli reaching down into core is the architecture working); a later layer
+    importing an earlier one is an upward violation. Modules whose top
+    segment matches no layer are ignored. Without a configured order there
+    is nothing to compute — no invented ordering.
+    """
+    config = derivation_input.config.tree_shape
+    if config is None or not config.layers:
+        return []
+    from antipasta.core.import_graph import build_module_graph
+
+    graph = build_module_graph(derivation_input)
+    layer_index = {name: index for index, name in enumerate(config.layers)}
+    reports = []
+    for module in sorted(graph):
+        source_layer = layer_index.get(module.split(".")[0])
+        if source_layer is None:
+            continue
+        upward = _upward_targets(module, graph[module], source_layer, layer_index)
+        row = MetricResult(
+            file_path=Path(module.replace(".", "/") + ".py"),
+            metric_type=MetricType.LAYERING_VIOLATIONS,
+            value=float(len(upward)),
+            details={"upward": upward[:10]} if upward else None,
+        )
+        violation = check_metric_violation(row, config.layering_config())
+        reports.append(
+            ProjectReport(
+                subject=module,
+                metrics=[row],
+                violations=[violation] if violation else [],
+            )
+        )
+    return reports
+
+
+def _upward_targets(
+    module: str,
+    targets: set[str],
+    source_layer: int,
+    layer_index: dict[str, int],
+) -> list[str]:
+    upward = []
+    for target in sorted(targets):
+        target_layer = layer_index.get(target.split(".")[0])
+        if target_layer is not None and target_layer < source_layer:
+            upward.append(target)
+    return upward
+
+
 def derive_tree_shape(derivation_input: DerivationInput) -> list[ProjectReport]:
     """One ProjectReport per analyzed directory, with fan-out counts."""
     children_by_directory = _count_children(derivation_input)

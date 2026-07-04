@@ -58,6 +58,61 @@ class TestChildCounting:
         assert derive_tree_shape(derivation_input) == []
 
 
+class TestLayering:
+    def _derive_layers(
+        self, root: Path, sources: dict[str, str], layers: list[str]
+    ) -> list[ProjectReport]:
+        from antipasta.core.tree_shape import derive_layering
+        from antipasta.runners.python.house_style import HouseStyleRunner
+
+        runner = HouseStyleRunner()
+        facts_by_file = {
+            root / rel: runner.analyze(root / rel, content=src).facts
+            for rel, src in sources.items()
+        }
+        config = AntipastaConfig(tree_shape=TreeShapeConfig(layers=layers))
+        return derive_layering(
+            DerivationInput(
+                file_reports=[], facts_by_file=facts_by_file, root=root, config=config
+            )
+        )
+
+    def test_downward_import_is_fine(self, tmp_path: Path) -> None:
+        sources = {
+            "cli/main.py": "from core import engine\ndef go():\n    return engine.run()\n",
+            "core/engine.py": "def run():\n    return 1\n",
+        }
+        reports = self._derive_layers(tmp_path, sources, ["cli", "core"])
+
+        assert not any(r.has_violations for r in reports)
+
+    def test_upward_import_violates(self, tmp_path: Path) -> None:
+        sources = {
+            "cli/main.py": "def go():\n    return 1\n",
+            "core/engine.py": "from cli import main\ndef run():\n    return main.go()\n",
+        }
+        reports = self._derive_layers(tmp_path, sources, ["cli", "core"])
+
+        engine = next(r for r in reports if r.subject == "core.engine")
+        assert engine.has_violations
+        assert (engine.metrics[0].details or {})["upward"] == ["cli.main"]
+
+    def test_unlisted_modules_ignored(self, tmp_path: Path) -> None:
+        sources = {
+            "scripts/tool.py": "from cli import main\ndef go():\n    return 1\n",
+            "cli/main.py": "def go():\n    return 1\n",
+        }
+        reports = self._derive_layers(tmp_path, sources, ["cli", "core"])
+
+        assert all(r.subject != "scripts.tool" for r in reports)
+
+    def test_no_layers_no_reports(self, tmp_path: Path) -> None:
+        sources = {"core/engine.py": "def run():\n    return 1\n"}
+        reports = self._derive_layers(tmp_path, sources, [])
+
+        assert reports == []
+
+
 class TestGating:
     def test_informational_without_config(self, tmp_path: Path) -> None:
         files = [f"wide/mod_{i}.py" for i in range(12)]

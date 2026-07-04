@@ -13,6 +13,23 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 4, part 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  the layering half of Module Tree Shape. `tree_shape.layers` lists layers
+  top to bottom; earlier may import later; a later layer importing an
+  earlier one is an upward-import violation (config presence is the gate —
+  no configured order, no invented one; unlisted top segments ignored).
+  Rides the exported module graph. QA: 458 tests green (4 new: downward
+  allowed, upward flagged with target details, unlisted ignored, no-config
+  no-op); all gates green.
+  **Reckoning (ad-hoc — adding layers to the dogfood config would gate, and
+  the owner said not yet):** under hypothesis [cli, report, runners, core,
+  utils], exactly two upward importers: `core.aggregator` → all five runner
+  modules (the orchestrator is misfiled in the data layer — the single
+  clearest input to the golden-set split), and `utils.schema_generator` →
+  core.config. Antipasta is two moves from cleanly layered.
+  **Remaining for Phase 4:** lexicon/name clarity + linguistic antipatterns
+  (wordlist vendoring approved), Single-Responsibility composite validation.
+
 - **Phase 4, part 2 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
   the Narrative Index core. Callable facts gained the narrative ingredients
   (call names incl. self-method calls, RAW computation weight — calls are

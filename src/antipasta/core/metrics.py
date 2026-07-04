@@ -66,6 +66,7 @@ class MetricType(StrEnum):
     NARRATOR_BUDGET_EXCEEDED = "narrator_budget_exceeded"
     COMPUTER_BUDGET_EXCEEDED = "computer_budget_exceeded"
     STEP_DOWN_ORDERING = "step_down_ordering"
+    LAYERING_VIOLATIONS = "layering_violations"
 
 
 @dataclass
