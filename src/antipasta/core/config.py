@@ -179,6 +179,18 @@ class NarrativeConfig(BaseModel):
     computer_nesting_budget: int = Field(default=1, ge=0)
     #: None = follow the profile (see MIXING_TOLERANCE_BY_PROFILE).
     mixing_tolerance: int | None = Field(default=None, ge=0)
+    #: Domain words the anchor harvest misses (lexicon layer 4).
+    allowlist: list[str] = Field(default_factory=list)
+    #: Gate: module mean name clarity must stay at or above this (None = no gate).
+    name_clarity_floor: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    def clarity_gate(self) -> MetricConfig:
+        """Module mean name clarity below the floor violates."""
+        return MetricConfig(
+            type=MetricType.NAME_CLARITY,
+            threshold=float(self.name_clarity_floor or 0.0),
+            comparison=ComparisonOperator.GE,
+        )
 
     def effective_mixing_tolerance(self, profile: str) -> int:
         """Explicit setting wins; otherwise the profile decides."""

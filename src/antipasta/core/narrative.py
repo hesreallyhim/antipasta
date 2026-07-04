@@ -27,6 +27,7 @@ from typing import Any
 
 from antipasta.core.config import NarrativeConfig
 from antipasta.core.derivation import DerivationInput
+from antipasta.core.lexicon import full_vocabulary, harvest_anchors, score_identifier
 from antipasta.core.metrics import MetricResult, MetricType
 from antipasta.core.violations import ProjectReport, Violation, check_metric_violation
 
@@ -53,10 +54,27 @@ def derive_narrative(derivation_input: DerivationInput) -> list[ProjectReport]:
     tolerance = (config or NarrativeConfig()).effective_mixing_tolerance(
         derivation_input.config.profile
     )
+    vocabulary = full_vocabulary(
+        _anchor_vocabulary(callables_by_module, derivation_input),
+        (config or NarrativeConfig()).allowlist,
+    )
     return [
-        _module_report(module, payloads, symbols, ambient, config, tolerance)
+        _module_report(module, payloads, symbols, ambient, config, tolerance, vocabulary)
         for module, payloads in sorted(callables_by_module.items())
     ]
+
+
+def _anchor_vocabulary(
+    callables_by_module: dict[str, list[dict[str, Any]]],
+    derivation_input: DerivationInput,
+) -> frozenset[str]:
+    class_names = [
+        fact.payload["name"]
+        for facts in derivation_input.facts_by_file.values()
+        for fact in facts
+        if fact.kind == "class"
+    ]
+    return harvest_anchors(list(callables_by_module), class_names)
 
 
 # ── inputs ──────────────────────────────────────────────────────────────────
@@ -151,6 +169,7 @@ def _module_report(
     ambient: frozenset[str],
     config: NarrativeConfig | None,
     mixing_tolerance: int,
+    vocabulary: frozenset[str],
 ) -> ProjectReport:
     effective = config if config is not None else NarrativeConfig()
     mixed: list[str] = []
@@ -174,9 +193,68 @@ def _module_report(
             metric_type=MetricType.STEP_DOWN_ORDERING,
             value=round(_step_down_ratio(payloads), 4),
         ),
+        _clarity_row(module, payloads, vocabulary),
+        _count_row(module, MetricType.NAMING_ANTIPATTERNS, _antipatterns(payloads)),
     ]
     violations = _narrative_violations(rows, config)
     return ProjectReport(subject=module, metrics=rows, violations=violations)
+
+
+def _clarity_row(
+    module: str, payloads: list[dict[str, Any]], vocabulary: frozenset[str]
+) -> MetricResult:
+    """Module mean name clarity, worst offenders in details."""
+    scored = [
+        (score_identifier(payload["name"], vocabulary), payload["name"])
+        for payload in payloads
+        if not _is_dunder(payload["name"])
+    ]
+    if not scored:
+        return MetricResult(
+            file_path=_subject_path(module),
+            metric_type=MetricType.NAME_CLARITY,
+            value=1.0,
+        )
+    mean = sum(score for score, _ in scored) / len(scored)
+    worst = [name for score, name in sorted(scored)[:5] if score < 0.7]
+    return MetricResult(
+        file_path=_subject_path(module),
+        metric_type=MetricType.NAME_CLARITY,
+        value=round(mean, 4),
+        details={"worst": worst} if worst else None,
+    )
+
+
+def _is_dunder(name: str) -> bool:
+    return name.startswith("__") and name.endswith("__")
+
+
+#: Predicate prefixes whose functions should annotate bool.
+_PREDICATE_HEADS = ("is_", "has_", "should_", "can_")
+
+
+def _antipatterns(payloads: list[dict[str, Any]]) -> list[str]:
+    """Linguistic antipatterns: names whose grammar contradicts behavior.
+
+    All approximate by nature (annotations may be absent); each rule fires
+    only on positive evidence of contradiction.
+    """
+    offenders = []
+    for payload in payloads:
+        name = payload["name"]
+        annotation = payload.get("return_annotation")
+        predicate_lying = (
+            name.startswith(_PREDICATE_HEADS)
+            and annotation is not None
+            and "bool" not in annotation
+        )
+        getter_returns_nothing = (
+            name.startswith(("get_", "fetch_")) and not payload.get("returns_value")
+        )
+        two_jobs = "_and_" in name
+        if predicate_lying or getter_returns_nothing or two_jobs:
+            offenders.append(name)
+    return offenders
 
 
 def _computer_over_budget(payload: dict[str, Any], config: NarrativeConfig) -> bool:
@@ -225,8 +303,30 @@ def _narrative_violations(
     if config is None:
         return []
     violations = []
-    for row in rows[:3]:  # the three count rows gate; step-down stays advisory
-        violation = check_metric_violation(row, config.count_gate(row.metric_type))
+    for row in rows:
+        gate = _gate_for(row, config)
+        if gate is None:
+            continue
+        violation = check_metric_violation(row, gate)
         if violation:
             violations.append(violation)
     return violations
+
+
+_COUNT_GATED = frozenset(
+    {
+        MetricType.NARRATIVE_MIXED_FUNCTIONS,
+        MetricType.NARRATOR_BUDGET_EXCEEDED,
+        MetricType.COMPUTER_BUDGET_EXCEEDED,
+        MetricType.NAMING_ANTIPATTERNS,
+    }
+)
+
+
+def _gate_for(row: MetricResult, config: NarrativeConfig) -> Any:
+    """Which gate applies to a row (None = advisory)."""
+    if row.metric_type in _COUNT_GATED:
+        return config.count_gate(row.metric_type)
+    if row.metric_type is MetricType.NAME_CLARITY and config.name_clarity_floor is not None:
+        return config.clarity_gate()
+    return None

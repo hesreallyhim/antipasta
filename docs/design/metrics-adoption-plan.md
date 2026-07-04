@@ -13,6 +13,31 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 4, part 4 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  name clarity + linguistic antipatterns, completing the Narrative Index.
+  The layered lexicon per design: vendored English wordlist
+  (`data/wordlist.txt.gz`, ~198k words from the public-domain web2 list,
+  598 KB gz — over my 300–500 KB estimate, kept because the bulk is real
+  mid-length vocabulary; swappable for a frequency-ranked list) + curated
+  abbreviations + anchor-harvested project vocabulary (modules and class
+  names only — junk cannot self-whitelist, pinned by test) + config
+  allowlist; junk stop-list overrides all layers. Naive-stemming fallback
+  (plurals/participles) because web2 is singular-only — caught by the prose
+  fixture scoring `users` as a miss. Antipatterns fire on positive evidence
+  of name/behavior contradiction: lying predicates (is_* annotated non-bool),
+  getters returning nothing, two-job `_and_` names. Per-module rows
+  `name_clarity` (mean, worst offenders in details) and
+  `naming_antipatterns`; clarity gates only via an explicit floor.
+  QA: 468 tests green (14 new); all gates green.
+  **Reckoning:** antipasta's mean clarity 0.851 (floor 0.667); the
+  antipattern detector's first sweep found five genuine two-job names in the
+  cli layer (`finalize_and_save_config`, `collect_and_validate_files`,
+  `analyze_and_display_file_breakdown`, ...) — textbook catches, straight
+  onto the remediation backlog.
+  **Remaining for Phase 4:** the Single-Responsibility composite +
+  validation pass (last item; then the phase closes and the golden-set
+  experiment becomes eligible).
+
 - **Phase 4, part 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
   the layering half of Module Tree Shape. `tree_shape.layers` lists layers
   top to bottom; earlier may import later; a later layer importing an

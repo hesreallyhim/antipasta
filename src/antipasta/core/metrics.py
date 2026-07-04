@@ -67,6 +67,8 @@ class MetricType(StrEnum):
     COMPUTER_BUDGET_EXCEEDED = "computer_budget_exceeded"
     STEP_DOWN_ORDERING = "step_down_ordering"
     LAYERING_VIOLATIONS = "layering_violations"
+    NAME_CLARITY = "name_clarity"
+    NAMING_ANTIPATTERNS = "naming_antipatterns"
 
 
 @dataclass

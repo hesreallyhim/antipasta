@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T08:43:36+00:00",
+  "generated_at": "2026-07-04T08:49:19+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
-    "total_files": 81,
+    "total_files": 82,
     "files_with_violations": 0,
     "total_violations": 0,
     "violations_by_type": {},
     "files_by_language": {
-      "python": 80,
+      "python": 81,
       "javascript": 1
     },
     "success": true
@@ -5864,21 +5864,21 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 1.7647058823529411,
-        "maintainability_index": 56.25436387054818,
-        "halstead_volume": 169.21582985307933,
-        "halstead_difficulty": 3.45,
-        "halstead_effort": 583.7946129931237,
-        "halstead_time": 32.433034055173536,
-        "halstead_bugs": 0.05640527661769311,
-        "lines_of_code": 345.0,
-        "logical_lines_of_code": 182.0,
-        "source_lines_of_code": 211.0,
-        "comment_lines": 18.0,
-        "blank_lines": 64.0,
+        "cyclomatic_complexity": 1.7777777777777777,
+        "maintainability_index": 55.05747778984936,
+        "halstead_volume": 204.03520179535806,
+        "halstead_difficulty": 3.5217391304347827,
+        "halstead_effort": 718.5587541488698,
+        "halstead_time": 39.91993078604832,
+        "halstead_bugs": 0.06801173393178601,
+        "lines_of_code": 357.0,
+        "logical_lines_of_code": 189.0,
+        "source_lines_of_code": 219.0,
+        "comment_lines": 20.0,
+        "blank_lines": 65.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 5.217391304347826
+        "comment_density": 5.602240896358544
       },
       "violations": [],
       "functions": [
@@ -6085,14 +6085,35 @@
           "name": "NarrativeConfig",
           "line": 171,
           "metrics": {
-            "weighted_methods_per_class": 3.0,
-            "lack_of_cohesion": 2.0,
+            "weighted_methods_per_class": 5.0,
+            "lack_of_cohesion": 3.0,
             "coupling_between_objects": 3.0
           }
         },
         {
+          "name": "NarrativeConfig::clarity_gate",
+          "line": 187,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
           "name": "NarrativeConfig::effective_mixing_tolerance",
-          "line": 183,
+          "line": 195,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -6113,7 +6134,7 @@
         },
         {
           "name": "NarrativeConfig::count_gate",
-          "line": 189,
+          "line": 201,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -6134,7 +6155,7 @@
         },
         {
           "name": "AntipastaConfig",
-          "line": 198,
+          "line": 210,
           "metrics": {
             "weighted_methods_per_class": 15.0,
             "lack_of_cohesion": 5.0,
@@ -6143,7 +6164,7 @@
         },
         {
           "name": "AntipastaConfig::from_yaml",
-          "line": 210,
+          "line": 222,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 11.60964047443681,
@@ -6164,7 +6185,7 @@
         },
         {
           "name": "AntipastaConfig::generate_default",
-          "line": 222,
+          "line": 234,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -6185,7 +6206,7 @@
         },
         {
           "name": "AntipastaConfig::to_yaml",
-          "line": 231,
+          "line": 243,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -6206,7 +6227,7 @@
         },
         {
           "name": "AntipastaConfig::get_language_config",
-          "line": 239,
+          "line": 251,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -6227,7 +6248,7 @@
         },
         {
           "name": "AntipastaConfig::apply_overrides",
-          "line": 246,
+          "line": 258,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 2.0,
@@ -6248,7 +6269,7 @@
         },
         {
           "name": "AntipastaConfig::with_overrides",
-          "line": 263,
+          "line": 275,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 13.931568569324174,
@@ -6269,7 +6290,7 @@
         },
         {
           "name": "_get_default_python_config",
-          "line": 302,
+          "line": 314,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -6290,7 +6311,7 @@
         },
         {
           "name": "_get_default_python_metrics",
-          "line": 311,
+          "line": 323,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -7598,6 +7619,157 @@
       ]
     },
     {
+      "path": "core/lexicon.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 4.5,
+        "maintainability_index": 64.6504364050916,
+        "halstead_volume": 426.7179481527558,
+        "halstead_difficulty": 5.2875,
+        "halstead_effort": 2256.2711508576963,
+        "halstead_time": 125.34839726987201,
+        "halstead_bugs": 0.1422393160509186,
+        "lines_of_code": 143.0,
+        "logical_lines_of_code": 68.0,
+        "source_lines_of_code": 93.0,
+        "comment_lines": 6.0,
+        "blank_lines": 22.0,
+        "cognitive_complexity": 6.0,
+        "marker_density": 0.0,
+        "comment_density": 4.195804195804196
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "english_words",
+          "line": 71,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 13.931568569324174,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 6.965784284662087,
+            "halstead_time": 0.3869880158145604,
+            "halstead_bugs": 0.004643856189774725,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.4,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "split_identifier",
+          "line": 80,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 2.0,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 1.0,
+            "halstead_time": 0.05555555555555555,
+            "halstead_bugs": 0.0006666666666666666,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 0.3333333333333333
+          }
+        },
+        {
+          "name": "harvest_anchors",
+          "line": 90,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.75
+          }
+        },
+        {
+          "name": "score_identifier",
+          "line": 101,
+          "metrics": {
+            "cyclomatic_complexity": 8.0,
+            "halstead_volume": 111.48579046593244,
+            "halstead_difficulty": 3.0,
+            "halstead_effort": 334.4573713977973,
+            "halstead_time": 18.580965077655407,
+            "halstead_bugs": 0.037161930155310816,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 1.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.6
+          }
+        },
+        {
+          "name": "_hits",
+          "line": 116,
+          "metrics": {
+            "cyclomatic_complexity": 8.0,
+            "halstead_volume": 118.02800258378572,
+            "halstead_difficulty": 2.4545454545454546,
+            "halstead_effort": 289.70509725111043,
+            "halstead_time": 16.09472762506169,
+            "halstead_bugs": 0.039342667527928574,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 15.0,
+            "expression_flatness": 0.5333333333333333,
+            "pipeline_linearity": 0.5
+          }
+        },
+        {
+          "name": "full_vocabulary",
+          "line": 139,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 25.26619429851844,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 12.63309714925922,
+            "halstead_time": 0.701838730514401,
+            "halstead_bugs": 0.008422064766172813,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        }
+      ]
+    },
+    {
       "path": "core/metric_models.py",
       "language": "python",
       "error": null,
@@ -7634,20 +7806,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 66.17640531830472,
+        "maintainability_index": 65.87097562393484,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 165.0,
-        "logical_lines_of_code": 118.0,
-        "source_lines_of_code": 103.0,
+        "lines_of_code": 167.0,
+        "logical_lines_of_code": 120.0,
+        "source_lines_of_code": 105.0,
         "comment_lines": 10.0,
         "blank_lines": 25.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 6.0606060606060606
+        "comment_density": 5.9880239520958085
       },
       "violations": [],
       "functions": [
@@ -7661,7 +7833,7 @@
         },
         {
           "name": "MetricResult",
-          "line": 73,
+          "line": 75,
           "metrics": {
             "weighted_methods_per_class": 4.0,
             "lack_of_cohesion": 2.0,
@@ -7670,7 +7842,7 @@
         },
         {
           "name": "MetricResult::__post_init__",
-          "line": 83,
+          "line": 85,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -7678,7 +7850,7 @@
         },
         {
           "name": "__post_init__",
-          "line": 83,
+          "line": 85,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7697,7 +7869,7 @@
         },
         {
           "name": "MetricResult::to_dict",
-          "line": 88,
+          "line": 90,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7705,7 +7877,7 @@
         },
         {
           "name": "to_dict",
-          "line": 88,
+          "line": 90,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7724,7 +7896,7 @@
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 98,
+          "line": 100,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7732,7 +7904,7 @@
         },
         {
           "name": "from_dict",
-          "line": 99,
+          "line": 101,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7751,7 +7923,7 @@
         },
         {
           "name": "FactRow",
-          "line": 116,
+          "line": 118,
           "metrics": {
             "weighted_methods_per_class": 2.0,
             "lack_of_cohesion": 2.0,
@@ -7760,7 +7932,7 @@
         },
         {
           "name": "FactRow::to_dict",
-          "line": 131,
+          "line": 133,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7768,7 +7940,7 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 135,
+          "line": 137,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7776,7 +7948,7 @@
         },
         {
           "name": "FileMetrics",
-          "line": 142,
+          "line": 144,
           "metrics": {
             "weighted_methods_per_class": 8.0,
             "lack_of_cohesion": 1.0,
@@ -7785,7 +7957,7 @@
         },
         {
           "name": "FileMetrics::__post_init__",
-          "line": 151,
+          "line": 153,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -7793,7 +7965,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 156,
+          "line": 158,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -7814,7 +7986,7 @@
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 163,
+          "line": 165,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -7840,48 +8012,69 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 4.833333333333333,
-        "maintainability_index": 51.54813099643167,
-        "halstead_volume": 729.0827503317319,
-        "halstead_difficulty": 9.353846153846154,
-        "halstead_effort": 6819.7278800260465,
-        "halstead_time": 378.87377111255813,
-        "halstead_bugs": 0.24302758344391062,
-        "lines_of_code": 232.0,
-        "logical_lines_of_code": 126.0,
-        "source_lines_of_code": 158.0,
+        "cyclomatic_complexity": 5.0588235294117645,
+        "maintainability_index": 42.006627820990126,
+        "halstead_volume": 1168.424192422171,
+        "halstead_difficulty": 9.224489795918368,
+        "halstead_effort": 10778.117040302475,
+        "halstead_time": 598.7842800168041,
+        "halstead_bugs": 0.3894747308073903,
+        "lines_of_code": 332.0,
+        "logical_lines_of_code": 167.0,
+        "source_lines_of_code": 236.0,
         "comment_lines": 8.0,
-        "blank_lines": 41.0,
+        "blank_lines": 56.0,
         "cognitive_complexity": 11.0,
         "marker_density": 0.0,
-        "comment_density": 3.4482758620689653
+        "comment_density": 2.4096385542168677
       },
       "violations": [],
       "functions": [
         {
           "name": "derive_narrative",
-          "line": 45,
+          "line": 46,
           "metrics": {
-            "cyclomatic_complexity": 4.0,
-            "halstead_volume": 11.60964047443681,
-            "halstead_difficulty": 1.0,
-            "halstead_effort": 11.60964047443681,
-            "halstead_time": 0.6449800263576005,
-            "halstead_bugs": 0.0038698801581456034,
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 20.67970000576925,
+            "halstead_difficulty": 1.25,
+            "halstead_effort": 25.84962500721156,
+            "halstead_time": 1.43609027817842,
+            "halstead_bugs": 0.006893233335256416,
             "cognitive_complexity": 1.0,
             "message_chain_depth": 2.0,
             "function_arity": 1.0,
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
-            "function_statements": 9.0,
-            "expression_flatness": 0.7777777777777778,
-            "pipeline_linearity": 0.7142857142857143
+            "function_statements": 10.0,
+            "expression_flatness": 0.7,
+            "pipeline_linearity": 0.75
+          }
+        },
+        {
+          "name": "_anchor_vocabulary",
+          "line": 67,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 0.6666666666666666
           }
         },
         {
           "name": "_callables_by_module",
-          "line": 65,
+          "line": 83,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 15.509775004326936,
@@ -7902,7 +8095,7 @@
         },
         {
           "name": "_module_name",
-          "line": 79,
+          "line": 97,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 30.0,
@@ -7923,7 +8116,7 @@
         },
         {
           "name": "_project_symbols",
-          "line": 90,
+          "line": 108,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 4.754887502163469,
@@ -7944,7 +8137,7 @@
         },
         {
           "name": "_ambient_names",
-          "line": 101,
+          "line": 119,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 38.03910001730775,
@@ -7965,7 +8158,7 @@
         },
         {
           "name": "classify",
-          "line": 118,
+          "line": 136,
           "metrics": {
             "cyclomatic_complexity": 9.0,
             "halstead_volume": 93.45440529575887,
@@ -7986,7 +8179,7 @@
         },
         {
           "name": "_module_report",
-          "line": 147,
+          "line": 165,
           "metrics": {
             "cyclomatic_complexity": 8.0,
             "halstead_volume": 84.0,
@@ -7996,7 +8189,7 @@
             "halstead_bugs": 0.028,
             "cognitive_complexity": 8.0,
             "message_chain_depth": 1.0,
-            "function_arity": 6.0,
+            "function_arity": 7.0,
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
@@ -8006,8 +8199,71 @@
           }
         },
         {
+          "name": "_clarity_row",
+          "line": 203,
+          "metrics": {
+            "cyclomatic_complexity": 8.0,
+            "halstead_volume": 31.699250014423125,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 47.548875021634686,
+            "halstead_time": 2.6416041678685938,
+            "halstead_bugs": 0.010566416671474375,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.2857142857142857,
+            "pipeline_linearity": 0.2857142857142857
+          }
+        },
+        {
+          "name": "_is_dunder",
+          "line": 228,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_antipatterns",
+          "line": 236,
+          "metrics": {
+            "cyclomatic_complexity": 8.0,
+            "halstead_volume": 95.08241808752197,
+            "halstead_difficulty": 3.2142857142857144,
+            "halstead_effort": 305.6220581384635,
+            "halstead_time": 16.97900322991464,
+            "halstead_bugs": 0.031694139362507326,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 0.5454545454545454,
+            "pipeline_linearity": 0.42857142857142855
+          }
+        },
+        {
           "name": "_computer_over_budget",
-          "line": 182,
+          "line": 260,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 27.0,
@@ -8028,7 +8284,7 @@
         },
         {
           "name": "_step_down_ratio",
-          "line": 189,
+          "line": 267,
           "metrics": {
             "cyclomatic_complexity": 8.0,
             "halstead_volume": 84.0,
@@ -8049,7 +8305,7 @@
         },
         {
           "name": "_count_row",
-          "line": 206,
+          "line": 284,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -8070,7 +8326,7 @@
         },
         {
           "name": "_subject_path",
-          "line": 218,
+          "line": 296,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 4.754887502163469,
@@ -8091,23 +8347,44 @@
         },
         {
           "name": "_narrative_violations",
-          "line": 222,
+          "line": 300,
           "metrics": {
-            "cyclomatic_complexity": 4.0,
-            "halstead_volume": 4.754887502163469,
-            "halstead_difficulty": 0.5,
-            "halstead_effort": 2.3774437510817346,
-            "halstead_time": 0.1320802083934297,
-            "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 4.0,
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 12.0,
+            "halstead_difficulty": 0.6666666666666666,
+            "halstead_effort": 8.0,
+            "halstead_time": 0.4444444444444444,
+            "halstead_bugs": 0.004,
+            "cognitive_complexity": 6.0,
             "message_chain_depth": 1.0,
             "function_arity": 2.0,
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
-            "function_statements": 8.0,
-            "expression_flatness": 0.625,
+            "function_statements": 11.0,
+            "expression_flatness": 0.8181818181818182,
             "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_gate_for",
+          "line": 326,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 41.51317942364757,
+            "halstead_difficulty": 2.2857142857142856,
+            "halstead_effort": 94.88726725405158,
+            "halstead_time": 5.27151484744731,
+            "halstead_bugs": 0.01383772647454919,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 1.0
           }
         }
       ]
@@ -12443,7 +12720,7 @@
       "metrics": [
         {
           "type": "directory_children",
-          "value": 18.0,
+          "value": 19.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -12591,14 +12868,14 @@
           "details": {
             "approximate": true
           },
-          "line_number": 198,
+          "line_number": 210,
           "function_name": "AntipastaConfig"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 198,
+          "line_number": 210,
           "function_name": "AntipastaConfig"
         }
       ],
@@ -12909,14 +13186,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 116,
+          "line_number": 118,
           "function_name": "FactRow"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 116,
+          "line_number": 118,
           "function_name": "FactRow"
         }
       ],
@@ -12929,14 +13206,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 142,
+          "line_number": 144,
           "function_name": "FileMetrics"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 142,
+          "line_number": 144,
           "function_name": "FileMetrics"
         }
       ],
@@ -12949,14 +13226,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 73,
+          "line_number": 75,
           "function_name": "MetricResult"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 73,
+          "line_number": 75,
           "function_name": "MetricResult"
         }
       ],
@@ -15509,6 +15786,42 @@
       "violations": []
     },
     {
+      "subject": "core.lexicon",
+      "metrics": [
+        {
+          "type": "efferent_coupling",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "afferent_coupling",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "instability",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "stable_dependencies_violations",
+          "value": 0.0,
+          "details": {
+            "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
       "subject": "core.metric_models",
       "metrics": [
         {
@@ -15621,7 +15934,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 4.0,
+          "value": 5.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15635,7 +15948,7 @@
         },
         {
           "type": "instability",
-          "value": 0.8,
+          "value": 0.8333,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15654,7 +15967,7 @@
           "value": 0.0,
           "details": {
             "approximate": true,
-            "targets": 4
+            "targets": 5
           },
           "line_number": null,
           "function_name": null
@@ -17120,6 +17433,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17156,6 +17483,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.5556,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8333,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17198,6 +17539,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8833,
+          "details": {
+            "worst": [
+              "collect_halstead_thresholds"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17229,6 +17588,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17268,6 +17641,24 @@
           "type": "step_down_ordering",
           "value": 1.0,
           "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "finalize_and_save_config"
+            ]
+          },
           "line_number": null,
           "function_name": null
         }
@@ -17316,6 +17707,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17358,6 +17763,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.6833,
+          "details": {
+            "worst": [
+              "validate_with_pydantic"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17393,6 +17816,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17438,6 +17875,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7333,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17472,6 +17923,20 @@
         },
         {
           "type": "step_down_ordering",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.94,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
           "value": 0.0,
           "details": null,
           "line_number": null,
@@ -17514,6 +17979,26 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.713,
+          "details": {
+            "worst": [
+              "box",
+              "echo_box",
+              "_create_box_renderer"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17544,6 +18029,20 @@
         },
         {
           "type": "step_down_ordering",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.775,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
           "value": 0.0,
           "details": null,
           "line_number": null,
@@ -17579,6 +18078,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17620,6 +18133,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9571,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17658,6 +18185,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.875,
+          "details": {
+            "worst": [
+              "_load_gitignore_if_enabled"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17689,6 +18234,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.6667,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17728,6 +18287,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.75,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.94,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17771,6 +18344,24 @@
           "type": "step_down_ordering",
           "value": 0.75,
           "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.95,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "create_and_configure_override"
+            ]
+          },
           "line_number": null,
           "function_name": null
         }
@@ -17819,6 +18410,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9286,
+          "details": {
+            "worst": [
+              "_render_payload"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17855,6 +18464,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.5,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9143,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17903,6 +18526,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8917,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17948,6 +18585,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9643,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -17980,6 +18631,24 @@
           "type": "step_down_ordering",
           "value": 0.6667,
           "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9143,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "analyze_and_display_file_breakdown"
+            ]
+          },
           "line_number": null,
           "function_name": null
         }
@@ -18024,6 +18693,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "collect_and_validate_files"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18066,6 +18753,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18097,6 +18798,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18135,6 +18850,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.3333,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.925,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18178,6 +18907,28 @@
           "type": "step_down_ordering",
           "value": 0.3333,
           "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9208,
+          "details": {
+            "worst": [
+              "display_stats_to_stdout"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "handle_output_and_display"
+            ]
+          },
           "line_number": null,
           "function_name": null
         }
@@ -18225,6 +18976,24 @@
         {
           "type": "step_down_ordering",
           "value": 0.3,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7458,
+          "details": {
+            "worst": [
+              "display_csv"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18278,6 +19047,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9286,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18313,6 +19096,24 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9778,
+          "details": {
+            "worst": [
+              "_has_range_constraints"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18352,6 +19153,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.76,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18403,6 +19218,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9769,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18444,6 +19273,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.5,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8286,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18497,6 +19340,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.85,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18533,6 +19390,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.6667,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8333,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18585,6 +19456,25 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.937,
+          "details": {
+            "worst": [
+              "has_overrides",
+              "_apply_gitignore_override"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18616,6 +19506,24 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.6667,
+          "details": {
+            "worst": [
+              "has_project_violations"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18659,6 +19567,24 @@
         {
           "type": "step_down_ordering",
           "value": 0.3333,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8429,
+          "details": {
+            "worst": [
+              "add_gitignore"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18719,6 +19645,85 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8019,
+          "details": {
+            "worst": [
+              "_sdp_violations"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "core.lexicon",
+      "metrics": [
+        {
+          "type": "narrative_mixed_functions",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "score_identifier"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "narrator_budget_exceeded",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "computer_budget_exceeded",
+          "value": 2.0,
+          "details": {
+            "functions": [
+              "split_identifier",
+              "_hits"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "step_down_ordering",
+          "value": 0.25,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7917,
+          "details": {
+            "worst": [
+              "english_words"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18757,6 +19762,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18766,11 +19785,13 @@
       "metrics": [
         {
           "type": "narrative_mixed_functions",
-          "value": 2.0,
+          "value": 4.0,
           "details": {
             "functions": [
+              "derive_narrative",
               "_callables_by_module",
-              "_module_report"
+              "_module_report",
+              "_clarity_row"
             ]
           },
           "line_number": null,
@@ -18778,19 +19799,24 @@
         },
         {
           "type": "narrator_budget_exceeded",
-          "value": 0.0,
-          "details": null,
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "_narrative_violations"
+            ]
+          },
           "line_number": null,
           "function_name": null
         },
         {
           "type": "computer_budget_exceeded",
-          "value": 4.0,
+          "value": 5.0,
           "details": {
             "functions": [
               "_project_symbols",
               "_ambient_names",
               "classify",
+              "_antipatterns",
               "_step_down_ratio"
             ]
           },
@@ -18799,7 +19825,26 @@
         },
         {
           "type": "step_down_ordering",
-          "value": 0.9167,
+          "value": 0.9444,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.6706,
+          "details": {
+            "worst": [
+              "_antipatterns",
+              "classify"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18851,6 +19896,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8976,
+          "details": {
+            "worst": [
+              "_relative_posix_path"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18897,6 +19960,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7821,
+          "details": {
+            "worst": [
+              "_numeric_metrics"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -18928,6 +20009,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.775,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -18979,6 +20074,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.82,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19021,6 +20130,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.85,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19059,6 +20182,25 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7767,
+          "details": {
+            "worst": [
+              "has_violations",
+              "has_violations"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19090,6 +20232,24 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.6833,
+          "details": {
+            "worst": [
+              "build_baseline_payload"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -19127,6 +20287,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.8667,
+          "details": {
+            "worst": [
+              "_escape_embedded_code"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19158,6 +20336,20 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.9,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -19207,6 +20399,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.95,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19246,6 +20452,20 @@
         {
           "type": "step_down_ordering",
           "value": 0.5,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.925,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -19296,6 +20516,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.775,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19341,6 +20575,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.775,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19377,6 +20625,24 @@
           "type": "step_down_ordering",
           "value": 1.0,
           "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 1.0,
+          "details": {
+            "functions": [
+              "comment_lines_and_markers"
+            ]
+          },
           "line_number": null,
           "function_name": null
         }
@@ -19425,6 +20691,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7429,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19470,6 +20750,24 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7312,
+          "details": {
+            "worst": [
+              "_method_payload"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19506,6 +20804,25 @@
         {
           "type": "step_down_ordering",
           "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7869,
+          "details": {
+            "worst": [
+              "function_arity",
+              "boolean_flag_parameters"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -19556,6 +20873,28 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 0.7733,
+          "details": {
+            "worst": [
+              "_build_cc_result",
+              "_build_halstead_results",
+              "_get_cyclomatic_complexity",
+              "_get_halstead_metrics",
+              "_get_maintainability_index"
+            ]
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19594,6 +20933,20 @@
           "details": null,
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "name_clarity",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "naming_antipatterns",
+          "value": 0.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -19605,8 +20958,8 @@
       "parent": null,
       "label": "antipasta",
       "aggregate": {
-        "files": 81,
-        "value": 6600.0,
+        "files": 82,
+        "value": 6781.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -19614,24 +20967,24 @@
             "path": "__init__.py"
           },
           "halstead_volume": {
-            "value": 989.9345722764341,
-            "path": "core/import_graph.py"
+            "value": 1168.424192422171,
+            "path": "core/narrative.py"
           },
           "halstead_difficulty": {
-            "value": 9.353846153846154,
+            "value": 9.224489795918368,
             "path": "core/narrative.py"
           },
           "halstead_effort": {
-            "value": 9050.830375098825,
-            "path": "core/import_graph.py"
+            "value": 10778.117040302475,
+            "path": "core/narrative.py"
           },
           "halstead_time": {
-            "value": 502.82390972771253,
-            "path": "core/import_graph.py"
+            "value": 598.7842800168041,
+            "path": "core/narrative.py"
           },
           "halstead_bugs": {
-            "value": 0.32997819075881135,
-            "path": "core/import_graph.py"
+            "value": 0.3894747308073903,
+            "path": "core/narrative.py"
           },
           "lines_of_code": {
             "value": 710.0,
@@ -20684,8 +22037,8 @@
       "parent": ".",
       "label": "core",
       "aggregate": {
-        "files": 19,
-        "value": 2404.0,
+        "files": 20,
+        "value": 2585.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -20693,24 +22046,24 @@
             "path": "core/__init__.py"
           },
           "halstead_volume": {
-            "value": 989.9345722764341,
-            "path": "core/import_graph.py"
+            "value": 1168.424192422171,
+            "path": "core/narrative.py"
           },
           "halstead_difficulty": {
-            "value": 9.353846153846154,
+            "value": 9.224489795918368,
             "path": "core/narrative.py"
           },
           "halstead_effort": {
-            "value": 9050.830375098825,
-            "path": "core/import_graph.py"
+            "value": 10778.117040302475,
+            "path": "core/narrative.py"
           },
           "halstead_time": {
-            "value": 502.82390972771253,
-            "path": "core/import_graph.py"
+            "value": 598.7842800168041,
+            "path": "core/narrative.py"
           },
           "halstead_bugs": {
-            "value": 0.32997819075881135,
-            "path": "core/import_graph.py"
+            "value": 0.3894747308073903,
+            "path": "core/narrative.py"
           },
           "lines_of_code": {
             "value": 462.0,
@@ -20790,7 +22143,7 @@
       "id": "core/config.py",
       "parent": "core",
       "label": "config.py",
-      "value": 211.0,
+      "value": 219.0,
       "file_index": 46
     },
     {
@@ -20822,67 +22175,74 @@
       "file_index": 50
     },
     {
+      "id": "core/lexicon.py",
+      "parent": "core",
+      "label": "lexicon.py",
+      "value": 93.0,
+      "file_index": 51
+    },
+    {
       "id": "core/metric_models.py",
       "parent": "core",
       "label": "metric_models.py",
       "value": 41.0,
-      "file_index": 51
+      "file_index": 52
     },
     {
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 103.0,
-      "file_index": 52
+      "value": 105.0,
+      "file_index": 53
     },
     {
       "id": "core/narrative.py",
       "parent": "core",
       "label": "narrative.py",
-      "value": 158.0,
-      "file_index": 53
+      "value": 236.0,
+      "file_index": 54
     },
     {
       "id": "core/snapshot.py",
       "parent": "core",
       "label": "snapshot.py",
       "value": 194.0,
-      "file_index": 54
+      "file_index": 55
     },
     {
       "id": "core/snapshot_diff.py",
       "parent": "core",
       "label": "snapshot_diff.py",
       "value": 185.0,
-      "file_index": 55
+      "file_index": 56
     },
     {
       "id": "core/snapshot_diff_types.py",
       "parent": "core",
       "label": "snapshot_diff_types.py",
       "value": 69.0,
-      "file_index": 56
+      "file_index": 57
     },
     {
       "id": "core/tree_shape.py",
       "parent": "core",
       "label": "tree_shape.py",
       "value": 119.0,
-      "file_index": 57
+      "file_index": 58
     },
     {
       "id": "core/treemap.py",
       "parent": "core",
       "label": "treemap.py",
       "value": 67.0,
-      "file_index": 58
+      "file_index": 59
     },
     {
       "id": "core/violations.py",
       "parent": "core",
       "label": "violations.py",
       "value": 127.0,
-      "file_index": 59
+      "file_index": 60
     },
     {
       "id": "hooks",
@@ -20953,7 +22313,7 @@
       "parent": "hooks",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 60
+      "file_index": 61
     },
     {
       "id": "report",
@@ -21032,7 +22392,7 @@
       "parent": "report",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 61
+      "file_index": 62
     },
     {
       "id": "report/assets",
@@ -21063,21 +22423,21 @@
       "parent": "report/assets",
       "label": "report.js",
       "value": 606.0,
-      "file_index": 62
+      "file_index": 63
     },
     {
       "id": "report/baseline.py",
       "parent": "report",
       "label": "baseline.py",
       "value": 35.0,
-      "file_index": 63
+      "file_index": 64
     },
     {
       "id": "report/html.py",
       "parent": "report",
       "label": "html.py",
       "value": 34.0,
-      "file_index": 64
+      "file_index": 65
     },
     {
       "id": "runners",
@@ -21156,14 +22516,14 @@
       "parent": "runners",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 65
+      "file_index": 66
     },
     {
       "id": "runners/base.py",
       "parent": "runners",
       "label": "base.py",
       "value": 12.0,
-      "file_index": 66
+      "file_index": 67
     },
     {
       "id": "runners/javascript",
@@ -21242,14 +22602,14 @@
       "parent": "runners/javascript",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 67
+      "file_index": 68
     },
     {
       "id": "runners/javascript/lizard_runner.py",
       "parent": "runners/javascript",
       "label": "lizard_runner.py",
       "value": 112.0,
-      "file_index": 68
+      "file_index": 69
     },
     {
       "id": "runners/python",
@@ -21328,14 +22688,14 @@
       "parent": "runners/python",
       "label": "__init__.py",
       "value": 3.0,
-      "file_index": 69
+      "file_index": 70
     },
     {
       "id": "runners/python/complexipy_runner.py",
       "parent": "runners/python",
       "label": "complexipy_runner.py",
       "value": 70.0,
-      "file_index": 70
+      "file_index": 71
     },
     {
       "id": "runners/python/house_style",
@@ -21414,49 +22774,49 @@
       "parent": "runners/python/house_style",
       "label": "__init__.py",
       "value": 167.0,
-      "file_index": 71
+      "file_index": 72
     },
     {
       "id": "runners/python/house_style/cohesion.py",
       "parent": "runners/python/house_style",
       "label": "cohesion.py",
       "value": 50.0,
-      "file_index": 72
+      "file_index": 73
     },
     {
       "id": "runners/python/house_style/comments.py",
       "parent": "runners/python/house_style",
       "label": "comments.py",
       "value": 29.0,
-      "file_index": 73
+      "file_index": 74
     },
     {
       "id": "runners/python/house_style/expressions.py",
       "parent": "runners/python/house_style",
       "label": "expressions.py",
       "value": 147.0,
-      "file_index": 74
+      "file_index": 75
     },
     {
       "id": "runners/python/house_style/facts.py",
       "parent": "runners/python/house_style",
       "label": "facts.py",
       "value": 132.0,
-      "file_index": 75
+      "file_index": 76
     },
     {
       "id": "runners/python/house_style/structure.py",
       "parent": "runners/python/house_style",
       "label": "structure.py",
       "value": 92.0,
-      "file_index": 76
+      "file_index": 77
     },
     {
       "id": "runners/python/radon.py",
       "parent": "runners/python",
       "label": "radon.py",
       "value": 193.0,
-      "file_index": 77
+      "file_index": 78
     },
     {
       "id": "runners/typescript",
@@ -21527,7 +22887,7 @@
       "parent": "runners/typescript",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 78
+      "file_index": 79
     },
     {
       "id": "utils",
@@ -21606,14 +22966,14 @@
       "parent": "utils",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 79
+      "file_index": 80
     },
     {
       "id": "utils/schema_generator.py",
       "parent": "utils",
       "label": "schema_generator.py",
       "value": 19.0,
-      "file_index": 80
+      "file_index": 81
     }
   ]
 }

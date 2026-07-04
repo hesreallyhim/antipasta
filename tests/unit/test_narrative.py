@@ -194,3 +194,87 @@ class TestAmbientDetection:
         ambient = _ambient_names({"m": payloads})
 
         assert "log" not in ambient
+
+
+class TestNameClarity:
+    def test_clear_names_score_high(self, tmp_path: Path) -> None:
+        reports = _derive(tmp_path, {"clean.py": PROSE_MODULE})
+
+        assert _rows(reports, "clean")["name_clarity"] >= 0.9
+
+    def test_junk_names_score_low_and_listed(self, tmp_path: Path) -> None:
+        source = (
+            "def chk(d):\n    x = proc2(d)\n    y = fn_hlpr(x)\n    return y\n\n\n"
+            "def proc2(d):\n    return d\n\n\ndef fn_hlpr(x):\n    return x\n"
+        )
+        reports = _derive(tmp_path, {"junky.py": source})
+
+        report = next(r for r in reports if r.subject == "junky")
+        clarity = next(m for m in report.metrics if m.metric_type.value == "name_clarity")
+        assert clarity.value < 0.4
+        assert "fn_hlpr" in (clarity.details or {})["worst"]
+
+    def test_project_anchor_words_pass(self, tmp_path: Path) -> None:
+        # "quix" is not English — but it IS this project's name, so the
+        # anchor harvest teaches it (module named quix_engine).
+        source = "def build_quix(d):\n    a = d\n    b = a\n    return b\n"
+        reports = _derive(tmp_path, {"quix_engine.py": source})
+
+        assert _rows(reports, "quix_engine")["name_clarity"] == 1.0
+
+    def test_allowlist_words_pass(self, tmp_path: Path) -> None:
+        from antipasta.core.config import NarrativeConfig
+
+        source = "def build_zorp(d):\n    a = d\n    b = a\n    return b\n"
+        without = _derive(tmp_path, {"m.py": source})
+        with_allow = _derive(
+            tmp_path,
+            {"m.py": source},
+            AntipastaConfig(narrative=NarrativeConfig(allowlist=["zorp"])),
+        )
+
+        assert _rows(without, "m")["name_clarity"] < 1.0
+        assert _rows(with_allow, "m")["name_clarity"] == 1.0
+
+
+class TestNamingAntipatterns:
+    def test_lying_predicate(self, tmp_path: Path) -> None:
+        source = (
+            "def is_ready(x) -> list:\n    a = x\n    b = a\n    return [b]\n"
+        )
+        reports = _derive(tmp_path, {"m.py": source})
+
+        assert _rows(reports, "m")["naming_antipatterns"] == 1.0
+
+    def test_getter_returning_nothing(self, tmp_path: Path) -> None:
+        source = "def get_user(x):\n    a = x\n    print(a)\n"
+        reports = _derive(tmp_path, {"m.py": source})
+
+        assert _rows(reports, "m")["naming_antipatterns"] == 1.0
+
+    def test_two_jobs_name(self, tmp_path: Path) -> None:
+        source = "def fetch_and_save(x):\n    a = x\n    b = a\n    return b\n"
+        reports = _derive(tmp_path, {"m.py": source})
+
+        assert _rows(reports, "m")["naming_antipatterns"] == 1.0
+
+    def test_honest_names_clean(self, tmp_path: Path) -> None:
+        reports = _derive(tmp_path, {"m.py": PROSE_MODULE})
+
+        assert _rows(reports, "m")["naming_antipatterns"] == 0.0
+
+
+class TestLexiconUnits:
+    def test_split_identifier(self) -> None:
+        from antipasta.core.lexicon import split_identifier
+
+        assert split_identifier("getUsersByNameDesc") == [
+            "get", "users", "by", "name", "desc",
+        ]
+        assert split_identifier("fetch_users_v2") == ["fetch", "users", "v"]
+
+    def test_junk_cannot_be_laundered(self) -> None:
+        from antipasta.core.lexicon import JUNK_WORDS, harvest_anchors
+
+        anchors = harvest_anchors(["fn_tools"], ["FnHelper"])
+        assert not (anchors & JUNK_WORDS)
