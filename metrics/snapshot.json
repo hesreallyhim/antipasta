@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T08:49:19+00:00",
+  "generated_at": "2026-07-04T08:51:25+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
@@ -5671,27 +5671,27 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 5.125,
-        "maintainability_index": 50.335399929930496,
-        "halstead_volume": 466.2278340329935,
-        "halstead_difficulty": 7.285714285714286,
-        "halstead_effort": 3396.8027908118097,
-        "halstead_time": 188.71126615621165,
-        "halstead_bugs": 0.15540927801099783,
-        "lines_of_code": 173.0,
-        "logical_lines_of_code": 109.0,
-        "source_lines_of_code": 136.0,
+        "cyclomatic_complexity": 4.818181818181818,
+        "maintainability_index": 45.21677325629191,
+        "halstead_volume": 734.4955585267551,
+        "halstead_difficulty": 7.8125,
+        "halstead_effort": 5738.246550990274,
+        "halstead_time": 318.7914750550152,
+        "halstead_bugs": 0.2448318528422517,
+        "lines_of_code": 249.0,
+        "logical_lines_of_code": 147.0,
+        "source_lines_of_code": 196.0,
         "comment_lines": 5.0,
-        "blank_lines": 22.0,
+        "blank_lines": 29.0,
         "cognitive_complexity": 13.0,
         "marker_density": 0.0,
-        "comment_density": 2.8901734104046244
+        "comment_density": 2.0080321285140563
       },
       "violations": [],
       "functions": [
         {
           "name": "derive_class_registry",
-          "line": 26,
+          "line": 27,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 2.0,
@@ -5705,14 +5705,56 @@
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
+            "function_statements": 13.0,
+            "expression_flatness": 0.7692307692307693,
+            "pipeline_linearity": 0.6666666666666666
+          }
+        },
+        {
+          "name": "_weighted_methods_lookup",
+          "line": 47,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 13.931568569324174,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 6.965784284662087,
+            "halstead_time": 0.3869880158145604,
+            "halstead_bugs": 0.004643856189774725,
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
             "function_statements": 11.0,
-            "expression_flatness": 0.7272727272727273,
-            "pipeline_linearity": 0.5714285714285714
+            "expression_flatness": 0.6363636363636364,
+            "pipeline_linearity": 0.2
+          }
+        },
+        {
+          "name": "_statements_per_class",
+          "line": 61,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 43.01955000865388,
+            "halstead_difficulty": 2.0,
+            "halstead_effort": 86.03910001730776,
+            "halstead_time": 4.779950000961542,
+            "halstead_bugs": 0.014339850002884626,
+            "cognitive_complexity": 9.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 12.0,
+            "expression_flatness": 0.5833333333333334,
+            "pipeline_linearity": 0.42857142857142855
           }
         },
         {
           "name": "_build_registry",
-          "line": 42,
+          "line": 76,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 15.509775004326936,
@@ -5733,7 +5775,7 @@
         },
         {
           "name": "_module_of",
-          "line": 64,
+          "line": 99,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -5754,7 +5796,7 @@
         },
         {
           "name": "_imported_name_targets",
-          "line": 72,
+          "line": 107,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 28.529325012980813,
@@ -5775,7 +5817,7 @@
         },
         {
           "name": "_resolve_base",
-          "line": 88,
+          "line": 123,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 68.0,
@@ -5796,7 +5838,7 @@
         },
         {
           "name": "_depth_of",
-          "line": 109,
+          "line": 144,
           "metrics": {
             "cyclomatic_complexity": 9.0,
             "halstead_volume": 119.20902501875008,
@@ -5817,7 +5859,7 @@
         },
         {
           "name": "_count_children",
-          "line": 135,
+          "line": 170,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 57.110323830864054,
@@ -5838,7 +5880,7 @@
         },
         {
           "name": "_class_report",
-          "line": 147,
+          "line": 182,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -5848,13 +5890,34 @@
             "halstead_bugs": 0.0015849625007211565,
             "cognitive_complexity": 1.0,
             "message_chain_depth": 1.0,
-            "function_arity": 5.0,
+            "function_arity": 7.0,
             "boolean_flag_parameters": 1.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
             "function_statements": 4.0,
             "expression_flatness": 0.25,
             "pipeline_linearity": 0.6666666666666666
+          }
+        },
+        {
+          "name": "_srp_row",
+          "line": 214,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 68.53238859703687,
+            "halstead_difficulty": 1.6363636363636365,
+            "halstead_effort": 112.14390861333307,
+            "halstead_time": 6.23021714518517,
+            "halstead_bugs": 0.022844129532345624,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 5.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.25
           }
         }
       ]
@@ -7806,20 +7869,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 65.87097562393484,
+        "maintainability_index": 65.71985586947483,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 167.0,
-        "logical_lines_of_code": 120.0,
-        "source_lines_of_code": 105.0,
+        "lines_of_code": 168.0,
+        "logical_lines_of_code": 121.0,
+        "source_lines_of_code": 106.0,
         "comment_lines": 10.0,
         "blank_lines": 25.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 5.9880239520958085
+        "comment_density": 5.952380952380952
       },
       "violations": [],
       "functions": [
@@ -7833,7 +7896,7 @@
         },
         {
           "name": "MetricResult",
-          "line": 75,
+          "line": 76,
           "metrics": {
             "weighted_methods_per_class": 4.0,
             "lack_of_cohesion": 2.0,
@@ -7842,7 +7905,7 @@
         },
         {
           "name": "MetricResult::__post_init__",
-          "line": 85,
+          "line": 86,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -7850,7 +7913,7 @@
         },
         {
           "name": "__post_init__",
-          "line": 85,
+          "line": 86,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7869,7 +7932,7 @@
         },
         {
           "name": "MetricResult::to_dict",
-          "line": 90,
+          "line": 91,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7877,7 +7940,7 @@
         },
         {
           "name": "to_dict",
-          "line": 90,
+          "line": 91,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7896,7 +7959,7 @@
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 100,
+          "line": 101,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7904,7 +7967,7 @@
         },
         {
           "name": "from_dict",
-          "line": 101,
+          "line": 102,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7923,7 +7986,7 @@
         },
         {
           "name": "FactRow",
-          "line": 118,
+          "line": 119,
           "metrics": {
             "weighted_methods_per_class": 2.0,
             "lack_of_cohesion": 2.0,
@@ -7932,7 +7995,7 @@
         },
         {
           "name": "FactRow::to_dict",
-          "line": 133,
+          "line": 134,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7940,7 +8003,7 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 137,
+          "line": 138,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7948,7 +8011,7 @@
         },
         {
           "name": "FileMetrics",
-          "line": 144,
+          "line": 145,
           "metrics": {
             "weighted_methods_per_class": 8.0,
             "lack_of_cohesion": 1.0,
@@ -7957,7 +8020,7 @@
         },
         {
           "name": "FileMetrics::__post_init__",
-          "line": 153,
+          "line": 154,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -7965,7 +8028,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 158,
+          "line": 159,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -7986,7 +8049,7 @@
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 165,
+          "line": 166,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -12835,6 +12898,18 @@
           "details": null,
           "line_number": 125,
           "function_name": "MetricAggregator"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 15.36,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 49.0,
+            "statements": 115,
+            "validated": false
+          },
+          "line_number": 125,
+          "function_name": "MetricAggregator"
         }
       ],
       "violations": []
@@ -12853,6 +12928,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 77,
+          "function_name": "MetricsCache"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 5.67,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 21.0,
+            "statements": 40,
+            "validated": false
+          },
           "line_number": 77,
           "function_name": "MetricsCache"
         }
@@ -12877,6 +12964,18 @@
           "details": null,
           "line_number": 210,
           "function_name": "AntipastaConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 11.5,
+          "details": {
+            "cohesion_components": 5,
+            "weighted_methods": 15.0,
+            "statements": 32,
+            "validated": false
+          },
+          "line_number": 210,
+          "function_name": "AntipastaConfig"
         }
       ],
       "violations": []
@@ -12897,6 +12996,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 36,
+          "function_name": "ComparisonOperator"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
           "line_number": 36,
           "function_name": "ComparisonOperator"
         }
@@ -12921,6 +13032,18 @@
           "details": null,
           "line_number": 81,
           "function_name": "DefaultsConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
+          "line_number": 81,
+          "function_name": "DefaultsConfig"
         }
       ],
       "violations": []
@@ -12941,6 +13064,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 134,
+          "function_name": "ImportGraphConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 2.28,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 2.0,
+            "statements": 4,
+            "validated": false
+          },
           "line_number": 134,
           "function_name": "ImportGraphConfig"
         }
@@ -12965,6 +13100,18 @@
           "details": null,
           "line_number": 64,
           "function_name": "LanguageConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.19,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 3.0,
+            "statements": 5,
+            "validated": false
+          },
+          "line_number": 64,
+          "function_name": "LanguageConfig"
         }
       ],
       "violations": []
@@ -12985,6 +13132,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 47,
+          "function_name": "MetricConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.14,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 2.0,
+            "statements": 4,
+            "validated": false
+          },
           "line_number": 47,
           "function_name": "MetricConfig"
         }
@@ -13009,6 +13168,18 @@
           "details": null,
           "line_number": 171,
           "function_name": "NarrativeConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 3.97,
+          "details": {
+            "cohesion_components": 3,
+            "weighted_methods": 5.0,
+            "statements": 8,
+            "validated": false
+          },
+          "line_number": 171,
+          "function_name": "NarrativeConfig"
         }
       ],
       "violations": []
@@ -13031,6 +13202,18 @@
           "details": null,
           "line_number": 96,
           "function_name": "TreeShapeConfig"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 3.63,
+          "details": {
+            "cohesion_components": 3,
+            "weighted_methods": 3.0,
+            "statements": 6,
+            "validated": false
+          },
+          "line_number": 96,
+          "function_name": "TreeShapeConfig"
         }
       ],
       "violations": []
@@ -13049,6 +13232,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 22,
+          "function_name": "ConfigOverride"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 7.33,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 54.0,
+            "statements": 97,
+            "validated": false
+          },
           "line_number": 22,
           "function_name": "ConfigOverride"
         }
@@ -13071,6 +13266,18 @@
           "details": null,
           "line_number": 43,
           "function_name": "AnalysisResult"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.1,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 2.0,
+            "statements": 2,
+            "validated": false
+          },
+          "line_number": 43,
+          "function_name": "AnalysisResult"
         }
       ],
       "violations": []
@@ -13089,6 +13296,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 29,
+          "function_name": "DerivationInput"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
           "line_number": 29,
           "function_name": "DerivationInput"
         }
@@ -13113,6 +13332,18 @@
           "details": null,
           "line_number": 12,
           "function_name": "Language"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
+          "line_number": 12,
+          "function_name": "Language"
         }
       ],
       "violations": []
@@ -13133,6 +13364,18 @@
           "details": null,
           "line_number": 38,
           "function_name": "LanguageDetector"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 3.57,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 30.0,
+            "statements": 47,
+            "validated": false
+          },
+          "line_number": 38,
+          "function_name": "LanguageDetector"
         }
       ],
       "violations": []
@@ -13151,6 +13394,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 319,
+          "function_name": "_Tarjan"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 2.61,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 17.0,
+            "statements": 40,
+            "validated": false
+          },
           "line_number": 319,
           "function_name": "_Tarjan"
         }
@@ -13175,6 +13430,18 @@
           "details": null,
           "line_number": 43,
           "function_name": "MetricThresholds"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
+          "line_number": 43,
+          "function_name": "MetricThresholds"
         }
       ],
       "violations": []
@@ -13186,14 +13453,26 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 118,
+          "line_number": 119,
           "function_name": "FactRow"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 118,
+          "line_number": 119,
+          "function_name": "FactRow"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 2.28,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 2.0,
+            "statements": 4,
+            "validated": false
+          },
+          "line_number": 119,
           "function_name": "FactRow"
         }
       ],
@@ -13206,14 +13485,26 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 144,
+          "line_number": 145,
           "function_name": "FileMetrics"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 144,
+          "line_number": 145,
+          "function_name": "FileMetrics"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.48,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 8.0,
+            "statements": 10,
+            "validated": false
+          },
+          "line_number": 145,
           "function_name": "FileMetrics"
         }
       ],
@@ -13226,14 +13517,26 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 75,
+          "line_number": 76,
           "function_name": "MetricResult"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 75,
+          "line_number": 76,
+          "function_name": "MetricResult"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 2.53,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 4.0,
+            "statements": 7,
+            "validated": false
+          },
+          "line_number": 76,
           "function_name": "MetricResult"
         }
       ],
@@ -13257,6 +13560,18 @@
           "details": null,
           "line_number": 15,
           "function_name": "MetricType"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
+          "line_number": 15,
+          "function_name": "MetricType"
         }
       ],
       "violations": []
@@ -13275,6 +13590,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 38,
+          "function_name": "FileDelta"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
           "line_number": 38,
           "function_name": "FileDelta"
         }
@@ -13297,6 +13624,18 @@
           "details": null,
           "line_number": 48,
           "function_name": "FunctionDelta"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
+          "line_number": 48,
+          "function_name": "FunctionDelta"
         }
       ],
       "violations": []
@@ -13315,6 +13654,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 21,
+          "function_name": "MetricDelta"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.14,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 2.0,
+            "statements": 4,
+            "validated": false
+          },
           "line_number": 21,
           "function_name": "MetricDelta"
         }
@@ -13337,6 +13688,18 @@
           "details": null,
           "line_number": 80,
           "function_name": "SnapshotDiff"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.66,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 14.0,
+            "statements": 8,
+            "validated": false
+          },
+          "line_number": 80,
+          "function_name": "SnapshotDiff"
         }
       ],
       "violations": []
@@ -13355,6 +13718,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 72,
+          "function_name": "ViolationChanges"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
           "line_number": 72,
           "function_name": "ViolationChanges"
         }
@@ -13377,6 +13752,18 @@
           "details": null,
           "line_number": 62,
           "function_name": "ViolationRecord"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.0,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 0.0,
+            "statements": 0,
+            "validated": false
+          },
+          "line_number": 62,
+          "function_name": "ViolationRecord"
         }
       ],
       "violations": []
@@ -13395,6 +13782,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 75,
+          "function_name": "FileReport"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.82,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 12.0,
+            "statements": 18,
+            "validated": false
+          },
           "line_number": 75,
           "function_name": "FileReport"
         }
@@ -13417,6 +13816,18 @@
           "details": null,
           "line_number": 125,
           "function_name": "ProjectReport"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.4,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 7.0,
+            "statements": 8,
+            "validated": false
+          },
+          "line_number": 125,
+          "function_name": "ProjectReport"
         }
       ],
       "violations": []
@@ -13435,6 +13846,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 18,
+          "function_name": "Violation"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 1.73,
+          "details": {
+            "cohesion_components": 1,
+            "weighted_methods": 9.0,
+            "statements": 20,
+            "validated": false
+          },
           "line_number": 18,
           "function_name": "Violation"
         }
@@ -13459,6 +13882,18 @@
           "details": null,
           "line_number": 11,
           "function_name": "BaseRunner"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 3.47,
+          "details": {
+            "cohesion_components": 3,
+            "weighted_methods": 3.0,
+            "statements": 3,
+            "validated": false
+          },
+          "line_number": 11,
+          "function_name": "BaseRunner"
         }
       ],
       "violations": []
@@ -13479,6 +13914,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 13,
+          "function_name": "LizardRunner"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 4.96,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 16.0,
+            "statements": 37,
+            "validated": false
+          },
           "line_number": 13,
           "function_name": "LizardRunner"
         }
@@ -13503,6 +13950,18 @@
           "details": null,
           "line_number": 20,
           "function_name": "ComplexipyRunner"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 4.25,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 13.0,
+            "statements": 29,
+            "validated": false
+          },
+          "line_number": 20,
+          "function_name": "ComplexipyRunner"
         }
       ],
       "violations": []
@@ -13525,6 +13984,18 @@
           "details": null,
           "line_number": 28,
           "function_name": "HouseStyleRunner"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 7.59,
+          "details": {
+            "cohesion_components": 3,
+            "weighted_methods": 16.0,
+            "statements": 39,
+            "validated": false
+          },
+          "line_number": 28,
+          "function_name": "HouseStyleRunner"
         }
       ],
       "violations": []
@@ -13545,6 +14016,18 @@
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
+          "line_number": 42,
+          "function_name": "RadonRunner"
+        },
+        {
+          "type": "single_responsibility_index",
+          "value": 9.74,
+          "details": {
+            "cohesion_components": 2,
+            "weighted_methods": 34.0,
+            "statements": 77,
+            "validated": false
+          },
           "line_number": 42,
           "function_name": "RadonRunner"
         }
@@ -15434,7 +15917,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 3.0,
+          "value": 4.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15448,7 +15931,7 @@
         },
         {
           "type": "instability",
-          "value": 0.75,
+          "value": 0.8,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -15467,7 +15950,7 @@
           "value": 0.0,
           "details": {
             "approximate": true,
-            "targets": 3
+            "targets": 4
           },
           "line_number": null,
           "function_name": null
@@ -16745,7 +17228,7 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 1.0,
+          "value": 2.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17268,7 +17751,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 3.0,
+          "value": 4.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -17375,7 +17858,7 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 1.0,
+          "value": 2.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -19299,13 +19782,16 @@
       "metrics": [
         {
           "type": "narrative_mixed_functions",
-          "value": 4.0,
+          "value": 7.0,
           "details": {
             "functions": [
+              "_weighted_methods_lookup",
+              "_statements_per_class",
               "_build_registry",
               "_depth_of",
               "_count_children",
-              "_class_report"
+              "_class_report",
+              "_srp_row"
             ]
           },
           "line_number": null,
@@ -19336,15 +19822,19 @@
         },
         {
           "type": "step_down_ordering",
-          "value": 0.75,
+          "value": 0.8462,
           "details": null,
           "line_number": null,
           "function_name": null
         },
         {
           "type": "name_clarity",
-          "value": 0.85,
-          "details": null,
+          "value": 0.7773,
+          "details": {
+            "worst": [
+              "_srp_row"
+            ]
+          },
           "line_number": null,
           "function_name": null
         },
@@ -20959,7 +21449,7 @@
       "label": "antipasta",
       "aggregate": {
         "files": 82,
-        "value": 6781.0,
+        "value": 6842.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -22038,7 +22528,7 @@
       "label": "core",
       "aggregate": {
         "files": 20,
-        "value": 2585.0,
+        "value": 2646.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -22094,8 +22584,8 @@
             "path": "core/detector.py"
           },
           "cyclomatic_complexity": {
-            "value": 5.125,
-            "path": "core/class_registry.py"
+            "value": 5.0588235294117645,
+            "path": "core/narrative.py"
           },
           "cognitive_complexity": {
             "value": 13.0,
@@ -22136,7 +22626,7 @@
       "id": "core/class_registry.py",
       "parent": "core",
       "label": "class_registry.py",
-      "value": 136.0,
+      "value": 196.0,
       "file_index": 45
     },
     {
@@ -22192,7 +22682,7 @@
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 105.0,
+      "value": 106.0,
       "file_index": 53
     },
     {

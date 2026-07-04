@@ -46,6 +46,7 @@ class MetricType(StrEnum):
     COUPLING_BETWEEN_OBJECTS = "coupling_between_objects"
     DEPTH_OF_INHERITANCE_TREE = "depth_of_inheritance_tree"
     NUMBER_OF_CHILDREN = "number_of_children"
+    SINGLE_RESPONSIBILITY_INDEX = "single_responsibility_index"
     # Project-scope metrics (derivation stage).
     DIRECTORY_CHILDREN = "directory_children"
     # Import-graph metrics (adoption plan, Phase 3). Informational-first.

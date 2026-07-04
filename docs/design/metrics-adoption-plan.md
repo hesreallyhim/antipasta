@@ -13,6 +13,27 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 4, part 5 — LANDED 2026-07-04, PHASE 4 COMPLETE** (branch
+  `feat/metrics-phase-4`): the Single-Responsibility composite, on the
+  class-registry reports. Transparent formula — cohesion components ×
+  (1 + weighted-methods/30) × (1 + statements/60) — joining the house
+  cohesion data, radon's weighted-methods rows, and callable-fact statement
+  counts. Informational only, `validated: false` in details pending owner
+  sign-off. **Validation pass (the review's precondition) run and passed
+  emphatically**: on the pydantic bench corpus the top scorers are
+  GenerateJsonSchema (2850), BaseModel (1223 — 27 cohesion components, the
+  ecosystem's canonical God class), GenerateSchema, FieldInfo — exactly the
+  classes an expert would name; clean antipasta tops out at 15.4
+  (MetricAggregator — the same class the layering probe flagged, metrics
+  agreeing with each other). Two orders of magnitude of discrimination.
+  QA: 468 tests green; all gates green.
+  **Phase 4 is complete.** Remaining program: tracks A (pydry — awaiting the
+  owner's PyPI release), B (version-control mode), C (LLM, deferred), D
+  (test-suite health), the golden-set core-split experiment (now eligible:
+  the backlog is measured — fan-out 14, two upward importers, 90 mixed
+  functions at standard, five two-job names), and report-UI surfacing of
+  project rows (product-shape work, owner-negotiable per directive).
+
 - **Phase 4, part 4 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
   name clarity + linguistic antipatterns, completing the Narrative Index.
   The layered lexicon per design: vendored English wordlist

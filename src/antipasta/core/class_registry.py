@@ -18,6 +18,7 @@ from typing import Any
 from antipasta.core.derivation import DerivationInput
 from antipasta.core.metrics import MetricResult, MetricType
 from antipasta.core.violations import ProjectReport
+from antipasta.runners.python.house_style.cohesion import lack_of_cohesion
 
 _IMPLICIT_ROOTS = frozenset({"object"})
 _MAX_DEPTH_GUARD = 64  # cycle backstop; real hierarchies never get close
@@ -29,14 +30,47 @@ def derive_class_registry(derivation_input: DerivationInput) -> list[ProjectRepo
     if not registry:
         return []
     children = _count_children(registry)
+    weighted = _weighted_methods_lookup(derivation_input)
+    statements = _statements_per_class(derivation_input)
     reports = []
     for qualified_name in sorted(registry):
         entry = registry[qualified_name]
         depth, unresolved = _depth_of(qualified_name, registry, set())
         reports.append(
-            _class_report(qualified_name, entry, depth, unresolved, children)
+            _class_report(
+                qualified_name, entry, depth, unresolved, children, weighted, statements
+            )
         )
     return reports
+
+
+def _weighted_methods_lookup(derivation_input: DerivationInput) -> dict[str, float]:
+    """(module::Class) → weighted-methods value, joined from the radon rows."""
+    lookup: dict[str, float] = {}
+    root = derivation_input.root
+    for report in derivation_input.file_reports:
+        module = _module_of(report.file_path, root)
+        if module is None:
+            continue
+        for metric in report.metrics:
+            if metric.metric_type is MetricType.WEIGHTED_METHODS_PER_CLASS:
+                lookup[f"{module}::{metric.function_name}"] = metric.value
+    return lookup
+
+
+def _statements_per_class(derivation_input: DerivationInput) -> dict[str, int]:
+    """(module::Class) → summed statement count of its methods (callable facts)."""
+    totals: dict[str, int] = {}
+    root = derivation_input.root
+    for file_path, facts in derivation_input.facts_by_file.items():
+        module = _module_of(file_path, root)
+        if module is None:
+            continue
+        for fact in facts:
+            if fact.kind == "callable" and fact.payload.get("class_name"):
+                key = f"{module}::{fact.payload['class_name']}"
+                totals[key] = totals.get(key, 0) + int(fact.payload.get("statements", 0))
+    return totals
 
 
 def _build_registry(derivation_input: DerivationInput) -> dict[str, dict[str, Any]]:
@@ -56,6 +90,7 @@ def _build_registry(derivation_input: DerivationInput) -> dict[str, dict[str, An
                 "name": fact.payload["name"],
                 "lineno": fact.payload["lineno"],
                 "bases": fact.payload["bases"],
+                "methods": fact.payload["methods"],
                 "imports": local_imports,
             }
     return registry
@@ -150,6 +185,8 @@ def _class_report(
     depth: int,
     unresolved: bool,
     children: dict[str, int],
+    weighted: dict[str, float],
+    statements: dict[str, int],
 ) -> ProjectReport:
     subject_path = Path(entry["module"].replace(".", "/") + ".py")
     details = {"approximate": True} if unresolved else None
@@ -169,5 +206,44 @@ def _class_report(
             line_number=entry["lineno"],
             function_name=entry["name"],
         ),
+        _srp_row(qualified_name, entry, subject_path, weighted, statements),
     ]
     return ProjectReport(subject=qualified_name, metrics=rows, violations=[])
+
+
+def _srp_row(
+    qualified_name: str,
+    entry: dict[str, Any],
+    subject_path: Path,
+    weighted: dict[str, float],
+    statements: dict[str, int],
+) -> MetricResult:
+    """Single-responsibility composite (informational; validate before
+    trusting — see the review's caveat about derived indices amplifying
+    their inputs' noise).
+
+    Transparent formula: cohesion components × complexity band × size band.
+    A cohesive small class scores ~1; a three-responsibility class with
+    heavy methods scores an order of magnitude higher.
+    """
+    cohesion_components = max(1, lack_of_cohesion(entry["methods"]))
+    weighted_methods = weighted.get(qualified_name, 0.0)
+    class_statements = statements.get(qualified_name, 0)
+    value = (
+        cohesion_components
+        * (1.0 + weighted_methods / 30.0)
+        * (1.0 + class_statements / 60.0)
+    )
+    return MetricResult(
+        file_path=subject_path,
+        metric_type=MetricType.SINGLE_RESPONSIBILITY_INDEX,
+        value=round(value, 2),
+        line_number=entry["lineno"],
+        function_name=entry["name"],
+        details={
+            "cohesion_components": cohesion_components,
+            "weighted_methods": weighted_methods,
+            "statements": class_statements,
+            "validated": False,
+        },
+    )
