@@ -16,9 +16,9 @@ from antipasta.core.metrics import MetricResult, MetricType
 from antipasta.core.snapshot import (
     SCHEMA_VERSION,
     build_snapshot,
-    build_treemap_nodes,
     collect_worst_functions,
 )
+from antipasta.core.treemap import TREEMAP_ROOT_ID, build_treemap_nodes
 from antipasta.core.violations import FileReport, Violation
 from antipasta.report import render_report
 
@@ -191,6 +191,36 @@ class TestTreemapNodes:
         leaves = [n for n in nodes if "file_index" in n]
         assert [leaf["file_index"] for leaf in leaves] == [0, 1]
         assert all(leaf["value"] == 10.0 for leaf in leaves)
+
+    def test_directories_carry_hoverable_aggregates(self) -> None:
+        """Inner nodes (and the root) roll up files/value/violations/metric maxima.
+
+        The treemap's directory rectangles are data, not just structure: a
+        reviewer hovering `report/assets/` should see the subtree's totals and
+        its worst file per metric (max is the threshold-meaningful aggregate).
+        """
+        files = self._files("report/assets/a.py", "report/assets/b.py", "report/html.py")
+        files[0]["metrics"]["cyclomatic_complexity"] = 12.0
+        files[1]["metrics"]["cyclomatic_complexity"] = 3.0
+        files[0]["violations"] = [{"metric": "cyclomatic_complexity"}]
+        nodes = {n["id"]: n for n in build_treemap_nodes(files)}
+
+        assets = nodes["report/assets"]["aggregate"]
+        assert assets["files"] == 2
+        assert assets["value"] == 20.0
+        assert assets["violations"] == 1
+        worst = assets["metrics_max"]["cyclomatic_complexity"]
+        assert worst == {"value": 12.0, "path": "report/assets/a.py"}
+
+        report = nodes["report"]["aggregate"]
+        assert report["files"] == 3
+        assert report["value"] == 30.0
+
+        root = nodes[TREEMAP_ROOT_ID]["aggregate"]
+        assert root["files"] == 3
+
+        # Leaves carry no aggregate — their data lives on the file entry.
+        assert "aggregate" not in nodes["report/html.py"]
 
     def test_empty_input_still_has_root(self) -> None:
         """No files still produces a valid single-root table."""

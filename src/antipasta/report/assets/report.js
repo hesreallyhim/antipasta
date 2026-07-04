@@ -294,7 +294,9 @@
       .attr("class", "dir-rect")
       .attr("x", (d) => d.x0).attr("y", (d) => d.y0)
       .attr("width", (d) => Math.max(0, d.x1 - d.x0))
-      .attr("height", (d) => Math.max(0, d.y1 - d.y0));
+      .attr("height", (d) => Math.max(0, d.y1 - d.y0))
+      .on("mousemove", (event, d) => showDirTooltip(event, d, selectedMetricNow()))
+      .on("mouseleave", hideTooltip);
     dirGroups.append("text")
       .attr("class", "dir-label")
       .attr("x", (d) => d.x0 + 4).attr("y", (d) => d.y0 + 12)
@@ -387,6 +389,39 @@
     if (y + rect.height > window.innerHeight - 8) y = event.clientY - rect.height - pad;
     tooltip.style.left = `${Math.max(4, x)}px`;
     tooltip.style.top = `${Math.max(4, y)}px`;
+  }
+
+  function showDirTooltip(event, node, selectedMetric) {
+    const agg = node.data.aggregate;
+    if (!agg) return;
+    clear(tooltip);
+    tooltip.append(el("div", { class: "tt-path" }, node.data.id === "__root__" ? node.data.label : node.data.id));
+    const table = el("table");
+    const addRow = (label, value) => {
+      const tr = el("tr");
+      tr.append(el("td", null, label));
+      tr.append(el("td", null, value));
+      table.append(tr);
+    };
+    addRow("Files", String(agg.files));
+    addRow("Total size", `${fmt(agg.value)} lines`);
+    if (agg.violations > 0) addRow("Violations", String(agg.violations));
+    const worst = agg.metrics_max ? agg.metrics_max[selectedMetric] : undefined;
+    if (worst) {
+      const tr = el("tr");
+      tr.append(el("td", null, `Worst ${metricLabel(selectedMetric).toLowerCase()}`));
+      const td = el("td", null, `${fmt(worst.value)} — ${worst.path.split("/").pop()}`);
+      if (isOverThreshold(selectedMetric, worst.value)) td.style.color = "#ff9e97";
+      tr.append(td);
+      table.append(tr);
+    }
+    tooltip.append(table);
+    if (agg.violations > 0) {
+      tooltip.append(el("div", { class: "tt-alert" },
+        `${agg.violations} threshold violation(s) in this directory`));
+    }
+    tooltip.hidden = false;
+    positionTooltip(event);
   }
 
   function showTooltip(event, fileEntry, selectedMetric) {

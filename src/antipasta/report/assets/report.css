@@ -111,7 +111,8 @@ main { padding: 0 20px 40px; max-width: 1520px; margin: 0 auto; }
   border-radius: 8px;
 }
 
-#treemap .dir-rect { fill: var(--dir-fill); stroke: var(--dir-stroke); stroke-width: 1; }
+#treemap .dir-rect { fill: var(--dir-fill); stroke: var(--dir-stroke); stroke-width: 1; cursor: default; }
+#treemap .dir-rect:hover { stroke-width: 2; }
 #treemap .dir-label { fill: var(--muted); font-size: 11px; font-weight: 600; pointer-events: none; }
 #treemap .tile { stroke: #ffffff; stroke-width: 1; cursor: pointer; }
 #treemap .tile.selected { stroke: #1f2733; stroke-width: 2; }

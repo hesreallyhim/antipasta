@@ -14,19 +14,18 @@ whose parent is missing.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 from antipasta import __version__
 from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.metrics import MetricResult
+from antipasta.core.treemap import build_treemap_nodes
 from antipasta.core.violations import FileReport
 
 SCHEMA_VERSION = 1
 
-#: Root node id used in the treemap node table.
-TREEMAP_ROOT_ID = "."
 
 #: ``details["type"]`` values that mark file-level aggregate rows emitted by
 #: runners (they carry a function-count/aggregate, not a real function).
@@ -233,56 +232,6 @@ def _build_language_coverage(files: list[dict[str, Any]]) -> dict[str, list[str]
         for function in entry["functions"]:
             seen.update(function["metrics"])
     return {language: sorted(metrics) for language, metrics in sorted(coverage.items())}
-
-
-def build_treemap_nodes(
-    files: list[dict[str, Any]], *, root_label: str = "root"
-) -> list[dict[str, Any]]:
-    """Build an explicit treemap node table from per-file snapshot entries.
-
-    Every row is ``{id, parent, label}``; leaf rows additionally carry
-    ``value`` (tile area: SLOC, falling back to LOC, falling back to 1) and
-    ``file_index`` (index into the snapshot's ``files`` list).  The root node
-    has ``parent: None`` and every other node's parent is guaranteed to be
-    present in the table — no orphans, no implied directories.
-    """
-    nodes: list[dict[str, Any]] = [{"id": TREEMAP_ROOT_ID, "parent": None, "label": root_label}]
-    known_ids = {TREEMAP_ROOT_ID}
-
-    for index, entry in enumerate(files):
-        parts = PurePosixPath(entry["path"]).parts
-        parent = TREEMAP_ROOT_ID
-        for depth in range(len(parts) - 1):
-            directory_id = "/".join(parts[: depth + 1])
-            if directory_id not in known_ids:
-                nodes.append({"id": directory_id, "parent": parent, "label": parts[depth]})
-                known_ids.add(directory_id)
-            parent = directory_id
-
-        leaf_id = "/".join(parts)
-        if leaf_id in known_ids:
-            # Duplicate path (should not happen after file de-duplication);
-            # skip rather than corrupt the tree.
-            continue
-        known_ids.add(leaf_id)
-        metrics = entry["metrics"]
-        value = (
-            metrics.get("source_lines_of_code")
-            or metrics.get("lines_of_code")
-            or metrics.get("nloc")
-            or 1.0
-        )
-        nodes.append(
-            {
-                "id": leaf_id,
-                "parent": parent,
-                "label": parts[-1],
-                "value": float(value),
-                "file_index": index,
-            }
-        )
-
-    return nodes
 
 
 def collect_worst_functions(snapshot: dict[str, Any], limit: int) -> list[dict[str, Any]]:
