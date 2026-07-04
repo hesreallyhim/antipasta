@@ -1,14 +1,15 @@
-"""Python cognitive complexity runner using Complexipy."""
+"""Python cognitive complexity runner using Complexipy's in-process API.
+
+Complexipy is imported as a library, never spawned as a subprocess: the
+previous implementation ran the ``complexipy`` executable once per file (with
+a temp dir and a JSON file round-trip), costing ~300 ms of process startup per
+analyzed file. The in-process API also provides function line numbers, which
+the CLI's JSON output did not.
+"""
 
 from __future__ import annotations
 
-import json
-import os
 from pathlib import Path
-import shutil
-import subprocess
-import sys
-import tempfile
 from typing import Any
 
 from antipasta.core.detector import Language
@@ -22,7 +23,6 @@ class ComplexipyRunner(BaseRunner):
     def __init__(self) -> None:
         """Initialize the Complexipy runner."""
         self._available: bool | None = None
-        self._command: list[str] | None = None
 
     @property
     def supported_metrics(self) -> list[str]:
@@ -32,20 +32,11 @@ class ComplexipyRunner(BaseRunner):
     def is_available(self) -> bool:
         """Check if Complexipy is available."""
         if self._available is None:
-            command = self._get_complexipy_command()
-            if command is None:
-                self._available = False
-                return self._available
-
             try:
-                result = subprocess.run(
-                    [*command, "--help"],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                self._available = result.returncode == 0
-            except (subprocess.SubprocessError, FileNotFoundError):
+                import complexipy  # noqa: F401
+
+                self._available = True
+            except ImportError:
                 self._available = False
         return self._available
 
@@ -54,7 +45,7 @@ class ComplexipyRunner(BaseRunner):
 
         Args:
             file_path: Path to the Python file
-            content: Optional file content (not used by Complexipy)
+            content: Optional file content (analyzed directly when provided)
 
         Returns:
             FileMetrics with cognitive complexity metrics
@@ -67,142 +58,55 @@ class ComplexipyRunner(BaseRunner):
                 error="Complexipy is not installed. Install with: pip install complexipy",
             )
 
-        # Run complexipy and get results
-        metrics = self._get_cognitive_complexity(file_path)
-
         return FileMetrics(
             file_path=file_path,
             language=Language.PYTHON.value,
-            metrics=metrics,
+            metrics=self._get_cognitive_complexity(file_path, content),
         )
 
-    def _run_complexipy_command(self, file_path: Path) -> list[dict[str, Any]] | None:
-        """Run complexipy command and return JSON output.
+    def _get_cognitive_complexity(
+        self, file_path: Path, content: str | None
+    ) -> list[MetricResult]:
+        """Get per-function cognitive complexity plus the file maximum.
 
         Args:
             file_path: Path to analyze
-
-        Returns:
-            Parsed JSON output or None on error
-        """
-        command = self._get_complexipy_command()
-        if command is None:
-            return None
-        env = os.environ.copy()
-        env["COVERAGE_CORE"] = ""  # Disable coverage in subprocess
-
-        try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                subprocess.run(
-                    [*command, "--output-json", "--quiet", str(file_path.resolve())],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                    env=env,
-                    cwd=temp_dir,
-                )
-
-                # Complexipy writes JSON to a file, not stdout.
-                json_file = self._find_output_json_file(Path(temp_dir))
-                if not json_file.exists():
-                    return None
-
-                with json_file.open(encoding="utf-8") as file_handle:
-                    data = json.load(file_handle)
-
-                if isinstance(data, list):
-                    return data
-                return None
-
-        except (OSError, json.JSONDecodeError, subprocess.SubprocessError):
-            return None
-
-    def _find_output_json_file(self, output_dir: Path) -> Path:
-        """Resolve the JSON output file produced by complexipy.
-
-        Complexipy 4.x emits ``complexipy.json`` while 5.x emits
-        ``complexipy_results_<timestamp>.json``.
-        """
-        legacy_file = output_dir / "complexipy.json"
-        if legacy_file.exists():
-            return legacy_file
-
-        result_files = sorted(
-            output_dir.glob("complexipy_results_*.json"),
-            key=lambda item: item.stat().st_mtime,
-            reverse=True,
-        )
-        if result_files:
-            return result_files[0]
-
-        return legacy_file
-
-    def _get_complexipy_command(self) -> list[str] | None:
-        """Get the command used to invoke complexipy."""
-        if self._command is not None:
-            return self._command
-
-        executable = self._resolve_complexipy_executable()
-        if executable is None:
-            return None
-
-        self._command = [str(executable)]
-        return self._command
-
-    def _resolve_complexipy_executable(self) -> Path | None:
-        """Resolve the complexipy executable path.
-
-        Resolution order:
-        1. Sibling executable beside the active Python interpreter.
-        2. First executable found on PATH.
-        """
-        python_path = Path(sys.executable)
-
-        sibling_candidates: list[Path] = []
-        if os.name == "nt":
-            sibling_candidates.append(python_path.with_name("complexipy.exe"))
-        sibling_candidates.append(python_path.with_name("complexipy"))
-
-        for candidate in sibling_candidates:
-            if candidate.exists():
-                return candidate
-
-        from_path = shutil.which("complexipy")
-        if from_path:
-            return Path(from_path)
-
-        return None
-
-    def _get_cognitive_complexity(self, file_path: Path) -> list[MetricResult]:
-        """Get cognitive complexity metrics for the file.
-
-        Args:
-            file_path: Path to analyze
+            content: Optional pre-loaded source (avoids a second disk read)
 
         Returns:
             List of cognitive complexity metrics
         """
-        data = self._run_complexipy_command(file_path)
+        from complexipy import code_complexity, file_complexity
 
-        metrics = []
-        if data:
-            # Complexipy returns a list of functions with their complexity
-            for item in data:
-                if isinstance(item, dict) and "complexity" in item:
-                    # Extract line number from the function if possible
-                    # Note: Complexipy doesn't provide line numbers in JSON
-                    metrics.append(
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.COGNITIVE_COMPLEXITY,
-                            value=float(item["complexity"]),
-                            function_name=item.get("function_name", "unknown"),
-                            details={
-                                "file_name": item.get("file_name"),
-                                "path": item.get("path"),
-                            },
-                        )
-                    )
+        # CodeComplexity and FileComplexity are distinct types sharing the
+        # `.functions` shape; only FileComplexity carries file_name/path.
+        result: Any
+        try:
+            if content is not None:
+                result = code_complexity(content)
+            else:
+                result = file_complexity(str(file_path.resolve()))
+        except Exception:
+            # Unparseable source: match the subprocess era (no metrics).
+            return []
+
+        file_name = getattr(result, "file_name", file_path.name)
+        result_path = getattr(result, "path", str(file_path))
+
+        metrics = [
+            MetricResult(
+                file_path=file_path,
+                metric_type=MetricType.COGNITIVE_COMPLEXITY,
+                value=float(function.complexity),
+                line_number=function.line_start,
+                function_name=function.name,
+                details={
+                    "file_name": file_name,
+                    "path": result_path,
+                },
+            )
+            for function in result.functions
+        ]
 
         # Also add file-level maximum if there are functions
         if metrics:

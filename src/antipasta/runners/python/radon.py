@@ -1,24 +1,41 @@
-"""Python metric runner using Radon."""
+"""Python metric runner using Radon's in-process API.
+
+Radon is imported as a library, never spawned as a subprocess: the previous
+implementation shelled out to ``python -m radon`` four times per file (cc, mi,
+hal, raw), which cost four interpreter startups (~250 ms each) per analyzed
+file and dominated antipasta's total runtime. ``multi=True`` on the
+maintainability index matches the radon CLI default, so values are identical
+to the subprocess era.
+"""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-import subprocess
-import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from antipasta.core.detector import Language
 from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
 
-# Halstead metric types and their key in radon's `hal -j` JSON records.
+if TYPE_CHECKING:
+    from radon.visitors import Function as RadonFunction
+
+# Halstead metric types and their attribute on radon's HalsteadReport.
 _HALSTEAD_FIELDS: tuple[tuple[MetricType, str], ...] = (
     (MetricType.HALSTEAD_VOLUME, "volume"),
     (MetricType.HALSTEAD_DIFFICULTY, "difficulty"),
     (MetricType.HALSTEAD_EFFORT, "effort"),
     (MetricType.HALSTEAD_TIME, "time"),
     (MetricType.HALSTEAD_BUGS, "bugs"),
+)
+
+# Raw metric types and their attribute on radon's raw Module report.
+_RAW_FIELDS: tuple[tuple[MetricType, str], ...] = (
+    (MetricType.LINES_OF_CODE, "loc"),
+    (MetricType.LOGICAL_LINES_OF_CODE, "lloc"),
+    (MetricType.SOURCE_LINES_OF_CODE, "sloc"),
+    (MetricType.COMMENT_LINES, "comments"),
+    (MetricType.BLANK_LINES, "blank"),
 )
 
 
@@ -51,7 +68,6 @@ class RadonRunner(BaseRunner):
         """Check if Radon is available."""
         if self._available is None:
             try:
-                # Try to import radon
                 import radon  # noqa: F401
 
                 self._available = True
@@ -77,7 +93,6 @@ class RadonRunner(BaseRunner):
                 error="Radon is not installed. Install with: pip install radon",
             )
 
-        # Read content if not provided
         if content is None:
             try:
                 content = file_path.read_text()
@@ -90,23 +105,14 @@ class RadonRunner(BaseRunner):
                 )
 
         metrics: list[MetricResult] = []
+        metrics.extend(self._get_cyclomatic_complexity(file_path, content))
 
-        # Get cyclomatic complexity
-        cc_metrics = self._get_cyclomatic_complexity(file_path)
-        metrics.extend(cc_metrics)
-
-        # Get maintainability index
-        mi_metric = self._get_maintainability_index(file_path)
+        mi_metric = self._get_maintainability_index(file_path, content)
         if mi_metric:
             metrics.append(mi_metric)
 
-        # Get Halstead metrics
-        hal_metrics = self._get_halstead_metrics(file_path)
-        metrics.extend(hal_metrics)
-
-        # Get raw metrics (LOC, SLOC, etc.)
-        raw_metrics = self._get_raw_metrics(file_path)
-        metrics.extend(raw_metrics)
+        metrics.extend(self._get_halstead_metrics(file_path, content))
+        metrics.extend(self._get_raw_metrics(file_path, content))
 
         return FileMetrics(
             file_path=file_path,
@@ -114,66 +120,26 @@ class RadonRunner(BaseRunner):
             metrics=metrics,
         )
 
-    def _run_radon_command(self, command: list[str]) -> dict[str, Any] | None:
-        """Run a radon command and return JSON output.
-
-        Args:
-            command: Command to run
-
-        Returns:
-            Parsed JSON output or None on error
-        """
-        import os
-
-        env = os.environ.copy()
-        env["COVERAGE_CORE"] = ""  # Disable coverage in subprocess
+    def _get_cyclomatic_complexity(self, file_path: Path, content: str) -> list[MetricResult]:
+        """Get per-function cyclomatic complexity plus the file average."""
+        from radon.complexity import cc_rank, cc_visit
+        from radon.visitors import Function
 
         try:
-            result = subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                check=True,
-                env=env,
-            )
-            data: dict[str, Any] = json.loads(result.stdout)
-            return data
-        except (subprocess.CalledProcessError, json.JSONDecodeError):
-            return None
-
-    def _get_cyclomatic_complexity(self, file_path: Path) -> list[MetricResult]:
-        """Get cyclomatic complexity metrics."""
-        command = [sys.executable, "-m", "radon", "cc", "-j", str(file_path)]
-        data = self._run_radon_command(command)
+            blocks = cc_visit(content)
+        except Exception:
+            # Unparseable source: match the subprocess era (no cc metrics).
+            return []
 
         metrics: list[MetricResult] = []
-        if data and str(file_path) in data:
-            file_data = data[str(file_path)]
-            # Handle error response from radon
-            if isinstance(file_data, dict) and "error" in file_data:
-                return metrics
+        for block in blocks:
+            # cc_visit returns methods as flattened Function entries alongside
+            # a Class summary block; only Function rows are metric rows (the
+            # subprocess JSON's type in {"function", "method"} filter).
+            if not isinstance(block, Function):
+                continue
+            metrics.append(self._build_cc_result(file_path, block, cc_rank(block.complexity)))
 
-            for item in file_data:
-                # Skip if item is not a dict (error case)
-                if not isinstance(item, dict):
-                    continue
-                if item.get("type") in ("function", "method"):
-                    metrics.append(
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.CYCLOMATIC_COMPLEXITY,
-                            value=float(item["complexity"]),
-                            line_number=item["lineno"],
-                            function_name=item["name"],
-                            details={
-                                "type": item["type"],
-                                "classname": item.get("classname"),
-                                "rank": item.get("rank", "A"),
-                            },
-                        )
-                    )
-
-        # Also add file-level average if there are functions
         if metrics:
             avg_complexity = sum(m.value for m in metrics) / len(metrics)
             metrics.append(
@@ -181,120 +147,95 @@ class RadonRunner(BaseRunner):
                     file_path=file_path,
                     metric_type=MetricType.CYCLOMATIC_COMPLEXITY,
                     value=avg_complexity,
-                    details={"type": "average", "function_count": len(metrics) - 1},
+                    details={"type": "average", "function_count": len(metrics)},
                 )
             )
 
         return metrics
 
-    def _get_maintainability_index(self, file_path: Path) -> MetricResult | None:
-        """Get maintainability index metric."""
-        command = [sys.executable, "-m", "radon", "mi", "-j", str(file_path)]
-        data = self._run_radon_command(command)
+    @staticmethod
+    def _build_cc_result(file_path: Path, block: RadonFunction, rank: str) -> MetricResult:
+        """Build one per-function cyclomatic complexity row."""
+        return MetricResult(
+            file_path=file_path,
+            metric_type=MetricType.CYCLOMATIC_COMPLEXITY,
+            value=float(block.complexity),
+            line_number=block.lineno,
+            function_name=block.name,
+            details={
+                "type": "method" if block.is_method else "function",
+                "classname": block.classname,
+                "rank": rank,
+            },
+        )
 
-        if data and str(file_path) in data:
-            mi_data = data[str(file_path)]
-            # Check if this is an error response
-            if isinstance(mi_data, dict) and "mi" in mi_data:
-                return MetricResult(
-                    file_path=file_path,
-                    metric_type=MetricType.MAINTAINABILITY_INDEX,
-                    value=float(mi_data["mi"]),
-                    details={"rank": mi_data.get("rank", "A")},
-                )
-        return None
+    def _get_maintainability_index(self, file_path: Path, content: str) -> MetricResult | None:
+        """Get the maintainability index (multi=True matches the radon CLI)."""
+        from radon.metrics import mi_rank, mi_visit
 
-    def _get_halstead_metrics(self, file_path: Path) -> list[MetricResult]:
+        try:
+            value = float(mi_visit(content, multi=True))
+        except Exception:
+            return None
+
+        return MetricResult(
+            file_path=file_path,
+            metric_type=MetricType.MAINTAINABILITY_INDEX,
+            value=value,
+            details={"rank": mi_rank(value)},
+        )
+
+    def _get_halstead_metrics(self, file_path: Path, content: str) -> list[MetricResult]:
         """Get Halstead metrics (file-level totals plus per-function rows)."""
-        command = [sys.executable, "-m", "radon", "hal", "-j", str(file_path)]
-        data = self._run_radon_command(command)
+        from radon.metrics import h_visit
 
-        metrics: list[MetricResult] = []
-        if data and str(file_path) in data:
-            file_data = data[str(file_path)]
-            # Check if this is an error response or has expected structure
-            if isinstance(file_data, dict) and "total" in file_data:
-                # File-level totals: unchanged, these are what thresholds check.
-                metrics.extend(self._build_halstead_results(file_path, file_data["total"]))
-                # Per-function rows: informational (feed `antipasta report`).
-                for name, function_data in self._iter_halstead_functions(file_data):
-                    metrics.extend(
-                        self._build_halstead_results(file_path, function_data, function_name=name)
-                    )
+        try:
+            report = h_visit(content)
+        except Exception:
+            return []
+
+        # File-level totals: unchanged, these are what thresholds check.
+        metrics = self._build_halstead_results(file_path, report.total)
+        # Per-function rows: informational (feed `antipasta report`).
+        for name, function_report in report.functions:
+            metrics.extend(
+                self._build_halstead_results(file_path, function_report, function_name=name)
+            )
 
         return metrics
-
-    @staticmethod
-    def _iter_halstead_functions(file_data: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-        """Normalize the ``functions`` payload of ``radon hal -j``.
-
-        Depending on the radon version this is either a mapping of
-        ``name -> metrics`` or a list of ``[name, metrics]`` pairs.
-        """
-        functions = file_data.get("functions", {})
-        items = functions.items() if isinstance(functions, dict) else functions
-        return [
-            (name, function_data)
-            for name, function_data in items
-            if isinstance(name, str) and isinstance(function_data, dict)
-        ]
 
     @staticmethod
     def _build_halstead_results(
         file_path: Path,
-        hal_data: dict[str, Any],
+        hal_report: Any,
         function_name: str | None = None,
     ) -> list[MetricResult]:
-        """Build the five Halstead metric results from one radon hal record."""
+        """Build the five Halstead metric results from one HalsteadReport."""
         return [
             MetricResult(
                 file_path=file_path,
                 metric_type=metric_type,
-                value=float(hal_data.get(key, 0)),
+                value=float(getattr(hal_report, attribute, 0)),
                 function_name=function_name,
                 details={"type": "function"} if function_name is not None else None,
             )
-            for metric_type, key in _HALSTEAD_FIELDS
+            for metric_type, attribute in _HALSTEAD_FIELDS
         ]
 
-    def _get_raw_metrics(self, file_path: Path) -> list[MetricResult]:
+    def _get_raw_metrics(self, file_path: Path, content: str) -> list[MetricResult]:
         """Get raw metrics (LOC, SLOC, etc.)."""
-        command = [sys.executable, "-m", "radon", "raw", "-j", str(file_path)]
-        data = self._run_radon_command(command)
+        from radon.raw import analyze
 
-        metrics: list[MetricResult] = []
-        if data and str(file_path) in data:
-            raw_data = data[str(file_path)]
-            # Check if this is a valid response with expected fields
-            if isinstance(raw_data, dict) and "loc" in raw_data:
-                metrics.extend(
-                    [
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.LINES_OF_CODE,
-                            value=float(raw_data.get("loc", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.LOGICAL_LINES_OF_CODE,
-                            value=float(raw_data.get("lloc", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.SOURCE_LINES_OF_CODE,
-                            value=float(raw_data.get("sloc", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.COMMENT_LINES,
-                            value=float(raw_data.get("comments", 0)),
-                        ),
-                        MetricResult(
-                            file_path=file_path,
-                            metric_type=MetricType.BLANK_LINES,
-                            value=float(raw_data.get("blank", 0)),
-                        ),
-                    ]
-                )
+        try:
+            report = analyze(content)
+        except Exception:
+            return []
 
-        return metrics
+        return [
+            MetricResult(
+                file_path=file_path,
+                metric_type=metric_type,
+                value=float(getattr(report, attribute, 0)),
+            )
+            for metric_type, attribute in _RAW_FIELDS
+        ]
