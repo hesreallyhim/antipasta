@@ -5,10 +5,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from antipasta.core.class_registry import derive_class_registry
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import FileMetrics, MetricType
+from antipasta.core.derive.class_registry import derive_class_registry
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import FileMetrics, MetricType
 from antipasta.runners.python.house_style import HouseStyleRunner
 from antipasta.runners.python.radon import RadonRunner
 

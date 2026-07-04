@@ -19,10 +19,10 @@ from collections import defaultdict
 from fnmatch import fnmatch
 from pathlib import Path, PurePosixPath
 
-from antipasta.core.config import TreeShapeConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import ProjectReport, Violation, check_metric_violation
+from antipasta.core.model.config import TreeShapeConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport, Violation, check_metric_violation
 
 #: Subject label for the analysis root directory.
 ROOT_SUBJECT = "."
@@ -43,7 +43,7 @@ def derive_layering(derivation_input: DerivationInput) -> list[ProjectReport]:
     config = derivation_input.config.tree_shape
     if config is None or not config.layers:
         return []
-    from antipasta.core.import_graph import build_module_graph
+    from antipasta.core.derive.import_graph import build_module_graph
 
     graph = build_module_graph(derivation_input)
     layer_index = {name: index for index, name in enumerate(config.layers)}

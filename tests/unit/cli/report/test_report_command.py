@@ -11,15 +11,15 @@ from click.testing import CliRunner
 import pytest
 
 from antipasta.cli.report import report
-from antipasta.core.config import AntipastaConfig, ComparisonOperator
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.snapshot import (
+from antipasta.core.model.config import AntipastaConfig, ComparisonOperator
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import FileReport, Violation
+from antipasta.core.store.snapshot import (
     SCHEMA_VERSION,
     build_snapshot,
     collect_worst_functions,
 )
-from antipasta.core.treemap import TREEMAP_ROOT_ID, build_treemap_nodes
-from antipasta.core.violations import FileReport, Violation
+from antipasta.core.store.treemap import TREEMAP_ROOT_ID, build_treemap_nodes
 from antipasta.report import render_report
 
 

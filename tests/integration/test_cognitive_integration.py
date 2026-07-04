@@ -14,9 +14,9 @@ Useful for verifying the full cognitive complexity pipeline works end-to-end.
 
 from pathlib import Path
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.detector import Language
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.detector import Language
+from antipasta.engine import MetricAggregator
 
 
 def main() -> None:

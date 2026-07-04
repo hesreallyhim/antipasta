@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from antipasta.core.metrics import FileMetrics, MetricType
+from antipasta.core.model.metrics import FileMetrics, MetricType
 from antipasta.runners.python.house_style import HouseStyleRunner
 
 

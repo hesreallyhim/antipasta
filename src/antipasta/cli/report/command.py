@@ -29,10 +29,10 @@ from antipasta.cli.metrics import (
     load_configuration,
 )
 from antipasta.cli.report.diff_summary import format_diff_summary
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
-from antipasta.core.snapshot import build_snapshot, format_worst_functions_table
-from antipasta.core.snapshot_diff import SnapshotDiff, diff
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
+from antipasta.core.store.snapshot import build_snapshot, format_worst_functions_table
+from antipasta.core.store.snapshot_diff import SnapshotDiff, diff
 from antipasta.report.baseline import build_baseline_payload
 
 

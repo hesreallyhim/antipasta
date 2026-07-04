@@ -1,13 +1,13 @@
 """Plain-text rendering of a snapshot diff for the terminal.
 
-Turns a :class:`~antipasta.core.snapshot_diff_types.SnapshotDiff` into the
+Turns a :class:`~antipasta.core.store.snapshot_diff_types.SnapshotDiff` into the
 delta summary printed by ``antipasta report --baseline``.  Pure formatting —
 where the text goes (stdout vs stderr) is the command's decision.
 """
 
 from __future__ import annotations
 
-from antipasta.core.snapshot_diff import (
+from antipasta.core.store.snapshot_diff import (
     DEFAULT_EPSILON,
     FileDelta,
     FunctionDelta,

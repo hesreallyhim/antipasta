@@ -18,11 +18,11 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from antipasta.core.detector import Language, is_test_path
-from antipasta.core.metrics import FactRow, FileMetrics, MetricResult, MetricType
+from antipasta.core.derive import cohesion
+from antipasta.core.model.detector import Language, is_test_path
+from antipasta.core.model.metrics import FactRow, FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
 from antipasta.runners.python.house_style import (
-    cohesion,
     comments,
     expressions,
     structure,

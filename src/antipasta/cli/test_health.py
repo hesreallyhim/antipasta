@@ -12,9 +12,9 @@ import sys
 
 import click
 
-from antipasta.core.metrics import MetricType
-from antipasta.core.test_health import load_matrix, matrix_reports
-from antipasta.core.violations import ProjectReport
+from antipasta.core.mining.coverage_matrix import load_matrix, matrix_reports
+from antipasta.core.model.metrics import MetricType
+from antipasta.core.model.violations import ProjectReport
 
 
 @click.command(name="test-health")

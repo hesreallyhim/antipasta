@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import BaseModel, Field, field_validator
 import yaml
 
-from antipasta.core.metric_models import (
+from antipasta.core.model.metric_models import (
     CognitiveComplexity,
     CyclomaticComplexity,
     HalsteadDifficulty,
@@ -21,10 +21,10 @@ from antipasta.core.metric_models import (
     HalsteadVolume,
     MaintainabilityIndex,
 )
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 if TYPE_CHECKING:
-    from antipasta.core.config_override import ConfigOverride
+    from antipasta.core.model.config_override import ConfigOverride
 
 # Strictness profiles scale threshold defaults for style-sensitive metrics
 # (prose-grade expressions, narrator budgets — consumers land from Phase 1 of
@@ -315,7 +315,7 @@ class AntipastaConfig(BaseModel):
         Returns:
             New AntipastaConfig instance with overrides applied
         """
-        from antipasta.core.config_override import ConfigOverride
+        from antipasta.core.model.config_override import ConfigOverride
 
         override = ConfigOverride(
             include_patterns=include_patterns or [],

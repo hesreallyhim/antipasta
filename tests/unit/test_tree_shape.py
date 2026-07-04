@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from antipasta.core.config import AntipastaConfig, TreeShapeConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.tree_shape import derive_tree_shape
-from antipasta.core.violations import FileReport, ProjectReport
+from antipasta.core.derive.tree_shape import derive_tree_shape
+from antipasta.core.model.config import AntipastaConfig, TreeShapeConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.violations import FileReport, ProjectReport
 
 
 def _report(path: Path) -> FileReport:
@@ -62,7 +62,7 @@ class TestLayering:
     def _derive_layers(
         self, root: Path, sources: dict[str, str], layers: list[str]
     ) -> list[ProjectReport]:
-        from antipasta.core.tree_shape import derive_layering
+        from antipasta.core.derive.tree_shape import derive_layering
         from antipasta.runners.python.house_style import HouseStyleRunner
 
         runner = HouseStyleRunner()

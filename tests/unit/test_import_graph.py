@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from antipasta.core.config import AntipastaConfig, ImportGraphConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.import_graph import derive_import_graph
-from antipasta.core.violations import ProjectReport
+from antipasta.core.derive.import_graph import derive_import_graph
+from antipasta.core.model.config import AntipastaConfig, ImportGraphConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.violations import ProjectReport
 from antipasta.runners.python.house_style import HouseStyleRunner
 
 
@@ -80,13 +80,19 @@ class TestCouplingMetrics:
         assert beta["afferent_coupling"] == 1.0
 
     def test_prefix_stripping_for_src_layout(self, tmp_path: Path) -> None:
-        # Analyzed root is the package itself, so imports carry a leading
-        # package name the module table doesn't have.
+        # Analyzed root IS the package (src/myproj): absolute imports carry a
+        # leading package name the module table lacks. Stripping applies ONLY
+        # to that package's own name — pydry.model must stay external.
+        root = tmp_path / "myproj"
+        root.mkdir()
         sources = {
-            "core/engine.py": "from antipasta.core import model\n\ndef go():\n    return model.M\n",
+            "core/engine.py": (
+                "from myproj.core import model\nimport pydry.model\n\n"
+                "def go():\n    return model.M\n"
+            ),
             "core/model.py": "M = 1\n",
         }
-        reports = _derive(tmp_path, sources)
+        reports = _derive(root, sources)
 
         engine = _module_rows(reports, "core.engine")
         assert engine["efferent_coupling"] == 1.0

@@ -19,14 +19,14 @@ from antipasta.cli.config.config_generate.validation import (
     prompt_with_validation,
     validate_with_pydantic,
 )
-from antipasta.core.config import (
+from antipasta.core.model.config import (
     AntipastaConfig,
     ComparisonOperator,
     DefaultsConfig,
     LanguageConfig,
     MetricConfig,
 )
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 
 class TestValidateWithPydantic:

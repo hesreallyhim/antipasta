@@ -27,9 +27,9 @@ from pathlib import Path
 import statistics
 import subprocess
 
-from antipasta.core.detector import is_test_path
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import ProjectReport
+from antipasta.core.model.detector import is_test_path
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport
 
 #: Change-coupling pairs need at least this many co-commits to be reported.
 MIN_COUPLING_SUPPORT = 3

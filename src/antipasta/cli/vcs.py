@@ -15,9 +15,9 @@ import sys
 
 import click
 
-from antipasta.core.metrics import MetricType
-from antipasta.core.vcs import complexity_from_snapshot, history_reports, mine_history
-from antipasta.core.violations import ProjectReport
+from antipasta.core.mining.vcs import complexity_from_snapshot, history_reports, mine_history
+from antipasta.core.model.metrics import MetricType
+from antipasta.core.model.violations import ProjectReport
 
 
 @click.command()

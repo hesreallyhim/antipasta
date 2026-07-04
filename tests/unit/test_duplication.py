@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from antipasta.core.config import AntipastaConfig, DuplicationConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.duplication import derive_duplication, pydry_available
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import FileReport, ProjectReport
+from antipasta.core.derive.duplication import derive_duplication, pydry_available
+from antipasta.core.model.config import AntipastaConfig, DuplicationConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import FileReport, ProjectReport
 
 TWIN_A = (
     "def alpha(x):\n"
@@ -112,7 +112,7 @@ class TestDuplicationDeriver:
     def test_unavailable_engine_reports_once(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import antipasta.core.duplication as duplication_module
+        import antipasta.core.derive.duplication as duplication_module
 
         monkeypatch.setattr(duplication_module, "pydry_available", lambda: False)
         _write(tmp_path, {"a.py": TWIN_A})

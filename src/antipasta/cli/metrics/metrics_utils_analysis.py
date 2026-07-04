@@ -6,9 +6,9 @@ from typing import Any
 
 import click
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
+from antipasta.engine import MetricAggregator
 
 from .metrics_utils_collection import collect_files
 

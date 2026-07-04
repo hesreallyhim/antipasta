@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 from unittest.mock import MagicMock, mock_open, patch
 
-from antipasta.utils.schema_generator import generate_config_schema
+from antipasta.cli.config.schema_generator import generate_config_schema
 
 
 class TestGenerateConfigSchema:
@@ -147,7 +147,7 @@ class TestGenerateConfigSchema:
             assert "properties" in schema
             assert isinstance(schema["properties"], dict)
 
-    @patch("antipasta.utils.schema_generator.Path.mkdir")
+    @patch("antipasta.cli.config.schema_generator.Path.mkdir")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     def test_generate_schema_file_operations(
@@ -184,7 +184,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Mock the path to write to temp directory
-import antipasta.utils.schema_generator as sg
+import antipasta.cli.config.schema_generator as sg
 original_path = Path(sg.__file__)
 sg.__file__ = str(Path(__file__))
 
@@ -211,13 +211,13 @@ if __name__ == "__main__":
         assert "Schema generated at:" in result.stdout
         assert "schemas/metrics-config.schema.json" in result.stdout
 
-    @patch("antipasta.utils.schema_generator.generate_config_schema")
+    @patch("antipasta.cli.config.schema_generator.generate_config_schema")
     @patch("builtins.print")
     def test_main_block_with_mock(
         self, mock_print: MagicMock, mock_generate: MagicMock, tmp_path: Path
     ) -> None:
         """Test __main__ block using mocks."""
-        from antipasta.utils import schema_generator
+        from antipasta.cli.config import schema_generator
 
         # Save original __file__ and replace with temp path
         original_file = schema_generator.__file__

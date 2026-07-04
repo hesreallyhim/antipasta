@@ -15,10 +15,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import ProjectReport
-from antipasta.runners.python.house_style.cohesion import lack_of_cohesion
+from antipasta.core.derive.cohesion import lack_of_cohesion
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport
 
 _IMPLICIT_ROOTS = frozenset({"object"})
 _MAX_DEPTH_GUARD = 64  # cycle backstop; real hierarchies never get close

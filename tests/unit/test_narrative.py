@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from antipasta.core.config import AntipastaConfig, NarrativeConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.narrative import _ambient_names, classify, derive_narrative
-from antipasta.core.violations import ProjectReport
+from antipasta.core.derive.narrative import _ambient_names, classify, derive_narrative
+from antipasta.core.model.config import AntipastaConfig, NarrativeConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.violations import ProjectReport
 from antipasta.runners.python.house_style import HouseStyleRunner
 
 PROSE_MODULE = """\
@@ -223,7 +223,7 @@ class TestNameClarity:
         assert _rows(reports, "quix_engine")["name_clarity"] == 1.0
 
     def test_allowlist_words_pass(self, tmp_path: Path) -> None:
-        from antipasta.core.config import NarrativeConfig
+        from antipasta.core.model.config import NarrativeConfig
 
         source = "def build_zorp(d):\n    a = d\n    b = a\n    return b\n"
         without = _derive(tmp_path, {"m.py": source})
@@ -266,7 +266,7 @@ class TestNamingAntipatterns:
 
 class TestLexiconUnits:
     def test_split_identifier(self) -> None:
-        from antipasta.core.lexicon import split_identifier
+        from antipasta.core.derive.lexicon import split_identifier
 
         assert split_identifier("getUsersByNameDesc") == [
             "get", "users", "by", "name", "desc",
@@ -274,7 +274,7 @@ class TestLexiconUnits:
         assert split_identifier("fetch_users_v2") == ["fetch", "users", "v"]
 
     def test_junk_cannot_be_laundered(self) -> None:
-        from antipasta.core.lexicon import JUNK_WORDS, harvest_anchors
+        from antipasta.core.derive.lexicon import JUNK_WORDS, harvest_anchors
 
         anchors = harvest_anchors(["fn_tools"], ["FnHelper"])
         assert not (anchors & JUNK_WORDS)

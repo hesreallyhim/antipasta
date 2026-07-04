@@ -1,4 +1,4 @@
-"""Tests for the snapshot diff engine (antipasta.core.snapshot_diff).
+"""Tests for the snapshot diff engine (antipasta.core.store.snapshot_diff).
 
 The diff is the heart of baseline comparison: these tests pin down file
 add/remove, rename-ish churn, metric deltas (epsilon, missing, non-numeric),
@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from antipasta.cli.report.diff_summary import format_diff_summary
-from antipasta.core.snapshot_diff import DEFAULT_EPSILON, SnapshotDiff, diff
+from antipasta.core.store.snapshot_diff import DEFAULT_EPSILON, SnapshotDiff, diff
 from antipasta.report.baseline import build_baseline_payload
 
 # ----- snapshot fixture builders -------------------------------------------

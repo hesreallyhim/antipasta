@@ -22,16 +22,12 @@ Dependencies Principle) and stable-dependencies violations gate on count.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
-from antipasta.core.abstractness import (
-    dependency_inversion,
-    distance_from_main_sequence,
-    module_abstractness,
-)
-from antipasta.core.config import ImportGraphConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import FactRow, MetricResult, MetricType
-from antipasta.core.violations import ProjectReport, Violation, check_metric_violation
+from antipasta.core.model.config import ImportGraphConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import FactRow, MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport, Violation, check_metric_violation
 
 #: Instability delta below which an edge toward a more-unstable module is
 #: tolerated by the stable-dependencies check.
@@ -84,7 +80,7 @@ def _build_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
         source = module_of.get(file_path)
         if source is None:
             continue
-        for target in _resolved_targets(facts, source, known):
+        for target in _resolved_targets(facts, source, known, root.name):
             if target != source and not _is_ancestor_edge(source, target):
                 graph[source].add(target)
     return graph
@@ -114,14 +110,16 @@ def _module_name(file_path: Path, root: Path) -> str | None:
     return ".".join(parts) if parts else None
 
 
-def _resolved_targets(facts: list[FactRow], source: str, known: set[str]) -> set[str]:
+def _resolved_targets(
+    facts: list[FactRow], source: str, known: set[str], root_package: str
+) -> set[str]:
     targets: set[str] = set()
     for fact in facts:
         if fact.kind != "import":
             continue
         payload = fact.payload
         prefix = _import_prefix(payload["module"], payload["level"], source)
-        targets.update(_resolve_statement(prefix, payload["names"], known))
+        targets.update(_resolve_statement(prefix, payload["names"], known, root_package))
     return targets
 
 
@@ -133,7 +131,9 @@ def _import_prefix(module: str, level: int, source: str) -> str:
     return ".".join([*base_parts, module]) if module else ".".join(base_parts)
 
 
-def _resolve_statement(prefix: str, names: list[str], known: set[str]) -> set[str]:
+def _resolve_statement(
+    prefix: str, names: list[str], known: set[str], root_package: str
+) -> set[str]:
     """Resolve one import statement against the analyzed module set.
 
     `from X import name`: name may be a submodule (X.name) or a symbol
@@ -141,30 +141,33 @@ def _resolve_statement(prefix: str, names: list[str], known: set[str]) -> set[st
     fallback when the submodule doesn't exist.
     """
     if not names:
-        resolved = _match_known(prefix, known) if prefix else None
+        resolved = _match_known(prefix, known, root_package) if prefix else None
         return {resolved} if resolved else set()
     targets: set[str] = set()
     for name in names:
         candidate = f"{prefix}.{name}" if prefix else name
-        resolved = _match_known(candidate, known)
+        resolved = _match_known(candidate, known, root_package)
         if resolved is None and prefix:
-            resolved = _match_known(prefix, known)
+            resolved = _match_known(prefix, known, root_package)
         if resolved is not None:
             targets.add(resolved)
     return targets
 
 
-def _match_known(candidate: str, known: set[str]) -> str | None:
-    """Longest-prefix match, with leading-package stripping for src layouts."""
+def _match_known(candidate: str, known: set[str], root_package: str) -> str | None:
+    """Longest-prefix match; leading segments strip ONLY when they name the
+    analyzed root package (src-layout absolute imports). Stripping arbitrary
+    heads once resolved ``pydry.engine`` to this project's ``engine`` module —
+    a false edge the layering check caught after the core split."""
     parts = candidate.split(".")
     for strip in range(len(parts)):
+        if strip > 0 and parts[strip - 1] != root_package:
+            break
         remaining = parts[strip:]
         for end in range(len(remaining), 0, -1):
             name = ".".join(remaining[:end])
             if name in known:
                 return name
-        if strip == 0 and parts[0] in known:
-            break  # exact head already known; deeper strips would mis-match
     return None
 
 
@@ -413,3 +416,59 @@ def _package_reports(graph: dict[str, set[str]]) -> list[ProjectReport]:
 
 def _package_of(module: str) -> str:
     return module.rsplit(".", 1)[0] if "." in module else "(top)"
+
+
+# ── abstractness (merged from the former abstractness module: consumed
+# only here, and the merge keeps the derive layer inside the fan-out band) ──
+
+
+_ABSTRACT_BASE_MARKERS = ("ABC", "Protocol")
+_ABSTRACT_METACLASS_MARKER = "ABCMeta"
+_ABSTRACT_METHOD_MARKER = "abstractmethod"
+
+
+def module_abstractness(facts: list[FactRow]) -> float | None:
+    """Abstract-class ratio for one module; None when it has no classes."""
+    class_payloads = [fact.payload for fact in facts if fact.kind == "class"]
+    if not class_payloads:
+        return None
+    abstract = sum(1 for payload in class_payloads if _is_abstract(payload))
+    return abstract / len(class_payloads)
+
+
+def _is_abstract(payload: dict[str, Any]) -> bool:
+    if any(_base_is_abstract(base) for base in payload["bases"]):
+        return True
+    if any(_ABSTRACT_METACLASS_MARKER in keyword for keyword in payload.get("keywords", [])):
+        return True
+    return any(
+        _ABSTRACT_METHOD_MARKER in decorator
+        for method in payload["methods"]
+        for decorator in method.get("decorators", [])
+    )
+
+
+def _base_is_abstract(base: str) -> bool:
+    head = base.split("[")[0]  # Protocol[T] -> Protocol
+    last = head.split(".")[-1]  # typing.Protocol -> Protocol
+    return last in _ABSTRACT_BASE_MARKERS
+
+
+def distance_from_main_sequence(abstractness: float, instability: float) -> float:
+    """|A + I − 1|: zero on the Main Sequence, 1.0 in the corners
+    (pain: concrete + stable; uselessness: abstract + unstable)."""
+    return abs(abstractness + instability - 1.0)
+
+
+def dependency_inversion(
+    target_modules: set[str], abstractness_by_module: dict[str, float | None]
+) -> float | None:
+    """Mean abstractness of imported targets; None with no outgoing edges.
+
+    Targets without classes contribute 0.0 — importing a pure-function
+    module is a concrete dependency by definition.
+    """
+    if not target_modules:
+        return None
+    total = sum(abstractness_by_module.get(target) or 0.0 for target in target_modules)
+    return total / len(target_modules)

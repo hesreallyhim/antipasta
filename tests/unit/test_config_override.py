@@ -2,7 +2,7 @@
 
 import pytest
 
-from antipasta.core.config_override import ConfigOverride
+from antipasta.core.model.config_override import ConfigOverride
 
 
 class TestConfigOverride:

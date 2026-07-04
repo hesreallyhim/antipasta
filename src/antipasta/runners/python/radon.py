@@ -13,8 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from antipasta.core.detector import Language
-from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
+from antipasta.core.model.detector import Language
+from antipasta.core.model.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
 
 if TYPE_CHECKING:

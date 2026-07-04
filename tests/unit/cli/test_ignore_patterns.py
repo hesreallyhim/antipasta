@@ -6,7 +6,7 @@ import tempfile
 from click.testing import CliRunner
 
 from antipasta.cli.config.config_generate import generate
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 
 class TestIgnorePatternInput:

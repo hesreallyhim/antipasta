@@ -22,8 +22,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import ProjectReport
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport
 
 #: At most this many rows per section.
 _TOP_LIMIT = 15

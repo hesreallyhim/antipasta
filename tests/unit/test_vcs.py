@@ -7,13 +7,13 @@ import subprocess
 
 import pytest
 
-from antipasta.core.detector import is_test_path
-from antipasta.core.metrics import MetricType
-from antipasta.core.vcs import (
+from antipasta.core.mining.vcs import (
     complexity_from_snapshot,
     history_reports,
     mine_history,
 )
+from antipasta.core.model.detector import is_test_path
+from antipasta.core.model.metrics import MetricType
 
 
 def _git(repo: Path, *args: str) -> None:

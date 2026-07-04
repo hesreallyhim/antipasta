@@ -5,8 +5,8 @@ import sys
 import click
 
 from antipasta.cli.validation_utils import format_validation_error_for_cli, get_metric_help_text
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
 
 
 def handle_threshold_parsing_error(error: ValueError, threshold_str: str) -> None:

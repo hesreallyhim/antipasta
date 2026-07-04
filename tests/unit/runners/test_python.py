@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 from antipasta.runners.python.radon import RadonRunner
 
 

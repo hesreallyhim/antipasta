@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from antipasta.core.metrics import FileMetrics
+from antipasta.core.model.metrics import FileMetrics
 
 
 class BaseRunner(ABC):

@@ -21,10 +21,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import DuplicationConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import ProjectReport, Violation, check_metric_violation
+from antipasta.core.model.config import DuplicationConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport, Violation, check_metric_violation
 
 
 def pydry_available() -> bool:

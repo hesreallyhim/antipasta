@@ -2,8 +2,8 @@
 
 ``diff`` compares a baseline ("old") snapshot against a current ("new") one —
 both in the ``schema_version`` 1 layout produced by
-:mod:`antipasta.core.snapshot` — and returns a typed
-:class:`~antipasta.core.snapshot_diff_types.SnapshotDiff`.
+:mod:`antipasta.core.store.snapshot` — and returns a typed
+:class:`~antipasta.core.store.snapshot_diff_types.SnapshotDiff`.
 
 Design constraints:
 
@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from antipasta.core.snapshot_diff_types import (
+from antipasta.core.store.snapshot_diff_types import (
     DEFAULT_EPSILON,
     FileDelta,
     FunctionDelta,

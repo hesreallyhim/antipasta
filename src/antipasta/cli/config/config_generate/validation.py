@@ -6,7 +6,7 @@ from typing import Any
 import click
 from pydantic import ValidationError
 
-from antipasta.core.metric_models import MetricThresholds
+from antipasta.core.model.metric_models import MetricThresholds
 
 
 def validate_with_pydantic(metric_type: str, value: str) -> float:

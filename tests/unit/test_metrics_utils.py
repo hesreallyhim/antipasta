@@ -30,8 +30,8 @@ from antipasta.cli.metrics.metrics_utils_override import (
     apply_overrides_to_configuration,
     create_and_configure_override,
 )
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
 
 
 class TestRefactoredMetricsComponents:

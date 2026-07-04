@@ -25,11 +25,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import NarrativeConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.lexicon import full_vocabulary, harvest_anchors, score_identifier
-from antipasta.core.metrics import MetricResult, MetricType
-from antipasta.core.violations import ProjectReport, Violation, check_metric_violation
+from antipasta.core.derive.lexicon import full_vocabulary, harvest_anchors, score_identifier
+from antipasta.core.model.config import NarrativeConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport, Violation, check_metric_violation
 
 #: Functions under this many statements are too small to classify.
 TRIVIAL_FLOOR = 3

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import click
 
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 # Metric prefix mappings for easier UX
 METRIC_PREFIXES = {

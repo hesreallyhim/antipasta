@@ -12,8 +12,8 @@ from unittest.mock import patch
 
 import pytest
 
-from antipasta.core.detector import Language
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.detector import Language
+from antipasta.core.model.metrics import MetricType
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 
 NESTED_SOURCE = """\

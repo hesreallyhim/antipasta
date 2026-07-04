@@ -13,7 +13,7 @@ from __future__ import annotations
 import ast
 from typing import Any, TypeGuard
 
-from antipasta.core.metrics import FactRow
+from antipasta.core.model.metrics import FactRow
 from antipasta.runners.python.house_style.expressions import (
     call_names,
     max_nesting,

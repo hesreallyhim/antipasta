@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 
 def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:

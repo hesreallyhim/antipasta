@@ -3,7 +3,7 @@ from typing import Any
 
 import click
 
-from antipasta.core.violations import FileReport, ProjectReport
+from antipasta.core.model.violations import FileReport, ProjectReport
 
 _SUMMARY_DIVIDER, _VIOLATION_DIVIDER = "=" * 70, "-" * 70
 

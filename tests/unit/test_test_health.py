@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from antipasta.core.metrics import MetricType
-from antipasta.core.test_health import (
+from antipasta.core.mining.coverage_matrix import (
     CoverageMatrix,
     blast_radius,
     matrix_reports,
     redundancy_index,
     unique_coverage,
 )
+from antipasta.core.model.metrics import MetricType
 
 
 def _matrix() -> CoverageMatrix:

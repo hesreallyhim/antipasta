@@ -36,7 +36,7 @@ import shutil
 import sys
 
 from antipasta.__version__ import __version__
-from antipasta.core.metrics import FactRow, MetricResult, MetricType
+from antipasta.core.model.metrics import FactRow, MetricResult, MetricType
 
 # v2 (2026-07-04): entries carry a `facts` array (path-independent fact rows
 # for the derivation stage). Bumping this constant shifts the fingerprint,

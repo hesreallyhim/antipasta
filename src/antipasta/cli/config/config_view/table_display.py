@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import click
 
-from antipasta.core.config import AntipastaConfig, LanguageConfig
+from antipasta.core.model.config import AntipastaConfig, LanguageConfig
 
 # Table formatting constants
 _TABLE_WIDTH = 60

@@ -14,8 +14,8 @@ from typing import Any
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
-from antipasta.core.metric_models import MetricThresholds
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metric_models import MetricThresholds
+from antipasta.core.model.metrics import MetricType
 
 
 @dataclass

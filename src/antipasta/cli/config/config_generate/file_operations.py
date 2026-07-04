@@ -8,7 +8,7 @@ import click
 from pydantic import ValidationError
 import yaml
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 
 def _dump_scalar(value: Any) -> str:

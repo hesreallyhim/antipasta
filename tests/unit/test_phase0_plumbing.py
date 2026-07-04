@@ -10,13 +10,13 @@ from pathlib import Path
 from pydantic import ValidationError
 import pytest
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.cache import MetricsCache
-from antipasta.core.config import AntipastaConfig, ComparisonOperator
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import FactRow, MetricResult, MetricType
-from antipasta.core.snapshot import SCHEMA_VERSION, build_snapshot
-from antipasta.core.violations import ProjectReport, Violation
+from antipasta.core.model.config import AntipastaConfig, ComparisonOperator
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import FactRow, MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport, Violation
+from antipasta.core.store.cache import MetricsCache
+from antipasta.core.store.snapshot import SCHEMA_VERSION, build_snapshot
+from antipasta.engine import MetricAggregator
 
 SAMPLE_SOURCE = """\
 def helper(value):

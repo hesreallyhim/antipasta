@@ -50,7 +50,7 @@ def calculate(x):
             gitignore = Path(tmpdir) / ".gitignore"
             gitignore.write_text("tests/\n")
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_aggregator.return_value = mock_instance
@@ -80,7 +80,7 @@ def calculate(x):
             gen_file = generated_dir / "auto.py"
             gen_file.write_text("# Auto-generated\ndef gen():\n    pass\n")
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_aggregator.return_value = mock_instance
@@ -109,7 +109,7 @@ def calculate(x):
             src_file = Path(tmpdir) / "main.py"
             src_file.write_text("def main():\n    pass\n")
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_aggregator.return_value = mock_instance
@@ -139,7 +139,7 @@ def calculate(x):
             gitignore = Path(tmpdir) / ".gitignore"
             gitignore.write_text("tests/\nvendor/\n")
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_aggregator.return_value = mock_instance
@@ -172,7 +172,7 @@ def calculate(x):
             test_py = test_dir / "test.py"
             test_py.write_text("def test():\n    assert True\n")
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_aggregator.return_value = mock_instance
@@ -220,7 +220,7 @@ def process():
             test_file = test_path / "test_engine.py"
             test_file.write_text("def test_process():\n    assert True\n")
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_reports: list[Any] = []
                 mock_instance.analyze_files.return_value = mock_reports
@@ -261,7 +261,7 @@ def calculate(x, y):
 """
             )
 
-            with patch("antipasta.core.aggregator.MetricAggregator") as mock_aggregator:
+            with patch("antipasta.engine.MetricAggregator") as mock_aggregator:
                 mock_instance = MagicMock()
                 mock_instance.analyze_files.return_value = []
                 mock_aggregator.return_value = mock_instance

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 from antipasta.runners.javascript.lizard_runner import LizardRunner
 
 TS_FIXTURE = """\

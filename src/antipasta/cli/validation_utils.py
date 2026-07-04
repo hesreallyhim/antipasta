@@ -6,7 +6,7 @@ from Pydantic models and format them for CLI help text and error messages.
 
 from typing import Any
 
-from antipasta.core.metric_models import MetricThresholds
+from antipasta.core.model.metric_models import MetricThresholds
 
 
 def get_metric_constraints(metric_type: str) -> tuple[float | None, float | None]:

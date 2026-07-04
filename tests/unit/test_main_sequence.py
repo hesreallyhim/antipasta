@@ -7,16 +7,16 @@ from pathlib import Path
 
 import pytest
 
-from antipasta.core.abstractness import (
+from antipasta.core.derive.import_graph import (
     dependency_inversion,
+    derive_import_graph,
     distance_from_main_sequence,
     module_abstractness,
 )
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.import_graph import derive_import_graph
-from antipasta.core.metrics import FactRow
-from antipasta.core.violations import ProjectReport
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import FactRow
+from antipasta.core.model.violations import ProjectReport
 from antipasta.runners.python.house_style import HouseStyleRunner
 
 

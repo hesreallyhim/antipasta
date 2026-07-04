@@ -13,6 +13,37 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Golden-set core split — EXECUTED 2026-07-04** (branch
+  `feat/golden-set-core-split`; the flat before-state is the tip of
+  `feat/metrics-phase-4`, per the owner's protocol). Layers planned from the
+  tool's own measurements: `core/model` (the afferent-19 stable core: metrics,
+  metric_models, violations, config, config_override, detector, derivation),
+  `core/store` (cache, snapshot×3, treemap), `core/derive` (the seven
+  derivers + cohesion; abstractness merged into import_graph to stay in
+  band), `core/mining` (vcs, coverage_matrix), and **aggregator promoted out
+  of core to `antipasta/engine.py`** — fixing the measured upward import.
+  The snapshot→aggregator wart died via a pure `summarize_reports` in the
+  model layer. 83 files' imports rewritten mechanically; gates green at
+  every step.
+  **Before → after:** fan-out over band 1 (core at 21, triple the band) → 0;
+  upward importers 2 → 0; cycles 1 (false) → 0. The layering config
+  `[cli, report, engine, runners, core]` now passes clean and is READY to
+  enable as a gate on the owner's word.
+  **The experiment's real yield — the metrics caught three defects DURING
+  the refactor they guided:** (1) `import pydry.engine` false-resolved to
+  the new local `engine` module — the prefix-stripping resolver now strips
+  only the analyzed root package's own name (pinned by test); (2)
+  `class_registry` reaching up into a runners module for cohesion — the
+  algorithm moved down into `core/derive` where it belonged; (3)
+  `core/mining/test_health.py` matched the `**/test_*.py` ignore glob and
+  had NEVER been analyzed (ungated since creation) — renamed
+  `coverage_matrix.py`. The remediation-product thesis, demonstrated on the
+  tool itself.
+  **Note:** import paths changed (antipasta.core.X → layered homes;
+  antipasta.engine) — a breaking change for library importers, fine for the
+  CLI; version bump to 2.0 or a 1.x deprecation-shim release is the owner's
+  packaging call.
+
 - **Tracks A, B, D — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
   - **A (duplication, pydry)**: config-gated deriver over the owner's engine
     (installed from GitHub pending PyPI; `antipasta[dry]` extra declared).
