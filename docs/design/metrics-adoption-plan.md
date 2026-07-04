@@ -11,6 +11,19 @@ split per `structural-metrics-caching.md`) landed 2026-07-04 and is assumed.
 Everything below is design-current-best; an implementing session may deviate
 with reasons recorded in the phase's closing commit.
 
+## Status log (updated at each checkpoint)
+
+- **Phase 0 — LANDED 2026-07-04** (`6924d18`, checkpoint branch
+  `feat/report-command`). QA: 371 unit tests green (12 new: fact-row and
+  cache-v2 round-trips, project-report accounting, deriver end-to-end
+  including the exit-code fold, profile validation, snapshot v2); ruff +
+  mypy clean; dogfood 0 violations; committed metrics snapshot regenerated
+  on schema v2. Recorded deviations from the spec: (a) Violation reuses
+  `file_path` as the project subject instead of a new field — smaller diff,
+  same information; (b) CLI root-threading deferred until the first real
+  deriver (root defaults to the working directory); (c) the profile
+  precedence helper deferred to its first consumer.
+
 ## Ordering principles (unchanged)
 
 1. Infrastructure-dependency order (per-function walk → class scope → import
