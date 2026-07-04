@@ -187,21 +187,44 @@ So every function classifies into one of four:
 
 | Class | Definition | Judged by |
 |---|---|---|
-| **narrator** | project calls, no raw computation | narration floor, name clarity, step-down |
-| **computer** (leaf) | raw computation, no project calls | leaf budgets: size, nesting, cognitive complexity, name clarity |
+| **narrator** | project calls, no raw computation | narration floor, name clarity, step-down, **step budget** |
+| **computer** (leaf) | raw computation, no project calls | leaf budgets: statement cap, nesting cap, cognitive complexity, name clarity |
 | **MIXED** | both in one body | the violation itself — "split altitudes" |
 | trivial | under 3 statements | nothing — too small to classify |
 
-**Probe results with classification** (the probe now implements it):
+**Budgets at every altitude (owner refinement, 2026-07-04).** A narrator built
+from 25 semantically perfect helper calls in a row still fails — prose has
+paragraphs, and 25 sequential steps at one level means missing intermediate
+chunks (the refactor: group the steps into named phases). So narrators carry a
+**step budget** (extreme profile: about 9 narrative steps; the 7±2 band),
+symmetric with the computers' statement/nesting budget. Note that *no other
+metric can see this defect*: a 25-step run-on narrator has cognitive complexity
+0 and cyclomatic complexity 1, and if a generic line cap catches it that's
+coincidence, because the unit that matters is narrative steps, not lines. This
+is also the function-scale instance of a principle that now unifies several of
+the owner's metrics: **bounded fan-out at every altitude** — 5–7 children per
+package (Module Tree Shape), 5–9 steps per narrator, method-count bounds per
+class (Weighted Methods per Class), 4–5 parameters per function (arity). One
+aesthetic, four scales.
 
-| Sample | Class | Composite |
-|---|---|:--:|
-| Owner's example | narrator | 1.00 |
-| Tightened variant | narrator | 1.00 |
-| Inlined twin | **computer** | 0.16 |
-| Junk-named twin | narrator | 0.75 |
-| Half-refactored (`fetch_users` then a comprehension + arithmetic on the result) | **MIXED** | 0.50 |
-| The extracted leaf itself (`exceeds_capacity`, three tidy statements) | computer | 0.54 |
+**Probe results with classification and budgets** (the probe implements both):
+
+| Sample | Class | Steps | Budget | Composite |
+|---|---|:--:|:--:|:--:|
+| Owner's example | narrator | 5 | ok | 1.00 |
+| Tightened variant | narrator | 3 | ok | 1.00 |
+| Inlined twin | **computer** | 5 | **over** (nesting 2) | 0.16 |
+| Junk-named twin | narrator | 3 | ok | 0.75 |
+| Half-refactored (`fetch_users` then a comprehension + arithmetic on the result) | **MIXED** | 3 | — | 0.50 |
+| The extracted leaf itself (`exceeds_capacity`, three tidy statements) | computer | 3 | ok | 0.60 |
+| Run-on narrator — 12 perfect, well-named steps in a row | narrator | 12 | **over** | 1.00 |
+
+The last row is the punchline for budgets: **a perfect composite and a
+violation at the same time.** Every defect in the table routes through its own
+named check — junk names fail the name-clarity floor, the half-refactored
+function fails by class (MIXED), the inlined twin fails the leaf nesting
+budget, the run-on narrator fails the step budget — and each check's name *is*
+the refactoring instruction.
 
 Two findings worth naming:
 
