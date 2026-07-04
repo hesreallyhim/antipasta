@@ -277,6 +277,13 @@ property. Any number here would be fabricated confidence; the tool is trusted
    embarrassingly parallel; antipasta is almost certainly single-threaded today).
    This is the substrate that makes "a lot more metrics" affordable — build the new
    analyzers as the *first* cached citizens, not a retrofit.
+   **[LANDED 2026-07-04.** Three parts: in-process radon/complexipy (the real
+   latency culprit was five subprocess spawns per file — 23.7s → 0.8s on the
+   dogfood corpus), a process pool past 32 files (4.7× on 167 files, 10 cores),
+   and a content-addressed cache (warm runs 29× over cold; threshold changes
+   never invalidate since violations derive post-cache). Net: dogfood warm run
+   0.26s vs 23.7s — ~90×. New analyzers inherit the substrate by returning
+   MetricResult rows from `_collect_file_metrics`.**]**
 2. **Class-scope analyzer and the single-responsibility slice.** Lack of Cohesion
    of Methods (#1) and Weighted Methods per Class (#10) feeding the
    single-responsibility violation index (#27). Small, Python-first, immediately

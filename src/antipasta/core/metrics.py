@@ -56,6 +56,22 @@ class MetricResult:
             "function_name": self.function_name,
         }
 
+    @classmethod
+    def from_dict(cls, file_path: Path, data: dict[str, Any]) -> MetricResult:
+        """Rehydrate a serialized metric row against a concrete file path.
+
+        The serialized form is path-independent (see to_dict), which is what
+        lets content-addressed cache entries survive renames and clones.
+        """
+        return cls(
+            file_path=file_path,
+            metric_type=MetricType(data["type"]),
+            value=float(data["value"]),
+            details=data.get("details"),
+            line_number=data.get("line_number"),
+            function_name=data.get("function_name"),
+        )
+
 
 @dataclass
 class FileMetrics:

@@ -12,6 +12,7 @@ from antipasta.core.aggregator import (
     _collect_file_metrics,
     _resolve_jobs,
 )
+from antipasta.core.cache import MetricsCache
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.metrics import MetricType
 
@@ -87,7 +88,9 @@ class TestParallelEquivalence:
         for index in range(6):
             (tmp_path / f"module_{index}.py").write_text(SAMPLE_SOURCE)
         files = sorted(tmp_path.glob("*.py"))
-        aggregator = MetricAggregator(AntipastaConfig())
+        # Cache disabled: the second run must actually exercise the pool,
+        # not serve the first run's results back.
+        aggregator = MetricAggregator(AntipastaConfig(), cache=MetricsCache(enabled=False))
 
         sequential = aggregator.analyze_files(files, jobs=1)
         parallel = aggregator.analyze_files(files, jobs=2)

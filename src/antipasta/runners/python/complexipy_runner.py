@@ -79,7 +79,7 @@ class ComplexipyRunner(BaseRunner):
         from complexipy import code_complexity, file_complexity
 
         # CodeComplexity and FileComplexity are distinct types sharing the
-        # `.functions` shape; only FileComplexity carries file_name/path.
+        # `.functions` shape.
         result: Any
         try:
             if content is not None:
@@ -90,9 +90,10 @@ class ComplexipyRunner(BaseRunner):
             # Unparseable source: match the subprocess era (no metrics).
             return []
 
-        file_name = getattr(result, "file_name", file_path.name)
-        result_path = getattr(result, "path", str(file_path))
-
+        # No path-derived data in details: metric rows must stay
+        # path-independent so content-addressed cache entries rehydrate
+        # correctly for identical files at different paths (the row's own
+        # file_path field carries the location).
         metrics = [
             MetricResult(
                 file_path=file_path,
@@ -100,10 +101,6 @@ class ComplexipyRunner(BaseRunner):
                 value=float(function.complexity),
                 line_number=function.line_start,
                 function_name=function.name,
-                details={
-                    "file_name": file_name,
-                    "path": result_path,
-                },
             )
             for function in result.functions
         ]

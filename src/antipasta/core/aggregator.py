@@ -12,8 +12,9 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
+from antipasta.core.cache import MetricsCache
 from antipasta.core.config import AntipastaConfig, ComparisonOperator, LanguageConfig, MetricConfig
 from antipasta.core.detector import Language, LanguageDetector
 from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
@@ -102,13 +103,16 @@ _PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset(
 class MetricAggregator:
     """Aggregates metrics and violations across multiple files."""
 
-    def __init__(self, config: AntipastaConfig) -> None:
+    def __init__(self, config: AntipastaConfig, cache: MetricsCache | None = None) -> None:
         """Initialize the aggregator with configuration.
 
         Args:
             config: Antipasta configuration
+            cache: Metric cache (default: a content-addressed store under the
+                user cache dir; see core.cache for locations and kill switches)
         """
         self.config = config
+        self.cache = cache if cache is not None else MetricsCache()
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
 
         # Load .gitignore patterns if enabled
@@ -150,15 +154,56 @@ class MetricAggregator:
             for file_path in files:
                 work.append((file_path, language, lang_config))
 
-        # Collect metrics (the expensive, config-free part — parallelizable),
-        # then derive violations in the parent (cheap, config-dependent).
-        collected = self._collect_all([(str(p), lang.value) for p, lang, _ in work], jobs)
+        # Collect metrics (the expensive, config-free part — cached and
+        # parallelizable), then derive violations in the parent (cheap,
+        # config-dependent — threshold changes never invalidate the cache).
+        collected = self._collect_with_cache(work, jobs)
 
         paired = zip(work, collected, strict=True)
         return [
             self._finalize_report(file_path, language, metrics, errors, lang_config.metrics)
             for (file_path, language, lang_config), (metrics, errors) in paired
         ]
+
+    def _collect_with_cache(
+        self, work: list[tuple[Path, Language, LanguageConfig]], jobs: int | None
+    ) -> list[tuple[list[MetricResult], list[str]]]:
+        """Serve collection results from the cache; dispatch only the misses."""
+        collected: list[tuple[list[MetricResult], list[str]] | None] = []
+        keys: list[str | None] = []
+        miss_tasks: list[tuple[str, str]] = []
+        miss_indices: list[int] = []
+
+        for index, (file_path, language, _) in enumerate(work):
+            key: str | None = None
+            cached: tuple[list[MetricResult], list[str]] | None = None
+            if self.cache.enabled:
+                try:
+                    content = file_path.read_bytes()
+                except OSError:
+                    content = None
+                if content is not None:
+                    key = self.cache.key_for(content, language.value)
+                    cached = self.cache.get(key, file_path)
+            keys.append(key)
+            collected.append(cached)
+            if cached is None:
+                miss_tasks.append((str(file_path), language.value))
+                miss_indices.append(index)
+
+        # Only misses reach the (possibly parallel) collection stage, so a
+        # warm run never pays pool spawn overhead.
+        results = self._collect_all(miss_tasks, jobs)
+        for index, result in zip(miss_indices, results, strict=True):
+            collected[index] = result
+            key = keys[index]
+            if key is not None:
+                self.cache.put(key, *result)
+
+        # Every slot is now filled: hits at read time, misses just above.
+        # (A cast, not a filter — dropping a slot would silently misalign
+        # reports with `work`; unpacking None downstream fails loudly.)
+        return cast("list[tuple[list[MetricResult], list[str]]]", collected)
 
     def _collect_all(
         self, tasks: list[tuple[str, str]], jobs: int | None
