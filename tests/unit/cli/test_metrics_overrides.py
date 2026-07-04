@@ -49,7 +49,7 @@ ignore_patterns:
                 "antipasta.cli.metrics.metrics_utils_analysis.MetricAggregator"
             ) as mock_aggregator:
                 mock_instance = MagicMock()
-                mock_instance.analyze_files.return_value = []
+                mock_instance.analyze.return_value = MagicMock(file_reports=[], project_reports=[])
                 mock_instance.generate_summary.return_value = {
                     "success": True,
                     "total_files": 1,
@@ -70,7 +70,7 @@ ignore_patterns:
                 )
                 assert result.exit_code == 0
                 assert "Including patterns: **/tests/**" in result.output
-                mock_instance.analyze_files.assert_called()
+                mock_instance.analyze.assert_called()
 
     def test_exclude_pattern_override(self) -> None:
         """Test that additional exclude patterns work."""
@@ -112,7 +112,9 @@ languages:
                     "antipasta.cli.metrics.metrics_utils_analysis.MetricAggregator"
                 ) as mock_aggregator:
                     mock_instance = MagicMock()
-                    mock_instance.analyze_files.return_value = []
+                    mock_instance.analyze.return_value = MagicMock(
+                        file_reports=[], project_reports=[]
+                    )
                     mock_instance.generate_summary.return_value = {
                         "success": True,
                         "total_files": 1,
@@ -204,7 +206,7 @@ languages:
                 assert "VIOLATIONS FOUND" in result.output
 
                 # Run with overridden threshold
-                mock_instance.analyze_files.return_value = []
+                mock_instance.analyze.return_value = MagicMock(file_reports=[], project_reports=[])
                 mock_instance.generate_summary.return_value = {
                     "success": True,
                     "total_files": 1,
@@ -261,7 +263,7 @@ use_gitignore: true
                 "antipasta.cli.metrics.metrics_utils_analysis.MetricAggregator"
             ) as mock_aggregator:
                 mock_instance = MagicMock()
-                mock_instance.analyze_files.return_value = []
+                mock_instance.analyze.return_value = MagicMock(file_reports=[], project_reports=[])
                 mock_instance.generate_summary.return_value = {
                     "success": True,
                     "total_files": 2,
@@ -324,7 +326,9 @@ ignore_patterns:
                     "antipasta.cli.metrics.metrics_utils_analysis.MetricAggregator"
                 ) as mock_aggregator:
                     mock_instance = MagicMock()
-                    mock_instance.analyze_files.return_value = []
+                    mock_instance.analyze.return_value = MagicMock(
+                        file_reports=[], project_reports=[]
+                    )
                     mock_instance.generate_summary.return_value = {
                         "success": True,
                         "total_files": 3,  # Should analyze all 3 files
@@ -388,7 +392,7 @@ use_gitignore: true
                 "antipasta.cli.metrics.metrics_utils_analysis.MetricAggregator"
             ) as mock_aggregator:
                 mock_instance = MagicMock()
-                mock_instance.analyze_files.return_value = []
+                mock_instance.analyze.return_value = MagicMock(file_reports=[], project_reports=[])
                 mock_instance.generate_summary.return_value = {
                     "success": True,
                     "total_files": 1,

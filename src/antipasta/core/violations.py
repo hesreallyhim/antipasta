@@ -121,6 +121,44 @@ class FileReport:
         return [f"❌ {violation.message}" for violation in self.violations]
 
 
+@dataclass
+class ProjectReport:
+    """Report for a project- or directory-scoped derivation.
+
+    The subject is a path-like string ("." for the whole project, or a
+    directory path) rather than a file: these reports carry findings whose
+    home is the structure, not any single file (dependency cycles, module
+    tree shape). Violations reuse the Violation model with the subject as
+    the path.
+    """
+
+    subject: str
+    metrics: list[MetricResult]
+    violations: list[Violation]
+
+    @property
+    def has_violations(self) -> bool:
+        """Check if this subject has any violations."""
+        return len(self.violations) > 0
+
+    @property
+    def violation_count(self) -> int:
+        """Get the number of violations."""
+        return len(self.violations)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the report for JSON-friendly output."""
+        return {
+            "subject": self.subject,
+            "metrics": [metric.to_dict() for metric in self.metrics],
+            "violations": [violation.to_dict() for violation in self.violations],
+        }
+
+    def violation_messages(self) -> list[str]:
+        """Return formatted violation messages for display."""
+        return [f"❌ {violation.message}" for violation in self.violations]
+
+
 # Dictionary dispatch for comparison operations to reduce cyclomatic complexity
 _VIOLATION_CHECKS: dict[ComparisonOperator, Callable[[float, float], bool]] = {
     ComparisonOperator.LT: operator.ge,  # value should be < threshold

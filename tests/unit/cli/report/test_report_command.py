@@ -119,7 +119,7 @@ class TestBuildSnapshot:
 
     def test_schema_and_metadata(self, snapshot: dict[str, Any]) -> None:
         """Test top-level snapshot shape."""
-        assert snapshot["schema_version"] == SCHEMA_VERSION == 1
+        assert snapshot["schema_version"] == SCHEMA_VERSION == 2
         assert snapshot["files"], "expected one file entry"
         assert snapshot["summary"]["total_files"] == 1
         assert snapshot["summary"]["total_violations"] == 1
@@ -287,7 +287,7 @@ class TestRenderReport:
         """The snapshot JSON replaces the marker entirely."""
         assert "/*__ANTIPASTA_DATA__*/" not in html
         assert "window.ANTIPASTA_DATA" in html
-        assert '"schema_version":1' in html
+        assert '"schema_version":2' in html
         assert "pkg/module.py" in html
 
     def test_no_network_references(self, html: str) -> None:
@@ -320,7 +320,7 @@ class TestReportCommand:
 
         assert result.exit_code == 0, result.output
         snapshot = json.loads(result.stdout)
-        assert snapshot["schema_version"] == 1
+        assert snapshot["schema_version"] == 2
         assert snapshot["summary"]["total_files"] == 1
 
     def test_html_written_to_output_file(self, tmp_path: Path) -> None:
@@ -372,4 +372,4 @@ class TestReportCommand:
 
         assert result.exit_code == 0, result.output
         assert "branchy" in result.stdout
-        assert json.loads(out.read_text())["schema_version"] == 1
+        assert json.loads(out.read_text())["schema_version"] == 2

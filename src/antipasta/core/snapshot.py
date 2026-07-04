@@ -22,9 +22,11 @@ from antipasta.core.aggregator import MetricAggregator
 from antipasta.core.config import AntipastaConfig
 from antipasta.core.metrics import MetricResult
 from antipasta.core.treemap import build_treemap_nodes
-from antipasta.core.violations import FileReport
+from antipasta.core.violations import FileReport, ProjectReport
 
-SCHEMA_VERSION = 1
+# v2 (2026-07-04): adds the top-level "project" block (project-/directory-
+# scoped reports from the derivation stage; empty until derivers register).
+SCHEMA_VERSION = 2
 
 
 #: ``details["type"]`` values that mark file-level aggregate rows emitted by
@@ -38,6 +40,7 @@ def build_snapshot(
     *,
     root: Path | None = None,
     summary: dict[str, Any] | None = None,
+    project_reports: list[ProjectReport] | None = None,
 ) -> dict[str, Any]:
     """Build a JSON-serializable snapshot of an analysis run.
 
@@ -49,9 +52,11 @@ def build_snapshot(
             Defaults to the current working directory.
         summary: Pre-computed summary (from ``execute_analysis``).  When
             omitted it is recomputed via ``MetricAggregator.generate_summary``.
+        project_reports: Project-/directory-scoped reports from the
+            derivation stage (empty until derivers register).
 
     Returns:
-        The snapshot dictionary (see ``schema_version`` 1 layout).
+        The snapshot dictionary (see ``schema_version`` 2 layout).
     """
     root_path = (root or Path.cwd()).resolve()
     files = [
@@ -77,6 +82,7 @@ def build_snapshot(
         "thresholds": _build_thresholds(config),
         "language_coverage": _build_language_coverage(files),
         "files": files,
+        "project": [report.to_dict() for report in (project_reports or [])],
         "treemap": build_treemap_nodes(files, root_label=root_path.name or str(root_path)),
     }
 

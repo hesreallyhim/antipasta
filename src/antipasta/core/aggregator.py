@@ -16,9 +16,10 @@ from typing import Any, cast
 
 from antipasta.core.cache import MetricsCache
 from antipasta.core.config import AntipastaConfig, ComparisonOperator, LanguageConfig, MetricConfig
+from antipasta.core.derivation import AnalysisResult, DerivationInput, Deriver
 from antipasta.core.detector import Language, LanguageDetector
-from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
-from antipasta.core.violations import FileReport, Violation, check_metric_violation
+from antipasta.core.metrics import FactRow, FileMetrics, MetricResult, MetricType
+from antipasta.core.violations import FileReport, ProjectReport, Violation, check_metric_violation
 from antipasta.runners.base import BaseRunner
 from antipasta.runners.javascript.lizard_runner import LizardRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
@@ -46,8 +47,10 @@ def _build_runners() -> dict[Language, list[BaseRunner]]:
 _worker_runners: dict[Language, list[BaseRunner]] | None = None
 
 
-def _collect_file_metrics(task: tuple[str, str]) -> tuple[list[MetricResult], list[str]]:
-    """Collect raw metrics for one file — worker-safe.
+def _collect_file_metrics(
+    task: tuple[str, str],
+) -> tuple[list[MetricResult], list[FactRow], list[str]]:
+    """Collect raw metrics and facts for one file — worker-safe.
 
     Takes and returns only picklable data, needs no config, and touches no
     aggregator state; this is the unit of work shipped to pool workers (and
@@ -62,6 +65,7 @@ def _collect_file_metrics(task: tuple[str, str]) -> tuple[list[MetricResult], li
     language = Language(language_value)
 
     all_metrics: list[MetricResult] = []
+    all_facts: list[FactRow] = []
     errors: list[str] = []
     for runner in _worker_runners.get(language, []):
         if runner.is_available():
@@ -70,7 +74,8 @@ def _collect_file_metrics(task: tuple[str, str]) -> tuple[list[MetricResult], li
                 errors.append(file_metrics.error)
             else:
                 all_metrics.extend(file_metrics.metrics)
-    return all_metrics, errors
+                all_facts.extend(file_metrics.facts)
+    return all_metrics, all_facts, errors
 
 
 def _resolve_jobs(requested: int | None, task_count: int) -> int:
@@ -103,16 +108,25 @@ _PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset(
 class MetricAggregator:
     """Aggregates metrics and violations across multiple files."""
 
-    def __init__(self, config: AntipastaConfig, cache: MetricsCache | None = None) -> None:
+    def __init__(
+        self,
+        config: AntipastaConfig,
+        cache: MetricsCache | None = None,
+        derivers: list[Deriver] | None = None,
+    ) -> None:
         """Initialize the aggregator with configuration.
 
         Args:
             config: Antipasta configuration
             cache: Metric cache (default: a content-addressed store under the
                 user cache dir; see core.cache for locations and kill switches)
+            derivers: Whole-program derivation functions run after per-file
+                collection (default: none registered in Phase 0; see
+                docs/design/metrics-adoption-plan.md)
         """
         self.config = config
         self.cache = cache if cache is not None else MetricsCache()
+        self.derivers: list[Deriver] = list(derivers) if derivers else []
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
 
         # Load .gitignore patterns if enabled
@@ -126,16 +140,31 @@ class MetricAggregator:
         self.runners: dict[Language, list[BaseRunner]] = _build_runners()
 
     def analyze_files(self, file_paths: list[Path], jobs: int | None = None) -> list[FileReport]:
-        """Analyze multiple files and generate reports.
+        """Analyze multiple files and generate per-file reports.
+
+        Compatibility wrapper around :meth:`analyze` for callers that only
+        consume file reports.
+        """
+        return self.analyze(file_paths, jobs=jobs).file_reports
+
+    def analyze(
+        self,
+        file_paths: list[Path],
+        jobs: int | None = None,
+        root: Path | None = None,
+    ) -> AnalysisResult:
+        """Analyze files and run project-scoped derivations.
 
         Args:
             file_paths: List of files to analyze
             jobs: Worker process count (None = auto: sequential for small
                 sets, one worker per CPU beyond PARALLEL_THRESHOLD files;
                 overridable via the ANTIPASTA_JOBS environment variable)
+            root: Directory the derivation stage treats as the project root
+                (default: the current working directory)
 
         Returns:
-            List of file reports with metrics and violations
+            AnalysisResult with per-file reports and project reports
         """
         # Group files by language and resolve each language's config once
         files_by_language = self.detector.group_by_language(file_paths)
@@ -159,24 +188,54 @@ class MetricAggregator:
         # config-dependent — threshold changes never invalidate the cache).
         collected = self._collect_with_cache(work, jobs)
 
-        paired = zip(work, collected, strict=True)
-        return [
-            self._finalize_report(file_path, language, metrics, errors, lang_config.metrics)
-            for (file_path, language, lang_config), (metrics, errors) in paired
-        ]
+        facts_by_file: dict[Path, list[FactRow]] = {}
+        file_reports: list[FileReport] = []
+        for (file_path, language, lang_config), (metrics, facts, errors) in zip(
+            work, collected, strict=True
+        ):
+            if facts:
+                facts_by_file[file_path] = facts
+            file_reports.append(
+                self._finalize_report(file_path, language, metrics, errors, lang_config.metrics)
+            )
+
+        return AnalysisResult(
+            file_reports=file_reports,
+            project_reports=self._derive(file_reports, facts_by_file, root),
+        )
+
+    def _derive(
+        self,
+        file_reports: list[FileReport],
+        facts_by_file: dict[Path, list[FactRow]],
+        root: Path | None,
+    ) -> list[ProjectReport]:
+        """Run every registered deriver over the collected facts."""
+        if not self.derivers:
+            return []
+        derivation_input = DerivationInput(
+            file_reports=file_reports,
+            facts_by_file=facts_by_file,
+            root=(root or Path.cwd()).resolve(),
+            config=self.config,
+        )
+        project_reports: list[ProjectReport] = []
+        for deriver in self.derivers:
+            project_reports.extend(deriver(derivation_input))
+        return project_reports
 
     def _collect_with_cache(
         self, work: list[tuple[Path, Language, LanguageConfig]], jobs: int | None
-    ) -> list[tuple[list[MetricResult], list[str]]]:
+    ) -> list[tuple[list[MetricResult], list[FactRow], list[str]]]:
         """Serve collection results from the cache; dispatch only the misses."""
-        collected: list[tuple[list[MetricResult], list[str]] | None] = []
+        collected: list[tuple[list[MetricResult], list[FactRow], list[str]] | None] = []
         keys: list[str | None] = []
         miss_tasks: list[tuple[str, str]] = []
         miss_indices: list[int] = []
 
         for index, (file_path, language, _) in enumerate(work):
             key: str | None = None
-            cached: tuple[list[MetricResult], list[str]] | None = None
+            cached: tuple[list[MetricResult], list[FactRow], list[str]] | None = None
             if self.cache.enabled:
                 try:
                     content = file_path.read_bytes()
@@ -203,11 +262,11 @@ class MetricAggregator:
         # Every slot is now filled: hits at read time, misses just above.
         # (A cast, not a filter — dropping a slot would silently misalign
         # reports with `work`; unpacking None downstream fails loudly.)
-        return cast("list[tuple[list[MetricResult], list[str]]]", collected)
+        return cast("list[tuple[list[MetricResult], list[FactRow], list[str]]]", collected)
 
     def _collect_all(
         self, tasks: list[tuple[str, str]], jobs: int | None
-    ) -> list[tuple[list[MetricResult], list[str]]]:
+    ) -> list[tuple[list[MetricResult], list[FactRow], list[str]]]:
         """Run metric collection for every task, in-process or via a pool."""
         worker_count = _resolve_jobs(jobs, len(tasks))
         if worker_count <= 1:

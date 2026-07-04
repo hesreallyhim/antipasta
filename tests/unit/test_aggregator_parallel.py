@@ -62,7 +62,7 @@ class TestWorkerTask:
         source_file = tmp_path / "sample.py"
         source_file.write_text(SAMPLE_SOURCE)
 
-        metrics, errors = _collect_file_metrics((str(source_file), "python"))
+        metrics, facts, errors = _collect_file_metrics((str(source_file), "python"))
 
         assert errors == []
         types = {m.metric_type for m in metrics}

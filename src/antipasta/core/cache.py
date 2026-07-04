@@ -36,9 +36,12 @@ import shutil
 import sys
 
 from antipasta.__version__ import __version__
-from antipasta.core.metrics import MetricResult
+from antipasta.core.metrics import FactRow, MetricResult
 
-_ENTRY_VERSION = 1
+# v2 (2026-07-04): entries carry a `facts` array (path-independent fact rows
+# for the derivation stage). Bumping this constant shifts the fingerprint,
+# so all v1 entries become natural misses — no migration code.
+_ENTRY_VERSION = 2
 _ANALYZER_PACKAGES = ("radon", "complexipy", "lizard")
 
 
@@ -91,7 +94,9 @@ class MetricsCache:
         hasher.update(content)
         return hasher.hexdigest()
 
-    def get(self, key: str, file_path: Path) -> tuple[list[MetricResult], list[str]] | None:
+    def get(
+        self, key: str, file_path: Path
+    ) -> tuple[list[MetricResult], list[FactRow], list[str]] | None:
         """Look up a collection result, rehydrated against ``file_path``.
 
         Returns None on any miss condition: disabled, absent, corrupt, or an
@@ -107,12 +112,19 @@ class MetricsCache:
             return None
         try:
             metrics = [MetricResult.from_dict(file_path, item) for item in data["metrics"]]
+            facts = [FactRow.from_dict(item) for item in data["facts"]]
             errors = [str(item) for item in data["errors"]]
         except (KeyError, TypeError, ValueError):
             return None
-        return metrics, errors
+        return metrics, facts, errors
 
-    def put(self, key: str, metrics: list[MetricResult], errors: list[str]) -> None:
+    def put(
+        self,
+        key: str,
+        metrics: list[MetricResult],
+        facts: list[FactRow],
+        errors: list[str],
+    ) -> None:
         """Store a collection result. Error-bearing results are not cached."""
         if not self.enabled or errors:
             return
@@ -122,6 +134,7 @@ class MetricsCache:
                 "v": _ENTRY_VERSION,
                 "errors": errors,
                 "metrics": [metric.to_dict() for metric in metrics],
+                "facts": [fact.to_dict() for fact in facts],
             }
         )
         try:

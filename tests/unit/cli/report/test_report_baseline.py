@@ -89,7 +89,7 @@ class TestBaselineOption:
 
         assert result.exit_code == 0, result.output
         snapshot = json.loads(result.stdout)  # stdout must still parse as JSON
-        assert snapshot["schema_version"] == 1
+        assert snapshot["schema_version"] == 2
         assert "baseline" not in snapshot  # JSON snapshot format is unchanged
         assert "Baseline diff vs" in result.stderr
 
@@ -194,7 +194,7 @@ class TestSaveBaseline:
 
         assert result.exit_code == 0, result.output
         saved = json.loads((tmp_path / "report.baseline.json").read_text())
-        assert saved["schema_version"] == 1
+        assert saved["schema_version"] == 2
         assert saved["summary"]["total_files"] == 1
 
     def test_saved_snapshot_never_contains_embedded_diff(self, tmp_path: Path) -> None:
@@ -241,9 +241,9 @@ class TestSaveBaseline:
 
             assert result.exit_code == 0, result.output
             saved = json.loads((Path(fs) / "report.baseline.json").read_text())
-            assert saved["schema_version"] == 1
+            assert saved["schema_version"] == 2
             # stdout still carries the clean snapshot
-            assert json.loads(result.stdout)["schema_version"] == 1
+            assert json.loads(result.stdout)["schema_version"] == 2
 
     def test_roundtrip_save_then_diff(self, tmp_path: Path) -> None:
         """The advertised two-command workflow works end to end."""

@@ -59,13 +59,29 @@ def validate_files_found(file_paths: list[Path]) -> None:
 def execute_analysis(file_paths: list[Path], cfg: AntipastaConfig, quiet: bool) -> dict[str, Any]:
     """Execute metrics analysis on the specified files."""
     aggregator = MetricAggregator(cfg)
-    reports = aggregator.analyze_files(file_paths)
-    summary = aggregator.generate_summary(reports)
+    result = aggregator.analyze(file_paths)
+    summary = aggregator.generate_summary(result.file_reports)
+    _fold_project_findings(summary, result.project_reports)
 
     return {
-        "reports": reports,
+        "reports": result.file_reports,
+        "project_reports": result.project_reports,
         "summary": summary,
     }
+
+
+def _fold_project_findings(summary: dict[str, Any], project_reports: list[Any]) -> None:
+    """Fold project-scoped violations into the summary (counts + exit code)."""
+    project_violations = sum(report.violation_count for report in project_reports)
+    if not project_violations:
+        return
+    summary["total_violations"] += project_violations
+    summary["success"] = False
+    by_type = summary["violations_by_type"]
+    for report in project_reports:
+        for violation in report.violations:
+            key = violation.metric_type.value
+            by_type[key] = by_type.get(key, 0) + 1
 
 
 def exit_with_appropriate_code(summary: dict[str, Any]) -> None:

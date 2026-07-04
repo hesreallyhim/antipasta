@@ -50,14 +50,15 @@ class TestMetricsCache:
     ) -> None:
         original = tmp_path / "a.py"
         key = cache.key_for(b"content", "python")
-        cache.put(key, _sample_metrics(original), [])
+        cache.put(key, _sample_metrics(original), [], [])
 
         renamed = tmp_path / "b" / "renamed.py"
         result = cache.get(key, renamed)
 
         assert result is not None
-        metrics, errors = result
+        metrics, facts, errors = result
         assert errors == []
+        assert facts == []
         assert [m.to_dict() for m in metrics] == [m.to_dict() for m in _sample_metrics(original)]
         assert all(m.file_path == renamed for m in metrics)
 
@@ -72,7 +73,7 @@ class TestMetricsCache:
 
     def test_corrupt_entry_is_a_miss(self, cache: MetricsCache, tmp_path: Path) -> None:
         key = cache.key_for(b"content", "python")
-        cache.put(key, _sample_metrics(tmp_path / "a.py"), [])
+        cache.put(key, _sample_metrics(tmp_path / "a.py"), [], [])
         entry_path = cache._entry_path(key)
         entry_path.write_text("{not json")
 
@@ -80,14 +81,14 @@ class TestMetricsCache:
 
     def test_error_results_are_not_cached(self, cache: MetricsCache, tmp_path: Path) -> None:
         key = cache.key_for(b"content", "python")
-        cache.put(key, [], ["runner exploded"])
+        cache.put(key, [], [], ["runner exploded"])
 
         assert cache.get(key, tmp_path / "a.py") is None
 
     def test_disabled_cache_never_stores(self, tmp_path: Path) -> None:
         cache = MetricsCache(cache_dir=tmp_path / "store", enabled=False)
         key = cache.key_for(b"content", "python")
-        cache.put(key, _sample_metrics(tmp_path / "a.py"), [])
+        cache.put(key, _sample_metrics(tmp_path / "a.py"), [], [])
 
         assert cache.get(key, tmp_path / "a.py") is None
         assert not (tmp_path / "store").exists()
@@ -102,7 +103,7 @@ class TestMetricsCache:
 
     def test_clear_removes_store(self, cache: MetricsCache, tmp_path: Path) -> None:
         key = cache.key_for(b"content", "python")
-        cache.put(key, _sample_metrics(tmp_path / "a.py"), [])
+        cache.put(key, _sample_metrics(tmp_path / "a.py"), [], [])
         assert cache.get(key, tmp_path / "a.py") is not None
 
         cache.clear()
