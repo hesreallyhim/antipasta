@@ -10,9 +10,9 @@ default path must not pay for it. Merkle-tree memoization (see
 structural-metrics-caching.md) is the recorded follow-up if the cost ever
 matters at scale.
 
-pydry is an optional dependency (install antipasta[dry] once the PyPI
-release exists; a git install works meanwhile). Absent, the deriver reports
-nothing and says so once via a diagnostic row.
+pydry is an optional dependency (``pip install antipasta[dry]`` — the PyPI
+package is named pydry-cli; the import module is pydry). Absent, the
+deriver reports nothing and says so once via a diagnostic row.
 """
 
 from __future__ import annotations
