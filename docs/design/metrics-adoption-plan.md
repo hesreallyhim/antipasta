@@ -13,6 +13,28 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 4, part 1 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  the Main-Sequence composites. Class facts now carry raw decorator and
+  metaclass-keyword markers (judgment-free; classification stays
+  derivation-side); abstractness = abstract classes / total classes
+  (abstract-base/Protocol bases incl. parametrized, abstractmethod members,
+  ABCMeta metaclass — labeled approximate), emitted only for modules WITH
+  classes; distance-from-main-sequence = |A + I − 1| joins instability on
+  the module reports; dependency-inversion = mean abstractness of imported
+  targets (classless targets count concrete; no row without edges). QA: 439
+  tests green (14 new); all gates green.
+  **Reckoning observation:** antipasta's "pain corner" (distance 1.0:
+  concrete + maximally stable) is exactly its data-model leaves —
+  core.metrics, core.metric_models, core.detector, snapshot_diff_types.
+  This is the textbook caveat of Martin's D metric: stable concrete
+  data-structure modules score as "pain" by formula and are fine in
+  practice. Treat distance as a scatter to read, not a gate to promote —
+  candidate refinement: exempt or annotate dataclass-only modules.
+  **Remaining for Phase 4:** tree-shape layering half (config-ordered
+  layers), the full Narrative Index (classification + budgets + step-down +
+  lexicon with the approved vendored wordlist + linguistic antipatterns),
+  and the Single-Responsibility composite validation.
+
 - **Owner decision round — 2026-07-04** (start of `feat/metrics-phase-4`):
   (a) Branch stack continues as a long merge queue (phases are strictly
   additive; no coupling requires early merges). (b) pydry integration waits

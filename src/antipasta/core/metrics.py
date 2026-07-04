@@ -54,6 +54,12 @@ class MetricType(StrEnum):
     INSTABILITY = "instability"
     DEPENDENCY_CYCLES = "dependency_cycles"
     STABLE_DEPENDENCIES_VIOLATIONS = "stable_dependencies_violations"
+    # Main-Sequence composites (adoption plan, Phase 4). Informational-first;
+    # all three are labeled approximations (Python abstractness is inferred
+    # from abstract-base/Protocol/abstractmethod markers).
+    ABSTRACTNESS = "abstractness"
+    DISTANCE_FROM_MAIN_SEQUENCE = "distance_from_main_sequence"
+    DEPENDENCY_INVERSION = "dependency_inversion"
 
 
 @dataclass

@@ -91,6 +91,12 @@ def _class_facts(module: ast.Module) -> list[FactRow]:
                         "name": node.name,
                         "lineno": node.lineno,
                         "bases": [ast.unparse(base) for base in node.bases],
+                        "decorators": [ast.unparse(d) for d in node.decorator_list],
+                        "keywords": [
+                            f"{kw.arg}={ast.unparse(kw.value)}"
+                            for kw in node.keywords
+                            if kw.arg
+                        ],
                         "methods": [
                             _method_payload(member)
                             for member in node.body
@@ -118,6 +124,7 @@ def _method_payload(method: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str,
     fields_read -= calls_local
     return {
         "name": method.name,
+        "decorators": [ast.unparse(d) for d in method.decorator_list],
         "fields_read": sorted(fields_read),
         "fields_written": sorted(fields_written),
         "calls_local": sorted(calls_local),

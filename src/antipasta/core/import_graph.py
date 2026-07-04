@@ -23,6 +23,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from antipasta.core.abstractness import (
+    dependency_inversion,
+    distance_from_main_sequence,
+    module_abstractness,
+)
 from antipasta.core.config import ImportGraphConfig
 from antipasta.core.derivation import DerivationInput
 from antipasta.core.metrics import FactRow, MetricResult, MetricType
@@ -39,11 +44,21 @@ def derive_import_graph(derivation_input: DerivationInput) -> list[ProjectReport
     if not graph:
         return []
     config = derivation_input.config.import_graph
+    abstractness_by_module = _abstractness_by_module(derivation_input)
     return [
-        *_module_reports(graph, config),
+        *_module_reports(graph, config, abstractness_by_module),
         *_cycle_reports(graph, config),
         *_package_reports(graph),
     ]
+
+
+def _abstractness_by_module(derivation_input: DerivationInput) -> dict[str, float | None]:
+    values: dict[str, float | None] = {}
+    for file_path, facts in derivation_input.facts_by_file.items():
+        module = _module_name(file_path, derivation_input.root)
+        if module is not None:
+            values[module] = module_abstractness(facts)
+    return values
 
 
 # ── graph construction ──────────────────────────────────────────────────────
@@ -152,16 +167,60 @@ def _match_known(candidate: str, known: set[str]) -> str | None:
 
 
 def _module_reports(
-    graph: dict[str, set[str]], config: ImportGraphConfig | None
+    graph: dict[str, set[str]],
+    config: ImportGraphConfig | None,
+    abstractness_by_module: dict[str, float | None],
 ) -> list[ProjectReport]:
     afferent = _afferent_counts(graph)
     instability = _instability_map(graph, afferent)
     reports = []
     for module in sorted(graph):
         rows = _coupling_rows(module, graph, afferent, instability)
-        violations = _sdp_violations(rows[-1], config)
+        sdp_row = rows[-1]
+        rows.extend(
+            _main_sequence_rows(module, graph, instability, abstractness_by_module)
+        )
+        violations = _sdp_violations(sdp_row, config)
         reports.append(ProjectReport(subject=module, metrics=rows, violations=violations))
     return reports
+
+
+def _main_sequence_rows(
+    module: str,
+    graph: dict[str, set[str]],
+    instability: dict[str, float],
+    abstractness_by_module: dict[str, float | None],
+) -> list[MetricResult]:
+    """Abstractness, Distance, and dependency-inversion rows (all labeled
+    approximate; abstractness/distance only for modules with classes)."""
+    subject_path = Path(module.replace(".", "/") + ".py")
+    rows: list[MetricResult] = []
+    abstractness = abstractness_by_module.get(module)
+    if abstractness is not None:
+        distance = distance_from_main_sequence(abstractness, instability[module])
+        rows.extend(
+            MetricResult(
+                file_path=subject_path,
+                metric_type=metric_type,
+                value=round(value, 4),
+                details={"approximate": True},
+            )
+            for metric_type, value in (
+                (MetricType.ABSTRACTNESS, abstractness),
+                (MetricType.DISTANCE_FROM_MAIN_SEQUENCE, distance),
+            )
+        )
+    inversion = dependency_inversion(graph[module], abstractness_by_module)
+    if inversion is not None:
+        rows.append(
+            MetricResult(
+                file_path=subject_path,
+                metric_type=MetricType.DEPENDENCY_INVERSION,
+                value=round(inversion, 4),
+                details={"approximate": True, "targets": len(graph[module])},
+            )
+        )
+    return rows
 
 
 def _afferent_counts(graph: dict[str, set[str]]) -> dict[str, int]:

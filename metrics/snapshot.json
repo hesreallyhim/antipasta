@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T08:09:56+00:00",
+  "generated_at": "2026-07-04T08:13:28+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
-    "total_files": 79,
+    "total_files": 80,
     "files_with_violations": 0,
     "total_violations": 0,
     "violations_by_type": {},
     "files_by_language": {
-      "python": 78,
+      "python": 79,
       "javascript": 1
     },
     "success": true
@@ -5007,6 +5007,136 @@
       "functions": []
     },
     {
+      "path": "core/abstractness.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 3.8,
+        "maintainability_index": 78.65789677266034,
+        "halstead_volume": 160.3133728392099,
+        "halstead_difficulty": 4.0,
+        "halstead_effort": 641.2534913568396,
+        "halstead_time": 35.62519396426887,
+        "halstead_bugs": 0.0534377909464033,
+        "lines_of_code": 71.0,
+        "logical_lines_of_code": 33.0,
+        "source_lines_of_code": 35.0,
+        "comment_lines": 2.0,
+        "blank_lines": 17.0,
+        "cognitive_complexity": 2.0,
+        "marker_density": 0.0,
+        "comment_density": 2.8169014084507045
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "module_abstractness",
+          "line": 27,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 24.0,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 36.0,
+            "halstead_time": 2.0,
+            "halstead_bugs": 0.008,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.5
+          }
+        },
+        {
+          "name": "_is_abstract",
+          "line": 36,
+          "metrics": {
+            "cyclomatic_complexity": 7.0,
+            "halstead_volume": 13.931568569324174,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 6.965784284662087,
+            "halstead_time": 0.3869880158145604,
+            "halstead_bugs": 0.004643856189774725,
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.4,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_base_is_abstract",
+          "line": 48,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 11.60964047443681,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 11.60964047443681,
+            "halstead_time": 0.6449800263576005,
+            "halstead_bugs": 0.0038698801581456034,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "distance_from_main_sequence",
+          "line": 54,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "dependency_inversion",
+          "line": 60,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 24.0,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 36.0,
+            "halstead_time": 2.0,
+            "halstead_bugs": 0.008,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.6,
+            "pipeline_linearity": 1.0
+          }
+        }
+      ]
+    },
+    {
       "path": "core/aggregator.py",
       "language": "python",
       "error": null,
@@ -6799,27 +6929,27 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 3.5416666666666665,
-        "maintainability_index": 39.99486004038957,
-        "halstead_volume": 872.0444817866253,
-        "halstead_difficulty": 8.486842105263158,
-        "halstead_effort": 7400.903825689122,
-        "halstead_time": 411.1613236493956,
-        "halstead_bugs": 0.2906814939288751,
-        "lines_of_code": 351.0,
-        "logical_lines_of_code": 222.0,
-        "source_lines_of_code": 246.0,
+        "cyclomatic_complexity": 3.5384615384615383,
+        "maintainability_index": 36.69646413606722,
+        "halstead_volume": 989.9345722764341,
+        "halstead_difficulty": 9.142857142857142,
+        "halstead_effort": 9050.830375098825,
+        "halstead_time": 502.82390972771253,
+        "halstead_bugs": 0.32997819075881135,
+        "lines_of_code": 410.0,
+        "logical_lines_of_code": 249.0,
+        "source_lines_of_code": 299.0,
         "comment_lines": 7.0,
-        "blank_lines": 62.0,
+        "blank_lines": 66.0,
         "cognitive_complexity": 13.0,
         "marker_density": 0.0,
-        "comment_density": 1.9943019943019942
+        "comment_density": 1.707317073170732
       },
       "violations": [],
       "functions": [
         {
           "name": "derive_import_graph",
-          "line": 36,
+          "line": 41,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 2.0,
@@ -6833,14 +6963,35 @@
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 0.3333333333333333
+          }
+        },
+        {
+          "name": "_abstractness_by_module",
+          "line": 55,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 13.931568569324174,
+            "halstead_difficulty": 1.3333333333333333,
+            "halstead_effort": 18.575424759098897,
+            "halstead_time": 1.0319680421721609,
+            "halstead_bugs": 0.004643856189774725,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
             "function_statements": 6.0,
-            "expression_flatness": 0.8333333333333334,
-            "pipeline_linearity": 0.0
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.5
           }
         },
         {
           "name": "_build_graph",
-          "line": 52,
+          "line": 67,
           "metrics": {
             "cyclomatic_complexity": 9.0,
             "halstead_volume": 50.18947501009619,
@@ -6861,7 +7012,7 @@
         },
         {
           "name": "_is_ancestor_edge",
-          "line": 73,
+          "line": 88,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 4.754887502163469,
@@ -6882,7 +7033,7 @@
         },
         {
           "name": "_module_name",
-          "line": 86,
+          "line": 101,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 30.0,
@@ -6903,7 +7054,7 @@
         },
         {
           "name": "_resolved_targets",
-          "line": 97,
+          "line": 112,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -6924,7 +7075,7 @@
         },
         {
           "name": "_import_prefix",
-          "line": 108,
+          "line": 123,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 34.86917501586544,
@@ -6945,7 +7096,7 @@
         },
         {
           "name": "_resolve_statement",
-          "line": 116,
+          "line": 131,
           "metrics": {
             "cyclomatic_complexity": 9.0,
             "halstead_volume": 34.86917501586544,
@@ -6966,7 +7117,7 @@
         },
         {
           "name": "_match_known",
-          "line": 137,
+          "line": 152,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 50.18947501009619,
@@ -6987,7 +7138,7 @@
         },
         {
           "name": "_module_reports",
-          "line": 154,
+          "line": 169,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 2.0,
@@ -6997,18 +7148,39 @@
             "halstead_bugs": 0.0006666666666666666,
             "cognitive_complexity": 1.0,
             "message_chain_depth": 1.0,
-            "function_arity": 2.0,
+            "function_arity": 3.0,
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
-            "function_statements": 8.0,
-            "expression_flatness": 0.75,
-            "pipeline_linearity": 0.3333333333333333
+            "function_statements": 10.0,
+            "expression_flatness": 0.7,
+            "pipeline_linearity": 0.2857142857142857
+          }
+        },
+        {
+          "name": "_main_sequence_rows",
+          "line": 188,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 25.26619429851844,
+            "halstead_difficulty": 1.2,
+            "halstead_effort": 30.319433158222125,
+            "halstead_time": 1.6844129532345624,
+            "halstead_bugs": 0.008422064766172813,
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 4.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 0.2727272727272727,
+            "pipeline_linearity": 0.42857142857142855
           }
         },
         {
           "name": "_afferent_counts",
-          "line": 167,
+          "line": 226,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7029,7 +7201,7 @@
         },
         {
           "name": "_instability_map",
-          "line": 175,
+          "line": 234,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -7050,7 +7222,7 @@
         },
         {
           "name": "_coupling_rows",
-          "line": 186,
+          "line": 245,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 28.529325012980813,
@@ -7071,7 +7243,7 @@
         },
         {
           "name": "_sdp_violations",
-          "line": 214,
+          "line": 273,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7092,7 +7264,7 @@
         },
         {
           "name": "_cycle_reports",
-          "line": 226,
+          "line": 285,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 57.110323830864054,
@@ -7113,7 +7285,7 @@
         },
         {
           "name": "_strongly_connected",
-          "line": 250,
+          "line": 309,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -7134,7 +7306,7 @@
         },
         {
           "name": "_Tarjan",
-          "line": 255,
+          "line": 314,
           "metrics": {
             "weighted_methods_per_class": 17.0,
             "lack_of_cohesion": 1.0,
@@ -7143,7 +7315,7 @@
         },
         {
           "name": "_Tarjan::__init__",
-          "line": 258,
+          "line": 317,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -7164,7 +7336,7 @@
         },
         {
           "name": "_Tarjan::components",
-          "line": 267,
+          "line": 326,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7185,7 +7357,7 @@
         },
         {
           "name": "_Tarjan::_explore",
-          "line": 273,
+          "line": 332,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 2.0,
@@ -7206,7 +7378,7 @@
         },
         {
           "name": "_Tarjan::_open",
-          "line": 284,
+          "line": 343,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 4.754887502163469,
@@ -7227,7 +7399,7 @@
         },
         {
           "name": "_Tarjan::_visit",
-          "line": 290,
+          "line": 349,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -7248,7 +7420,7 @@
         },
         {
           "name": "_Tarjan::_close",
-          "line": 297,
+          "line": 356,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 11.60964047443681,
@@ -7269,7 +7441,7 @@
         },
         {
           "name": "_Tarjan::_pop_component",
-          "line": 304,
+          "line": 363,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -7290,7 +7462,7 @@
         },
         {
           "name": "_package_reports",
-          "line": 317,
+          "line": 376,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 4.754887502163469,
@@ -7311,7 +7483,7 @@
         },
         {
           "name": "_package_of",
-          "line": 350,
+          "line": 409,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -7369,20 +7541,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 65.88046342328805,
+        "maintainability_index": 66.37945435012784,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 152.0,
-        "logical_lines_of_code": 110.0,
-        "source_lines_of_code": 95.0,
-        "comment_lines": 5.0,
+        "lines_of_code": 158.0,
+        "logical_lines_of_code": 113.0,
+        "source_lines_of_code": 98.0,
+        "comment_lines": 8.0,
         "blank_lines": 25.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 3.289473684210526
+        "comment_density": 5.063291139240507
       },
       "violations": [],
       "functions": [
@@ -7396,7 +7568,7 @@
         },
         {
           "name": "MetricResult",
-          "line": 60,
+          "line": 66,
           "metrics": {
             "weighted_methods_per_class": 4.0,
             "lack_of_cohesion": 2.0,
@@ -7405,7 +7577,7 @@
         },
         {
           "name": "MetricResult::__post_init__",
-          "line": 70,
+          "line": 76,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -7413,7 +7585,7 @@
         },
         {
           "name": "__post_init__",
-          "line": 70,
+          "line": 76,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7432,7 +7604,7 @@
         },
         {
           "name": "MetricResult::to_dict",
-          "line": 75,
+          "line": 81,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7440,7 +7612,7 @@
         },
         {
           "name": "to_dict",
-          "line": 75,
+          "line": 81,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7459,7 +7631,7 @@
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 85,
+          "line": 91,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7467,7 +7639,7 @@
         },
         {
           "name": "from_dict",
-          "line": 86,
+          "line": 92,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -7486,7 +7658,7 @@
         },
         {
           "name": "FactRow",
-          "line": 103,
+          "line": 109,
           "metrics": {
             "weighted_methods_per_class": 2.0,
             "lack_of_cohesion": 2.0,
@@ -7495,7 +7667,7 @@
         },
         {
           "name": "FactRow::to_dict",
-          "line": 118,
+          "line": 124,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7503,7 +7675,7 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 122,
+          "line": 128,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -7511,7 +7683,7 @@
         },
         {
           "name": "FileMetrics",
-          "line": 129,
+          "line": 135,
           "metrics": {
             "weighted_methods_per_class": 8.0,
             "lack_of_cohesion": 1.0,
@@ -7520,7 +7692,7 @@
         },
         {
           "name": "FileMetrics::__post_init__",
-          "line": 138,
+          "line": 144,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -7528,7 +7700,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 143,
+          "line": 149,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -7549,7 +7721,7 @@
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 150,
+          "line": 156,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -10749,21 +10921,21 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 4.428571428571429,
-        "maintainability_index": 60.317969115413376,
+        "cyclomatic_complexity": 5.0,
+        "maintainability_index": 59.302771814518934,
         "halstead_volume": 79.22857502740393,
         "halstead_difficulty": 2.5,
         "halstead_effort": 198.07143756850985,
         "halstead_time": 11.003968753806102,
         "halstead_bugs": 0.026409525009134644,
-        "lines_of_code": 132.0,
+        "lines_of_code": 139.0,
         "logical_lines_of_code": 67.0,
-        "source_lines_of_code": 103.0,
+        "source_lines_of_code": 110.0,
         "comment_lines": 1.0,
         "blank_lines": 18.0,
         "cognitive_complexity": 10.0,
         "marker_density": 0.0,
-        "comment_density": 0.7575757575757576
+        "comment_density": 0.7194244604316548
       },
       "violations": [],
       "functions": [
@@ -10855,7 +11027,7 @@
           "name": "_class_facts",
           "line": 83,
           "metrics": {
-            "cyclomatic_complexity": 6.0,
+            "cyclomatic_complexity": 9.0,
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
             "halstead_effort": 0.0,
@@ -10869,14 +11041,14 @@
             "global_state_reach": 0.0,
             "function_statements": 5.0,
             "expression_flatness": 0.6,
-            "pipeline_linearity": 0.25
+            "pipeline_linearity": 0.3333333333333333
           }
         },
         {
           "name": "_method_payload",
-          "line": 105,
+          "line": 111,
           "metrics": {
-            "cyclomatic_complexity": 6.0,
+            "cyclomatic_complexity": 7.0,
             "halstead_volume": 15.509775004326936,
             "halstead_difficulty": 1.0,
             "halstead_effort": 15.509775004326936,
@@ -10890,12 +11062,12 @@
             "global_state_reach": 0.0,
             "function_statements": 12.0,
             "expression_flatness": 0.5833333333333334,
-            "pipeline_linearity": 0.0
+            "pipeline_linearity": 0.2
           }
         },
         {
           "name": "_is_self_attribute",
-          "line": 127,
+          "line": 134,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 19.651484454403228,
@@ -11740,7 +11912,7 @@
       "metrics": [
         {
           "type": "directory_children",
-          "value": 16.0,
+          "value": 17.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -12142,14 +12314,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 255,
+          "line_number": 314,
           "function_name": "_Tarjan"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 255,
+          "line_number": 314,
           "function_name": "_Tarjan"
         }
       ],
@@ -12184,14 +12356,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 103,
+          "line_number": 109,
           "function_name": "FactRow"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 103,
+          "line_number": 109,
           "function_name": "FactRow"
         }
       ],
@@ -12204,14 +12376,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 129,
+          "line_number": 135,
           "function_name": "FileMetrics"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 129,
+          "line_number": 135,
           "function_name": "FileMetrics"
         }
       ],
@@ -12224,14 +12396,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 60,
+          "line_number": 66,
           "function_name": "MetricResult"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 60,
+          "line_number": 66,
           "function_name": "MetricResult"
         }
       ],
@@ -12581,6 +12753,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -12614,6 +12796,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
           },
           "line_number": null,
           "function_name": null
@@ -12689,6 +12881,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -12722,6 +12924,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
           },
           "line_number": null,
           "function_name": null
@@ -12797,6 +13009,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 5
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -12869,6 +13091,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -12902,6 +13134,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -12977,6 +13219,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13010,6 +13262,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
           },
           "line_number": null,
           "function_name": null
@@ -13049,6 +13311,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13082,6 +13354,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 6
           },
           "line_number": null,
           "function_name": null
@@ -13121,6 +13403,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13154,6 +13446,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 4
           },
           "line_number": null,
           "function_name": null
@@ -13193,6 +13495,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 4
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13226,6 +13538,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
           },
           "line_number": null,
           "function_name": null
@@ -13265,6 +13587,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13301,6 +13633,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13334,6 +13676,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
           },
           "line_number": null,
           "function_name": null
@@ -13409,6 +13761,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 8
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13442,6 +13804,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -13553,6 +13925,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13586,6 +13968,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
           },
           "line_number": null,
           "function_name": null
@@ -13661,6 +14053,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13694,6 +14096,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -13733,6 +14145,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13769,6 +14191,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 4
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13802,6 +14234,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 4
           },
           "line_number": null,
           "function_name": null
@@ -13877,6 +14319,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13910,6 +14362,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -13949,6 +14411,62 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "core.abstractness",
+      "metrics": [
+        {
+          "type": "efferent_coupling",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "afferent_coupling",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "instability",
+          "value": 0.5,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "stable_dependencies_violations",
+          "value": 0.0,
+          "details": {
+            "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -13982,6 +14500,34 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.2222,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0714,
+          "details": {
+            "approximate": true,
+            "targets": 14
           },
           "line_number": null,
           "function_name": null
@@ -14021,6 +14567,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.5,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14054,6 +14628,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
           },
           "line_number": null,
           "function_name": null
@@ -14093,6 +14677,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.8636,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14126,6 +14738,34 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.75,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
           },
           "line_number": null,
           "function_name": null
@@ -14165,6 +14805,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.5714,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 3
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14201,6 +14869,24 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 1.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14210,7 +14896,7 @@
       "metrics": [
         {
           "type": "efferent_coupling",
-          "value": 4.0,
+          "value": 5.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -14224,7 +14910,7 @@
         },
         {
           "type": "instability",
-          "value": 0.8,
+          "value": 0.8333,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -14234,6 +14920,34 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.1667,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 5
           },
           "line_number": null,
           "function_name": null
@@ -14273,6 +14987,24 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 1.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14289,7 +15021,7 @@
         },
         {
           "type": "afferent_coupling",
-          "value": 19.0,
+          "value": 20.0,
           "details": null,
           "line_number": null,
           "function_name": null
@@ -14306,6 +15038,24 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 1.0,
+          "details": {
+            "approximate": true
           },
           "line_number": null,
           "function_name": null
@@ -14345,6 +15095,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 5
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14378,6 +15138,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -14417,6 +15187,24 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 1.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14450,6 +15238,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 4
           },
           "line_number": null,
           "function_name": null
@@ -14525,6 +15323,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.7778,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14594,6 +15420,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -14669,6 +15505,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 1.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.1667,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14702,6 +15566,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -14741,6 +15615,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.4,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.3333,
+          "details": {
+            "approximate": true,
+            "targets": 3
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14774,6 +15676,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 2
           },
           "line_number": null,
           "function_name": null
@@ -14813,6 +15725,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.4,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.3333,
+          "details": {
+            "approximate": true,
+            "targets": 3
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -14846,6 +15786,34 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.1111,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.125,
+          "details": {
+            "approximate": true,
+            "targets": 8
           },
           "line_number": null,
           "function_name": null
@@ -14993,6 +15961,16 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -15026,6 +16004,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -15065,6 +16053,34 @@
           },
           "line_number": null,
           "function_name": null
+        },
+        {
+          "type": "abstractness",
+          "value": 0.0,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "distance_from_main_sequence",
+          "value": 0.4,
+          "details": {
+            "approximate": true
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.3333,
+          "details": {
+            "approximate": true,
+            "targets": 3
+          },
+          "line_number": null,
+          "function_name": null
         }
       ],
       "violations": []
@@ -15098,6 +16114,16 @@
           "value": 0.0,
           "details": {
             "tolerance": 0.2
+          },
+          "line_number": null,
+          "function_name": null
+        },
+        {
+          "type": "dependency_inversion",
+          "value": 0.0,
+          "details": {
+            "approximate": true,
+            "targets": 1
           },
           "line_number": null,
           "function_name": null
@@ -15472,8 +16498,8 @@
       "parent": null,
       "label": "antipasta",
       "aggregate": {
-        "files": 79,
-        "value": 6196.0,
+        "files": 80,
+        "value": 6294.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -15481,23 +16507,23 @@
             "path": "__init__.py"
           },
           "halstead_volume": {
-            "value": 872.0444817866253,
+            "value": 989.9345722764341,
             "path": "core/import_graph.py"
           },
           "halstead_difficulty": {
-            "value": 9.041666666666666,
-            "path": "core/aggregator.py"
+            "value": 9.142857142857142,
+            "path": "core/import_graph.py"
           },
           "halstead_effort": {
-            "value": 7400.903825689122,
+            "value": 9050.830375098825,
             "path": "core/import_graph.py"
           },
           "halstead_time": {
-            "value": 411.1613236493956,
+            "value": 502.82390972771253,
             "path": "core/import_graph.py"
           },
           "halstead_bugs": {
-            "value": 0.2906814939288751,
+            "value": 0.32997819075881135,
             "path": "core/import_graph.py"
           },
           "lines_of_code": {
@@ -15505,7 +16531,7 @@
             "path": "report/assets/report.js"
           },
           "logical_lines_of_code": {
-            "value": 222.0,
+            "value": 249.0,
             "path": "core/import_graph.py"
           },
           "source_lines_of_code": {
@@ -16551,8 +17577,8 @@
       "parent": ".",
       "label": "core",
       "aggregate": {
-        "files": 17,
-        "value": 2073.0,
+        "files": 18,
+        "value": 2164.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -16560,23 +17586,23 @@
             "path": "core/__init__.py"
           },
           "halstead_volume": {
-            "value": 872.0444817866253,
+            "value": 989.9345722764341,
             "path": "core/import_graph.py"
           },
           "halstead_difficulty": {
-            "value": 9.041666666666666,
-            "path": "core/aggregator.py"
+            "value": 9.142857142857142,
+            "path": "core/import_graph.py"
           },
           "halstead_effort": {
-            "value": 7400.903825689122,
+            "value": 9050.830375098825,
             "path": "core/import_graph.py"
           },
           "halstead_time": {
-            "value": 411.1613236493956,
+            "value": 502.82390972771253,
             "path": "core/import_graph.py"
           },
           "halstead_bugs": {
-            "value": 0.2906814939288751,
+            "value": 0.32997819075881135,
             "path": "core/import_graph.py"
           },
           "lines_of_code": {
@@ -16584,12 +17610,12 @@
             "path": "core/aggregator.py"
           },
           "logical_lines_of_code": {
-            "value": 222.0,
+            "value": 249.0,
             "path": "core/import_graph.py"
           },
           "source_lines_of_code": {
-            "value": 291.0,
-            "path": "core/aggregator.py"
+            "value": 299.0,
+            "path": "core/import_graph.py"
           },
           "comment_lines": {
             "value": 33.0,
@@ -16626,116 +17652,123 @@
       "file_index": 41
     },
     {
+      "id": "core/abstractness.py",
+      "parent": "core",
+      "label": "abstractness.py",
+      "value": 35.0,
+      "file_index": 42
+    },
+    {
       "id": "core/aggregator.py",
       "parent": "core",
       "label": "aggregator.py",
       "value": 291.0,
-      "file_index": 42
+      "file_index": 43
     },
     {
       "id": "core/cache.py",
       "parent": "core",
       "label": "cache.py",
       "value": 97.0,
-      "file_index": 43
+      "file_index": 44
     },
     {
       "id": "core/class_registry.py",
       "parent": "core",
       "label": "class_registry.py",
       "value": 136.0,
-      "file_index": 44
+      "file_index": 45
     },
     {
       "id": "core/config.py",
       "parent": "core",
       "label": "config.py",
       "value": 183.0,
-      "file_index": 45
+      "file_index": 46
     },
     {
       "id": "core/config_override.py",
       "parent": "core",
       "label": "config_override.py",
       "value": 158.0,
-      "file_index": 46
+      "file_index": 47
     },
     {
       "id": "core/derivation.py",
       "parent": "core",
       "label": "derivation.py",
       "value": 23.0,
-      "file_index": 47
+      "file_index": 48
     },
     {
       "id": "core/detector.py",
       "parent": "core",
       "label": "detector.py",
       "value": 81.0,
-      "file_index": 48
+      "file_index": 49
     },
     {
       "id": "core/import_graph.py",
       "parent": "core",
       "label": "import_graph.py",
-      "value": 246.0,
-      "file_index": 49
+      "value": 299.0,
+      "file_index": 50
     },
     {
       "id": "core/metric_models.py",
       "parent": "core",
       "label": "metric_models.py",
       "value": 41.0,
-      "file_index": 50
+      "file_index": 51
     },
     {
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 95.0,
-      "file_index": 51
+      "value": 98.0,
+      "file_index": 52
     },
     {
       "id": "core/snapshot.py",
       "parent": "core",
       "label": "snapshot.py",
       "value": 194.0,
-      "file_index": 52
+      "file_index": 53
     },
     {
       "id": "core/snapshot_diff.py",
       "parent": "core",
       "label": "snapshot_diff.py",
       "value": 185.0,
-      "file_index": 53
+      "file_index": 54
     },
     {
       "id": "core/snapshot_diff_types.py",
       "parent": "core",
       "label": "snapshot_diff_types.py",
       "value": 69.0,
-      "file_index": 54
+      "file_index": 55
     },
     {
       "id": "core/tree_shape.py",
       "parent": "core",
       "label": "tree_shape.py",
       "value": 79.0,
-      "file_index": 55
+      "file_index": 56
     },
     {
       "id": "core/treemap.py",
       "parent": "core",
       "label": "treemap.py",
       "value": 67.0,
-      "file_index": 56
+      "file_index": 57
     },
     {
       "id": "core/violations.py",
       "parent": "core",
       "label": "violations.py",
       "value": 127.0,
-      "file_index": 57
+      "file_index": 58
     },
     {
       "id": "hooks",
@@ -16806,7 +17839,7 @@
       "parent": "hooks",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 58
+      "file_index": 59
     },
     {
       "id": "report",
@@ -16885,7 +17918,7 @@
       "parent": "report",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 59
+      "file_index": 60
     },
     {
       "id": "report/assets",
@@ -16916,21 +17949,21 @@
       "parent": "report/assets",
       "label": "report.js",
       "value": 606.0,
-      "file_index": 60
+      "file_index": 61
     },
     {
       "id": "report/baseline.py",
       "parent": "report",
       "label": "baseline.py",
       "value": 35.0,
-      "file_index": 61
+      "file_index": 62
     },
     {
       "id": "report/html.py",
       "parent": "report",
       "label": "html.py",
       "value": 34.0,
-      "file_index": 62
+      "file_index": 63
     },
     {
       "id": "runners",
@@ -16938,7 +17971,7 @@
       "label": "runners",
       "aggregate": {
         "files": 14,
-        "value": 938.0,
+        "value": 945.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -17009,14 +18042,14 @@
       "parent": "runners",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 63
+      "file_index": 64
     },
     {
       "id": "runners/base.py",
       "parent": "runners",
       "label": "base.py",
       "value": 12.0,
-      "file_index": 64
+      "file_index": 65
     },
     {
       "id": "runners/javascript",
@@ -17095,14 +18128,14 @@
       "parent": "runners/javascript",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 65
+      "file_index": 66
     },
     {
       "id": "runners/javascript/lizard_runner.py",
       "parent": "runners/javascript",
       "label": "lizard_runner.py",
       "value": 112.0,
-      "file_index": 66
+      "file_index": 67
     },
     {
       "id": "runners/python",
@@ -17110,7 +18143,7 @@
       "label": "python",
       "aggregate": {
         "files": 9,
-        "value": 810.0,
+        "value": 817.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -17181,14 +18214,14 @@
       "parent": "runners/python",
       "label": "__init__.py",
       "value": 3.0,
-      "file_index": 67
+      "file_index": 68
     },
     {
       "id": "runners/python/complexipy_runner.py",
       "parent": "runners/python",
       "label": "complexipy_runner.py",
       "value": 70.0,
-      "file_index": 68
+      "file_index": 69
     },
     {
       "id": "runners/python/house_style",
@@ -17196,7 +18229,7 @@
       "label": "house_style",
       "aggregate": {
         "files": 6,
-        "value": 544.0,
+        "value": 551.0,
         "violations": 0,
         "metrics_max": {
           "cyclomatic_complexity": {
@@ -17267,49 +18300,49 @@
       "parent": "runners/python/house_style",
       "label": "__init__.py",
       "value": 167.0,
-      "file_index": 69
+      "file_index": 70
     },
     {
       "id": "runners/python/house_style/cohesion.py",
       "parent": "runners/python/house_style",
       "label": "cohesion.py",
       "value": 50.0,
-      "file_index": 70
+      "file_index": 71
     },
     {
       "id": "runners/python/house_style/comments.py",
       "parent": "runners/python/house_style",
       "label": "comments.py",
       "value": 29.0,
-      "file_index": 71
+      "file_index": 72
     },
     {
       "id": "runners/python/house_style/expressions.py",
       "parent": "runners/python/house_style",
       "label": "expressions.py",
       "value": 103.0,
-      "file_index": 72
+      "file_index": 73
     },
     {
       "id": "runners/python/house_style/facts.py",
       "parent": "runners/python/house_style",
       "label": "facts.py",
-      "value": 103.0,
-      "file_index": 73
+      "value": 110.0,
+      "file_index": 74
     },
     {
       "id": "runners/python/house_style/structure.py",
       "parent": "runners/python/house_style",
       "label": "structure.py",
       "value": 92.0,
-      "file_index": 74
+      "file_index": 75
     },
     {
       "id": "runners/python/radon.py",
       "parent": "runners/python",
       "label": "radon.py",
       "value": 193.0,
-      "file_index": 75
+      "file_index": 76
     },
     {
       "id": "runners/typescript",
@@ -17380,7 +18413,7 @@
       "parent": "runners/typescript",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 76
+      "file_index": 77
     },
     {
       "id": "utils",
@@ -17459,14 +18492,14 @@
       "parent": "utils",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 77
+      "file_index": 78
     },
     {
       "id": "utils/schema_generator.py",
       "parent": "utils",
       "label": "schema_generator.py",
       "value": 19.0,
-      "file_index": 78
+      "file_index": 79
     }
   ]
 }
