@@ -13,6 +13,36 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Tracks A, B, D — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  - **A (duplication, pydry)**: config-gated deriver over the owner's engine
+    (installed from GitHub pending PyPI; `antipasta[dry]` extra declared).
+    Clone groups + per-file ratios. First sweep: 11 groups in src — incl.
+    `_module_name` duplicated between import_graph and narrative, i.e. the
+    engine caught its integrator's own session copy-paste (since fixed by
+    moving shared predicates to core.detector).
+  - **B (version-control)**: `antipasta vcs` — churn, change-coupling pairs
+    (support ≥ 3 + confidence), hotspots joined against the COMMITTED
+    snapshot (the history convention feeding its sibling — no re-analysis),
+    plus D3 suite-health rows (test-churn ratio, co-churn multiplicity).
+    Reckoning: hotspots finger the session's heavy files; test-churn ratio
+    0.081 — the suite has not been brittle through heavy change. Deviations:
+    keyed caching deferred (mining measures in tens of ms).
+  - **D1 (static test smells)**: assertions-per-test, mock call-count
+    assertions, big-literal assertions — rows only for test functions in
+    test paths. Reckoning: 19 of our tests carry ≥ 8 assertions.
+  - **D2 (coverage matrix)**: `antipasta test-health` ingests a
+    contexts-enabled coverage.py artifact (never runs tests): per-test
+    unique-coverage, greedy-set-cover **suite redundancy index**, per-file
+    blast radius. **Dogfood reckoning — the owner's thesis, measured on our
+    own agent-grown suite: redundancy index 0.7445 (371 of 458 contexts add
+    zero unique line coverage; a 117-test greedy cover reaches every line);
+    blast radius of core/metrics.py is 209 tests.** Honesty label on every
+    row: line subsumption is candidacy, not verdict.
+  - **D4 + track C (LLM)** remain deferred per owner direction.
+  QA at this point: 491 tests, all gates green throughout; one gate-chain
+  flaw found and fixed (piping mypy through tail masked an exit code —
+  caught one commit later, noted honestly).
+
 - **Phase 4, part 5 — LANDED 2026-07-04, PHASE 4 COMPLETE** (branch
   `feat/metrics-phase-4`): the Single-Responsibility composite, on the
   class-registry reports. Transparent formula — cohesion components ×

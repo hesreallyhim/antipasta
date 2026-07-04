@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T10:21:53+00:00",
+  "generated_at": "2026-07-04T10:24:29+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
@@ -1516,20 +1516,20 @@
         "halstead_effort": 0.0,
         "halstead_time": 0.0,
         "halstead_bugs": 0.0,
-        "lines_of_code": 63.0,
-        "logical_lines_of_code": 36.0,
-        "source_lines_of_code": 36.0,
+        "lines_of_code": 65.0,
+        "logical_lines_of_code": 38.0,
+        "source_lines_of_code": 38.0,
         "comment_lines": 7.0,
         "blank_lines": 17.0,
         "cognitive_complexity": 0.0,
         "marker_density": 0.0,
-        "comment_density": 11.11111111111111
+        "comment_density": 10.76923076923077
       },
       "violations": [],
       "functions": [
         {
           "name": "cli",
-          "line": 19,
+          "line": 20,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -1550,7 +1550,7 @@
         },
         {
           "name": "create_deprecated_command",
-          "line": 35,
+          "line": 37,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -1571,7 +1571,7 @@
         },
         {
           "name": "deprecated_wrapper",
-          "line": 40,
+          "line": 42,
           "metrics": {
             "message_chain_depth": 1.0,
             "function_arity": 2.0,
@@ -1585,7 +1585,7 @@
         },
         {
           "name": "main",
-          "line": 61,
+          "line": 63,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -8264,20 +8264,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 65.33166688973327,
+        "maintainability_index": 65.29767863503845,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 182.0,
-        "logical_lines_of_code": 131.0,
-        "source_lines_of_code": 116.0,
-        "comment_lines": 14.0,
+        "lines_of_code": 185.0,
+        "logical_lines_of_code": 133.0,
+        "source_lines_of_code": 118.0,
+        "comment_lines": 15.0,
         "blank_lines": 25.0,
         "cognitive_complexity": 3.0,
         "marker_density": 0.0,
-        "comment_density": 7.6923076923076925
+        "comment_density": 8.108108108108109
       },
       "violations": [],
       "functions": [
@@ -8291,7 +8291,7 @@
         },
         {
           "name": "MetricResult",
-          "line": 90,
+          "line": 93,
           "metrics": {
             "weighted_methods_per_class": 4.0,
             "lack_of_cohesion": 2.0,
@@ -8300,7 +8300,7 @@
         },
         {
           "name": "MetricResult::__post_init__",
-          "line": 100,
+          "line": 103,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -8308,7 +8308,7 @@
         },
         {
           "name": "__post_init__",
-          "line": 100,
+          "line": 103,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -8327,7 +8327,7 @@
         },
         {
           "name": "MetricResult::to_dict",
-          "line": 105,
+          "line": 108,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8335,7 +8335,7 @@
         },
         {
           "name": "to_dict",
-          "line": 105,
+          "line": 108,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -8354,7 +8354,7 @@
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 115,
+          "line": 118,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8362,7 +8362,7 @@
         },
         {
           "name": "from_dict",
-          "line": 116,
+          "line": 119,
           "metrics": {
             "halstead_volume": 0.0,
             "halstead_difficulty": 0.0,
@@ -8381,7 +8381,7 @@
         },
         {
           "name": "FactRow",
-          "line": 133,
+          "line": 136,
           "metrics": {
             "weighted_methods_per_class": 2.0,
             "lack_of_cohesion": 2.0,
@@ -8390,7 +8390,7 @@
         },
         {
           "name": "FactRow::to_dict",
-          "line": 148,
+          "line": 151,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8398,7 +8398,7 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 152,
+          "line": 155,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -8406,7 +8406,7 @@
         },
         {
           "name": "FileMetrics",
-          "line": 159,
+          "line": 162,
           "metrics": {
             "weighted_methods_per_class": 8.0,
             "lack_of_cohesion": 1.0,
@@ -8415,7 +8415,7 @@
         },
         {
           "name": "FileMetrics::__post_init__",
-          "line": 168,
+          "line": 171,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -8423,7 +8423,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 173,
+          "line": 176,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -8444,7 +8444,7 @@
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 180,
+          "line": 183,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -14210,14 +14210,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 133,
+          "line_number": 136,
           "function_name": "FactRow"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 133,
+          "line_number": 136,
           "function_name": "FactRow"
         },
         {
@@ -14229,7 +14229,7 @@
             "statements": 4,
             "validated": false
           },
-          "line_number": 133,
+          "line_number": 136,
           "function_name": "FactRow"
         }
       ],
@@ -14242,14 +14242,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 159,
+          "line_number": 162,
           "function_name": "FileMetrics"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 159,
+          "line_number": 162,
           "function_name": "FileMetrics"
         },
         {
@@ -14261,7 +14261,7 @@
             "statements": 10,
             "validated": false
           },
-          "line_number": 159,
+          "line_number": 162,
           "function_name": "FileMetrics"
         }
       ],
@@ -14274,14 +14274,14 @@
           "type": "depth_of_inheritance_tree",
           "value": 1.0,
           "details": null,
-          "line_number": 90,
+          "line_number": 93,
           "function_name": "MetricResult"
         },
         {
           "type": "number_of_children",
           "value": 0.0,
           "details": null,
-          "line_number": 90,
+          "line_number": 93,
           "function_name": "MetricResult"
         },
         {
@@ -14293,7 +14293,7 @@
             "statements": 7,
             "validated": false
           },
-          "line_number": 90,
+          "line_number": 93,
           "function_name": "MetricResult"
         }
       ],
@@ -22586,7 +22586,7 @@
       "label": "antipasta",
       "aggregate": {
         "files": 85,
-        "value": 7298.0,
+        "value": 7302.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -22672,7 +22672,7 @@
       "label": "cli",
       "aggregate": {
         "files": 40,
-        "value": 2566.0,
+        "value": 2568.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -23056,7 +23056,7 @@
       "id": "cli/main.py",
       "parent": "cli",
       "label": "main.py",
-      "value": 36.0,
+      "value": 38.0,
       "file_index": 16
     },
     {
@@ -23672,7 +23672,7 @@
       "label": "core",
       "aggregate": {
         "files": 22,
-        "value": 2981.0,
+        "value": 2983.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -23833,7 +23833,7 @@
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 116.0,
+      "value": 118.0,
       "file_index": 55
     },
     {

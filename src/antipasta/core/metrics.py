@@ -84,6 +84,9 @@ class MetricType(StrEnum):
     HOTSPOT = "hotspot"
     TEST_CHURN_RATIO = "test_churn_ratio"
     CO_CHURN_MULTIPLICITY = "co_churn_multiplicity"
+    # Coverage-matrix analytics (track D2; artifact ingestion).
+    SUITE_REDUNDANCY_INDEX = "suite_redundancy_index"
+    BLAST_RADIUS = "blast_radius"
 
 
 @dataclass

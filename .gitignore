@@ -144,3 +144,4 @@ test.csv
 
 # Internal development files
 __INTERNAL__/
+.coverage/
