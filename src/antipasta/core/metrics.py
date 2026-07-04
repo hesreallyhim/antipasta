@@ -70,6 +70,9 @@ class MetricType(StrEnum):
     LAYERING_VIOLATIONS = "layering_violations"
     NAME_CLARITY = "name_clarity"
     NAMING_ANTIPATTERNS = "naming_antipatterns"
+    # Duplication (track A, pydry engine). Config-gated.
+    DUPLICATION_RATIO = "duplication_ratio"
+    CLONE_OCCURRENCES = "clone_occurrences"
 
 
 @dataclass

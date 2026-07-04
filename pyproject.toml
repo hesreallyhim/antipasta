@@ -41,6 +41,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# WET-code detection engine (owner's project; PyPI release pending — a git
+# install works meanwhile: pip install "pydry @ git+https://github.com/hesreallyhim/pydry")
+dry = ["pydry"]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",

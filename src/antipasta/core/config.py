@@ -168,6 +168,26 @@ MIXING_TOLERANCE_BY_PROFILE: dict[str, int] = {
 }
 
 
+class DuplicationConfig(BaseModel):
+    """WET-code detection via the optional pydry engine. Presence of this
+    block ENABLES the deriver (it re-parses the tree, so the default path
+    never pays); max_ratio additionally gates."""
+
+    normalize_local_names: bool = Field(default=True)
+    normalize_constants: bool = Field(default=False)
+    min_count: int = Field(default=2, ge=2)
+    #: Gate: per-file duplicated-lines ratio must stay at or below this.
+    max_ratio: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    def ratio_gate(self) -> MetricConfig:
+        """Per-file duplication ratio above the cap violates."""
+        return MetricConfig(
+            type=MetricType.DUPLICATION_RATIO,
+            threshold=float(self.max_ratio or 0.0),
+            comparison=ComparisonOperator.LE,
+        )
+
+
 class NarrativeConfig(BaseModel):
     """Narrative Index gating (altitude budgets). Presence of this block
     turns mixed-altitude and budget counts into enforceable violations;
@@ -218,6 +238,7 @@ class AntipastaConfig(BaseModel):
     tree_shape: TreeShapeConfig | None = Field(default=None)
     import_graph: ImportGraphConfig | None = Field(default=None)
     narrative: NarrativeConfig | None = Field(default=None)
+    duplication: DuplicationConfig | None = Field(default=None)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:

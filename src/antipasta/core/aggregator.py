@@ -82,6 +82,7 @@ def _collect_file_metrics(
 def _default_derivers() -> list[Deriver]:
     """Derivers registered when the caller doesn't supply an explicit list."""
     from antipasta.core.class_registry import derive_class_registry
+    from antipasta.core.duplication import derive_duplication
     from antipasta.core.import_graph import derive_import_graph
     from antipasta.core.narrative import derive_narrative
     from antipasta.core.tree_shape import derive_layering, derive_tree_shape
@@ -92,6 +93,7 @@ def _default_derivers() -> list[Deriver]:
         derive_class_registry,
         derive_import_graph,
         derive_narrative,
+        derive_duplication,
     ]
 
 
