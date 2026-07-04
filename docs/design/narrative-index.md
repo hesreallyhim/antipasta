@@ -153,6 +153,82 @@ Three findings:
    the actionable message ("names are the problem here"), not a mushy blended
    score.
 
+## What is a leaf? Classification, not exemption (2026-07-04 revision)
+
+The first cut of this document punted on leaves ("exempt by size or by being at
+the bottom of the call graph"). The owner pushed: how do you *capture* a leaf,
+and is the strict policy — "only leaves may perform computation" — the right
+one? Working it through changed the design.
+
+**Capture leaves by content, not by call-graph position.** A function is a
+**computer** (a leaf) if its body makes zero *narrative calls* — calls to
+project-defined callables — after three exclusions: self-recursion (a recursive
+kernel is still a leaf), ambient vocabulary (logging, metrics, assertions — a
+configured list, eventually auto-detected as "called from everywhere" via
+call-graph fan-in), and builtins/third-party calls (using `len` or a library is
+vocabulary, not orchestration of *your* code). Position-based leafness ("nothing
+below me in the call graph") is the same idea stated globally — but it requires
+whole-program call resolution, which breaks per-file caching and fights the
+latency priority. Content-based leafness is local, cacheable per file-hash, and
+causally prior anyway: you are a leaf *because* you call nothing project-level,
+not because of where you happen to sit.
+
+**The policy, reframed.** "Only leaves may compute" is right as an invariant but
+wrong as the enforcement rule — enforced directly it punishes leaves for
+existing and gives mushy diagnostics. Enforce it as two local rules that jointly
+imply it:
+
+1. **No function may both narrate and compute** (the MIXED class below is the
+   violation — two abstraction altitudes in one body).
+2. **Leaves must be small** (leaf budgets: statement cap, nesting cap ≤ 1,
+   relaxed flatness; the narration and name-verb floors do not apply).
+
+So every function classifies into one of four:
+
+| Class | Definition | Judged by |
+|---|---|---|
+| **narrator** | project calls, no raw computation | narration floor, name clarity, step-down |
+| **computer** (leaf) | raw computation, no project calls | leaf budgets: size, nesting, cognitive complexity, name clarity |
+| **MIXED** | both in one body | the violation itself — "split altitudes" |
+| trivial | under 3 statements | nothing — too small to classify |
+
+**Probe results with classification** (the probe now implements it):
+
+| Sample | Class | Composite |
+|---|---|:--:|
+| Owner's example | narrator | 1.00 |
+| Tightened variant | narrator | 1.00 |
+| Inlined twin | **computer** | 0.16 |
+| Junk-named twin | narrator | 0.75 |
+| Half-refactored (`fetch_users` then a comprehension + arithmetic on the result) | **MIXED** | 0.50 |
+| The extracted leaf itself (`exceeds_capacity`, three tidy statements) | computer | 0.54 |
+
+Two findings worth naming:
+
+- **The inlined twin classifies as a computer — correctly.** By content it calls
+  no project code; its sin is not altitude-mixing but being an *oversized,
+  nested leaf* (six statements, nesting depth 2). It gets flagged by leaf
+  budgets, and the diagnostic that falls out is the right one: "extract and
+  name this computation," not "you mixed abstraction levels." Meanwhile the
+  half-refactored sample — the most common real-world shape, where someone
+  extracted one step and stopped — is what MIXED catches.
+- **The extracted leaf's low narration/flatness scores are irrelevant — by
+  design.** Its class exempts it from those floors; it is three clean
+  statements well inside any leaf budget. This is why classification must
+  precede scoring: the same numbers mean different things at different
+  altitudes, and a composite that averages across classes (the 0.54) is
+  meaningless. Per-class thresholds, always.
+
+**The strictness dial still applies inside "computation."** Is
+`if count > limit:` computation or prose? Most would read it as prose; extreme
+Compose Method extracts `is_too_many(count)`. The classifier's notion of "raw
+computation" is therefore profile-scoped — `extreme` counts any operator,
+`standard` grants prose-grade status to single comparisons between named
+values, emptiness tests, and one-deep attribute access, `relaxed` adds single
+arithmetic operations and f-strings. The same dial governs both the narrator
+floor and the MIXED trigger, so a project picks one altitude discipline and
+every component honors it.
+
 ## Honesty section (what this metric is and is not)
 
 - It measures **conformance to a style**, not comprehension truth. The
@@ -164,11 +240,10 @@ Three findings:
 - It is **gameable** (name a garbage function `fetch_users` and narration
   passes). The linguistic-antipattern checks catch the crude cases; review and
   tests catch the rest. Label it a style metric, not a quality guarantee.
-- **Leaf functions must be exempt from narration/flatness** (by size or by
-  being at the bottom of the call graph) — *someone* has to do the arithmetic.
-  The style says computation lives in small named leaves; the metric must not
-  punish the leaves for existing. Threshold config: apply narration/flatness
-  floors only to functions over N statements.
+- **Leaf handling is classification, not exemption** — *someone* has to do the
+  arithmetic, and the metric must not punish the leaves for existing. See "What
+  is a leaf?" above: content-based trimodal classification (narrator / computer
+  / MIXED), leaf budgets instead of narration floors for computers.
 - **Python-first.** Components 1–3 and 5 are one syntax-tree walk (they ride
   the class-scope analyzer pass from the review's capability B). Name clarity
   needs the lexicon build — a cheap whole-program pass, cached per commit like
