@@ -301,6 +301,16 @@ track C. First patient: antipasta's own 357-test suite.
   phase as the metric it displays; README metric table per phase.
 - Per-phase closing: pytest + ruff + mypy + dogfood reckoning (pass or tune
   with reasons committed) + a `docs/design/` addendum recording deviations.
+- **Dogfooding never blocks implementation** (owner policy, 2026-07-04). New
+  metrics land **informational-first** (computed, reported, no threshold) and
+  are promoted to gates only after being observed on this repo and judged
+  useful. The reckoning may demote, tune, or allowlist any gate with a
+  recorded reason — the current dogfood config keeps only the style-aligned
+  per-function gates (cyclomatic, cognitive, Halstead difficulty); the
+  length-punishing composites (maintainability index, file-level Halstead
+  volume/effort) are demoted to informational because they directly fight
+  newspaper-style extraction (see `.antipasta.yaml` header for the full
+  rationale).
 
 ## Coverage check (nothing dropped)
 
