@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-04T06:11:14+00:00",
+  "generated_at": "2026-07-04T06:57:58+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
-    "total_files": 70,
+    "total_files": 76,
     "files_with_violations": 0,
     "total_violations": 0,
     "violations_by_type": {},
     "files_by_language": {
-      "python": 69,
+      "python": 75,
       "javascript": 1
     },
     "success": true
@@ -48,9 +48,16 @@
     ],
     "python": [
       "blank_lines",
+      "boolean_flag_parameters",
       "cognitive_complexity",
+      "comment_density",
       "comment_lines",
       "cyclomatic_complexity",
+      "exception_discipline",
+      "expression_flatness",
+      "function_arity",
+      "function_statements",
+      "global_state_reach",
       "halstead_bugs",
       "halstead_difficulty",
       "halstead_effort",
@@ -59,6 +66,9 @@
       "lines_of_code",
       "logical_lines_of_code",
       "maintainability_index",
+      "marker_density",
+      "message_chain_depth",
+      "pipeline_linearity",
       "source_lines_of_code"
     ]
   },
@@ -1650,18 +1660,20 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 3.5714285714285716,
-        "maintainability_index": 56.45122546715585,
+        "maintainability_index": 56.415018701952285,
         "halstead_volume": 235.0,
         "halstead_difficulty": 4.34,
         "halstead_effort": 1019.9,
         "halstead_time": 56.66111111111111,
         "halstead_bugs": 0.07833333333333334,
-        "lines_of_code": 282.0,
+        "lines_of_code": 283.0,
         "logical_lines_of_code": 105.0,
-        "source_lines_of_code": 220.0,
+        "source_lines_of_code": 221.0,
         "comment_lines": 4.0,
         "blank_lines": 30.0,
-        "cognitive_complexity": 6.0
+        "cognitive_complexity": 6.0,
+        "marker_density": 0.0,
+        "comment_density": 1.4134275618374559
       },
       "violations": [],
       "functions": [
@@ -1675,12 +1687,20 @@
             "halstead_effort": 287.15645877722613,
             "halstead_time": 15.953136598734785,
             "halstead_bugs": 0.02734823416925963,
-            "cognitive_complexity": 4.0
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 13.0,
+            "boolean_flag_parameters": 4.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 18.0,
+            "expression_flatness": 0.6111111111111112,
+            "pipeline_linearity": 0.4
           }
         },
         {
           "name": "_prepare_config",
-          "line": 187,
+          "line": 188,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -1688,12 +1708,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 6.0,
+            "boolean_flag_parameters": 2.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "_load_baseline_snapshot",
-          "line": 213,
+          "line": 214,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 2.0,
@@ -1701,12 +1729,20 @@
             "halstead_effort": 1.0,
             "halstead_time": 0.05555555555555555,
             "halstead_bugs": 0.0006666666666666666,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "_apply_baseline",
-          "line": 224,
+          "line": 225,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 15.509775004326936,
@@ -1714,12 +1750,20 @@
             "halstead_effort": 15.509775004326936,
             "halstead_time": 0.861654166907052,
             "halstead_bugs": 0.005169925001442312,
-            "cognitive_complexity": 3.0
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 0.8181818181818182,
+            "pipeline_linearity": 0.4
           }
         },
         {
           "name": "_save_baseline_snapshot",
-          "line": 245,
+          "line": 246,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -1727,12 +1771,20 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "_render_payload",
-          "line": 254,
+          "line": 255,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 4.754887502163469,
@@ -1740,12 +1792,20 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.8,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "_emit",
-          "line": 264,
+          "line": 265,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 38.03910001730775,
@@ -1753,7 +1813,15 @@
             "halstead_effort": 76.0782000346155,
             "halstead_time": 4.226566668589751,
             "halstead_bugs": 0.012679700005769252,
-            "cognitive_complexity": 6.0
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 4.0,
+            "boolean_flag_parameters": 1.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 15.0,
+            "expression_flatness": 0.6,
+            "pipeline_linearity": 0.0
           }
         }
       ]
@@ -3406,25 +3474,27 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 4.6923076923076925,
-        "maintainability_index": 49.302493421051885,
-        "halstead_volume": 545.6278350557856,
-        "halstead_difficulty": 8.936170212765957,
-        "halstead_effort": 4875.823206881488,
-        "halstead_time": 270.87906704897154,
-        "halstead_bugs": 0.1818759450185952,
-        "lines_of_code": 443.0,
-        "logical_lines_of_code": 205.0,
-        "source_lines_of_code": 283.0,
+        "cyclomatic_complexity": 4.428571428571429,
+        "maintainability_index": 48.82171499407932,
+        "halstead_volume": 565.6486494867532,
+        "halstead_difficulty": 9.041666666666666,
+        "halstead_effort": 5114.406539109394,
+        "halstead_time": 284.13369661718855,
+        "halstead_bugs": 0.18854954982891775,
+        "lines_of_code": 453.0,
+        "logical_lines_of_code": 210.0,
+        "source_lines_of_code": 289.0,
         "comment_lines": 33.0,
-        "blank_lines": 65.0,
-        "cognitive_complexity": 12.0
+        "blank_lines": 68.0,
+        "cognitive_complexity": 12.0,
+        "marker_density": 0.0,
+        "comment_density": 7.28476821192053
       },
       "violations": [],
       "functions": [
         {
           "name": "_build_runners",
-          "line": 33,
+          "line": 34,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3432,12 +3502,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "_collect_file_metrics",
-          "line": 50,
+          "line": 51,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 4.754887502163469,
@@ -3445,12 +3523,41 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 8.0
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 1.0,
+            "function_statements": 18.0,
+            "expression_flatness": 0.7777777777777778,
+            "pipeline_linearity": 0.4
+          }
+        },
+        {
+          "name": "_default_derivers",
+          "line": 82,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "_resolve_jobs",
-          "line": 81,
+          "line": 89,
           "metrics": {
             "cyclomatic_complexity": 6.0,
             "halstead_volume": 38.03910001730775,
@@ -3458,25 +3565,41 @@
             "halstead_effort": 76.0782000346155,
             "halstead_time": 4.226566668589751,
             "halstead_bugs": 0.012679700005769252,
-            "cognitive_complexity": 7.0
+            "cognitive_complexity": 7.0,
+            "message_chain_depth": 3.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 10.0,
+            "expression_flatness": 0.4,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "MetricAggregator::__init__",
-          "line": 111,
+          "line": 119,
           "metrics": {
             "cyclomatic_complexity": 5.0,
-            "halstead_volume": 4.754887502163469,
-            "halstead_difficulty": 0.5,
-            "halstead_effort": 2.3774437510817346,
-            "halstead_time": 0.1320802083934297,
-            "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 5.0
+            "halstead_volume": 12.0,
+            "halstead_difficulty": 0.6666666666666666,
+            "halstead_effort": 8.0,
+            "halstead_time": 0.4444444444444444,
+            "halstead_bugs": 0.004,
+            "cognitive_complexity": 5.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 10.0,
+            "expression_flatness": 0.7,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "MetricAggregator::analyze_files",
-          "line": 142,
+          "line": 152,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3484,12 +3607,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "MetricAggregator::analyze",
-          "line": 150,
+          "line": 160,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 6.339850002884625,
@@ -3497,12 +3628,20 @@
             "halstead_effort": 3.1699250014423126,
             "halstead_time": 0.17610694452457293,
             "halstead_bugs": 0.002113283334294875,
-            "cognitive_complexity": 10.0
+            "cognitive_complexity": 10.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 19.0,
+            "expression_flatness": 0.6842105263157895,
+            "pipeline_linearity": 0.4166666666666667
           }
         },
         {
           "name": "MetricAggregator::_derive",
-          "line": 207,
+          "line": 217,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 11.60964047443681,
@@ -3510,12 +3649,20 @@
             "halstead_effort": 11.60964047443681,
             "halstead_time": 0.6449800263576005,
             "halstead_bugs": 0.0038698801581456034,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.625,
+            "pipeline_linearity": 0.6666666666666666
           }
         },
         {
           "name": "MetricAggregator::_collect_with_cache",
-          "line": 227,
+          "line": 237,
           "metrics": {
             "cyclomatic_complexity": 8.0,
             "halstead_volume": 69.76048999263462,
@@ -3523,12 +3670,20 @@
             "halstead_effort": 209.28146997790384,
             "halstead_time": 11.62674833210577,
             "halstead_bugs": 0.02325349666421154,
-            "cognitive_complexity": 12.0
+            "cognitive_complexity": 12.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 27.0,
+            "expression_flatness": 0.5555555555555556,
+            "pipeline_linearity": 0.07692307692307693
           }
         },
         {
           "name": "MetricAggregator::_collect_all",
-          "line": 267,
+          "line": 277,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 27.0,
@@ -3536,12 +3691,20 @@
             "halstead_effort": 48.6,
             "halstead_time": 2.7,
             "halstead_bugs": 0.009,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.2857142857142857,
+            "pipeline_linearity": 0.75
           }
         },
         {
           "name": "MetricAggregator::_finalize_report",
-          "line": 280,
+          "line": 290,
           "metrics": {
             "cyclomatic_complexity": 4.0,
             "halstead_volume": 11.60964047443681,
@@ -3549,12 +3712,20 @@
             "halstead_effort": 11.60964047443681,
             "halstead_time": 0.6449800263576005,
             "halstead_bugs": 0.0038698801581456034,
-            "cognitive_complexity": 3.0
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 5.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 9.0,
+            "expression_flatness": 0.8888888888888888,
+            "pipeline_linearity": 0.3333333333333333
           }
         },
         {
           "name": "MetricAggregator::_check_violations",
-          "line": 313,
+          "line": 323,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 41.51317942364757,
@@ -3562,12 +3733,20 @@
             "halstead_effort": 94.88726725405158,
             "halstead_time": 5.27151484744731,
             "halstead_bugs": 0.01383772647454919,
-            "cognitive_complexity": 8.0
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 13.0,
+            "expression_flatness": 0.6923076923076923,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "MetricAggregator::_create_default_language_config",
-          "line": 349,
+          "line": 359,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 13.931568569324174,
@@ -3575,12 +3754,20 @@
             "halstead_effort": 18.575424759098897,
             "halstead_time": 1.0319680421721609,
             "halstead_bugs": 0.004643856189774725,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.625,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "MetricAggregator::generate_summary",
-          "line": 412,
+          "line": 422,
           "metrics": {
             "cyclomatic_complexity": 7.0,
             "halstead_volume": 25.26619429851844,
@@ -3588,7 +3775,15 @@
             "halstead_effort": 30.319433158222125,
             "halstead_time": 1.6844129532345624,
             "halstead_bugs": 0.008422064766172813,
-            "cognitive_complexity": 4.0
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 12.0,
+            "expression_flatness": 0.4166666666666667,
+            "pipeline_linearity": 0.375
           }
         }
       ]
@@ -3725,19 +3920,21 @@
       "language": "python",
       "error": null,
       "metrics": {
-        "cyclomatic_complexity": 2.2,
-        "maintainability_index": 62.148422528009924,
-        "halstead_volume": 85.83671966625714,
-        "halstead_difficulty": 2.0,
-        "halstead_effort": 171.67343933251428,
-        "halstead_time": 9.537413296250794,
-        "halstead_bugs": 0.02861223988875238,
-        "lines_of_code": 240.0,
-        "logical_lines_of_code": 125.0,
-        "source_lines_of_code": 150.0,
+        "cyclomatic_complexity": 2.0,
+        "maintainability_index": 59.9807845658379,
+        "halstead_volume": 103.72627427729671,
+        "halstead_difficulty": 2.5,
+        "halstead_effort": 259.3156856932418,
+        "halstead_time": 14.406426982957877,
+        "halstead_bugs": 0.0345754247590989,
+        "lines_of_code": 267.0,
+        "logical_lines_of_code": 141.0,
+        "source_lines_of_code": 167.0,
         "comment_lines": 9.0,
-        "blank_lines": 46.0,
-        "cognitive_complexity": 3.0
+        "blank_lines": 51.0,
+        "cognitive_complexity": 3.0,
+        "marker_density": 0.0,
+        "comment_density": 3.3707865168539324
       },
       "violations": [],
       "functions": [
@@ -3751,7 +3948,15 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.75,
+            "pipeline_linearity": 1.0
           }
         },
         {
@@ -3764,12 +3969,62 @@
             "halstead_effort": 1.0,
             "halstead_time": 0.05555555555555555,
             "halstead_bugs": 0.0006666666666666666,
-            "cognitive_complexity": 3.0
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "TreeShapeConfig::max_children_config",
+          "line": 105,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "TreeShapeConfig::min_children_config",
+          "line": 113,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "AntipastaConfig::from_yaml",
-          "line": 105,
+          "line": 132,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 11.60964047443681,
@@ -3777,12 +4032,20 @@
             "halstead_effort": 11.60964047443681,
             "halstead_time": 0.6449800263576005,
             "halstead_bugs": 0.0038698801581456034,
-            "cognitive_complexity": 2.0
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 0.6666666666666666
           }
         },
         {
           "name": "AntipastaConfig::generate_default",
-          "line": 117,
+          "line": 144,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3790,12 +4053,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "AntipastaConfig::to_yaml",
-          "line": 126,
+          "line": 153,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3803,12 +4074,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 0.6666666666666666
           }
         },
         {
           "name": "AntipastaConfig::get_language_config",
-          "line": 134,
+          "line": 161,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 4.754887502163469,
@@ -3816,12 +4095,20 @@
             "halstead_effort": 2.3774437510817346,
             "halstead_time": 0.1320802083934297,
             "halstead_bugs": 0.0015849625007211565,
-            "cognitive_complexity": 3.0
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.8,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "AntipastaConfig::apply_overrides",
-          "line": 141,
+          "line": 168,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 2.0,
@@ -3829,12 +4116,20 @@
             "halstead_effort": 1.0,
             "halstead_time": 0.05555555555555555,
             "halstead_bugs": 0.0006666666666666666,
-            "cognitive_complexity": 1.0
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "AntipastaConfig::with_overrides",
-          "line": 158,
+          "line": 185,
           "metrics": {
             "cyclomatic_complexity": 5.0,
             "halstead_volume": 13.931568569324174,
@@ -3842,12 +4137,20 @@
             "halstead_effort": 6.965784284662087,
             "halstead_time": 0.3869880158145604,
             "halstead_bugs": 0.004643856189774725,
-            "cognitive_complexity": 3.0
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 5.0,
+            "boolean_flag_parameters": 2.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 0.6666666666666666
           }
         },
         {
           "name": "_get_default_python_config",
-          "line": 197,
+          "line": 224,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3855,12 +4158,20 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "_get_default_python_metrics",
-          "line": 206,
+          "line": 233,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "halstead_volume": 0.0,
@@ -3868,7 +4179,15 @@
             "halstead_effort": 0.0,
             "halstead_time": 0.0,
             "halstead_bugs": 0.0,
-            "cognitive_complexity": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
           }
         }
       ]
@@ -4319,48 +4638,107 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 1.75,
-        "maintainability_index": 67.82390834766362,
+        "maintainability_index": 66.90904066092706,
         "halstead_volume": 54.0,
         "halstead_difficulty": 2.0,
         "halstead_effort": 108.0,
         "halstead_time": 6.0,
         "halstead_bugs": 0.018,
-        "lines_of_code": 126.0,
-        "logical_lines_of_code": 89.0,
-        "source_lines_of_code": 74.0,
-        "comment_lines": 0.0,
+        "lines_of_code": 140.0,
+        "logical_lines_of_code": 100.0,
+        "source_lines_of_code": 85.0,
+        "comment_lines": 3.0,
         "blank_lines": 25.0,
-        "cognitive_complexity": 3.0
+        "cognitive_complexity": 3.0,
+        "marker_density": 0.0,
+        "comment_density": 2.142857142857143
       },
       "violations": [],
       "functions": [
         {
           "name": "MetricResult::__post_init__",
-          "line": 44,
+          "line": 58,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
           }
         },
         {
+          "name": "__post_init__",
+          "line": 58,
+          "metrics": {
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
           "name": "MetricResult::to_dict",
-          "line": 49,
+          "line": 63,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
+          }
+        },
+        {
+          "name": "to_dict",
+          "line": 63,
+          "metrics": {
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
           }
         },
         {
           "name": "MetricResult::from_dict",
-          "line": 59,
+          "line": 73,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
           }
         },
         {
+          "name": "from_dict",
+          "line": 74,
+          "metrics": {
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
           "name": "FactRow::to_dict",
-          "line": 92,
+          "line": 106,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -4368,7 +4746,7 @@
         },
         {
           "name": "FactRow::from_dict",
-          "line": 96,
+          "line": 110,
           "metrics": {
             "cyclomatic_complexity": 1.0,
             "cognitive_complexity": 0.0
@@ -4376,7 +4754,7 @@
         },
         {
           "name": "FileMetrics::__post_init__",
-          "line": 112,
+          "line": 126,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "cognitive_complexity": 1.0
@@ -4384,7 +4762,7 @@
         },
         {
           "name": "FileMetrics::get_metric",
-          "line": 117,
+          "line": 131,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -4392,12 +4770,20 @@
             "halstead_effort": 3.0,
             "halstead_time": 0.16666666666666666,
             "halstead_bugs": 0.001,
-            "cognitive_complexity": 3.0
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.8,
+            "pipeline_linearity": 0.0
           }
         },
         {
           "name": "FileMetrics::get_metrics_by_type",
-          "line": 124,
+          "line": 138,
           "metrics": {
             "cyclomatic_complexity": 3.0,
             "halstead_volume": 3.0,
@@ -4405,40 +4791,15 @@
             "halstead_effort": 3.0,
             "halstead_time": 0.16666666666666666,
             "halstead_bugs": 0.001,
-            "cognitive_complexity": 0.0
-          }
-        },
-        {
-          "name": "__post_init__",
-          "line": null,
-          "metrics": {
-            "halstead_volume": 0.0,
-            "halstead_difficulty": 0.0,
-            "halstead_effort": 0.0,
-            "halstead_time": 0.0,
-            "halstead_bugs": 0.0
-          }
-        },
-        {
-          "name": "from_dict",
-          "line": null,
-          "metrics": {
-            "halstead_volume": 0.0,
-            "halstead_difficulty": 0.0,
-            "halstead_effort": 0.0,
-            "halstead_time": 0.0,
-            "halstead_bugs": 0.0
-          }
-        },
-        {
-          "name": "to_dict",
-          "line": null,
-          "metrics": {
-            "halstead_volume": 0.0,
-            "halstead_difficulty": 0.0,
-            "halstead_effort": 0.0,
-            "halstead_time": 0.0,
-            "halstead_bugs": 0.0
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.0
           }
         }
       ]
@@ -4911,6 +5272,199 @@
             "halstead_time": 1.5849625007211563,
             "halstead_bugs": 0.009509775004326938,
             "cognitive_complexity": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "path": "core/tree_shape.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 3.0,
+        "maintainability_index": 65.06512126494493,
+        "halstead_volume": 161.92738965508113,
+        "halstead_difficulty": 4.0,
+        "halstead_effort": 647.7095586203245,
+        "halstead_time": 35.9838643677958,
+        "halstead_bugs": 0.05397579655169371,
+        "lines_of_code": 124.0,
+        "logical_lines_of_code": 77.0,
+        "source_lines_of_code": 79.0,
+        "comment_lines": 2.0,
+        "blank_lines": 25.0,
+        "cognitive_complexity": 7.0,
+        "marker_density": 0.0,
+        "comment_density": 1.6129032258064515
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "derive_tree_shape",
+          "line": 34,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 10.0,
+            "expression_flatness": 0.7,
+            "pipeline_linearity": 0.2
+          }
+        },
+        {
+          "name": "_count_children",
+          "line": 47,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 57.110323830864054,
+            "halstead_difficulty": 2.0,
+            "halstead_effort": 114.22064766172811,
+            "halstead_time": 6.345591536762672,
+            "halstead_bugs": 0.019036774610288017,
+            "cognitive_complexity": 7.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 15.0,
+            "expression_flatness": 0.4666666666666667,
+            "pipeline_linearity": 0.5555555555555556
+          }
+        },
+        {
+          "name": "_relative_to_root",
+          "line": 70,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 3.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_subject_of",
+          "line": 77,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_parent_pairs",
+          "line": 82,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.7142857142857143,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_is_excluded",
+          "line": 92,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_directory_report",
+          "line": 96,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.2,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_band_violations",
+          "line": 110,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 3.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 10.0,
+            "expression_flatness": 0.8,
+            "pipeline_linearity": 0.25
           }
         }
       ]
@@ -6044,6 +6598,985 @@
       ]
     },
     {
+      "path": "runners/python/house_style/__init__.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 2.4285714285714284,
+        "maintainability_index": 68.77852880614434,
+        "halstead_volume": 15.509775004326936,
+        "halstead_difficulty": 1.0,
+        "halstead_effort": 15.509775004326936,
+        "halstead_time": 0.861654166907052,
+        "halstead_bugs": 0.005169925001442312,
+        "lines_of_code": 162.0,
+        "logical_lines_of_code": 60.0,
+        "source_lines_of_code": 126.0,
+        "comment_lines": 1.0,
+        "blank_lines": 18.0,
+        "cognitive_complexity": 10.0,
+        "marker_density": 0.0,
+        "comment_density": 0.6172839506172839
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "HouseStyleRunner::supported_metrics",
+          "line": 31,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "HouseStyleRunner::is_available",
+          "line": 47,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 0.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "HouseStyleRunner::analyze",
+          "line": 51,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 10.0,
+            "expression_flatness": 0.7,
+            "pipeline_linearity": 0.3333333333333333
+          }
+        },
+        {
+          "name": "HouseStyleRunner::_function_rows",
+          "line": 83,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.625,
+            "pipeline_linearity": 0.6
+          }
+        },
+        {
+          "name": "HouseStyleRunner::_file_rows",
+          "line": 95,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_method_owner_ids",
+          "line": 114,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 10.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.7142857142857143,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_rows_for_function",
+          "line": 124,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 4.0,
+            "boolean_flag_parameters": 1.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 0.3333333333333333,
+            "pipeline_linearity": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "path": "runners/python/house_style/comments.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 2.75,
+        "maintainability_index": 61.705529992726014,
+        "halstead_volume": 129.32351694048162,
+        "halstead_difficulty": 2.7941176470588234,
+        "halstead_effort": 361.3451208631104,
+        "halstead_time": 20.074728936839467,
+        "halstead_bugs": 0.04310783898016054,
+        "lines_of_code": 44.0,
+        "logical_lines_of_code": 34.0,
+        "source_lines_of_code": 29.0,
+        "comment_lines": 1.0,
+        "blank_lines": 11.0,
+        "cognitive_complexity": 6.0,
+        "marker_density": 0.0,
+        "comment_density": 2.272727272727273
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "comment_lines_and_markers",
+          "line": 12,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 1.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 0.5454545454545454,
+            "pipeline_linearity": 0.25
+          }
+        },
+        {
+          "name": "total_lines",
+          "line": 27,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 11.60964047443681,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 11.60964047443681,
+            "halstead_time": 0.6449800263576005,
+            "halstead_bugs": 0.0038698801581456034,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 3.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "marker_density",
+          "line": 33,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 27.0,
+            "halstead_difficulty": 1.8,
+            "halstead_effort": 48.6,
+            "halstead_time": 2.7,
+            "halstead_bugs": 0.009,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "comment_density",
+          "line": 40,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 27.0,
+            "halstead_difficulty": 1.8,
+            "halstead_effort": 48.6,
+            "halstead_time": 2.7,
+            "halstead_bugs": 0.009,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 4.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "path": "runners/python/house_style/expressions.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 5.125,
+        "maintainability_index": 60.283166681903815,
+        "halstead_volume": 254.373142062517,
+        "halstead_difficulty": 4.923076923076923,
+        "halstead_effort": 1252.2985455385453,
+        "halstead_time": 69.57214141880807,
+        "halstead_bugs": 0.08479104735417232,
+        "lines_of_code": 158.0,
+        "logical_lines_of_code": 99.0,
+        "source_lines_of_code": 103.0,
+        "comment_lines": 4.0,
+        "blank_lines": 27.0,
+        "cognitive_complexity": 12.0,
+        "marker_density": 0.0,
+        "comment_density": 2.5316455696202533
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "own_statements",
+          "line": 36,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 8.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.6,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "visit",
+          "line": 45,
+          "metrics": {
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 0.5
+          }
+        },
+        {
+          "name": "_nested_bodies",
+          "line": 57,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 5.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 11.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 0.6
+          }
+        },
+        {
+          "name": "_own_expression_nodes",
+          "line": 71,
+          "metrics": {
+            "cyclomatic_complexity": 7.0,
+            "halstead_volume": 6.339850002884625,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 3.1699250014423126,
+            "halstead_time": 0.17610694452457293,
+            "halstead_bugs": 0.002113283334294875,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 9.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "max_chain_depth",
+          "line": 89,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.8571428571428571,
+            "pipeline_linearity": 0.3333333333333333
+          }
+        },
+        {
+          "name": "_chain_depth",
+          "line": 103,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 39.863137138648355,
+            "halstead_difficulty": 2.6666666666666665,
+            "halstead_effort": 106.3016990363956,
+            "halstead_time": 5.905649946466422,
+            "halstead_bugs": 0.013287712379549451,
+            "cognitive_complexity": 7.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 12.0,
+            "expression_flatness": 0.9166666666666666,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "expression_flatness",
+          "line": 119,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 24.0,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 36.0,
+            "halstead_time": 2.0,
+            "halstead_bugs": 0.008,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.6666666666666666
+          }
+        },
+        {
+          "name": "_operation_weight",
+          "line": 132,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 12.0,
+            "halstead_difficulty": 0.6666666666666666,
+            "halstead_effort": 8.0,
+            "halstead_time": 0.4444444444444444,
+            "halstead_bugs": 0.004,
+            "cognitive_complexity": 4.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "pipeline_linearity",
+          "line": 142,
+          "metrics": {
+            "cyclomatic_complexity": 10.0,
+            "halstead_volume": 78.13781191217038,
+            "halstead_difficulty": 3.25,
+            "halstead_effort": 253.94788871455373,
+            "halstead_time": 14.10821603969743,
+            "halstead_bugs": 0.026045937304056792,
+            "cognitive_complexity": 12.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 14.0,
+            "expression_flatness": 0.5714285714285714,
+            "pipeline_linearity": 0.5714285714285714
+          }
+        }
+      ]
+    },
+    {
+      "path": "runners/python/house_style/facts.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 4.428571428571429,
+        "maintainability_index": 60.317969115413376,
+        "halstead_volume": 79.22857502740393,
+        "halstead_difficulty": 2.5,
+        "halstead_effort": 198.07143756850985,
+        "halstead_time": 11.003968753806102,
+        "halstead_bugs": 0.026409525009134644,
+        "lines_of_code": 132.0,
+        "logical_lines_of_code": 67.0,
+        "source_lines_of_code": 103.0,
+        "comment_lines": 1.0,
+        "blank_lines": 18.0,
+        "cognitive_complexity": 10.0,
+        "marker_density": 0.0,
+        "comment_density": 0.7575757575757576
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "extract_facts",
+          "line": 19,
+          "metrics": {
+            "cyclomatic_complexity": 1.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_import_facts",
+          "line": 28,
+          "metrics": {
+            "cyclomatic_complexity": 7.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 7.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.625,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_callable_facts",
+          "line": 53,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_method_name_ids",
+          "line": 72,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 10.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 8.0,
+            "expression_flatness": 0.75,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_class_facts",
+          "line": 83,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.6,
+            "pipeline_linearity": 0.25
+          }
+        },
+        {
+          "name": "_method_payload",
+          "line": 105,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 10.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 12.0,
+            "expression_flatness": 0.5833333333333334,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "_is_self_attribute",
+          "line": 127,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 19.651484454403228,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 19.651484454403228,
+            "halstead_time": 1.0917491363557348,
+            "halstead_bugs": 0.00655049481813441,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "path": "runners/python/house_style/structure.py",
+      "language": "python",
+      "error": null,
+      "metrics": {
+        "cyclomatic_complexity": 4.214285714285714,
+        "maintainability_index": 52.128711685671554,
+        "halstead_volume": 502.091513573993,
+        "halstead_difficulty": 4.072727272727272,
+        "halstead_effort": 2044.8818007377167,
+        "halstead_time": 113.6045444854287,
+        "halstead_bugs": 0.16736383785799766,
+        "lines_of_code": 143.0,
+        "logical_lines_of_code": 84.0,
+        "source_lines_of_code": 92.0,
+        "comment_lines": 2.0,
+        "blank_lines": 36.0,
+        "cognitive_complexity": 9.0,
+        "marker_density": 0.0,
+        "comment_density": 1.3986013986013985
+      },
+      "violations": [],
+      "functions": [
+        {
+          "name": "function_arity",
+          "line": 13,
+          "metrics": {
+            "cyclomatic_complexity": 6.0,
+            "halstead_volume": 46.604512509375034,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 69.90676876406255,
+            "halstead_time": 3.883709375781253,
+            "halstead_bugs": 0.015534837503125011,
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 1.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 6.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "boolean_flag_parameters",
+          "line": 22,
+          "metrics": {
+            "cyclomatic_complexity": 8.0,
+            "halstead_volume": 58.60335893412778,
+            "halstead_difficulty": 2.5,
+            "halstead_effort": 146.50839733531944,
+            "halstead_time": 8.139355407517748,
+            "halstead_bugs": 0.019534452978042596,
+            "cognitive_complexity": 6.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 1.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 12.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.42857142857142855
+          }
+        },
+        {
+          "name": "_is_bool_annotation",
+          "line": 47,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_is_bool_constant",
+          "line": 51,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "exception_discipline",
+          "line": 55,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 0.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.5,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_is_undisciplined",
+          "line": 60,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 24.0,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 36.0,
+            "halstead_time": 2.0,
+            "halstead_bugs": 0.008,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.6,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_is_broad",
+          "line": 68,
+          "metrics": {
+            "cyclomatic_complexity": 4.0,
+            "halstead_volume": 15.509775004326936,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 15.509775004326936,
+            "halstead_time": 0.861654166907052,
+            "halstead_bugs": 0.005169925001442312,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 2.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 0.5
+          }
+        },
+        {
+          "name": "_reraises",
+          "line": 76,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_is_silent",
+          "line": 80,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 33.219280948873624,
+            "halstead_difficulty": 1.5,
+            "halstead_effort": 49.82892142331043,
+            "halstead_time": 2.7682734124061352,
+            "halstead_bugs": 0.01107309364962454,
+            "cognitive_complexity": 0.0,
+            "message_chain_depth": 2.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 0.0
+          }
+        },
+        {
+          "name": "handlers_in",
+          "line": 92,
+          "metrics": {
+            "cyclomatic_complexity": 2.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 1.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 0.6,
+            "pipeline_linearity": 0.5
+          }
+        },
+        {
+          "name": "module_mutable_names",
+          "line": 101,
+          "metrics": {
+            "cyclomatic_complexity": 5.0,
+            "halstead_volume": 4.754887502163469,
+            "halstead_difficulty": 0.5,
+            "halstead_effort": 2.3774437510817346,
+            "halstead_time": 0.1320802083934297,
+            "halstead_bugs": 0.0015849625007211565,
+            "cognitive_complexity": 7.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 7.0,
+            "expression_flatness": 0.7142857142857143,
+            "pipeline_linearity": 0.3333333333333333
+          }
+        },
+        {
+          "name": "_assignment_targets",
+          "line": 116,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 0.0,
+            "halstead_difficulty": 0.0,
+            "halstead_effort": 0.0,
+            "halstead_time": 0.0,
+            "halstead_bugs": 0.0,
+            "cognitive_complexity": 2.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 5.0,
+            "expression_flatness": 1.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "_is_mutable_style",
+          "line": 124,
+          "metrics": {
+            "cyclomatic_complexity": 3.0,
+            "halstead_volume": 30.0,
+            "halstead_difficulty": 1.0,
+            "halstead_effort": 30.0,
+            "halstead_time": 1.6666666666666667,
+            "halstead_bugs": 0.01,
+            "cognitive_complexity": 3.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 1.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 1.0,
+            "expression_flatness": 0.0,
+            "pipeline_linearity": 1.0
+          }
+        },
+        {
+          "name": "global_state_reach",
+          "line": 128,
+          "metrics": {
+            "cyclomatic_complexity": 9.0,
+            "halstead_volume": 30.0,
+            "halstead_difficulty": 1.1666666666666667,
+            "halstead_effort": 35.0,
+            "halstead_time": 1.9444444444444444,
+            "halstead_bugs": 0.01,
+            "cognitive_complexity": 9.0,
+            "message_chain_depth": 1.0,
+            "function_arity": 2.0,
+            "boolean_flag_parameters": 0.0,
+            "exception_discipline": 0.0,
+            "global_state_reach": 0.0,
+            "function_statements": 9.0,
+            "expression_flatness": 0.6666666666666666,
+            "pipeline_linearity": 0.0
+          }
+        }
+      ]
+    },
+    {
       "path": "runners/python/radon.py",
       "language": "python",
       "error": null,
@@ -6273,15 +7806,289 @@
       ]
     }
   ],
-  "project": [],
+  "project": [
+    {
+      "subject": ".",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 7.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 6.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/config",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 3.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/config/config_generate",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 6.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/config/config_view",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 3.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/metrics",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 6.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/report",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 2.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/stats",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 6.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/stats/aggregation",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 2.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/stats/collection",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 3.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/cli/stats/output",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/core",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 14.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/report",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 3.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/report/assets",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/runners",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 4.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/runners/javascript",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/runners/python",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 3.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/runners/python/house_style",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 4.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    },
+    {
+      "subject": "src/antipasta/utils",
+      "metrics": [
+        {
+          "type": "directory_children",
+          "value": 1.0,
+          "details": null,
+          "line_number": null,
+          "function_name": null
+        }
+      ],
+      "violations": []
+    }
+  ],
   "treemap": [
     {
       "id": ".",
       "parent": null,
       "label": "antipasta",
       "aggregate": {
-        "files": 70,
-        "value": 5096.0,
+        "files": 76,
+        "value": 5663.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -6293,16 +8100,16 @@
             "path": "core/snapshot_diff.py"
           },
           "halstead_difficulty": {
-            "value": 8.936170212765957,
+            "value": 9.041666666666666,
             "path": "core/aggregator.py"
           },
           "halstead_effort": {
-            "value": 5044.52980141711,
-            "path": "core/snapshot_diff.py"
+            "value": 5114.406539109394,
+            "path": "core/aggregator.py"
           },
           "halstead_time": {
-            "value": 280.2516556342839,
-            "path": "core/snapshot_diff.py"
+            "value": 284.13369661718855,
+            "path": "core/aggregator.py"
           },
           "halstead_bugs": {
             "value": 0.24848223718181445,
@@ -6313,7 +8120,7 @@
             "path": "report/assets/report.js"
           },
           "logical_lines_of_code": {
-            "value": 205.0,
+            "value": 210.0,
             "path": "core/aggregator.py"
           },
           "source_lines_of_code": {
@@ -6335,6 +8142,14 @@
           "cognitive_complexity": {
             "value": 14.0,
             "path": "cli/stats/output/display.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "cli/report/command.py"
+          },
+          "comment_density": {
+            "value": 7.28476821192053,
+            "path": "core/aggregator.py"
           }
         }
       }
@@ -6359,7 +8174,7 @@
       "label": "cli",
       "aggregate": {
         "files": 39,
-        "value": 2477.0,
+        "value": 2478.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -6395,7 +8210,7 @@
             "path": "cli/stats/output/display.py"
           },
           "source_lines_of_code": {
-            "value": 220.0,
+            "value": 221.0,
             "path": "cli/report/command.py"
           },
           "comment_lines": {
@@ -6413,6 +8228,14 @@
           "cognitive_complexity": {
             "value": 14.0,
             "path": "cli/stats/output/display.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "cli/report/command.py"
+          },
+          "comment_density": {
+            "value": 1.4134275618374559,
+            "path": "cli/report/command.py"
           }
         }
       }
@@ -6833,7 +8656,7 @@
       "label": "report",
       "aggregate": {
         "files": 3,
-        "value": 295.0,
+        "value": 296.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -6861,7 +8684,7 @@
             "path": "cli/report/command.py"
           },
           "lines_of_code": {
-            "value": 282.0,
+            "value": 283.0,
             "path": "cli/report/command.py"
           },
           "logical_lines_of_code": {
@@ -6869,7 +8692,7 @@
             "path": "cli/report/command.py"
           },
           "source_lines_of_code": {
-            "value": 220.0,
+            "value": 221.0,
             "path": "cli/report/command.py"
           },
           "comment_lines": {
@@ -6887,6 +8710,14 @@
           "cognitive_complexity": {
             "value": 8.0,
             "path": "cli/report/diff_summary.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "cli/report/command.py"
+          },
+          "comment_density": {
+            "value": 1.4134275618374559,
+            "path": "cli/report/command.py"
           }
         }
       }
@@ -6902,7 +8733,7 @@
       "id": "cli/report/command.py",
       "parent": "cli/report",
       "label": "command.py",
-      "value": 220.0,
+      "value": 221.0,
       "file_index": 25
     },
     {
@@ -7271,8 +9102,8 @@
       "parent": ".",
       "label": "core",
       "aggregate": {
-        "files": 14,
-        "value": 1546.0,
+        "files": 15,
+        "value": 1659.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -7284,31 +9115,31 @@
             "path": "core/snapshot_diff.py"
           },
           "halstead_difficulty": {
-            "value": 8.936170212765957,
+            "value": 9.041666666666666,
             "path": "core/aggregator.py"
           },
           "halstead_effort": {
-            "value": 5044.52980141711,
-            "path": "core/snapshot_diff.py"
+            "value": 5114.406539109394,
+            "path": "core/aggregator.py"
           },
           "halstead_time": {
-            "value": 280.2516556342839,
-            "path": "core/snapshot_diff.py"
+            "value": 284.13369661718855,
+            "path": "core/aggregator.py"
           },
           "halstead_bugs": {
             "value": 0.24848223718181445,
             "path": "core/snapshot_diff.py"
           },
           "lines_of_code": {
-            "value": 443.0,
+            "value": 453.0,
             "path": "core/aggregator.py"
           },
           "logical_lines_of_code": {
-            "value": 205.0,
+            "value": 210.0,
             "path": "core/aggregator.py"
           },
           "source_lines_of_code": {
-            "value": 283.0,
+            "value": 289.0,
             "path": "core/aggregator.py"
           },
           "comment_lines": {
@@ -7316,8 +9147,8 @@
             "path": "core/aggregator.py"
           },
           "blank_lines": {
-            "value": 66.0,
-            "path": "core/config_override.py"
+            "value": 68.0,
+            "path": "core/aggregator.py"
           },
           "cyclomatic_complexity": {
             "value": 5.0,
@@ -7326,6 +9157,14 @@
           "cognitive_complexity": {
             "value": 13.0,
             "path": "core/treemap.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "core/aggregator.py"
+          },
+          "comment_density": {
+            "value": 7.28476821192053,
+            "path": "core/aggregator.py"
           }
         }
       }
@@ -7341,7 +9180,7 @@
       "id": "core/aggregator.py",
       "parent": "core",
       "label": "aggregator.py",
-      "value": 283.0,
+      "value": 289.0,
       "file_index": 42
     },
     {
@@ -7355,7 +9194,7 @@
       "id": "core/config.py",
       "parent": "core",
       "label": "config.py",
-      "value": 150.0,
+      "value": 167.0,
       "file_index": 44
     },
     {
@@ -7390,7 +9229,7 @@
       "id": "core/metrics.py",
       "parent": "core",
       "label": "metrics.py",
-      "value": 74.0,
+      "value": 85.0,
       "file_index": 49
     },
     {
@@ -7415,18 +9254,25 @@
       "file_index": 52
     },
     {
+      "id": "core/tree_shape.py",
+      "parent": "core",
+      "label": "tree_shape.py",
+      "value": 79.0,
+      "file_index": 53
+    },
+    {
       "id": "core/treemap.py",
       "parent": "core",
       "label": "treemap.py",
       "value": 67.0,
-      "file_index": 53
+      "file_index": 54
     },
     {
       "id": "core/violations.py",
       "parent": "core",
       "label": "violations.py",
       "value": 127.0,
-      "file_index": 54
+      "file_index": 55
     },
     {
       "id": "hooks",
@@ -7489,7 +9335,7 @@
       "parent": "hooks",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 55
+      "file_index": 56
     },
     {
       "id": "report",
@@ -7560,7 +9406,7 @@
       "parent": "report",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 56
+      "file_index": 57
     },
     {
       "id": "report/assets",
@@ -7591,29 +9437,29 @@
       "parent": "report/assets",
       "label": "report.js",
       "value": 606.0,
-      "file_index": 57
+      "file_index": 58
     },
     {
       "id": "report/baseline.py",
       "parent": "report",
       "label": "baseline.py",
       "value": 35.0,
-      "file_index": 58
+      "file_index": 59
     },
     {
       "id": "report/html.py",
       "parent": "report",
       "label": "html.py",
       "value": 34.0,
-      "file_index": 59
+      "file_index": 60
     },
     {
       "id": "runners",
       "parent": ".",
       "label": "runners",
       "aggregate": {
-        "files": 8,
-        "value": 371.0,
+        "files": 13,
+        "value": 824.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -7621,24 +9467,24 @@
             "path": "runners/__init__.py"
           },
           "halstead_volume": {
-            "value": 77.66179398375645,
-            "path": "runners/python/radon.py"
+            "value": 502.091513573993,
+            "path": "runners/python/house_style/structure.py"
           },
           "halstead_difficulty": {
-            "value": 2.5,
-            "path": "runners/python/radon.py"
+            "value": 4.923076923076923,
+            "path": "runners/python/house_style/expressions.py"
           },
           "halstead_effort": {
-            "value": 194.15448495939114,
-            "path": "runners/python/radon.py"
+            "value": 2044.8818007377167,
+            "path": "runners/python/house_style/structure.py"
           },
           "halstead_time": {
-            "value": 10.78636027552173,
-            "path": "runners/python/radon.py"
+            "value": 113.6045444854287,
+            "path": "runners/python/house_style/structure.py"
           },
           "halstead_bugs": {
-            "value": 0.02588726466125215,
-            "path": "runners/python/radon.py"
+            "value": 0.16736383785799766,
+            "path": "runners/python/house_style/structure.py"
           },
           "lines_of_code": {
             "value": 241.0,
@@ -7661,12 +9507,20 @@
             "path": "runners/python/radon.py"
           },
           "cyclomatic_complexity": {
-            "value": 2.9,
-            "path": "runners/python/radon.py"
+            "value": 5.125,
+            "path": "runners/python/house_style/expressions.py"
           },
           "cognitive_complexity": {
-            "value": 5.0,
-            "path": "runners/python/complexipy_runner.py"
+            "value": 12.0,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "runners/python/house_style/__init__.py"
+          },
+          "comment_density": {
+            "value": 2.5316455696202533,
+            "path": "runners/python/house_style/expressions.py"
           }
         }
       }
@@ -7676,14 +9530,14 @@
       "parent": "runners",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 60
+      "file_index": 61
     },
     {
       "id": "runners/base.py",
       "parent": "runners",
       "label": "base.py",
       "value": 12.0,
-      "file_index": 61
+      "file_index": 62
     },
     {
       "id": "runners/javascript",
@@ -7754,22 +9608,22 @@
       "parent": "runners/javascript",
       "label": "__init__.py",
       "value": 2.0,
-      "file_index": 62
+      "file_index": 63
     },
     {
       "id": "runners/javascript/lizard_runner.py",
       "parent": "runners/javascript",
       "label": "lizard_runner.py",
       "value": 112.0,
-      "file_index": 63
+      "file_index": 64
     },
     {
       "id": "runners/python",
       "parent": "runners",
       "label": "python",
       "aggregate": {
-        "files": 3,
-        "value": 243.0,
+        "files": 8,
+        "value": 696.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -7777,24 +9631,24 @@
             "path": "runners/python/__init__.py"
           },
           "halstead_volume": {
-            "value": 77.66179398375645,
-            "path": "runners/python/radon.py"
+            "value": 502.091513573993,
+            "path": "runners/python/house_style/structure.py"
           },
           "halstead_difficulty": {
-            "value": 2.5,
-            "path": "runners/python/radon.py"
+            "value": 4.923076923076923,
+            "path": "runners/python/house_style/expressions.py"
           },
           "halstead_effort": {
-            "value": 194.15448495939114,
-            "path": "runners/python/radon.py"
+            "value": 2044.8818007377167,
+            "path": "runners/python/house_style/structure.py"
           },
           "halstead_time": {
-            "value": 10.78636027552173,
-            "path": "runners/python/radon.py"
+            "value": 113.6045444854287,
+            "path": "runners/python/house_style/structure.py"
           },
           "halstead_bugs": {
-            "value": 0.02588726466125215,
-            "path": "runners/python/radon.py"
+            "value": 0.16736383785799766,
+            "path": "runners/python/house_style/structure.py"
           },
           "lines_of_code": {
             "value": 241.0,
@@ -7817,12 +9671,20 @@
             "path": "runners/python/radon.py"
           },
           "cyclomatic_complexity": {
-            "value": 2.9,
-            "path": "runners/python/radon.py"
+            "value": 5.125,
+            "path": "runners/python/house_style/expressions.py"
           },
           "cognitive_complexity": {
-            "value": 5.0,
-            "path": "runners/python/complexipy_runner.py"
+            "value": 12.0,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "runners/python/house_style/__init__.py"
+          },
+          "comment_density": {
+            "value": 2.5316455696202533,
+            "path": "runners/python/house_style/expressions.py"
           }
         }
       }
@@ -7832,21 +9694,128 @@
       "parent": "runners/python",
       "label": "__init__.py",
       "value": 3.0,
-      "file_index": 64
+      "file_index": 65
     },
     {
       "id": "runners/python/complexipy_runner.py",
       "parent": "runners/python",
       "label": "complexipy_runner.py",
       "value": 70.0,
-      "file_index": 65
+      "file_index": 66
+    },
+    {
+      "id": "runners/python/house_style",
+      "parent": "runners/python",
+      "label": "house_style",
+      "aggregate": {
+        "files": 5,
+        "value": 453.0,
+        "violations": 0,
+        "metrics_max": {
+          "cyclomatic_complexity": {
+            "value": 5.125,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "maintainability_index": {
+            "value": 68.77852880614434,
+            "path": "runners/python/house_style/__init__.py"
+          },
+          "halstead_volume": {
+            "value": 502.091513573993,
+            "path": "runners/python/house_style/structure.py"
+          },
+          "halstead_difficulty": {
+            "value": 4.923076923076923,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "halstead_effort": {
+            "value": 2044.8818007377167,
+            "path": "runners/python/house_style/structure.py"
+          },
+          "halstead_time": {
+            "value": 113.6045444854287,
+            "path": "runners/python/house_style/structure.py"
+          },
+          "halstead_bugs": {
+            "value": 0.16736383785799766,
+            "path": "runners/python/house_style/structure.py"
+          },
+          "lines_of_code": {
+            "value": 162.0,
+            "path": "runners/python/house_style/__init__.py"
+          },
+          "logical_lines_of_code": {
+            "value": 99.0,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "source_lines_of_code": {
+            "value": 126.0,
+            "path": "runners/python/house_style/__init__.py"
+          },
+          "comment_lines": {
+            "value": 4.0,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "blank_lines": {
+            "value": 36.0,
+            "path": "runners/python/house_style/structure.py"
+          },
+          "cognitive_complexity": {
+            "value": 12.0,
+            "path": "runners/python/house_style/expressions.py"
+          },
+          "marker_density": {
+            "value": 0.0,
+            "path": "runners/python/house_style/__init__.py"
+          },
+          "comment_density": {
+            "value": 2.5316455696202533,
+            "path": "runners/python/house_style/expressions.py"
+          }
+        }
+      }
+    },
+    {
+      "id": "runners/python/house_style/__init__.py",
+      "parent": "runners/python/house_style",
+      "label": "__init__.py",
+      "value": 126.0,
+      "file_index": 67
+    },
+    {
+      "id": "runners/python/house_style/comments.py",
+      "parent": "runners/python/house_style",
+      "label": "comments.py",
+      "value": 29.0,
+      "file_index": 68
+    },
+    {
+      "id": "runners/python/house_style/expressions.py",
+      "parent": "runners/python/house_style",
+      "label": "expressions.py",
+      "value": 103.0,
+      "file_index": 69
+    },
+    {
+      "id": "runners/python/house_style/facts.py",
+      "parent": "runners/python/house_style",
+      "label": "facts.py",
+      "value": 103.0,
+      "file_index": 70
+    },
+    {
+      "id": "runners/python/house_style/structure.py",
+      "parent": "runners/python/house_style",
+      "label": "structure.py",
+      "value": 92.0,
+      "file_index": 71
     },
     {
       "id": "runners/python/radon.py",
       "parent": "runners/python",
       "label": "radon.py",
       "value": 170.0,
-      "file_index": 66
+      "file_index": 72
     },
     {
       "id": "runners/typescript",
@@ -7909,7 +9878,7 @@
       "parent": "runners/typescript",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 67
+      "file_index": 73
     },
     {
       "id": "utils",
@@ -7980,14 +9949,14 @@
       "parent": "utils",
       "label": "__init__.py",
       "value": 1.0,
-      "file_index": 68
+      "file_index": 74
     },
     {
       "id": "utils/schema_generator.py",
       "parent": "utils",
       "label": "schema_generator.py",
       "value": 19.0,
-      "file_index": 69
+      "file_index": 75
     }
   ]
 }

@@ -93,6 +93,32 @@ class DefaultsConfig(BaseModel):
     max_cognitive_complexity: CognitiveComplexity = 15
 
 
+class TreeShapeConfig(BaseModel):
+    """Module Tree Shape gating (fan-out band). Presence of this block turns
+    the tree-shape deriver's rows into enforceable violations; without it the
+    deriver stays informational."""
+
+    fan_out_min: int = Field(default=2, ge=1)
+    fan_out_max: int = Field(default=7, ge=1)
+    exclude: list[str] = Field(default_factory=list)
+
+    def max_children_config(self) -> MetricConfig:
+        """Threshold check for 'too many children' (missing layer)."""
+        return MetricConfig(
+            type=MetricType.DIRECTORY_CHILDREN,
+            threshold=float(self.fan_out_max),
+            comparison=ComparisonOperator.LE,
+        )
+
+    def min_children_config(self) -> MetricConfig:
+        """Threshold check for 'too few children' (pointless layer)."""
+        return MetricConfig(
+            type=MetricType.DIRECTORY_CHILDREN,
+            threshold=float(self.fan_out_min),
+            comparison=ComparisonOperator.GE,
+        )
+
+
 class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
@@ -101,6 +127,7 @@ class AntipastaConfig(BaseModel):
     ignore_patterns: list[str] = Field(default_factory=list)
     use_gitignore: bool = Field(default=True)
     profile: ProfileName = Field(default="standard")
+    tree_shape: TreeShapeConfig | None = Field(default=None)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:

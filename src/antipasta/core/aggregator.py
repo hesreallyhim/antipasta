@@ -23,6 +23,7 @@ from antipasta.core.violations import FileReport, ProjectReport, Violation, chec
 from antipasta.runners.base import BaseRunner
 from antipasta.runners.javascript.lizard_runner import LizardRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
+from antipasta.runners.python.house_style import HouseStyleRunner
 from antipasta.runners.python.radon import RadonRunner
 
 # Below this many files a process pool costs more in spawn overhead (~0.5s on
@@ -35,7 +36,7 @@ def _build_runners() -> dict[Language, list[BaseRunner]]:
     instance; its availability check is cached)."""
     lizard_runner = LizardRunner()
     return {
-        Language.PYTHON: [RadonRunner(), ComplexipyRunner()],
+        Language.PYTHON: [RadonRunner(), ComplexipyRunner(), HouseStyleRunner()],
         Language.JAVASCRIPT: [lizard_runner],
         Language.TYPESCRIPT: [lizard_runner],
     }
@@ -76,6 +77,13 @@ def _collect_file_metrics(
                 all_metrics.extend(file_metrics.metrics)
                 all_facts.extend(file_metrics.facts)
     return all_metrics, all_facts, errors
+
+
+def _default_derivers() -> list[Deriver]:
+    """Derivers registered when the caller doesn't supply an explicit list."""
+    from antipasta.core.tree_shape import derive_tree_shape
+
+    return [derive_tree_shape]
 
 
 def _resolve_jobs(requested: int | None, task_count: int) -> int:
@@ -126,7 +134,9 @@ class MetricAggregator:
         """
         self.config = config
         self.cache = cache if cache is not None else MetricsCache()
-        self.derivers: list[Deriver] = list(derivers) if derivers else []
+        self.derivers: list[Deriver] = (
+            list(derivers) if derivers is not None else _default_derivers()
+        )
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
 
         # Load .gitignore patterns if enabled

@@ -13,6 +13,34 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Phase 1 — LANDED 2026-07-04** (branch `feat/metrics-phase-1`). Ten
+  house-style metrics live (chain depth, arity, boolean flags, exception
+  discipline, global-state reach, statement count, expression flatness,
+  pipeline linearity, marker density, comment density) via one single-walk
+  runner (`runners/python/house_style/`, split into expressions/structure/
+  comments/facts modules); fact rows (imports/callables/classes) extracted in
+  the same parse for Phases 2–3; Module Tree Shape tree-half shipped as the
+  first deriver, pioneering project-scoped reporting end to end (aggregator →
+  CLI PROJECT FINDINGS → snapshot `project` block). All informational-first
+  per policy — zero new gates. QA: 401 tests green (44 new: good/bad twins
+  per metric, fact extraction, tree-shape counting/gating/exclusions,
+  default-deriver wiring); ruff/mypy clean; dogfood green.
+  **Dogfood reckoning findings (observed, not gated):** `src/antipasta/core`
+  fan-out is 14 — double the 5–7 band; a missing layer by the owner's rule
+  (refactor decision deferred to the owner). Five single-child directories
+  are pointless-layer candidates (most defensibly small). Chain depth ≥ 3 in
+  exactly 2 functions — both written this session (`_resolve_jobs`,
+  `_relative_to_root`). The two undisciplined exception handlers are the
+  house-style runner's own deliberate catch-alls (subprocess-era parity
+  semantics) — the metric caught its own implementation; left as
+  observations. The cognitive-complexity gate forced one refactor mid-build
+  (`own_statements`, 18 → compose-method extraction) — sixth gate-forced
+  refactor on this effort, this time on the code implementing the metrics.
+  Deviations: profile threshold-scaling deferred to its first real consumer
+  (metric values are fixed/profile-free by cache-safety design); message-
+  chain fluent allowlist deferred (would make cached values config-dependent;
+  needs violation-layer filtering instead — noted for Phase 4).
+
 - **Phase 0 — LANDED 2026-07-04** (`6924d18`, checkpoint branch
   `feat/report-command`). QA: 371 unit tests green (12 new: fact-row and
   cache-v2 round-trips, project-report accounting, deriver end-to-end

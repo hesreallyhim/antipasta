@@ -107,14 +107,25 @@ class TestDerivationStage:
         assert seen[0].config is aggregator.config
         assert len(seen[0].file_reports) == 1
 
-    def test_no_derivers_means_no_project_reports(self, tmp_path: Path) -> None:
+    def test_explicit_empty_derivers_means_no_project_reports(self, tmp_path: Path) -> None:
         (tmp_path / "module.py").write_text(SAMPLE_SOURCE)
-        aggregator = MetricAggregator(AntipastaConfig(), cache=MetricsCache(enabled=False))
+        aggregator = MetricAggregator(
+            AntipastaConfig(), cache=MetricsCache(enabled=False), derivers=[]
+        )
 
         result = aggregator.analyze([tmp_path / "module.py"])
 
         assert result.project_reports == []
         assert not result.has_project_violations
+
+    def test_default_derivers_emit_tree_shape_rows(self, tmp_path: Path) -> None:
+        (tmp_path / "module.py").write_text(SAMPLE_SOURCE)
+        aggregator = MetricAggregator(AntipastaConfig(), cache=MetricsCache(enabled=False))
+
+        result = aggregator.analyze([tmp_path / "module.py"], root=tmp_path)
+
+        assert [r.subject for r in result.project_reports] == ["."]
+        assert not result.has_project_violations  # informational without config
 
     def test_analyze_files_still_returns_file_reports(self, tmp_path: Path) -> None:
         (tmp_path / "module.py").write_text(SAMPLE_SOURCE)

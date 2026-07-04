@@ -28,6 +28,20 @@ class MetricType(StrEnum):
     SOURCE_LINES_OF_CODE = "source_lines_of_code"
     COMMENT_LINES = "comment_lines"
     BLANK_LINES = "blank_lines"
+    # House-style metrics (adoption plan, Phase 1). Informational-first:
+    # none carries a default threshold; gates are opt-in per config.
+    MESSAGE_CHAIN_DEPTH = "message_chain_depth"
+    FUNCTION_ARITY = "function_arity"
+    BOOLEAN_FLAG_PARAMETERS = "boolean_flag_parameters"
+    EXCEPTION_DISCIPLINE = "exception_discipline"
+    GLOBAL_STATE_REACH = "global_state_reach"
+    MARKER_DENSITY = "marker_density"
+    COMMENT_DENSITY = "comment_density"
+    FUNCTION_STATEMENTS = "function_statements"
+    EXPRESSION_FLATNESS = "expression_flatness"
+    PIPELINE_LINEARITY = "pipeline_linearity"
+    # Project-scope metrics (derivation stage).
+    DIRECTORY_CHILDREN = "directory_children"
 
 
 @dataclass

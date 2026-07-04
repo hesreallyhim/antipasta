@@ -164,6 +164,7 @@ def report(
         final_config,
         root=directory or Path.cwd(),
         summary=results["summary"],
+        project_reports=results.get("project_reports"),
     )
     render_snapshot, baseline_diff = _apply_baseline(snapshot, baseline, output_format)
     payload = _render_payload(render_snapshot, output_format)
