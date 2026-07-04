@@ -71,7 +71,7 @@ the report already labels JavaScript/TypeScript metric coverage.
 | 12 | Depth of Inheritance Tree | Inheritance | 3 | SM‡ | **ADOPT** |
 | 13 | Number of Children | Inheritance | 3 | SM‡ | **ADOPT** |
 | 14 | Polymorphism Factor | Inheritance | 2 | M | **ABANDON** |
-| 15 | Modularity Index | Architecture | 2 | L | **ABANDON** |
+| 15 | Modularity Index | Architecture | 4 | M | **ADOPT** (revised — as Module Tree Shape, see Round 2) |
 | 16 | Package Cohesion | Architecture | 3 | M | **TABLE** |
 | 17 | Package Coupling | Architecture | 3 | SM† | **ADOPT** |
 | 18 | Dependency Cycles | Architecture | 5 | M† | **ADOPT** |
@@ -292,11 +292,154 @@ property. Any number here would be fabricated confidence; the tool is trusted
    (#22).
 5. **Version-control mode, opt-in.** Code churn (#23) and change coupling (#24)
    behind `--vcs`, cached per commit range.
-6. **Never:** Polymorphism Factor (#14), Modularity Index (#15), Temporal Cohesion
-   (#25), Open/Closed flexibility index (#30) — documented here so they are not
-   re-proposed.
+6. **Never:** Polymorphism Factor (#14), Temporal Cohesion (#25), Open/Closed
+   flexibility index (#30) — documented here so they are not re-proposed.
+   (Modularity Index was originally on this list; the owner overturned it — see
+   Round 2 below, where it returns as the concrete Module Tree Shape metric.)
 
 **If only two things ever ship from this table: dependency cycles and the
 single-responsibility violation index.** They are the highest signal-per-effort
 metrics antipasta could add, one per scope (import-graph and class), and both sit
 squarely in the well-factored, loosely-coupled spirit you are aiming at.
+
+---
+
+# Round 2 — readability, module tree shape, duplication, and house-style metrics
+
+Owner follow-up, 2026-07-03: (a) readability — established metrics, and do they
+capture "code that reads top to bottom like prose, computational logic extracted
+into semantically named helpers"? (b) Modularity Index pushback — the owner's
+notion is tractable (directory tree + line counts + coupling), verdict overturned.
+(c) DRYness — a working prototype exists at `~/coding/projects/pydry`. (d) other
+custom metrics, e.g. "don't reach into an object more than one level deep."
+
+## Readability
+
+### What exists (established work)
+
+1. **Cognitive Complexity** (Campbell, SonarSource, 2017) — the only
+   readability-motivated metric with broad industry adoption. Designed explicitly
+   to measure *understandability* where cyclomatic complexity measures
+   *testability*: nesting is penalized progressively, linear flow is free, early
+   returns are not punished. **Antipasta already ships it per function** (the
+   complexipy runner) — we are further along here than the question assumed.
+2. **The Buse–Weimer readability model** (2008–2010) and successors (Posnett,
+   Hindle & Devanbu 2011; Dorn 2012; Scalabrino et al. 2016) — models trained on
+   human readability ratings of code snippets. Features are surface-level: line
+   length, identifier count and length, indentation, blank-line rhythm,
+   parenthesis density, vocabulary entropy. Academically canonical, rarely
+   deployed; the features are easy to compute but the trained weights don't
+   transfer cleanly across languages and codebases.
+3. **An honest caveat from the literature**: follow-up work (Scalabrino et al.
+   2019, "Automatically Assessing Code Understandability") found that these
+   readability models correlate *weakly with actual comprehension* — they measure
+   how code looks, not how it reads. Worth knowing before trusting any single
+   readability number.
+
+### Do they capture the owner's style? Mostly no — but the style has names
+
+What the owner describes is a known, named discipline, not an idiosyncratic
+preference: **Compose Method** (Kent Beck, via Joshua Kerievsky's *Refactoring to
+Patterns*), governed by the **Single Level of Abstraction Principle** (each
+function body stays at one altitude — either it orchestrates named steps or it
+computes, never both), presented in reading order by the **step-down rule**
+(Robert Martin's newspaper metaphor: each function is followed by the functions
+it calls, so the file reads top to bottom).
+
+Established metrics reward the *side effects* of this style (small functions, low
+nesting drive cognitive complexity toward zero) but none measures the style
+itself. The good news: its components are unusually measurable, and they make
+excellent house-style metrics:
+
+| Proposed metric | What it measures | Complexity | Verdict |
+|---|---|:---:|---|
+| Cognitive complexity ceiling | Already shipped; "extreme Compose Method" is equivalent to enforcing a very low per-function ceiling (2–3 instead of the usual 15) via config profile | XS | **ADOPT** (config profile, zero code) |
+| Function length distribution | Median and 90th-percentile statement count per function; prose-style code has a tight, low distribution, not just a max cap | XS | **ADOPT** |
+| Abstraction purity | Single-level-of-abstraction violations: a function whose body mixes raw computation (arithmetic, subscripting, comprehensions, control flow) with two-plus calls to project-defined helpers is operating at two altitudes; flag it. Pure orchestrators and pure computers both pass | M | **ADOPT** — the most novel and most on-target readability metric here |
+| Step-down ordering | For each intra-module call, does the callee's definition appear *below* the caller's? Compliance ratio ≈ "reads top to bottom." Trivial from the syntax tree | SM | **ADOPT** — directly measures the prose property |
+| Identifier quality heuristics | Dictionary-word ratio, verb-phrase-for-functions, single-letter names outside loop indices | SM | **TABLE** — real signal but noisy; needs a wordlist and produces false positives on domain vocabulary |
+
+The first four compose into a **readability profile** the same way Lack of
+Cohesion of Methods + Weighted Methods per Class compose into the
+single-responsibility index. None requires new infrastructure beyond the Python
+syntax-tree pass that the class-scope analyzer (Round 1, capability B) already
+needs — abstraction purity and step-down ordering are the same kind of walk.
+
+## Module Tree Shape (the Modularity Index verdict, overturned)
+
+Round 1 abandoned "Modularity Index" as *a research composite with no agreed
+formula* — that judgment stands for the generic composite. The owner's version is
+a different, better thing: not a formula from a paper but a **checkable
+architectural house style**, and every ingredient is either trivial or already
+planned:
+
+- **Fan-out per layer**: every package has roughly 5–7 children (modules or
+  subpackages). Computable from the directory tree alone. Both directions are
+  violations: 15 siblings means a missing layer; 1–2 means a pointless one.
+- **Leaves are bounded**: leaf modules under a line-count cap (already a
+  thresholdable metric today).
+- **Layers are layered**: imports between siblings form an acyclic graph, and
+  flow downward — no cycles (Round 1 #18 provides this), no upward reaches.
+  Requires the import-graph analyzer (capability A), which is already the
+  centerpiece investment.
+
+**Verdict: ADOPT, importance 4, complexity M** (SM for the pure tree-shape half,
+which needs no import graph at all and could ship first; the layering half rides
+on capability A). Renamed from "Modularity Index" to **Module Tree Shape** to
+mark that this is a defined house metric, not the abandoned research composite.
+The main verdict table's row 15 has been revised accordingly. This also gives the
+treemap a natural overlay: shape violations are *directory-level* findings, and
+the report now has hoverable directory aggregates to hang them on.
+
+## DRYness — pydry is runner-shaped; adopt by integration
+
+Inspected `~/coding/projects/pydry` (2,857 lines, zero runtime dependencies,
+tests + Makefile). It is considerably past "prototype":
+
+- **Exact duplicates** after syntax-tree normalization, with optional local-name
+  and constant normalization — this is textbook Type-2 clone detection.
+- **Near matches** with a `similarity_score` *and* a `refactorability_score`,
+  pattern labels, shared-structure summaries, risk flags, and a
+  `suggested_refactor_kind` — it doesn't just find WET code, it ranks which
+  duplications are worth abstracting, which is the actually useful question.
+- **A JSON report envelope** (`results` + `diagnostics`) — exactly the shape
+  antipasta's runner architecture consumes.
+
+**Verdict: ADOPT, importance 4, complexity SM–M** — the analysis engine already
+exists and is the owner's own code; the work is an antipasta runner that invokes
+`pydry report --format json` (or imports the engine directly) and maps results
+into per-file metrics: `duplication_ratio` (duplicated lines / total),
+`clone_pair_count`, and a project-level worst-offenders list. Duplication is a
+*cross-file* property, so like the import graph it is a whole-program pass —
+another reason the caching substrate comes first. Python-only initially, which
+matches the Round 1 posture. (Licensing: owner's own project; no concern.)
+
+## Other house-style metrics (the owner's Demeter example, plus candidates)
+
+| Proposed metric | What it measures | Complexity | Verdict |
+|---|---|:---:|---|
+| Message-chain depth (Law of Demeter) | Maximum attribute/call chain per expression: `foo.bar()` is depth 1, fine; `foo.bar.baz.quix()` is depth 3, flagged. One syntax-tree walk; needs a small allowlist for fluent interfaces (method chaining that returns self, standard-library idioms like `path.parent.name`) | SM | **ADOPT** — the owner's example, and the classic "reaching through" coupling smell |
+| Function arity | Parameter count per function; more than 4–5 suggests a missing parameter object. lizard already reports it — likely just needs exposing as a thresholdable metric | XS | **ADOPT** |
+| Boolean-flag parameters | A boolean positional parameter usually means one function hiding two; detectable from signatures and defaults | SM | **ADOPT** |
+| Exception discipline | Bare `except:` and over-broad `except Exception:` without re-raise; silent `pass` handlers | SM | **ADOPT** — cheap, unambiguous, high hit-rate |
+| Global-state reach | Functions reading or writing module-level mutable state; count per function | SM | **ADOPT** |
+| Marker density | TODO / FIXME / HACK / XXX per thousand lines — a self-reported debt signal | XS | **ADOPT** — nearly free, honest, trends well against baselines |
+| Feature envy | A method touching another object's attributes more than its own — the classic "this method lives in the wrong class" smell | M | **TABLE** — real but needs the class-scope pass plus tuning to avoid false positives on data-transfer objects |
+| Dead-code detection | Unreachable/unused symbols (what the vulture tool does) | M | **TABLE** — valuable but a different product shape (findings, not metrics); revisit as a runner |
+| Vertical locality | Distance between a variable's assignment and its uses | M | **ABANDON** — noisy, low actionability, weak literature support |
+
+The adopt set here shares one property worth naming: each is a **single
+syntax-tree walk, per file, cache-friendly, Python-first** — they slot into the
+class-scope analyzer's pass (capability B) rather than demanding new
+infrastructure, and every one of them is a direct formalization of a rule the
+owner already applies by hand.
+
+## Revised sequencing impact
+
+Round 1's order stands. Round 2 slots in as follows: the **readability profile**
+and **house-style walks** join step 2 (they share the class-scope syntax-tree
+pass); **Module Tree Shape's** tree-half can ship even earlier (it needs only the
+directory tree and line counts), with its layering-half joining step 3;
+**pydry integration** is a standalone runner that can land any time after the
+caching substrate, and is the single fastest path to a metric antipasta does not
+have today, because the hard part is already written.
