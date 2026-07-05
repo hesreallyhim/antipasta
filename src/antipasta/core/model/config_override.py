@@ -224,7 +224,7 @@ class ConfigOverride:
         import pathspec
 
         # Create pathspec from include patterns
-        spec = pathspec.PathSpec.from_lines("gitwildmatch", self.include_patterns)
+        spec = pathspec.PathSpec.from_lines("gitignore", self.include_patterns)
         return spec.match_file(file_path)
 
     def merge_with_config_dict(self, config_dict: dict[str, Any]) -> dict[str, Any]:

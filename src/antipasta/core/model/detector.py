@@ -64,14 +64,14 @@ class LanguageDetector:
         """Get or create the pathspec instance for ignore patterns."""
         if self._pathspec is None:
             all_patterns = self.ignore_patterns + self._gitignore_patterns
-            self._pathspec = pathspec.PathSpec.from_lines("gitwildmatch", all_patterns)
+            self._pathspec = pathspec.PathSpec.from_lines("gitignore", all_patterns)
         return self._pathspec
 
     @property
     def include_spec(self) -> pathspec.PathSpec | None:
         """Get or create the pathspec instance for include patterns."""
         if self._include_spec is None and self.include_patterns:
-            self._include_spec = pathspec.PathSpec.from_lines("gitwildmatch", self.include_patterns)
+            self._include_spec = pathspec.PathSpec.from_lines("gitignore", self.include_patterns)
         return self._include_spec
 
     def add_gitignore(self, gitignore_path: Path) -> None:

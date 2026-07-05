@@ -49,7 +49,7 @@ TODO (not yet): IGNORE AND/OR AUTO-CLEANUP AFTER ANTIPASTA PASSES ITS OWN METRIC
 
 FIXME: Update deps(?)
 
-- [ ] P2 - Test suite is green but noisy.
+- [x] P2 - Test suite is green but noisy.
 `491 passed`, but pytest emits `15,766` deprecation warnings from `pathspec` using `gitwildmatch`. Not broken today, but it is enough noise to hide real warnings.
 
 ---
