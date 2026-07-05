@@ -20,7 +20,7 @@ from antipasta.core.model.violations import ProjectReport
 @click.command(name="test-health")
 @click.option(
     "--coverage-file",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    type=click.Path(exists=True, file_okay=True, dir_okay=True, path_type=Path),
     default=Path(".coverage"),
     help="coverage.py data file recorded with --cov-context=test",
 )
@@ -33,6 +33,7 @@ from antipasta.core.model.violations import ProjectReport
 )
 def test_health(coverage_file: Path, output_format: str) -> None:
     """Analyze suite redundancy and blast radius from a coverage artifact."""
+    coverage_file = _resolve_coverage_file(coverage_file)
     try:
         matrix = load_matrix(coverage_file)
     except RuntimeError as error:
@@ -51,6 +52,21 @@ def test_health(coverage_file: Path, output_format: str) -> None:
         click.echo(json.dumps({"reports": [r.to_dict() for r in reports]}, indent=2))
     else:
         _print_text(reports)
+
+
+def _resolve_coverage_file(path: Path) -> Path:
+    """Resolve pytest-cov layouts where .coverage is a directory."""
+    if path.is_file():
+        return path
+
+    nested = path / ".coverage"
+    if path.is_dir() and nested.is_file():
+        return nested
+
+    raise click.BadParameter(
+        f"{path} is a directory, but {nested} was not found",
+        param_hint="--coverage-file",
+    )
 
 
 def _print_text(reports: list[ProjectReport]) -> None:

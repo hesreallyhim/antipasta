@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+from click.testing import CliRunner
+import pytest
+
+from antipasta.cli.test_health import test_health as cli_command
 from antipasta.core.mining.coverage_matrix import (
     CoverageMatrix,
     blast_radius,
@@ -58,3 +64,37 @@ class TestAnalytics:
     def test_empty_matrix(self) -> None:
         index, cover = redundancy_index(CoverageMatrix())
         assert (index, cover) == (0.0, 0)
+
+
+class TestCommand:
+    def test_default_coverage_directory_resolves_nested_file(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        runner = CliRunner()
+        seen: list[str] = []
+
+        def fake_load_matrix(coverage_file: object) -> CoverageMatrix:
+            seen.append(str(coverage_file))
+            return CoverageMatrix(lines_by_test={"tests/test_x.py::test_a": {("src/m.py", 1)}})
+
+        monkeypatch.setattr("antipasta.cli.test_health.load_matrix", fake_load_matrix)
+        with runner.isolated_filesystem():
+            coverage_dir = Path(".coverage")
+            coverage_dir.mkdir()
+            (coverage_dir / ".coverage").write_text("")
+
+            result = runner.invoke(cli_command)
+
+        assert result.exit_code == 0
+        assert seen == [".coverage/.coverage"]
+        assert "Matrix: 1 test contexts" in result.stderr
+
+    def test_directory_without_nested_coverage_file_errors(self) -> None:
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            Path(".coverage").mkdir()
+
+            result = runner.invoke(cli_command)
+
+        assert result.exit_code != 0
+        assert ".coverage/.coverage was not found" in result.stderr

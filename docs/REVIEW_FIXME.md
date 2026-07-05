@@ -35,7 +35,7 @@ README omits `vcs` and `test-health` from the command table at [README.md](/User
 
 FIXME
 
-- [ ] P1 - `test-health` works, but its default path fails in this repo’s coverage layout.
+- [x] P1 - `test-health` works, but its default path fails in this repo’s coverage layout.
 After `pytest --cov --cov-context=test`, coverage data landed at `.coverage/.coverage`; `antipasta test-health` defaulted to `.coverage` and rejected it because that is a directory. Explicitly running `antipasta test-health --coverage-file .coverage/.coverage` worked and reported 458 contexts, redundancy index `0.7445`, greedy cover `117/458`.
 
 ---
