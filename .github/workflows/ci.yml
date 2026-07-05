@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -14,15 +17,15 @@ jobs:
         python-version: ["3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache pip dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
@@ -50,15 +53,15 @@ jobs:
         python-version: ["3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache pip dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
@@ -76,7 +79,7 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
       with:
         files: ./coverage.xml
         fail_ci_if_error: false
@@ -86,10 +89,10 @@ jobs:
     needs: [lint, test]
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: "3.11"
 
@@ -108,7 +111,7 @@ jobs:
         check-wheel-contents dist/*.whl
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: dist
         path: dist/

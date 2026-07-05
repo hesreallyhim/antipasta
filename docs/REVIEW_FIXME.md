@@ -56,7 +56,7 @@ FIXME: Update deps(?)
 
 FIXME: USE FULL-SHA-PINNING TO LATEST MAJOR VERSION 
 
-- [ ] P2 - GitHub Actions are not SHA-pinned.
+- [x] P2 - GitHub Actions are not SHA-pinned.
 Workflows use tags such as `actions/checkout@v5`, `actions/setup-python@v6`, and `pypa/gh-action-pypi-publish@release/v1`. That violates your stated workflow policy, though it appears pre-existing rather than caused by this branch.
 
 **Validation Run**
