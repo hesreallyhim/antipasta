@@ -54,10 +54,7 @@ class TestAbstractnessClassification:
         assert module_abstractness(_facts(source)) == 1.0
 
     def test_metaclass_keyword_counts(self) -> None:
-        source = (
-            "from abc import ABCMeta\n"
-            "class Meta(metaclass=ABCMeta):\n    pass\n"
-        )
+        source = "from abc import ABCMeta\nclass Meta(metaclass=ABCMeta):\n    pass\n"
         assert module_abstractness(_facts(source)) == 1.0
 
     def test_concrete_class_is_zero(self) -> None:
@@ -90,7 +87,9 @@ class TestDeriverIntegration:
         }
         return derive_import_graph(
             DerivationInput(
-                file_reports=[], facts_by_file=facts_by_file, root=root,
+                file_reports=[],
+                facts_by_file=facts_by_file,
+                root=root,
                 config=AntipastaConfig(),
             )
         )
@@ -99,8 +98,7 @@ class TestDeriverIntegration:
         sources = {
             "port.py": "from abc import ABC\nclass Port(ABC):\n    pass\n",
             "impl.py": (
-                "from port import Port\n"
-                "class Impl(Port):\n    def go(self):\n        return 1\n"
+                "from port import Port\nclass Impl(Port):\n    def go(self):\n        return 1\n"
             ),
         }
         reports = self._derive(tmp_path, sources)
@@ -134,9 +132,7 @@ class TestDeriverIntegration:
 
 class TestFactDecorators:
     def test_method_decorators_captured(self) -> None:
-        facts = _facts(
-            "class A:\n    @property\n    def x(self):\n        return 1\n"
-        )
+        facts = _facts("class A:\n    @property\n    def x(self):\n        return 1\n")
         klass = next(f.payload for f in facts if f.kind == "class")
         assert klass["methods"][0]["decorators"] == ["property"]
 

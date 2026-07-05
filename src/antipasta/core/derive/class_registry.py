@@ -37,9 +37,7 @@ def derive_class_registry(derivation_input: DerivationInput) -> list[ProjectRepo
         entry = registry[qualified_name]
         depth, unresolved = _depth_of(qualified_name, registry, set())
         reports.append(
-            _class_report(
-                qualified_name, entry, depth, unresolved, children, weighted, statements
-            )
+            _class_report(qualified_name, entry, depth, unresolved, children, weighted, statements)
         )
     return reports
 
@@ -229,11 +227,7 @@ def _srp_row(
     cohesion_components = max(1, lack_of_cohesion(entry["methods"]))
     weighted_methods = weighted.get(qualified_name, 0.0)
     class_statements = statements.get(qualified_name, 0)
-    value = (
-        cohesion_components
-        * (1.0 + weighted_methods / 30.0)
-        * (1.0 + class_statements / 60.0)
-    )
+    value = cohesion_components * (1.0 + weighted_methods / 30.0) * (1.0 + class_statements / 60.0)
     return MetricResult(
         file_path=subject_path,
         metric_type=MetricType.SINGLE_RESPONSIBILITY_INDEX,

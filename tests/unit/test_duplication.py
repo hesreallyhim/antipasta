@@ -12,18 +12,8 @@ from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.metrics import MetricResult, MetricType
 from antipasta.core.model.violations import FileReport, ProjectReport
 
-TWIN_A = (
-    "def alpha(x):\n"
-    "    y = x + 1\n"
-    "    z = y * 2\n"
-    "    return z\n"
-)
-TWIN_B = (
-    "def beta(q):\n"
-    "    w = q + 1\n"
-    "    v = w * 2\n"
-    "    return v\n"
-)
+TWIN_A = "def alpha(x):\n    y = x + 1\n    z = y * 2\n    return z\n"
+TWIN_B = "def beta(q):\n    w = q + 1\n    v = w * 2\n    return v\n"
 LONER = "def gamma(n):\n    return n - 1\n"
 
 
@@ -52,9 +42,7 @@ def _file_report(root: Path, rel: str, sloc: float) -> FileReport:
 def _derive(root: Path, config: AntipastaConfig) -> list[ProjectReport]:
     reports = [_file_report(root, "a.py", 4.0), _file_report(root, "b.py", 6.0)]
     return derive_duplication(
-        DerivationInput(
-            file_reports=reports, facts_by_file={}, root=root, config=config
-        )
+        DerivationInput(file_reports=reports, facts_by_file={}, root=root, config=config)
     )
 
 

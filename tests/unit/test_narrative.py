@@ -48,8 +48,7 @@ def _derive(
 ) -> list[ProjectReport]:
     runner = HouseStyleRunner()
     facts_by_file = {
-        root / rel: runner.analyze(root / rel, content=src).facts
-        for rel, src in sources.items()
+        root / rel: runner.analyze(root / rel, content=src).facts for rel, src in sources.items()
     }
     return derive_narrative(
         DerivationInput(
@@ -128,18 +127,13 @@ class TestModuleReports:
         assert rows["narrative_mixed_functions"] == 1.0
         report = next(r for r in reports if r.subject == "half")
         mixed_row = next(
-            m for m in report.metrics
-            if m.metric_type.value == "narrative_mixed_functions"
+            m for m in report.metrics if m.metric_type.value == "narrative_mixed_functions"
         )
         assert (mixed_row.details or {})["functions"] == ["publish"]
 
     def test_run_on_narrator_flagged(self, tmp_path: Path) -> None:
-        steps = "\n".join(
-            f"    v{i} = step_{i}(v{i - 1})" for i in range(1, 13)
-        )
-        helpers = "\n\n".join(
-            f"def step_{i}(x):\n    return x" for i in range(1, 13)
-        )
+        steps = "\n".join(f"    v{i} = step_{i}(v{i - 1})" for i in range(1, 13))
+        helpers = "\n\n".join(f"def step_{i}(x):\n    return x" for i in range(1, 13))
         source = f"def run_on(v0):\n{steps}\n    return v12\n\n\n{helpers}\n"
         reports = _derive(tmp_path, {"long.py": source})
 
@@ -178,10 +172,7 @@ class TestModuleReports:
 
 class TestAmbientDetection:
     def test_widely_called_name_is_ambient(self) -> None:
-        payloads = [
-            {"name": f"fn_{i}", "call_names": ["log"], "statements": 3}
-            for i in range(10)
-        ]
+        payloads = [{"name": f"fn_{i}", "call_names": ["log"], "statements": 3} for i in range(10)]
         ambient = _ambient_names({"m": payloads})
 
         assert "log" in ambient
@@ -239,9 +230,7 @@ class TestNameClarity:
 
 class TestNamingAntipatterns:
     def test_lying_predicate(self, tmp_path: Path) -> None:
-        source = (
-            "def is_ready(x) -> list:\n    a = x\n    b = a\n    return [b]\n"
-        )
+        source = "def is_ready(x) -> list:\n    a = x\n    b = a\n    return [b]\n"
         reports = _derive(tmp_path, {"m.py": source})
 
         assert _rows(reports, "m")["naming_antipatterns"] == 1.0
@@ -269,7 +258,11 @@ class TestLexiconUnits:
         from antipasta.core.derive.lexicon import split_identifier
 
         assert split_identifier("getUsersByNameDesc") == [
-            "get", "users", "by", "name", "desc",
+            "get",
+            "users",
+            "by",
+            "name",
+            "desc",
         ]
         assert split_identifier("fetch_users_v2") == ["fetch", "users", "v"]
 

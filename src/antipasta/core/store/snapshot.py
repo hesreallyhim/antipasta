@@ -260,16 +260,14 @@ def collect_worst_functions(snapshot: dict[str, Any], limit: int) -> list[dict[s
             candidates = [v for v in (cyclomatic, cognitive) if v is not None]
             if not candidates:
                 continue
-            rows.append(
-                {
-                    "score": max(candidates),
-                    "cyclomatic": cyclomatic,
-                    "cognitive": cognitive,
-                    "name": function["name"],
-                    "path": entry["path"],
-                    "line": function["line"],
-                }
-            )
+            rows.append({
+                "score": max(candidates),
+                "cyclomatic": cyclomatic,
+                "cognitive": cognitive,
+                "name": function["name"],
+                "path": entry["path"],
+                "line": function["line"],
+            })
 
     rows.sort(key=lambda r: (-r["score"], r["path"], r["name"]))
     return rows[: limit if limit > 0 else len(rows)]

@@ -123,15 +123,13 @@ def _resolve_jobs(requested: int | None, task_count: int) -> int:
 # Per-function Halstead rows are informational: they feed `antipasta report`.
 # Thresholds keep applying to the file-level Halstead totals only, exactly as
 # they did before per-function Halstead extraction was added.
-_PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset(
-    {
-        MetricType.HALSTEAD_VOLUME,
-        MetricType.HALSTEAD_DIFFICULTY,
-        MetricType.HALSTEAD_EFFORT,
-        MetricType.HALSTEAD_TIME,
-        MetricType.HALSTEAD_BUGS,
-    }
-)
+_PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset({
+    MetricType.HALSTEAD_VOLUME,
+    MetricType.HALSTEAD_DIFFICULTY,
+    MetricType.HALSTEAD_EFFORT,
+    MetricType.HALSTEAD_TIME,
+    MetricType.HALSTEAD_BUGS,
+})
 
 
 class MetricAggregator:

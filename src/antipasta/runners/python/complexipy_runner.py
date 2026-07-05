@@ -64,9 +64,7 @@ class ComplexipyRunner(BaseRunner):
             metrics=self._get_cognitive_complexity(file_path, content),
         )
 
-    def _get_cognitive_complexity(
-        self, file_path: Path, content: str | None
-    ) -> list[MetricResult]:
+    def _get_cognitive_complexity(self, file_path: Path, content: str | None) -> list[MetricResult]:
         """Get per-function cognitive complexity plus the file maximum.
 
         Args:

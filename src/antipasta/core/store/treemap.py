@@ -53,15 +53,13 @@ def build_treemap_nodes(
             continue
         known_ids.add(leaf_id)
         value = _tile_value(entry)
-        nodes.append(
-            {
-                "id": leaf_id,
-                "parent": parent,
-                "label": parts[-1],
-                "value": value,
-                "file_index": index,
-            }
-        )
+        nodes.append({
+            "id": leaf_id,
+            "parent": parent,
+            "label": parts[-1],
+            "value": value,
+            "file_index": index,
+        })
         for ancestor_id in ancestor_ids:
             _fold_into_aggregate(aggregates[ancestor_id], entry, value)
 
@@ -89,9 +87,7 @@ def _empty_aggregate() -> dict[str, Any]:
     return {"files": 0, "value": 0.0, "violations": 0, "metrics_max": {}}
 
 
-def _fold_into_aggregate(
-    aggregate: dict[str, Any], entry: dict[str, Any], value: float
-) -> None:
+def _fold_into_aggregate(aggregate: dict[str, Any], entry: dict[str, Any], value: float) -> None:
     """Fold one file's snapshot entry into a directory rollup.
 
     ``metrics_max`` keeps, per metric, the subtree maximum and the file that

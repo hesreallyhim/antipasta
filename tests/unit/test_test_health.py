@@ -52,10 +52,7 @@ class TestAnalytics:
         details = suite.metrics[0].details or {}
         assert details["zero_unique_tests"] == 1
         assert "candidates" in details["note"]
-        radius_rows = [
-            r for r in reports
-            if r.metrics[0].metric_type is MetricType.BLAST_RADIUS
-        ]
+        radius_rows = [r for r in reports if r.metrics[0].metric_type is MetricType.BLAST_RADIUS]
         assert radius_rows[0].subject == "src/m.py"  # biggest radius first
 
     def test_empty_matrix(self) -> None:

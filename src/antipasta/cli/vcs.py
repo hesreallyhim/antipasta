@@ -51,9 +51,7 @@ def vcs(repo: Path, window: int, snapshot: Path, output_format: str) -> None:
 
     complexity = _load_complexity(snapshot)
     reports = history_reports(history, complexity)
-    click.echo(
-        f"Mined {history.commit_count} commits over {window} days", err=True
-    )
+    click.echo(f"Mined {history.commit_count} commits over {window} days", err=True)
     if output_format == "json":
         click.echo(json.dumps({"reports": [r.to_dict() for r in reports]}, indent=2))
     else:
@@ -98,7 +96,5 @@ def _section_lines(reports: list[ProjectReport], metric_type: MetricType) -> lis
 def _suite_health_lines(reports: list[ProjectReport]) -> list[str]:
     for report in reports:
         if report.subject == "suite-health":
-            return [
-                f"{metric.metric_type.value}: {metric.value}" for metric in report.metrics
-            ]
+            return [f"{metric.metric_type.value}: {metric.value}" for metric in report.metrics]
     return []

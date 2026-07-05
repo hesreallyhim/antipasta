@@ -160,9 +160,7 @@ def _directory_report(
     return ProjectReport(subject=subject, metrics=[row], violations=violations)
 
 
-def _band_violations(
-    row: MetricResult, subject: str, config: TreeShapeConfig
-) -> list[Violation]:
+def _band_violations(row: MetricResult, subject: str, config: TreeShapeConfig) -> list[Violation]:
     """Fan-out band checks: too many children (missing layer) always applies;
     too few (pointless layer) exempts the root, which legitimately fans wide
     or narrow depending on project size."""

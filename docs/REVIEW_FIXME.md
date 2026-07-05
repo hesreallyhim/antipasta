@@ -14,7 +14,7 @@ ruff format --check src/antipasta tests
 ruff check src/antipasta tests
 And remove black from pyproject.toml dev dependencies plus the [tool.black] section.
 
-- [ ] P0 - CI will fail Black formatting.
+- [x] P0 - CI will fail Black formatting.
 `venv/bin/black --check src/antipasta tests` wants to reformat 31 files. CI runs Black in [.github/workflows/ci.yml](/Users/hesreallyhim/coding/projects/antipasta/.github/workflows/ci.yml:41), but `make check-all` does not, so local checks can pass while CI fails.
 
 ---

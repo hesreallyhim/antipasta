@@ -90,10 +90,7 @@ class TestExceptionDiscipline:
         assert value_of(result, MetricType.EXCEPTION_DISCIPLINE, "go") == 1.0
 
     def test_narrow_handled_is_fine(self, runner: HouseStyleRunner) -> None:
-        source = (
-            "def go():\n    try:\n        work()\n"
-            "    except ValueError:\n        recover()\n"
-        )
+        source = "def go():\n    try:\n        work()\n    except ValueError:\n        recover()\n"
         result = analyze(runner, source)
         assert value_of(result, MetricType.EXCEPTION_DISCIPLINE, "go") == 0.0
 
@@ -137,12 +134,7 @@ class TestNarrativeComponents:
         assert value_of(result, MetricType.PIPELINE_LINEARITY, "publish") == 0.0
 
     def test_nested_function_not_double_counted(self, runner: HouseStyleRunner) -> None:
-        source = (
-            "def outer():\n"
-            "    def inner(a):\n"
-            "        return a + a + a\n"
-            "    return inner(1)\n"
-        )
+        source = "def outer():\n    def inner(a):\n        return a + a + a\n    return inner(1)\n"
         result = analyze(runner, source)
         # outer owns 2 statements (the def + return); inner's body is inner's.
         assert value_of(result, MetricType.FUNCTION_STATEMENTS, "outer") == 2.0

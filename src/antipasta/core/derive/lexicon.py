@@ -138,6 +138,4 @@ def _hits(part: str, vocabulary: frozenset[str]) -> bool:
 
 def full_vocabulary(anchors: frozenset[str], allowlist: list[str]) -> frozenset[str]:
     """All lexicon layers combined (junk stays junk regardless)."""
-    return english_words() | ABBREVIATIONS | anchors | frozenset(
-        word.lower() for word in allowlist
-    )
+    return english_words() | ABBREVIATIONS | anchors | frozenset(word.lower() for word in allowlist)

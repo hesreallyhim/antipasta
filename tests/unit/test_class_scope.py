@@ -114,10 +114,7 @@ class TestWeightedMethodsPerClass:
             "        return -n\n"
         )
         result = RadonRunner().analyze(Path("sample.py"), content=source)
-        rows = [
-            m for m in result.metrics
-            if m.metric_type == MetricType.WEIGHTED_METHODS_PER_CLASS
-        ]
+        rows = [m for m in result.metrics if m.metric_type == MetricType.WEIGHTED_METHODS_PER_CLASS]
         assert len(rows) == 1
         assert rows[0].function_name == "Busy"
         assert rows[0].value == 3.0  # 1 + 2
@@ -127,7 +124,8 @@ class TestWeightedMethodsPerClass:
         source = "class A:\n    def m(self):\n        return 1\n"
         result = RadonRunner().analyze(Path("sample.py"), content=source)
         average = next(
-            m for m in result.metrics
+            m
+            for m in result.metrics
             if m.metric_type == MetricType.CYCLOMATIC_COMPLEXITY
             and (m.details or {}).get("type") == "average"
         )
@@ -146,9 +144,7 @@ class TestClassRegistry:
             file_reports=[], facts_by_file=facts_by_file, root=root, config=AntipastaConfig()
         )
         reports = derive_class_registry(derivation_input)
-        return {
-            r.subject: {m.metric_type.value: m.value for m in r.metrics} for r in reports
-        }
+        return {r.subject: {m.metric_type.value: m.value for m in r.metrics} for r in reports}
 
     def test_same_module_chain(self, tmp_path: Path) -> None:
         by_class = self._derive(
@@ -177,7 +173,9 @@ class TestClassRegistry:
             path, content="from django import Model\nclass Thing(Model):\n    pass\n"
         ).facts
         derivation_input = DerivationInput(
-            file_reports=[], facts_by_file={path: facts}, root=tmp_path,
+            file_reports=[],
+            facts_by_file={path: facts},
+            root=tmp_path,
             config=AntipastaConfig(),
         )
         reports = derive_class_registry(derivation_input)

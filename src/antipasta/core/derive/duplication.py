@@ -138,9 +138,7 @@ def _file_reports(
             violation = check_metric_violation(row, config.ratio_gate())
             if violation:
                 violations.append(violation)
-        reports.append(
-            ProjectReport(subject=relative_path, metrics=[row], violations=violations)
-        )
+        reports.append(ProjectReport(subject=relative_path, metrics=[row], violations=violations))
     return reports
 
 

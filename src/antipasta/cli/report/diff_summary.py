@@ -78,8 +78,7 @@ def _format_functions(title: str, deltas: list[FunctionDelta]) -> str:
         marker = "*" if fn.new_violation else " "
         location = fn.path if fn.line is None else f"{fn.path}:{fn.line}"
         details = ", ".join(
-            f"{md.metric} {_fmt(md.old_value)}→{_fmt(md.new_value)}"
-            for md in fn.metric_deltas
+            f"{md.metric} {_fmt(md.old_value)}→{_fmt(md.new_value)}" for md in fn.metric_deltas
         )
         suffix = f"  ({details})" if details else ""
         lines.append(f"  {marker} {_fmt_delta(fn.score_delta)}  {fn.name}  {location}{suffix}")
@@ -93,8 +92,7 @@ def _format_file_deltas(file_deltas: list[FileDelta], epsilon: float) -> str:
     lines = [f"File metric deltas (|Δ| > {epsilon:g}):"]
     for fd in file_deltas:
         parts = [
-            f"{md.metric} {_fmt(md.old_value)}→{_fmt(md.new_value)} "
-            f"({_fmt_delta(md.delta)})"
+            f"{md.metric} {_fmt(md.old_value)}→{_fmt(md.new_value)} ({_fmt_delta(md.delta)})"
             for md in fd.metric_deltas
         ]
         parts.extend(f"function added: {name}" for name in fd.functions_added)

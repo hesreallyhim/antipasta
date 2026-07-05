@@ -72,9 +72,7 @@ class TestLayering:
         }
         config = AntipastaConfig(tree_shape=TreeShapeConfig(layers=layers))
         return derive_layering(
-            DerivationInput(
-                file_reports=[], facts_by_file=facts_by_file, root=root, config=config
-            )
+            DerivationInput(file_reports=[], facts_by_file=facts_by_file, root=root, config=config)
         )
 
     def test_downward_import_is_fine(self, tmp_path: Path) -> None:
@@ -140,9 +138,7 @@ class TestGating:
         assert not by_subject["."].has_violations  # root exempt from the minimum
 
     def test_exclusion_patterns(self, tmp_path: Path) -> None:
-        config = AntipastaConfig(
-            tree_shape=TreeShapeConfig(fan_out_max=3, exclude=["tests*"])
-        )
+        config = AntipastaConfig(tree_shape=TreeShapeConfig(fan_out_max=3, exclude=["tests*"]))
         files = [f"tests_fixtures/mod_{i}.py" for i in range(9)]
         reports = derive_tree_shape(_derivation_input(tmp_path, files, config))
 

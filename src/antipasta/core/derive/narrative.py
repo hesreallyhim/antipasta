@@ -248,8 +248,8 @@ def _antipatterns(payloads: list[dict[str, Any]]) -> list[str]:
             and annotation is not None
             and "bool" not in annotation
         )
-        getter_returns_nothing = (
-            name.startswith(("get_", "fetch_")) and not payload.get("returns_value")
+        getter_returns_nothing = name.startswith(("get_", "fetch_")) and not payload.get(
+            "returns_value"
         )
         two_jobs = "_and_" in name
         if predicate_lying or getter_returns_nothing or two_jobs:
@@ -281,9 +281,7 @@ def _step_down_ratio(payloads: list[dict[str, Any]]) -> float:
     return ordered / total if total else 1.0
 
 
-def _count_row(
-    module: str, metric_type: MetricType, offenders: list[str]
-) -> MetricResult:
+def _count_row(module: str, metric_type: MetricType, offenders: list[str]) -> MetricResult:
     details = {"functions": offenders[:_DETAIL_NAME_CAP]} if offenders else None
     return MetricResult(
         file_path=_subject_path(module),
@@ -313,14 +311,12 @@ def _narrative_violations(
     return violations
 
 
-_COUNT_GATED = frozenset(
-    {
-        MetricType.NARRATIVE_MIXED_FUNCTIONS,
-        MetricType.NARRATOR_BUDGET_EXCEEDED,
-        MetricType.COMPUTER_BUDGET_EXCEEDED,
-        MetricType.NAMING_ANTIPATTERNS,
-    }
-)
+_COUNT_GATED = frozenset({
+    MetricType.NARRATIVE_MIXED_FUNCTIONS,
+    MetricType.NARRATOR_BUDGET_EXCEEDED,
+    MetricType.COMPUTER_BUDGET_EXCEEDED,
+    MetricType.NAMING_ANTIPATTERNS,
+})
 
 
 def _gate_for(row: MetricResult, config: NarrativeConfig) -> Any:

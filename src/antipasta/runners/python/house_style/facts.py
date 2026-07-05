@@ -77,9 +77,7 @@ def _callable_facts(module: ast.Module) -> list[FactRow]:
                         "statements": len(own_statements(node)),
                         "nesting": max_nesting(node),
                         "returns_value": _returns_value(node),
-                        "return_annotation": (
-                            ast.unparse(node.returns) if node.returns else None
-                        ),
+                        "return_annotation": (ast.unparse(node.returns) if node.returns else None),
                     },
                 )
             )
@@ -117,9 +115,7 @@ def _class_facts(module: ast.Module) -> list[FactRow]:
                         "bases": [ast.unparse(base) for base in node.bases],
                         "decorators": [ast.unparse(d) for d in node.decorator_list],
                         "keywords": [
-                            f"{kw.arg}={ast.unparse(kw.value)}"
-                            for kw in node.keywords
-                            if kw.arg
+                            f"{kw.arg}={ast.unparse(kw.value)}" for kw in node.keywords if kw.arg
                         ],
                         "methods": [
                             _method_payload(member)

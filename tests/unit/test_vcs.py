@@ -94,9 +94,7 @@ class TestHotspotJoin:
         reports = history_reports(history, complexity_from_snapshot(snapshot))
 
         engine = next(r for r in reports if r.subject == "engine.py")
-        hotspot = next(
-            m for m in engine.metrics if m.metric_type is MetricType.HOTSPOT
-        )
+        hotspot = next(m for m in engine.metrics if m.metric_type is MetricType.HOTSPOT)
         assert hotspot.value == history.churn("engine.py") * 9.0
 
     def test_snapshot_root_prefixing(self) -> None:

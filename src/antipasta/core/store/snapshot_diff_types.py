@@ -96,9 +96,7 @@ class SnapshotDiff:
     @property
     def improvements(self) -> list[FunctionDelta]:
         """Functions that got better, most improved first."""
-        better = [
-            fd for fd in self.function_deltas if fd.score_delta < 0 and not fd.new_violation
-        ]
+        better = [fd for fd in self.function_deltas if fd.score_delta < 0 and not fd.new_violation]
         return sorted(better, key=lambda fd: (fd.score_delta, fd.path))
 
     @property

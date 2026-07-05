@@ -46,8 +46,7 @@ def load_matrix(coverage_file: Path) -> CoverageMatrix:
         from coverage import CoverageData
     except ImportError as error:  # pragma: no cover - env-dependent
         raise RuntimeError(
-            "the coverage package is required to read coverage artifacts "
-            "(pip install coverage)"
+            "the coverage package is required to read coverage artifacts (pip install coverage)"
         ) from error
 
     data = CoverageData(basename=str(coverage_file))
@@ -137,9 +136,7 @@ def matrix_reports(matrix: CoverageMatrix) -> list[ProjectReport]:
             "note": "line-coverage subsumption; candidates, not verdicts",
         },
     )
-    reports = [
-        ProjectReport(subject="suite-redundancy", metrics=[suite_row], violations=[])
-    ]
+    reports = [ProjectReport(subject="suite-redundancy", metrics=[suite_row], violations=[])]
     radii = blast_radius(matrix)
     for file_path in sorted(radii, key=lambda key: -radii[key])[:_TOP_LIMIT]:
         row = MetricResult(
@@ -147,7 +144,5 @@ def matrix_reports(matrix: CoverageMatrix) -> list[ProjectReport]:
             metric_type=MetricType.BLAST_RADIUS,
             value=float(radii[file_path]),
         )
-        reports.append(
-            ProjectReport(subject=file_path, metrics=[row], violations=[])
-        )
+        reports.append(ProjectReport(subject=file_path, metrics=[row], violations=[]))
     return reports

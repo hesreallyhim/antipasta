@@ -135,9 +135,7 @@ class TestBuildSnapshot:
         assert entry["metrics"]["cyclomatic_complexity"] == 12.0
         assert len(entry["violations"]) == 1
 
-    def test_functions_merge_across_runners_with_halstead(
-        self, snapshot: dict[str, Any]
-    ) -> None:
+    def test_functions_merge_across_runners_with_halstead(self, snapshot: dict[str, Any]) -> None:
         """radon (bare name) and complexipy (qualified) rows merge into one entry."""
         functions = snapshot["files"][0]["functions"]
         assert len(functions) == 1

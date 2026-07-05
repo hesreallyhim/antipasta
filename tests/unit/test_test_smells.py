@@ -21,12 +21,7 @@ def _value(result: FileMetrics, metric_type: MetricType, name: str) -> float:
 
 class TestSmellRows:
     def test_assertion_count(self) -> None:
-        source = (
-            "def test_many():\n"
-            "    assert 1\n"
-            "    assert 2\n"
-            "    assert 3\n"
-        )
+        source = "def test_many():\n    assert 1\n    assert 2\n    assert 3\n"
         result = _analyze_as_test_file(source)
         assert _value(result, MetricType.ASSERTIONS_PER_TEST, "test_many") == 3.0
 
@@ -54,17 +49,11 @@ class TestSmellRows:
     def test_helper_functions_get_no_smell_rows(self) -> None:
         source = "def helper():\n    assert True\n"
         result = _analyze_as_test_file(source)
-        smells = [
-            m for m in result.metrics
-            if m.metric_type is MetricType.ASSERTIONS_PER_TEST
-        ]
+        smells = [m for m in result.metrics if m.metric_type is MetricType.ASSERTIONS_PER_TEST]
         assert smells == []
 
     def test_source_files_get_no_smell_rows(self) -> None:
         source = "def test_looking_name():\n    assert True\n"
         result = HouseStyleRunner().analyze(Path("src/pkg/engine.py"), content=source)
-        smells = [
-            m for m in result.metrics
-            if m.metric_type is MetricType.ASSERTIONS_PER_TEST
-        ]
+        smells = [m for m in result.metrics if m.metric_type is MetricType.ASSERTIONS_PER_TEST]
         assert smells == []

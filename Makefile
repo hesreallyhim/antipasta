@@ -43,11 +43,12 @@ install-dev: venv  ## Install the package in development mode with all dev depen
 install-prod: venv  ## Install the package in production mode
 	$(PIP) install .
 
-format: install-dev  ## Format code with black and ruff
-	$(VENV_DIR)/bin/black src/antipasta tests
+format: install-dev  ## Format code with ruff
+	$(VENV_DIR)/bin/ruff format src/antipasta tests
 	$(VENV_DIR)/bin/ruff check --fix src/antipasta tests
 
-lint: install-dev  ## Run linting checks with ruff
+lint: install-dev  ## Run formatting and linting checks with ruff
+	$(VENV_DIR)/bin/ruff format --check src/antipasta tests
 	$(VENV_DIR)/bin/ruff check src/antipasta tests
 
 type-check: install-dev  ## Run type checking with mypy

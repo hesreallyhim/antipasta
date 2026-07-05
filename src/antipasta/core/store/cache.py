@@ -133,14 +133,12 @@ class MetricsCache:
         if not self.enabled or errors:
             return
         entry_path = self._entry_path(key)
-        payload = json.dumps(
-            {
-                "v": _ENTRY_VERSION,
-                "errors": errors,
-                "metrics": [metric.to_dict() for metric in metrics],
-                "facts": [fact.to_dict() for fact in facts],
-            }
-        )
+        payload = json.dumps({
+            "v": _ENTRY_VERSION,
+            "errors": errors,
+            "metrics": [metric.to_dict() for metric in metrics],
+            "facts": [fact.to_dict() for fact in facts],
+        })
         try:
             entry_path.parent.mkdir(parents=True, exist_ok=True)
             temp_path = entry_path.with_name(f"{entry_path.name}.tmp-{os.getpid()}")

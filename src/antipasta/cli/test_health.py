@@ -40,8 +40,7 @@ def test_health(coverage_file: Path, output_format: str) -> None:
         sys.exit(1)
     if not matrix.test_count:
         click.echo(
-            "no test contexts in this artifact — record with "
-            "pytest --cov --cov-context=test",
+            "no test contexts in this artifact — record with pytest --cov --cov-context=test",
             err=True,
         )
         sys.exit(1)
@@ -59,8 +58,10 @@ def _print_text(reports: list[ProjectReport]) -> None:
     row = suite.metrics[0]
     details = row.details or {}
     click.echo("\nSUITE REDUNDANCY")
-    click.echo(f"  index: {row.value}  (greedy cover {details['greedy_cover_size']}"
-               f" of {details['tests']} tests)")
+    click.echo(
+        f"  index: {row.value}  (greedy cover {details['greedy_cover_size']}"
+        f" of {details['tests']} tests)"
+    )
     click.echo(f"  zero-unique-coverage tests: {details['zero_unique_tests']}")
 
     click.echo("\nBLAST RADIUS (tests executing each file)")

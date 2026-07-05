@@ -32,7 +32,7 @@ def boolean_flag_parameters(
         positional = positional[1:]
 
     defaults = function.args.defaults
-    defaulted = dict(zip([arg.arg for arg in positional[-len(defaults):]], defaults, strict=False))
+    defaulted = dict(zip([arg.arg for arg in positional[-len(defaults) :]], defaults, strict=False))
 
     count = 0
     for parameter in positional:

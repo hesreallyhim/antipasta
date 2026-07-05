@@ -179,17 +179,13 @@ def _churn_reports(
 
 def _coupling_reports(history: MinedHistory) -> list[ProjectReport]:
     strong = [
-        (count, pair)
-        for pair, count in history.co_changes.items()
-        if count >= MIN_COUPLING_SUPPORT
+        (count, pair) for pair, count in history.co_changes.items() if count >= MIN_COUPLING_SUPPORT
     ]
     strong.sort(reverse=True, key=operator.itemgetter(0))
     reports = []
     for count, pair in strong[:_TOP_LIMIT]:
         first, second = sorted(pair)
-        confidence = count / min(
-            history.commits_touching[first], history.commits_touching[second]
-        )
+        confidence = count / min(history.commits_touching[first], history.commits_touching[second])
         row = MetricResult(
             file_path=Path(first),
             metric_type=MetricType.CHANGE_COUPLING,
@@ -208,12 +204,8 @@ def _coupling_reports(history: MinedHistory) -> list[ProjectReport]:
 
 def _suite_health_report(history: MinedHistory) -> ProjectReport:
     """Track D3: how hard does the suite resist change?"""
-    source_lines = sum(
-        history.churn(path) for path in history.added if not is_test_path(path)
-    )
-    test_lines = sum(
-        history.churn(path) for path in history.added if is_test_path(path)
-    )
+    source_lines = sum(history.churn(path) for path in history.added if not is_test_path(path))
+    test_lines = sum(history.churn(path) for path in history.added if is_test_path(path))
     ratio = test_lines / source_lines if source_lines else 0.0
     multiplicity = (
         statistics.median(history.test_files_per_source_commit)

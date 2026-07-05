@@ -159,9 +159,7 @@ class RadonRunner(BaseRunner):
         return metrics
 
     @staticmethod
-    def _weighted_methods_rows(
-        file_path: Path, cc_rows: list[MetricResult]
-    ) -> list[MetricResult]:
+    def _weighted_methods_rows(file_path: Path, cc_rows: list[MetricResult]) -> list[MetricResult]:
         """Weighted Methods per Class: sum of member cyclomatic complexity.
 
         Derived here because radon's per-method rows already carry the owning

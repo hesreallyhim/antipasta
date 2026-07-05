@@ -185,9 +185,7 @@ def _module_reports(
     for module in sorted(graph):
         rows = _coupling_rows(module, graph, afferent, instability)
         sdp_row = rows[-1]
-        rows.extend(
-            _main_sequence_rows(module, graph, instability, abstractness_by_module)
-        )
+        rows.extend(_main_sequence_rows(module, graph, instability, abstractness_by_module))
         violations = _sdp_violations(sdp_row, config)
         reports.append(ProjectReport(subject=module, metrics=rows, violations=violations))
     return reports
@@ -239,9 +237,7 @@ def _afferent_counts(graph: dict[str, set[str]]) -> dict[str, int]:
     return counts
 
 
-def _instability_map(
-    graph: dict[str, set[str]], afferent: dict[str, int]
-) -> dict[str, float]:
+def _instability_map(graph: dict[str, set[str]], afferent: dict[str, int]) -> dict[str, float]:
     instability = {}
     for module, targets in graph.items():
         efferent = len(targets)
@@ -258,9 +254,7 @@ def _coupling_rows(
 ) -> list[MetricResult]:
     subject_path = Path(module.replace(".", "/") + ".py")
     sdp_count = sum(
-        1
-        for target in graph[module]
-        if instability[target] - instability[module] > _SDP_TOLERANCE
+        1 for target in graph[module] if instability[target] - instability[module] > _SDP_TOLERANCE
     )
     values = [
         (MetricType.EFFERENT_COUPLING, float(len(graph[module])), None),
@@ -278,9 +272,7 @@ def _coupling_rows(
     ]
 
 
-def _sdp_violations(
-    sdp_row: MetricResult, config: ImportGraphConfig | None
-) -> list[Violation]:
+def _sdp_violations(sdp_row: MetricResult, config: ImportGraphConfig | None) -> list[Violation]:
     if config is None:
         return []
     violation = check_metric_violation(sdp_row, config.stable_dependencies_config())
@@ -408,9 +400,7 @@ def _package_reports(graph: dict[str, set[str]]) -> list[ProjectReport]:
                 value=float(afferent[package]),
             ),
         ]
-        reports.append(
-            ProjectReport(subject=f"package {package}", metrics=rows, violations=[])
-        )
+        reports.append(ProjectReport(subject=f"package {package}", metrics=rows, violations=[]))
     return reports
 
 

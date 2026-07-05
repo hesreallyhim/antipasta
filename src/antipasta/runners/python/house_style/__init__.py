@@ -76,9 +76,7 @@ class HouseStyleRunner(BaseRunner):
             module = ast.parse(content)
         except (SyntaxError, ValueError):
             # Unparseable source: no rows, matching the other runners.
-            return FileMetrics(
-                file_path=file_path, language=Language.PYTHON.value, metrics=[]
-            )
+            return FileMetrics(file_path=file_path, language=Language.PYTHON.value, metrics=[])
 
         facts = extract_facts(module)
         rows = [
@@ -101,9 +99,7 @@ class HouseStyleRunner(BaseRunner):
         for node in ast.walk(module):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 is_method = id(node) in method_owners
-                rows.extend(
-                    _rows_for_function(file_path, node, is_method, mutable_names)
-                )
+                rows.extend(_rows_for_function(file_path, node, is_method, mutable_names))
         return rows
 
     def _class_rows(
@@ -135,9 +131,7 @@ class HouseStyleRunner(BaseRunner):
                     MetricResult(
                         file_path=file_path,
                         metric_type=MetricType.COUPLING_BETWEEN_OBJECTS,
-                        value=float(
-                            cohesion.coupling_between_objects(class_node, imported)
-                        ),
+                        value=float(cohesion.coupling_between_objects(class_node, imported)),
                         line_number=payload["lineno"],
                         function_name=payload["name"],
                         details={"approximate": True},
