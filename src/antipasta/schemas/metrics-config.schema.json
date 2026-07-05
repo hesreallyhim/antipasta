@@ -14,40 +14,113 @@
       "type": "string"
     },
     "DefaultsConfig": {
-      "description": "Default configuration values.",
+      "description": "Default configuration values with automatic validation.\n\nAll validation is handled by Pydantic Field constraints,\nno custom validators needed.",
       "properties": {
         "max_cyclomatic_complexity": {
           "default": 10,
+          "description": "Cyclomatic complexity (1-50)",
+          "maximum": 50,
+          "minimum": 1,
           "title": "Max Cyclomatic Complexity",
-          "type": "number"
+          "type": "integer"
         },
         "min_maintainability_index": {
           "default": 50,
+          "description": "Maintainability index (0-100)",
+          "maximum": 100,
+          "minimum": 0,
           "title": "Min Maintainability Index",
           "type": "number"
         },
         "max_halstead_volume": {
           "default": 1000,
+          "description": "Halstead volume (0-100000)",
+          "maximum": 100000,
+          "minimum": 0,
           "title": "Max Halstead Volume",
           "type": "number"
         },
         "max_halstead_difficulty": {
           "default": 10,
+          "description": "Halstead difficulty (0-100)",
+          "maximum": 100,
+          "minimum": 0,
           "title": "Max Halstead Difficulty",
           "type": "number"
         },
         "max_halstead_effort": {
           "default": 10000,
+          "description": "Halstead effort (0-1000000)",
+          "maximum": 1000000,
+          "minimum": 0,
           "title": "Max Halstead Effort",
           "type": "number"
         },
         "max_cognitive_complexity": {
           "default": 15,
+          "description": "Cognitive complexity (1-100)",
+          "maximum": 100,
+          "minimum": 1,
           "title": "Max Cognitive Complexity",
-          "type": "number"
+          "type": "integer"
         }
       },
       "title": "DefaultsConfig",
+      "type": "object"
+    },
+    "DuplicationConfig": {
+      "description": "WET-code detection via the optional pydry engine. Presence of this\nblock ENABLES the deriver (it re-parses the tree, so the default path\nnever pays); max_ratio additionally gates.",
+      "properties": {
+        "normalize_local_names": {
+          "default": true,
+          "title": "Normalize Local Names",
+          "type": "boolean"
+        },
+        "normalize_constants": {
+          "default": false,
+          "title": "Normalize Constants",
+          "type": "boolean"
+        },
+        "min_count": {
+          "default": 2,
+          "minimum": 2,
+          "title": "Min Count",
+          "type": "integer"
+        },
+        "max_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Ratio"
+        }
+      },
+      "title": "DuplicationConfig",
+      "type": "object"
+    },
+    "ImportGraphConfig": {
+      "description": "Import-graph gating. Presence of this block turns cycle reports and\nstable-dependencies counts into enforceable violations; without it the\nderiver stays informational.",
+      "properties": {
+        "forbid_cycles": {
+          "default": true,
+          "title": "Forbid Cycles",
+          "type": "boolean"
+        },
+        "max_stable_dependencies_violations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Max Stable Dependencies Violations",
+          "type": "integer"
+        }
+      },
+      "title": "ImportGraphConfig",
       "type": "object"
     },
     "LanguageConfig": {
@@ -121,10 +194,146 @@
         "logical_lines_of_code",
         "source_lines_of_code",
         "comment_lines",
-        "blank_lines"
+        "blank_lines",
+        "message_chain_depth",
+        "function_arity",
+        "boolean_flag_parameters",
+        "exception_discipline",
+        "global_state_reach",
+        "marker_density",
+        "comment_density",
+        "function_statements",
+        "expression_flatness",
+        "pipeline_linearity",
+        "lack_of_cohesion",
+        "weighted_methods_per_class",
+        "coupling_between_objects",
+        "depth_of_inheritance_tree",
+        "number_of_children",
+        "single_responsibility_index",
+        "directory_children",
+        "efferent_coupling",
+        "afferent_coupling",
+        "instability",
+        "dependency_cycles",
+        "stable_dependencies_violations",
+        "abstractness",
+        "distance_from_main_sequence",
+        "dependency_inversion",
+        "narrative_mixed_functions",
+        "narrator_budget_exceeded",
+        "computer_budget_exceeded",
+        "step_down_ordering",
+        "layering_violations",
+        "name_clarity",
+        "naming_antipatterns",
+        "duplication_ratio",
+        "clone_occurrences",
+        "assertions_per_test",
+        "mock_call_assertions",
+        "big_literal_assertions",
+        "code_churn",
+        "change_coupling",
+        "hotspot",
+        "test_churn_ratio",
+        "co_churn_multiplicity",
+        "suite_redundancy_index",
+        "blast_radius"
       ],
       "title": "MetricType",
       "type": "string"
+    },
+    "NarrativeConfig": {
+      "description": "Narrative Index gating (altitude budgets). Presence of this block\nturns mixed-altitude and budget counts into enforceable violations;\nwithout it the deriver stays informational (defaults still shape the\ninformational counts).",
+      "properties": {
+        "narrator_step_budget": {
+          "default": 9,
+          "minimum": 1,
+          "title": "Narrator Step Budget",
+          "type": "integer"
+        },
+        "computer_statement_budget": {
+          "default": 8,
+          "minimum": 1,
+          "title": "Computer Statement Budget",
+          "type": "integer"
+        },
+        "computer_nesting_budget": {
+          "default": 1,
+          "minimum": 0,
+          "title": "Computer Nesting Budget",
+          "type": "integer"
+        },
+        "mixing_tolerance": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mixing Tolerance"
+        },
+        "allowlist": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowlist",
+          "type": "array"
+        },
+        "name_clarity_floor": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name Clarity Floor"
+        }
+      },
+      "title": "NarrativeConfig",
+      "type": "object"
+    },
+    "TreeShapeConfig": {
+      "description": "Module Tree Shape gating (fan-out band). Presence of this block turns\nthe tree-shape deriver's rows into enforceable violations; without it the\nderiver stays informational.",
+      "properties": {
+        "fan_out_min": {
+          "default": 2,
+          "minimum": 1,
+          "title": "Fan Out Min",
+          "type": "integer"
+        },
+        "fan_out_max": {
+          "default": 7,
+          "minimum": 1,
+          "title": "Fan Out Max",
+          "type": "integer"
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "layers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Layers",
+          "type": "array"
+        }
+      },
+      "title": "TreeShapeConfig",
+      "type": "object"
     }
   },
   "description": "Schema for .antipasta.yaml configuration files",
@@ -145,6 +354,65 @@
       },
       "title": "Ignore Patterns",
       "type": "array"
+    },
+    "use_gitignore": {
+      "default": true,
+      "title": "Use Gitignore",
+      "type": "boolean"
+    },
+    "profile": {
+      "default": "standard",
+      "enum": [
+        "extreme",
+        "standard",
+        "relaxed"
+      ],
+      "title": "Profile",
+      "type": "string"
+    },
+    "tree_shape": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TreeShapeConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "import_graph": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ImportGraphConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "narrative": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NarrativeConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "duplication": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DuplicationConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "title": "Antipasta Configuration Schema",

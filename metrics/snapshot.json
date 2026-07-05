@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-05T19:17:04+00:00",
+  "generated_at": "2026-07-05T19:20:42+00:00",
   "tool_version": "1.1.2",
   "root": "src/antipasta",
   "summary": {
@@ -1510,26 +1510,26 @@
       "error": null,
       "metrics": {
         "cyclomatic_complexity": 2.0,
-        "maintainability_index": 78.94070785818101,
+        "maintainability_index": 78.1079458926779,
         "halstead_volume": 27.0,
         "halstead_difficulty": 1.0,
         "halstead_effort": 27.0,
         "halstead_time": 1.5,
         "halstead_bugs": 0.009,
-        "lines_of_code": 32.0,
-        "logical_lines_of_code": 21.0,
-        "source_lines_of_code": 19.0,
+        "lines_of_code": 34.0,
+        "logical_lines_of_code": 22.0,
+        "source_lines_of_code": 20.0,
         "comment_lines": 2.0,
-        "blank_lines": 9.0,
+        "blank_lines": 10.0,
         "cognitive_complexity": 1.0,
         "marker_density": 0.0,
-        "comment_density": 6.25
+        "comment_density": 5.88235294117647
       },
       "violations": [],
       "functions": [
         {
           "name": "generate_config_schema",
-          "line": 10,
+          "line": 12,
           "metrics": {
             "cyclomatic_complexity": 2.0,
             "halstead_volume": 0.0,
@@ -1543,9 +1543,9 @@
             "boolean_flag_parameters": 0.0,
             "exception_discipline": 0.0,
             "global_state_reach": 0.0,
-            "function_statements": 11.0,
-            "expression_flatness": 0.7272727272727273,
-            "pipeline_linearity": 0.3333333333333333
+            "function_statements": 12.0,
+            "expression_flatness": 0.75,
+            "pipeline_linearity": 0.0
           }
         }
       ]
@@ -22970,7 +22970,7 @@
       "label": "antipasta",
       "aggregate": {
         "files": 88,
-        "value": 7327.0,
+        "value": 7328.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -23056,7 +23056,7 @@
       "label": "cli",
       "aggregate": {
         "files": 41,
-        "value": 2567.0,
+        "value": 2568.0,
         "violations": 0,
         "metrics_max": {
           "maintainability_index": {
@@ -23135,7 +23135,7 @@
       "label": "config",
       "aggregate": {
         "files": 14,
-        "value": 685.0,
+        "value": 686.0,
         "violations": 0,
         "metrics_max": {
           "cyclomatic_complexity": {
@@ -23440,7 +23440,7 @@
       "id": "cli/config/schema_generator.py",
       "parent": "cli/config",
       "label": "schema_generator.py",
-      "value": 19.0,
+      "value": 20.0,
       "file_index": 16
     },
     {

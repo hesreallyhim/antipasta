@@ -6,7 +6,7 @@ A code quality enforcement tool that analyzes code complexity across a number of
 
 antipasta analyzes your source code files and measures various complexity metrics, comparing them against configurable thresholds. If any metrics exceed their thresholds, antipasta reports violations and exits with a non-zero status code, making it suitable for CI/CD pipelines.
 
-Currently, antipasta supports Python code analysis with plans to add JavaScript and TypeScript support.
+antipasta has full Python analysis and lightweight JavaScript/TypeScript support in the metrics and report pipeline through lizard for cyclomatic complexity and line-count metrics.
 
 ## Why use antipasta?
 
@@ -64,7 +64,7 @@ antipasta config generate --output my-config.yaml
 The interactive mode will guide you through setting up:
 - Complexity thresholds (cyclomatic, cognitive, maintainability)
 - Advanced Halstead metrics (optional)
-- Language support (currently Python only, JavaScript/TypeScript coming soon)
+- Python language setup; JavaScript/TypeScript can be configured manually for cyclomatic complexity and line counts
 - Ignore patterns (enter one at a time, with default test patterns optional)
 - Gitignore integration settings
 
@@ -116,6 +116,8 @@ antipasta provides the following commands:
 | `metrics` | Analyze code metrics for specified files | Uses `.antipasta.yaml` config, shows helpful message if missing |
 | `stats` | Collect and display code metrics statistics | Analyzes files matching the specified pattern |
 | `report` | Generate a visual complexity report (offline HTML or JSON) | Writes a single self-contained HTML file |
+| `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Uses the current repository and `metrics/snapshot.json` when present |
+| `test-health` | Analyze coverage contexts for test redundancy and blast radius | Reads coverage.py data recorded with `--cov-context=test` |
 
 > **Note**: The old commands `generate-config` and `validate-config` are deprecated but still work for backward compatibility. They will show a deprecation warning. Please use `config generate` and `config validate` instead.
 
@@ -127,7 +129,7 @@ antipasta provides the following commands:
 # Analyze specific files (uses .antipasta.yaml by default)
 antipasta metrics --files src/main.py src/utils.py
 
-# Analyze all Python files in a directory
+# Analyze all supported files in a directory
 antipasta metrics --directory src/
 
 # Use a custom configuration file
@@ -223,6 +225,27 @@ antipasta stats --pattern "**/*.py" --format all --output ./reports/
 #   - stats_by_module.{json,csv,txt}
 ```
 
+### Version-Control Mining
+
+```bash
+# Mine the last 90 days of git history, joining hotspots to metrics/snapshot.json if present
+antipasta vcs
+
+# Use a different history window or emit JSON
+antipasta vcs --window 30 --format json
+```
+
+### Test-Suite Health
+
+```bash
+# First collect coverage contexts
+pytest --cov=src/antipasta --cov-context=test
+
+# Then analyze redundant tests and blast radius
+antipasta test-health --coverage-file .coverage
+antipasta test-health --coverage-file .coverage --format json
+```
+
 ## Configuration
 
 antipasta uses YAML configuration files. By default, it looks for `.antipasta.yaml` in the current directory.
@@ -282,14 +305,16 @@ ignore_patterns:
 
 # Whether to use .gitignore file for excluding files
 use_gitignore: true
+
+# Strictness profile for profile-aware derived metrics
+profile: standard
 ```
 
 ### Configuration Structure
 
--   **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
 -   **defaults**: Default thresholds used when language-specific configuration is not provided
 -   **languages**: Language-specific configurations
-    -   **name**: Language identifier (currently only "python" is supported)
+    -   **name**: Language identifier (`python`, `javascript`, or `typescript`)
     -   **extensions**: File extensions to associate with this language
     -   **metrics**: List of metrics to check
         -   **type**: The metric type (see Metrics section below)
@@ -297,6 +322,9 @@ use_gitignore: true
         -   **comparison**: How to compare the metric value with the threshold
         -   **enabled**: (optional) Whether to check this metric (default: true, can be omitted)
 -   **ignore_patterns**: Additional gitignore-style patterns for files to skip (combined with .gitignore if `use_gitignore` is true)
+-   **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
+-   **profile**: Strictness profile for profile-aware derived metrics (`standard`, `relaxed`, or `extreme`)
+-   **tree_shape**, **import_graph**, **narrative**, **duplication**: Optional blocks that turn project-scoped informational metrics into configured gates
 
 ### Comparison Operators
 
@@ -548,7 +576,7 @@ make test-fast
 make test-fast-clean
 
 # Run with coverage
-make test-coverage
+make test-cov
 
 # Run specific test file
 pytest tests/unit/test_config.py -v
@@ -574,31 +602,28 @@ make type-check
 ```
 antipasta/
 ├── cli/              # Command-line interface
-├── core/             # Core functionality
-│   ├── config.py     # Configuration models
-│   ├── detector.py   # Language detection
-│   ├── metrics.py    # Metric definitions
-│   ├── violations.py # Violation tracking
-│   └── aggregator.py # Analysis coordination
+├── core/             # Models, derivations, mining, and snapshot storage
+│   ├── derive/       # Project-scoped structural metrics
+│   ├── mining/       # VCS and coverage-matrix analytics
+│   ├── model/        # Config, detector, metric, and violation models
+│   └── store/        # Cache, snapshot, diff, and treemap helpers
+├── report/           # Offline HTML report rendering and assets
 ├── runners/          # Language-specific analyzers
-│   └── python/       # Python analysis (Radon)
-└── utils/            # Utilities
+│   ├── javascript/   # JS/TS analysis via lizard
+│   └── python/       # Python analysis via Radon, Complexipy, and house style
+└── schemas/          # Packaged JSON schema
 ```
 
 ## Current Limitations
 
-1. **Python Only**: Currently only Python is supported. JavaScript and TypeScript support is coming soon.
-2. **Function-Level Only**: Some metrics are only available at the function level, not class or module level.
+1. **Python has the broadest metric coverage**: JavaScript and TypeScript currently use lizard for cyclomatic complexity and line counts.
+2. **Some metrics are scope-specific**: Several metrics are function-level, while newer structural metrics report at class, module, project, or artifact scope.
 3. **Cognitive Complexity Requires Complexipy**: The cognitive complexity metric requires the optional `complexipy` package to be installed.
 
 ## Future Enhancements
 
--   JavaScript/TypeScript support via ts-complex
 -   Pre-commit hook integration
 -   Git hook support
--   HTML report generation
--   Baseline file support (ignore existing violations)
--   Trend analysis over time
 -   GitHub Actions integration
 -   VS Code extension
 

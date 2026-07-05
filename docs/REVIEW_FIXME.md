@@ -28,7 +28,7 @@ Old imports now fail: `antipasta.core.config`, `antipasta.core.metrics`, `antipa
 
 FIXME: UPDATE DOCS
 
-- [ ] P1 - Public docs and schema are behind the feature surface.
+- [x] P1 - Public docs and schema are behind the feature surface.
 README omits `vcs` and `test-health` from the command table at [README.md](/Users/hesreallyhim/coding/projects/antipasta/README.md:110), still says Python-only / JS+TS coming soon at [README.md](/Users/hesreallyhim/coding/projects/antipasta/README.md:9), and still lists HTML reports as future work at [README.md](/Users/hesreallyhim/coding/projects/antipasta/README.md:599). The committed JSON schema has 13 metric enum values while the live model has 57, and it is missing `profile`, `tree_shape`, `import_graph`, `narrative`, `duplication`, and `use_gitignore`; see [src/antipasta/schemas/metrics-config.schema.json](/Users/hesreallyhim/coding/projects/antipasta/src/antipasta/schemas/metrics-config.schema.json:111).
 
 ---
