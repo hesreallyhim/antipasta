@@ -6,7 +6,7 @@ code quality metrics and analysis results.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -56,6 +56,48 @@ class MetricResult:
             "function_name": self.function_name,
         }
 
+    @classmethod
+    def from_dict(cls, file_path: Path, data: dict[str, Any]) -> MetricResult:
+        """Rehydrate a serialized metric row against a concrete file path.
+
+        The serialized form is path-independent (see to_dict), which is what
+        lets content-addressed cache entries survive renames and clones.
+        """
+        return cls(
+            file_path=file_path,
+            metric_type=MetricType(data["type"]),
+            value=float(data["value"]),
+            details=data.get("details"),
+            line_number=data.get("line_number"),
+            function_name=data.get("function_name"),
+        )
+
+
+@dataclass
+class FactRow:
+    """A path-independent, judgment-free fact extracted from one file.
+
+    Facts are the extraction half of the extract/derive split for
+    whole-program metrics (see docs/design/structural-metrics-caching.md):
+    raw material like unresolved import statements or class declarations,
+    cached content-addressed alongside metric rows and consumed by derivers.
+    Two hard rules keep them cacheable: the payload must be reproducible from
+    the file's bytes alone (no location-derived data), and it carries no
+    judgment (config never influences extraction).
+    """
+
+    kind: str
+    payload: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the fact for JSON-friendly storage."""
+        return {"kind": self.kind, "payload": self.payload}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> FactRow:
+        """Rehydrate a serialized fact row."""
+        return cls(kind=str(data["kind"]), payload=dict(data["payload"]))
+
 
 @dataclass
 class FileMetrics:
@@ -65,6 +107,7 @@ class FileMetrics:
     language: str
     metrics: list[MetricResult]
     error: str | None = None
+    facts: list[FactRow] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Ensure file_path is a Path object."""

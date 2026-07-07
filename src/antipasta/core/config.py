@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, Field, field_validator
 import yaml
@@ -25,6 +25,12 @@ from antipasta.core.metrics import MetricType
 
 if TYPE_CHECKING:
     from antipasta.core.config_override import ConfigOverride
+
+# Strictness profiles scale threshold defaults for style-sensitive metrics
+# (prose-grade expressions, narrator budgets — consumers land from Phase 1 of
+# docs/design/metrics-adoption-plan.md). Precedence: explicit per-metric
+# config > profile default.
+ProfileName = Literal["extreme", "standard", "relaxed"]
 
 
 class ComparisonOperator(StrEnum):
@@ -94,6 +100,7 @@ class AntipastaConfig(BaseModel):
     languages: list[LanguageConfig] = Field(default_factory=list)
     ignore_patterns: list[str] = Field(default_factory=list)
     use_gitignore: bool = Field(default=True)
+    profile: ProfileName = Field(default="standard")
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:

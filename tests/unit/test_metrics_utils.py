@@ -110,11 +110,14 @@ class TestRefactoredMetricsComponents:
         mock_aggregator = MagicMock()
         mock_aggregator_class.return_value = mock_aggregator
 
-        # Create a simple mock reports list
+        # Create a simple mock analysis result
         mock_reports = ["mock_report_1", "mock_report_2"]
         mock_summary = {"success": True, "total_files": 2}
 
-        mock_aggregator.analyze_files.return_value = mock_reports
+        mock_result = MagicMock()
+        mock_result.file_reports = mock_reports
+        mock_result.project_reports = []
+        mock_aggregator.analyze.return_value = mock_result
         mock_aggregator.generate_summary.return_value = mock_summary
 
         # Execute the function
@@ -122,10 +125,11 @@ class TestRefactoredMetricsComponents:
 
         # Verify the results
         assert result["reports"] == mock_reports
+        assert result["project_reports"] == []
         assert result["summary"] == mock_summary
 
         # Verify the aggregator was called correctly
-        mock_aggregator.analyze_files.assert_called_once_with([Path("test.py")])
+        mock_aggregator.analyze.assert_called_once_with([Path("test.py")])
 
     @patch("click.echo")
     def test_output_results_json_format(self, mock_echo: MagicMock) -> None:
@@ -146,7 +150,7 @@ class TestRefactoredMetricsComponents:
 
         output_results(results, "text", quiet=False)
 
-        mock_print_results.assert_called_once_with([], {"success": True}, False)
+        mock_print_results.assert_called_once_with([], {"success": True}, False, [])
 
     def test_exit_with_appropriate_code_success(self) -> None:
         """Test exit code for successful analysis."""

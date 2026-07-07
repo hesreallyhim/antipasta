@@ -56,7 +56,7 @@ def _load_gitignore_if_enabled(
 
 def _collect_directory_files(directory: Path, detector: LanguageDetector) -> list[Path]:
     """Collect all supported files from a directory."""
-    patterns = ["**/*.py", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+    patterns = ["**/*.py", "**/*.js", "**/*.mjs", "**/*.cjs", "**/*.ts", "**/*.jsx", "**/*.tsx"]
     collected_files = []
 
     for pattern in patterns:
