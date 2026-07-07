@@ -3,7 +3,7 @@
 All rules here are fixed (profile- and config-free) so results stay pure
 functions of file content — the strictness dial applies at the threshold
 layer, never inside extraction. Semantics originate from the Narrative Index
-discrimination probe (tests/temp/narrative_index_probe.temp.py).
+discrimination probe (metrics/scripts/narrative_index_probe.py).
 """
 
 from __future__ import annotations

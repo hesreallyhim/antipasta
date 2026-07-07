@@ -387,7 +387,7 @@ from the profile):
   reporting: file p50/p90 as informational rows).
 - `expression_flatness`, `pipeline_linearity` (Narrative Index components
   that need no symbol table; algorithms seeded from
-  `tests/temp/narrative_index_probe.temp.py`).
+  `metrics/scripts/narrative_index_probe.py`).
 
 **Fact rows emitted in the same walk** (consumed later, cached now):
 - `imports`: raw, unresolved — `[{module: ".x"|"pkg.mod", names: [...],
