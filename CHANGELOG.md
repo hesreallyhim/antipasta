@@ -5,6 +5,14 @@ All notable changes to antipasta will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/hesreallyhim/antipasta/compare/v1.1.2...v1.2.0) (2026-07-07)
+
+
+### Features
+
+* expand metrics ([#2](https://github.com/hesreallyhim/antipasta/issues/2)) ([e30c4a6](https://github.com/hesreallyhim/antipasta/commit/e30c4a6bd28299b6508462f5b80551f5e564eaa8))
+* update to report command ([#1](https://github.com/hesreallyhim/antipasta/issues/1)) ([f9c04d7](https://github.com/hesreallyhim/antipasta/commit/f9c04d7af0c0d465823b69e6335b6b9b30d773e0))
+
 ## [1.1.0] - 2025-01-27
 
 ### Added
