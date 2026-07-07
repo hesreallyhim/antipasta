@@ -17,9 +17,7 @@ from antipasta.report.baseline import build_baseline_payload
 # ----- snapshot fixture builders -------------------------------------------
 
 
-def _function(
-    name: str, line: int | None = 1, **metrics: float | None
-) -> dict[str, Any]:
+def _function(name: str, line: int | None = 1, **metrics: float | None) -> dict[str, Any]:
     """A snapshot function entry."""
     return {"name": name, "line": line, "metrics": dict(metrics)}
 
@@ -183,9 +181,7 @@ class TestFileMetricDeltas:
 class TestFunctionDeltas:
     """Per-function score deltas, regressions, and improvements."""
 
-    def _pair(
-        self, old_fn: dict[str, Any], new_fn: dict[str, Any]
-    ) -> SnapshotDiff:
+    def _pair(self, old_fn: dict[str, Any], new_fn: dict[str, Any]) -> SnapshotDiff:
         return diff(
             _snapshot([_file("a.py", functions=[old_fn])]),
             _snapshot([_file("a.py", functions=[new_fn])]),

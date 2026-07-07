@@ -40,9 +40,7 @@ def _run(args: list[str], cwd: Path) -> Result:
 def _write_baseline(directory: Path, baseline_path: Path, source: str = SIMPLE_SOURCE) -> None:
     """Analyze `source` in `directory` and save the JSON snapshot."""
     (directory / "sample.py").write_text(source)
-    result = _run(
-        ["-d", str(directory), "--format", "json", "-o", str(baseline_path)], directory
-    )
+    result = _run(["-d", str(directory), "--format", "json", "-o", str(baseline_path)], directory)
     assert result.exit_code == 0, result.output
 
 

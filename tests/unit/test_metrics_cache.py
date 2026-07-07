@@ -93,9 +93,7 @@ class TestMetricsCache:
         assert cache.get(key, tmp_path / "a.py") is None
         assert not (tmp_path / "store").exists()
 
-    def test_no_cache_env_disables(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_cache_env_disables(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("ANTIPASTA_NO_CACHE", "1")
         cache = MetricsCache(cache_dir=tmp_path / "store")
 
@@ -148,9 +146,7 @@ class TestAggregatorCacheIntegration:
             ]
             assert len(cold_report.violations) == len(warm_report.violations)
 
-    def test_edited_file_misses_and_reanalyzes(
-        self, tmp_path: Path
-    ) -> None:
+    def test_edited_file_misses_and_reanalyzes(self, tmp_path: Path) -> None:
         source_file = tmp_path / "module.py"
         source_file.write_text(SAMPLE_SOURCE)
         aggregator = MetricAggregator(

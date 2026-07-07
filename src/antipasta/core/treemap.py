@@ -89,9 +89,7 @@ def _empty_aggregate() -> dict[str, Any]:
     return {"files": 0, "value": 0.0, "violations": 0, "metrics_max": {}}
 
 
-def _fold_into_aggregate(
-    aggregate: dict[str, Any], entry: dict[str, Any], value: float
-) -> None:
+def _fold_into_aggregate(aggregate: dict[str, Any], entry: dict[str, Any], value: float) -> None:
     """Fold one file's snapshot entry into a directory rollup.
 
     ``metrics_max`` keeps, per metric, the subtree maximum and the file that
