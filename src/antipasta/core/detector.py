@@ -7,6 +7,7 @@ from enum import StrEnum
 from pathlib import Path
 
 import pathspec
+from pathspec.pattern import Pattern
 
 
 class Language(StrEnum):
@@ -55,23 +56,23 @@ class LanguageDetector:
         self.ignore_patterns = ignore_patterns or []
         self.include_patterns = include_patterns or []
         self.base_dir = base_dir or Path.cwd()
-        self._pathspec: pathspec.PathSpec | None = None
-        self._include_spec: pathspec.PathSpec | None = None
+        self._pathspec: pathspec.PathSpec[Pattern] | None = None
+        self._include_spec: pathspec.PathSpec[Pattern] | None = None
         self._gitignore_patterns: list[str] = []  # Track patterns from .gitignore
 
     @property
-    def ignore_spec(self) -> pathspec.PathSpec:
+    def ignore_spec(self) -> pathspec.PathSpec[Pattern]:
         """Get or create the pathspec instance for ignore patterns."""
         if self._pathspec is None:
             all_patterns = self.ignore_patterns + self._gitignore_patterns
-            self._pathspec = pathspec.PathSpec.from_lines("gitwildmatch", all_patterns)
+            self._pathspec = pathspec.PathSpec.from_lines("gitignore", all_patterns)
         return self._pathspec
 
     @property
-    def include_spec(self) -> pathspec.PathSpec | None:
+    def include_spec(self) -> pathspec.PathSpec[Pattern] | None:
         """Get or create the pathspec instance for include patterns."""
         if self._include_spec is None and self.include_patterns:
-            self._include_spec = pathspec.PathSpec.from_lines("gitwildmatch", self.include_patterns)
+            self._include_spec = pathspec.PathSpec.from_lines("gitignore", self.include_patterns)
         return self._include_spec
 
     def add_gitignore(self, gitignore_path: Path) -> None:
