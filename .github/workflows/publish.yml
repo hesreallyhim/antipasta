@@ -17,27 +17,30 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.11'
 
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build hatch
+          python -m pip install build hatch
 
       - name: Build package
         run: python -m build
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: python-package-distributions
           path: dist/
@@ -54,17 +57,19 @@ jobs:
       url: https://test.pypi.org/p/antipasta
 
     permissions:
+      contents: read
+      actions: read
       id-token: write  # Required for trusted publishing
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: python-package-distributions
           path: dist/
 
       - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
         with:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
@@ -81,17 +86,19 @@ jobs:
       url: https://pypi.org/p/antipasta
 
     permissions:
+      contents: read
+      actions: read
       id-token: write  # Required for trusted publishing
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: python-package-distributions
           path: dist/
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
 
   verify-installation:
     name: Verify Installation
@@ -99,15 +106,18 @@ jobs:
     # Only run after successful PyPI publish
     if: success()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.11'
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: python-package-distributions
           path: dist/
@@ -119,5 +129,5 @@ jobs:
         run: |
           VERSION=$(ls dist/antipasta-*.whl | head -n 1 | sed -E 's|.*antipasta-([0-9]+\.[0-9]+\.[0-9]+)-.*|\1|')
           echo "Verifying antipasta==$VERSION from PyPI"
-          pip install "antipasta==$VERSION"
+          python -m pip install "antipasta==$VERSION"
           python -c "import antipasta; print(f'Successfully installed antipasta {antipasta.__version__}')"
