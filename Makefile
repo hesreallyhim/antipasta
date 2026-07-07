@@ -18,7 +18,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: metrics-snapshot help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
+.PHONY: install-hooks metrics-snapshot help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -44,11 +44,12 @@ install-dev: venv  ## Install the package in development mode with all dev depen
 install-prod: venv  ## Install the package in production mode
 	$(PIP) install .
 
-format: install-dev  ## Format code with black and ruff
-	$(VENV_DIR)/bin/black src/antipasta tests
+format: install-dev  ## Format code with ruff
+	$(VENV_DIR)/bin/ruff format src/antipasta tests
 	$(VENV_DIR)/bin/ruff check --fix src/antipasta tests
 
-lint: install-dev  ## Run linting checks with ruff
+lint: install-dev  ## Run formatting and linting checks with ruff
+	$(VENV_DIR)/bin/ruff format --check src/antipasta tests
 	$(VENV_DIR)/bin/ruff check src/antipasta tests
 
 type-check: install-dev  ## Run type checking with mypy
@@ -93,6 +94,10 @@ metrics-quiet: install  ## Run antipasta metrics analysis on src/ (quiet mode - 
 
 metrics-json: install  ## Run antipasta metrics analysis and output JSON
 	@$(VENV_DIR)/bin/antipasta metrics -d src/ --format json
+
+install-hooks:  ## Point git at the committed hooks (.githooks/pre-commit refreshes the metrics snapshot)
+	@git config core.hooksPath .githooks
+	@echo "✅ core.hooksPath -> .githooks"
 
 metrics-snapshot: install  ## Refresh metrics/snapshot.json (commit with non-trivial changes)
 	@$(VENV_DIR)/bin/antipasta report -d src/antipasta --format json -o metrics/snapshot.json

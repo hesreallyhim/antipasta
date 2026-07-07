@@ -1,13 +1,13 @@
 """Plain-text rendering of a snapshot diff for the terminal.
 
-Turns a :class:`~antipasta.core.snapshot_diff_types.SnapshotDiff` into the
+Turns a :class:`~antipasta.core.store.snapshot_diff_types.SnapshotDiff` into the
 delta summary printed by ``antipasta report --baseline``.  Pure formatting —
 where the text goes (stdout vs stderr) is the command's decision.
 """
 
 from __future__ import annotations
 
-from antipasta.core.snapshot_diff import (
+from antipasta.core.store.snapshot_diff import (
     DEFAULT_EPSILON,
     FileDelta,
     FunctionDelta,
@@ -92,7 +92,7 @@ def _format_file_deltas(file_deltas: list[FileDelta], epsilon: float) -> str:
     lines = [f"File metric deltas (|Δ| > {epsilon:g}):"]
     for fd in file_deltas:
         parts = [
-            f"{md.metric} {_fmt(md.old_value)}→{_fmt(md.new_value)} " f"({_fmt_delta(md.delta)})"
+            f"{md.metric} {_fmt(md.old_value)}→{_fmt(md.new_value)} ({_fmt_delta(md.delta)})"
             for md in fd.metric_deltas
         ]
         parts.extend(f"function added: {name}" for name in fd.functions_added)

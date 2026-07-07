@@ -1,7 +1,7 @@
 """Typed result structures for snapshot diffing.
 
 These are the pure data carriers returned by
-:func:`antipasta.core.snapshot_diff.diff`.  They hold *facts* about the drift
+:func:`antipasta.core.store.snapshot_diff.diff`.  They hold *facts* about the drift
 between two snapshots; presentation (terminal summary, HTML payload) lives
 with the consumers.
 """

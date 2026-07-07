@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 
 from antipasta.cli.metrics import metrics
-from antipasta.core.config import ComparisonOperator
-from antipasta.core.metrics import MetricType
-from antipasta.core.violations import Violation
+from antipasta.core.model.config import ComparisonOperator
+from antipasta.core.model.metrics import MetricType
+from antipasta.core.model.violations import Violation
 
 
 class TestMetricsOverrides:

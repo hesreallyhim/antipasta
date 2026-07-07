@@ -10,13 +10,13 @@ from pathlib import Path
 from pydantic import ValidationError
 import pytest
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.cache import MetricsCache
-from antipasta.core.config import AntipastaConfig, ComparisonOperator
-from antipasta.core.derivation import DerivationInput
-from antipasta.core.metrics import FactRow, MetricResult, MetricType
-from antipasta.core.snapshot import SCHEMA_VERSION, build_snapshot
-from antipasta.core.violations import ProjectReport, Violation
+from antipasta.core.model.config import AntipastaConfig, ComparisonOperator
+from antipasta.core.model.derivation import DerivationInput
+from antipasta.core.model.metrics import FactRow, MetricResult, MetricType
+from antipasta.core.model.violations import ProjectReport, Violation
+from antipasta.core.store.cache import MetricsCache
+from antipasta.core.store.snapshot import SCHEMA_VERSION, build_snapshot
+from antipasta.engine import MetricAggregator
 
 SAMPLE_SOURCE = """\
 def helper(value):
@@ -107,14 +107,26 @@ class TestDerivationStage:
         assert seen[0].config is aggregator.config
         assert len(seen[0].file_reports) == 1
 
-    def test_no_derivers_means_no_project_reports(self, tmp_path: Path) -> None:
+    def test_explicit_empty_derivers_means_no_project_reports(self, tmp_path: Path) -> None:
         (tmp_path / "module.py").write_text(SAMPLE_SOURCE)
-        aggregator = MetricAggregator(AntipastaConfig(), cache=MetricsCache(enabled=False))
+        aggregator = MetricAggregator(
+            AntipastaConfig(), cache=MetricsCache(enabled=False), derivers=[]
+        )
 
         result = aggregator.analyze([tmp_path / "module.py"])
 
         assert result.project_reports == []
         assert not result.has_project_violations
+
+    def test_default_derivers_emit_tree_shape_rows(self, tmp_path: Path) -> None:
+        (tmp_path / "module.py").write_text(SAMPLE_SOURCE)
+        aggregator = MetricAggregator(AntipastaConfig(), cache=MetricsCache(enabled=False))
+
+        result = aggregator.analyze([tmp_path / "module.py"], root=tmp_path)
+
+        subjects = [r.subject for r in result.project_reports]
+        assert "." in subjects  # tree-shape root row from the default derivers
+        assert not result.has_project_violations  # informational without config
 
     def test_analyze_files_still_returns_file_reports(self, tmp_path: Path) -> None:
         (tmp_path / "module.py").write_text(SAMPLE_SOURCE)

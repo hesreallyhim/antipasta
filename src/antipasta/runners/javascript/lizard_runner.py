@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.detector import EXTENSION_MAP, Language
-from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
+from antipasta.core.model.detector import EXTENSION_MAP, Language
+from antipasta.core.model.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
 
 

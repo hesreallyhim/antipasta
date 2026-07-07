@@ -5,8 +5,8 @@ from typing import Any
 
 import click
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.detector import LanguageDetector
+from antipasta.core.model.detector import LanguageDetector
+from antipasta.engine import MetricAggregator
 
 from .file_collection import validate_analyzable_files
 

@@ -30,8 +30,8 @@ from antipasta.cli.metrics.metrics_utils_override import (
     apply_overrides_to_configuration,
     create_and_configure_override,
 )
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
 
 
 class TestRefactoredMetricsComponents:
@@ -129,7 +129,7 @@ class TestRefactoredMetricsComponents:
         assert result["summary"] == mock_summary
 
         # Verify the aggregator was called correctly
-        mock_aggregator.analyze.assert_called_once_with([Path("test.py")])
+        mock_aggregator.analyze.assert_called_once_with([Path("test.py")], root=None)
 
     @patch("click.echo")
     def test_output_results_json_format(self, mock_echo: MagicMock) -> None:

@@ -3,7 +3,7 @@
 from pydantic import ValidationError
 import pytest
 
-from antipasta.core.metric_models import MetricThresholds
+from antipasta.core.model.metric_models import MetricThresholds
 
 
 class TestMetricThresholds:

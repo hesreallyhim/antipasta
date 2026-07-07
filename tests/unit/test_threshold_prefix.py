@@ -6,7 +6,7 @@ This allows users to use 'cyc=15' instead of 'cyclomatic_complexity=15' etc.
 
 import pytest
 
-from antipasta.core.config_override import ConfigOverride
+from antipasta.core.model.config_override import ConfigOverride
 
 
 def test_threshold_prefix_parsing() -> None:

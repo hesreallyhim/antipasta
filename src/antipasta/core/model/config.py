@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import BaseModel, Field, field_validator
 import yaml
 
-from antipasta.core.metric_models import (
+from antipasta.core.model.metric_models import (
     CognitiveComplexity,
     CyclomaticComplexity,
     HalsteadDifficulty,
@@ -21,10 +21,10 @@ from antipasta.core.metric_models import (
     HalsteadVolume,
     MaintainabilityIndex,
 )
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 if TYPE_CHECKING:
-    from antipasta.core.config_override import ConfigOverride
+    from antipasta.core.model.config_override import ConfigOverride
 
 # Strictness profiles scale threshold defaults for style-sensitive metrics
 # (prose-grade expressions, narrator budgets — consumers land from Phase 1 of
@@ -93,6 +93,140 @@ class DefaultsConfig(BaseModel):
     max_cognitive_complexity: CognitiveComplexity = 15
 
 
+class TreeShapeConfig(BaseModel):
+    """Module Tree Shape gating (fan-out band). Presence of this block turns
+    the tree-shape deriver's rows into enforceable violations; without it the
+    deriver stays informational."""
+
+    fan_out_min: int = Field(default=2, ge=1)
+    fan_out_max: int = Field(default=7, ge=1)
+    exclude: list[str] = Field(default_factory=list)
+    #: Layer order, top to bottom (e.g. [cli, report, runners, core]): a
+    #: module in an earlier layer may import later layers; the reverse is an
+    #: upward-import violation. Empty = no layering check (no invented order).
+    layers: list[str] = Field(default_factory=list)
+
+    def layering_config(self) -> MetricConfig:
+        """Any upward import violates."""
+        return MetricConfig(
+            type=MetricType.LAYERING_VIOLATIONS,
+            threshold=0.0,
+            comparison=ComparisonOperator.LE,
+        )
+
+    def max_children_config(self) -> MetricConfig:
+        """Threshold check for 'too many children' (missing layer)."""
+        return MetricConfig(
+            type=MetricType.DIRECTORY_CHILDREN,
+            threshold=float(self.fan_out_max),
+            comparison=ComparisonOperator.LE,
+        )
+
+    def min_children_config(self) -> MetricConfig:
+        """Threshold check for 'too few children' (pointless layer)."""
+        return MetricConfig(
+            type=MetricType.DIRECTORY_CHILDREN,
+            threshold=float(self.fan_out_min),
+            comparison=ComparisonOperator.GE,
+        )
+
+
+class ImportGraphConfig(BaseModel):
+    """Import-graph gating. Presence of this block turns cycle reports and
+    stable-dependencies counts into enforceable violations; without it the
+    deriver stays informational."""
+
+    forbid_cycles: bool = Field(default=True)
+    max_stable_dependencies_violations: int = Field(default=0, ge=0)
+
+    def cycles_config(self) -> MetricConfig:
+        """Any cycle (row value = member count >= 2) violates."""
+        return MetricConfig(
+            type=MetricType.DEPENDENCY_CYCLES,
+            threshold=0.0,
+            comparison=ComparisonOperator.LE,
+        )
+
+    def stable_dependencies_config(self) -> MetricConfig:
+        """Cap on edges pointing toward materially less stable modules."""
+        return MetricConfig(
+            type=MetricType.STABLE_DEPENDENCIES_VIOLATIONS,
+            threshold=float(self.max_stable_dependencies_violations),
+            comparison=ComparisonOperator.LE,
+        )
+
+
+#: Raw-computation weight a narrator may carry before it counts as MIXED,
+#: per strictness profile. Extreme: any computation mixes; standard: a couple
+#: of prose-grade operations (one comparison ~2) are tolerated; relaxed: a
+#: handful. The facts stay fixed — only this derivation-side judgment moves,
+#: so the cache is untouched by profile changes.
+MIXING_TOLERANCE_BY_PROFILE: dict[str, int] = {
+    "extreme": 0,
+    "standard": 4,
+    "relaxed": 8,
+}
+
+
+class DuplicationConfig(BaseModel):
+    """WET-code detection via the pydry engine. Presence of this block ENABLES
+    the deriver (it re-parses the tree, so the default command path never
+    pays); max_ratio additionally gates."""
+
+    normalize_local_names: bool = Field(default=True)
+    normalize_constants: bool = Field(default=False)
+    min_count: int = Field(default=2, ge=2)
+    #: Gate: per-file duplicated-lines ratio must stay at or below this.
+    max_ratio: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    def ratio_gate(self) -> MetricConfig:
+        """Per-file duplication ratio above the cap violates."""
+        return MetricConfig(
+            type=MetricType.DUPLICATION_RATIO,
+            threshold=float(self.max_ratio or 0.0),
+            comparison=ComparisonOperator.LE,
+        )
+
+
+class NarrativeConfig(BaseModel):
+    """Narrative Index gating (altitude budgets). Presence of this block
+    turns mixed-altitude and budget counts into enforceable violations;
+    without it the deriver stays informational (defaults still shape the
+    informational counts)."""
+
+    narrator_step_budget: int = Field(default=9, ge=1)
+    computer_statement_budget: int = Field(default=8, ge=1)
+    computer_nesting_budget: int = Field(default=1, ge=0)
+    #: None = follow the profile (see MIXING_TOLERANCE_BY_PROFILE).
+    mixing_tolerance: int | None = Field(default=None, ge=0)
+    #: Domain words the anchor harvest misses (lexicon layer 4).
+    allowlist: list[str] = Field(default_factory=list)
+    #: Gate: module mean name clarity must stay at or above this (None = no gate).
+    name_clarity_floor: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    def clarity_gate(self) -> MetricConfig:
+        """Module mean name clarity below the floor violates."""
+        return MetricConfig(
+            type=MetricType.NAME_CLARITY,
+            threshold=float(self.name_clarity_floor or 0.0),
+            comparison=ComparisonOperator.GE,
+        )
+
+    def effective_mixing_tolerance(self, profile: str) -> int:
+        """Explicit setting wins; otherwise the profile decides."""
+        if self.mixing_tolerance is not None:
+            return self.mixing_tolerance
+        return MIXING_TOLERANCE_BY_PROFILE.get(profile, 4)
+
+    def count_gate(self, metric_type: MetricType) -> MetricConfig:
+        """Any nonzero offender count violates."""
+        return MetricConfig(
+            type=metric_type,
+            threshold=0.0,
+            comparison=ComparisonOperator.LE,
+        )
+
+
 class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
@@ -101,6 +235,10 @@ class AntipastaConfig(BaseModel):
     ignore_patterns: list[str] = Field(default_factory=list)
     use_gitignore: bool = Field(default=True)
     profile: ProfileName = Field(default="standard")
+    tree_shape: TreeShapeConfig | None = Field(default=None)
+    import_graph: ImportGraphConfig | None = Field(default=None)
+    narrative: NarrativeConfig | None = Field(default=None)
+    duplication: DuplicationConfig | None = Field(default=None)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:
@@ -177,7 +315,7 @@ class AntipastaConfig(BaseModel):
         Returns:
             New AntipastaConfig instance with overrides applied
         """
-        from antipasta.core.config_override import ConfigOverride
+        from antipasta.core.model.config_override import ConfigOverride
 
         override = ConfigOverride(
             include_patterns=include_patterns or [],

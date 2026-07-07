@@ -16,9 +16,9 @@ the file is outside the project directory.
 from pathlib import Path
 import tempfile
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.detector import Language, LanguageDetector
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.detector import Language, LanguageDetector
+from antipasta.engine import MetricAggregator
 
 
 class TestTempFileHandling:

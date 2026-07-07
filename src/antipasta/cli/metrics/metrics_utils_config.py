@@ -5,7 +5,7 @@ import sys
 
 import click
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 
 def load_configuration(config: Path, quiet: bool) -> AntipastaConfig:

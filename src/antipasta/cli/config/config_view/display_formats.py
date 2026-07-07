@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 import yaml
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 # Threshold display names
 _THRESHOLD_NAMES = {

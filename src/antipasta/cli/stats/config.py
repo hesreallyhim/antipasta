@@ -5,9 +5,9 @@ from typing import Any
 
 import click
 
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
-from antipasta.core.detector import LanguageDetector
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
+from antipasta.core.model.detector import LanguageDetector
 
 
 def setup_configuration_with_overrides(
@@ -116,7 +116,7 @@ def setup_analysis_environment(
     Returns:
         Tuple of (config, override, aggregator, detector)
     """
-    from antipasta.core.aggregator import MetricAggregator
+    from antipasta.engine import MetricAggregator
 
     config, override = setup_configuration_with_overrides(
         include_pattern, exclude_pattern, no_gitignore, force_analyze

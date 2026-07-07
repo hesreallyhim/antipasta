@@ -9,7 +9,7 @@ import click
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 from .display_formats import display_json, display_raw, display_summary, display_yaml
 from .table_display import display_table

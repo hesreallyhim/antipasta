@@ -6,7 +6,7 @@ import sys
 import click
 from pydantic import ValidationError
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 
 @click.command()

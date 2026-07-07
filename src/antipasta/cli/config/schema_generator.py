@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
+
+PACKAGE_SCHEMA_PATH = Path(__file__).parents[2] / "schemas" / "metrics-config.schema.json"
 
 
 def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:
@@ -21,12 +23,12 @@ def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w") as f:
             json.dump(schema, f, indent=2)
+            f.write("\n")
 
     return schema
 
 
 if __name__ == "__main__":
     # Generate the schema file when run as a script
-    schema_path = Path(__file__).parent.parent / "schemas" / "metrics-config.schema.json"
-    generate_config_schema(schema_path)
-    print(f"Schema generated at: {schema_path}")
+    generate_config_schema(PACKAGE_SCHEMA_PATH)
+    print(f"Schema generated at: {PACKAGE_SCHEMA_PATH}")

@@ -1,4 +1,4 @@
-"""Tests for the snapshot diff engine (antipasta.core.snapshot_diff).
+"""Tests for the snapshot diff engine (antipasta.core.store.snapshot_diff).
 
 The diff is the heart of baseline comparison: these tests pin down file
 add/remove, rename-ish churn, metric deltas (epsilon, missing, non-numeric),
@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from antipasta.cli.report.diff_summary import format_diff_summary
-from antipasta.core.snapshot_diff import DEFAULT_EPSILON, SnapshotDiff, diff
+from antipasta.core.store.snapshot_diff import DEFAULT_EPSILON, SnapshotDiff, diff
 from antipasta.report.baseline import build_baseline_payload
 
 # ----- snapshot fixture builders -------------------------------------------
@@ -269,59 +269,51 @@ class TestFunctionDeltas:
 
     def test_sorted_by_worst_regression_first(self) -> None:
         """function_deltas orders by descending score delta."""
-        old = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    functions=[
-                        _function("small", 1, cyclomatic_complexity=5.0),
-                        _function("big", 2, cyclomatic_complexity=5.0),
-                        _function("better", 3, cyclomatic_complexity=5.0),
-                    ],
-                )
-            ]
-        )
-        new = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    functions=[
-                        _function("small", 1, cyclomatic_complexity=7.0),
-                        _function("big", 2, cyclomatic_complexity=15.0),
-                        _function("better", 3, cyclomatic_complexity=2.0),
-                    ],
-                )
-            ]
-        )
+        old = _snapshot([
+            _file(
+                "a.py",
+                functions=[
+                    _function("small", 1, cyclomatic_complexity=5.0),
+                    _function("big", 2, cyclomatic_complexity=5.0),
+                    _function("better", 3, cyclomatic_complexity=5.0),
+                ],
+            )
+        ])
+        new = _snapshot([
+            _file(
+                "a.py",
+                functions=[
+                    _function("small", 1, cyclomatic_complexity=7.0),
+                    _function("big", 2, cyclomatic_complexity=15.0),
+                    _function("better", 3, cyclomatic_complexity=2.0),
+                ],
+            )
+        ])
 
         names = [fn.name for fn in diff(old, new).function_deltas]
         assert names == ["big", "small", "better"]
 
     def test_new_violation_puts_function_first_in_regressions(self) -> None:
         """Regressions list new violations before larger plain deltas."""
-        old = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    functions=[
-                        _function("plain", 1, cyclomatic_complexity=5.0),
-                        _function("violator", 2, cyclomatic_complexity=9.0),
-                    ],
-                )
-            ]
-        )
-        new = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    functions=[
-                        _function("plain", 1, cyclomatic_complexity=25.0),
-                        _function("violator", 2, cyclomatic_complexity=11.0),
-                    ],
-                    violations=[_violation("cyclomatic_complexity", "violator")],
-                )
-            ]
-        )
+        old = _snapshot([
+            _file(
+                "a.py",
+                functions=[
+                    _function("plain", 1, cyclomatic_complexity=5.0),
+                    _function("violator", 2, cyclomatic_complexity=9.0),
+                ],
+            )
+        ])
+        new = _snapshot([
+            _file(
+                "a.py",
+                functions=[
+                    _function("plain", 1, cyclomatic_complexity=25.0),
+                    _function("violator", 2, cyclomatic_complexity=11.0),
+                ],
+                violations=[_violation("cyclomatic_complexity", "violator")],
+            )
+        ])
 
         regressions = diff(old, new).regressions
         assert [fn.name for fn in regressions] == ["violator", "plain"]
@@ -330,18 +322,16 @@ class TestFunctionDeltas:
 
     def test_new_violation_matches_qualified_function_names(self) -> None:
         """A violation on bare 'run' flags the qualified 'Engine::run' entry."""
-        old = _snapshot(
-            [_file("a.py", functions=[_function("Engine::run", 1, cyclomatic_complexity=9.0)])]
-        )
-        new = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    functions=[_function("Engine::run", 1, cyclomatic_complexity=11.0)],
-                    violations=[_violation("cyclomatic_complexity", "run")],
-                )
-            ]
-        )
+        old = _snapshot([
+            _file("a.py", functions=[_function("Engine::run", 1, cyclomatic_complexity=9.0)])
+        ])
+        new = _snapshot([
+            _file(
+                "a.py",
+                functions=[_function("Engine::run", 1, cyclomatic_complexity=11.0)],
+                violations=[_violation("cyclomatic_complexity", "run")],
+            )
+        ])
 
         (fn,) = diff(old, new).function_deltas
         assert fn.new_violation
@@ -400,17 +390,15 @@ class TestViolationChanges:
     def test_different_metric_same_function_is_new(self) -> None:
         """A second metric violating on the same function is a new violation."""
         old = _snapshot([_file("a.py", violations=[_violation("cyclomatic_complexity", "f")])])
-        new = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    violations=[
-                        _violation("cyclomatic_complexity", "f"),
-                        _violation("cognitive_complexity", "f"),
-                    ],
-                )
-            ]
-        )
+        new = _snapshot([
+            _file(
+                "a.py",
+                violations=[
+                    _violation("cyclomatic_complexity", "f"),
+                    _violation("cognitive_complexity", "f"),
+                ],
+            )
+        ])
 
         changes = diff(old, new).violation_changes
 
@@ -464,33 +452,29 @@ class TestFormatDiffSummary:
 
     def test_full_summary_sections_and_order(self) -> None:
         """Sections appear with churn first, then violations, then functions."""
-        old = _snapshot(
-            [
-                _file("gone.py"),
-                _file(
-                    "a.py",
-                    {"cyclomatic_complexity": 10.0},
-                    functions=[
-                        _function("worse", 1, cyclomatic_complexity=5.0),
-                        _function("nicer", 2, cyclomatic_complexity=9.0),
-                    ],
-                ),
-            ]
-        )
-        new = _snapshot(
-            [
-                _file("added.py"),
-                _file(
-                    "a.py",
-                    {"cyclomatic_complexity": 16.0},
-                    functions=[
-                        _function("worse", 1, cyclomatic_complexity=11.0),
-                        _function("nicer", 2, cyclomatic_complexity=4.0),
-                    ],
-                    violations=[_violation("cyclomatic_complexity", "worse", "a.py: worse over")],
-                ),
-            ]
-        )
+        old = _snapshot([
+            _file("gone.py"),
+            _file(
+                "a.py",
+                {"cyclomatic_complexity": 10.0},
+                functions=[
+                    _function("worse", 1, cyclomatic_complexity=5.0),
+                    _function("nicer", 2, cyclomatic_complexity=9.0),
+                ],
+            ),
+        ])
+        new = _snapshot([
+            _file("added.py"),
+            _file(
+                "a.py",
+                {"cyclomatic_complexity": 16.0},
+                functions=[
+                    _function("worse", 1, cyclomatic_complexity=11.0),
+                    _function("nicer", 2, cyclomatic_complexity=4.0),
+                ],
+                violations=[_violation("cyclomatic_complexity", "worse", "a.py: worse over")],
+            ),
+        ])
 
         summary = format_diff_summary(diff(old, new), baseline_label="base.json")
 
@@ -514,26 +498,22 @@ class TestBuildBaselinePayload:
 
     def test_payload_shape(self) -> None:
         """Payload carries label, metadata, delta map, and function rows."""
-        old = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    {"cyclomatic_complexity": 10.0},
-                    functions=[_function("f", 3, cyclomatic_complexity=5.0)],
-                )
-            ]
-        )
+        old = _snapshot([
+            _file(
+                "a.py",
+                {"cyclomatic_complexity": 10.0},
+                functions=[_function("f", 3, cyclomatic_complexity=5.0)],
+            )
+        ])
         old["generated_at"] = "2026-07-01T00:00:00+00:00"
-        new = _snapshot(
-            [
-                _file(
-                    "a.py",
-                    {"cyclomatic_complexity": 14.0},
-                    functions=[_function("f", 3, cyclomatic_complexity=9.0)],
-                ),
-                _file("b.py"),
-            ]
-        )
+        new = _snapshot([
+            _file(
+                "a.py",
+                {"cyclomatic_complexity": 14.0},
+                functions=[_function("f", 3, cyclomatic_complexity=9.0)],
+            ),
+            _file("b.py"),
+        ])
 
         payload = build_baseline_payload(diff(old, new), old, label="base.json")
 

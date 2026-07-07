@@ -129,7 +129,7 @@ while components 1–4 live at function scope; the report can show both.
 ## Probe results (implemented, not speculated)
 
 A working probe of components 1–4 lives at
-`tests/temp/narrative_index_probe.temp.py` (~230 lines, standard library only,
+`metrics/scripts/narrative_index_probe.py` (~230 lines, standard library only,
 run with `venv/bin/python`). Four versions of the same behavior:
 
 | Sample | Narration | Flatness | Pipeline | Names | Composite |

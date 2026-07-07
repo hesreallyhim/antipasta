@@ -3,7 +3,7 @@
 import statistics
 from typing import Any
 
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 from ..utils import (
     calculate_file_loc_statistics,

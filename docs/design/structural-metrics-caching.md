@@ -23,7 +23,7 @@ Every structural metric decomposes into two stages with wildly different costs:
    components for cycles, edge direction against layer order, children per
    package against the 5–7 band.
 
-**Measured, not assumed** (probe: `tests/temp/structural_cache_probe.temp.py`):
+**Measured, not assumed** (probe: `metrics/scripts/structural_cache_probe.py`):
 
 | Corpus | Extraction (parse) | Derivation (assemble + SCC) | Ratio | Graph |
 |---|--:|--:|--:|---|

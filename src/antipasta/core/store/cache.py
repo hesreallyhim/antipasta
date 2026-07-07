@@ -36,7 +36,7 @@ import shutil
 import sys
 
 from antipasta.__version__ import __version__
-from antipasta.core.metrics import FactRow, MetricResult
+from antipasta.core.model.metrics import FactRow, MetricResult, MetricType
 
 # v2 (2026-07-04): entries carry a `facts` array (path-independent fact rows
 # for the derivation stage). Bumping this constant shifts the fingerprint,
@@ -52,6 +52,10 @@ def _fingerprint() -> str:
         f"entry=v{_ENTRY_VERSION}",
         f"antipasta={__version__}",
         f"python={sys.version_info.major}.{sys.version_info.minor}",
+        # The metric roster: a new runner introduces new metric types, so
+        # folding the enum in makes stale pre-runner entries miss naturally
+        # (found the hard way: Phase-1 rows were absent for cache hits).
+        "metrics=" + ",".join(sorted(member.value for member in MetricType)),
     ]
     for package in _ANALYZER_PACKAGES:
         try:
@@ -129,14 +133,12 @@ class MetricsCache:
         if not self.enabled or errors:
             return
         entry_path = self._entry_path(key)
-        payload = json.dumps(
-            {
-                "v": _ENTRY_VERSION,
-                "errors": errors,
-                "metrics": [metric.to_dict() for metric in metrics],
-                "facts": [fact.to_dict() for fact in facts],
-            }
-        )
+        payload = json.dumps({
+            "v": _ENTRY_VERSION,
+            "errors": errors,
+            "metrics": [metric.to_dict() for metric in metrics],
+            "facts": [fact.to_dict() for fact in facts],
+        })
         try:
             entry_path.parent.mkdir(parents=True, exist_ok=True)
             temp_path = entry_path.with_name(f"{entry_path.name}.tmp-{os.getpid()}")

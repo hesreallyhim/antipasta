@@ -8,21 +8,32 @@ config-dependent, so it always runs in the parent after collection.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 import os
 from pathlib import Path
 from typing import Any, cast
 
-from antipasta.core.cache import MetricsCache
-from antipasta.core.config import AntipastaConfig, ComparisonOperator, LanguageConfig, MetricConfig
-from antipasta.core.derivation import AnalysisResult, DerivationInput, Deriver
-from antipasta.core.detector import Language, LanguageDetector
-from antipasta.core.metrics import FactRow, FileMetrics, MetricResult, MetricType
-from antipasta.core.violations import FileReport, ProjectReport, Violation, check_metric_violation
+from antipasta.core.model.config import (
+    AntipastaConfig,
+    ComparisonOperator,
+    LanguageConfig,
+    MetricConfig,
+)
+from antipasta.core.model.derivation import AnalysisResult, DerivationInput, Deriver
+from antipasta.core.model.detector import Language, LanguageDetector
+from antipasta.core.model.metrics import FactRow, FileMetrics, MetricResult, MetricType
+from antipasta.core.model.violations import (
+    FileReport,
+    ProjectReport,
+    Violation,
+    check_metric_violation,
+    summarize_reports,
+)
+from antipasta.core.store.cache import MetricsCache
 from antipasta.runners.base import BaseRunner
 from antipasta.runners.javascript.lizard_runner import LizardRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
+from antipasta.runners.python.house_style import HouseStyleRunner
 from antipasta.runners.python.radon import RadonRunner
 
 # Below this many files a process pool costs more in spawn overhead (~0.5s on
@@ -35,7 +46,7 @@ def _build_runners() -> dict[Language, list[BaseRunner]]:
     instance; its availability check is cached)."""
     lizard_runner = LizardRunner()
     return {
-        Language.PYTHON: [RadonRunner(), ComplexipyRunner()],
+        Language.PYTHON: [RadonRunner(), ComplexipyRunner(), HouseStyleRunner()],
         Language.JAVASCRIPT: [lizard_runner],
         Language.TYPESCRIPT: [lizard_runner],
     }
@@ -78,6 +89,24 @@ def _collect_file_metrics(
     return all_metrics, all_facts, errors
 
 
+def _default_derivers() -> list[Deriver]:
+    """Derivers registered when the caller doesn't supply an explicit list."""
+    from antipasta.core.derive.class_registry import derive_class_registry
+    from antipasta.core.derive.duplication import derive_duplication
+    from antipasta.core.derive.import_graph import derive_import_graph
+    from antipasta.core.derive.narrative import derive_narrative
+    from antipasta.core.derive.tree_shape import derive_layering, derive_tree_shape
+
+    return [
+        derive_tree_shape,
+        derive_layering,
+        derive_class_registry,
+        derive_import_graph,
+        derive_narrative,
+        derive_duplication,
+    ]
+
+
 def _resolve_jobs(requested: int | None, task_count: int) -> int:
     """Resolve the worker count: explicit arg > ANTIPASTA_JOBS env > auto."""
     if requested is None:
@@ -94,15 +123,13 @@ def _resolve_jobs(requested: int | None, task_count: int) -> int:
 # Per-function Halstead rows are informational: they feed `antipasta report`.
 # Thresholds keep applying to the file-level Halstead totals only, exactly as
 # they did before per-function Halstead extraction was added.
-_PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset(
-    {
-        MetricType.HALSTEAD_VOLUME,
-        MetricType.HALSTEAD_DIFFICULTY,
-        MetricType.HALSTEAD_EFFORT,
-        MetricType.HALSTEAD_TIME,
-        MetricType.HALSTEAD_BUGS,
-    }
-)
+_PER_FUNCTION_INFORMATIONAL: frozenset[MetricType] = frozenset({
+    MetricType.HALSTEAD_VOLUME,
+    MetricType.HALSTEAD_DIFFICULTY,
+    MetricType.HALSTEAD_EFFORT,
+    MetricType.HALSTEAD_TIME,
+    MetricType.HALSTEAD_BUGS,
+})
 
 
 class MetricAggregator:
@@ -126,7 +153,9 @@ class MetricAggregator:
         """
         self.config = config
         self.cache = cache if cache is not None else MetricsCache()
-        self.derivers: list[Deriver] = list(derivers) if derivers else []
+        self.derivers: list[Deriver] = (
+            list(derivers) if derivers is not None else _default_derivers()
+        )
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
 
         # Load .gitignore patterns if enabled
@@ -355,7 +384,7 @@ class MetricAggregator:
         Returns:
             Language configuration with default metrics
         """
-        from antipasta.core.config import LanguageConfig
+        from antipasta.core.model.config import LanguageConfig
 
         # Map default values to metric configs
         default_metrics = []
@@ -410,34 +439,5 @@ class MetricAggregator:
         )
 
     def generate_summary(self, reports: list[FileReport]) -> dict[str, Any]:
-        """Generate a summary of all reports.
-
-        Args:
-            reports: List of file reports
-
-        Returns:
-            Summary dictionary with statistics
-        """
-        total_files = len(reports)
-        files_with_violations = sum(1 for r in reports if r.has_violations)
-        total_violations = sum(r.violation_count for r in reports)
-
-        # Group violations by type
-        violations_by_type: dict[str, int] = defaultdict(int)
-        for report in reports:
-            for violation in report.violations:
-                violations_by_type[violation.metric_type.value] += 1
-
-        # Group by language
-        files_by_language: dict[str, int] = defaultdict(int)
-        for report in reports:
-            files_by_language[report.language] += 1
-
-        return {
-            "total_files": total_files,
-            "files_with_violations": files_with_violations,
-            "total_violations": total_violations,
-            "violations_by_type": dict(violations_by_type),
-            "files_by_language": dict(files_by_language),
-            "success": total_violations == 0,
-        }
+        """Generate a summary of all reports (delegates to the pure model fn)."""
+        return summarize_reports(reports)

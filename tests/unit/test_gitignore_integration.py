@@ -2,8 +2,8 @@
 
 from typing import Any
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.engine import MetricAggregator
 
 
 class TestGitignoreIntegration:

@@ -144,6 +144,37 @@ the correct verdict the static composite could only reach via the name floor.
   abstraction must admit local models (an ollama-class endpoint) as a
   first-class target, not an afterthought.
 
+## Local-provider survey (owner question, 2026-07-04)
+
+The local-inference landscape converges on one integration surface — an
+OpenAI-compatible HTTP endpoint on localhost — so a single small adapter
+(stdlib urllib; no streaming needed) covers the whole ecosystem:
+
+- **Recommended: local servers.** Ollama (de facto standard: daemon on
+  :11434, one-line model pulls, Metal acceleration), LM Studio (same API,
+  GUI crowd), llama-server (llama.cpp, low-level), vLLM (GPU rigs). One
+  `base_url` + `model` config serves all four and whatever comes next.
+- **Rejected: in-process inference** (`llama-cpp-python`, `mlx-lm` as an
+  extra): fully self-contained but drags compilation-fragile heavy deps and
+  makes antipasta own model management (multi-GB downloads, quantization,
+  RAM budgeting) — a product Ollama already is.
+- **Not applicable yet: OS models** (Apple Foundation Models are Swift-first;
+  no practical Python path — interesting for the Swift fleet, not here).
+
+Decisions locked for the eventual increment: `provider: openai-compatible`
+config block (`base_url`, `model`, `scope: narrators|changed|all`,
+`timeout_seconds`); endpoint health-probe with skip-and-say-so when absent;
+temperature 0 + seed where supported, advisory labels regardless; and a
+privacy guardrail — **non-localhost base URLs are refused unless
+`allow_remote: true`**, so local mode provably keeps code on the machine.
+Model guidance: qwen2.5-coder 7B-class for the reader passes, 3B-class
+acceptable for the tier-1 classifier; the judge is the weak link on small
+models — constrain it to structured output (same-behavior verdict +
+enumerated discrepancies), majority-of-three sampling, or route the judge
+alone to a larger local model (or cloud as a separate explicit opt-in).
+Caching needs nothing new: (function hash + callee hashes + model + prompt
+version) in the existing content-addressed store; warm runs make zero calls.
+
 ## Honesty section
 
 - The judge can be lenient; prompt it to enumerate behavioral discrepancies,

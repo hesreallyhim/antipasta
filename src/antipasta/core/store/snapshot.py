@@ -18,11 +18,10 @@ from pathlib import Path
 from typing import Any
 
 from antipasta import __version__
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.metrics import MetricResult
-from antipasta.core.treemap import build_treemap_nodes
-from antipasta.core.violations import FileReport, ProjectReport
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.metrics import MetricResult
+from antipasta.core.model.violations import FileReport, ProjectReport, summarize_reports
+from antipasta.core.store.treemap import build_treemap_nodes
 
 # v2 (2026-07-04): adds the top-level "project" block (project-/directory-
 # scoped reports from the derivation stage; empty until derivers register).
@@ -64,7 +63,7 @@ def build_snapshot(
         for report in sorted(reports, key=lambda r: str(r.file_path))
     ]
     if summary is None:
-        summary = MetricAggregator(config).generate_summary(reports)
+        summary = summarize_reports(reports)
 
     # Machine-neutral root when possible: snapshots get committed to git
     # (metrics history), and an absolute path would churn across machines.
@@ -261,16 +260,14 @@ def collect_worst_functions(snapshot: dict[str, Any], limit: int) -> list[dict[s
             candidates = [v for v in (cyclomatic, cognitive) if v is not None]
             if not candidates:
                 continue
-            rows.append(
-                {
-                    "score": max(candidates),
-                    "cyclomatic": cyclomatic,
-                    "cognitive": cognitive,
-                    "name": function["name"],
-                    "path": entry["path"],
-                    "line": function["line"],
-                }
-            )
+            rows.append({
+                "score": max(candidates),
+                "cyclomatic": cyclomatic,
+                "cognitive": cognitive,
+                "name": function["name"],
+                "path": entry["path"],
+                "line": function["line"],
+            })
 
     rows.sort(key=lambda r: (-r["score"], r["path"], r["name"]))
     return rows[: limit if limit > 0 else len(rows)]

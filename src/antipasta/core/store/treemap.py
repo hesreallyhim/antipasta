@@ -53,15 +53,13 @@ def build_treemap_nodes(
             continue
         known_ids.add(leaf_id)
         value = _tile_value(entry)
-        nodes.append(
-            {
-                "id": leaf_id,
-                "parent": parent,
-                "label": parts[-1],
-                "value": value,
-                "file_index": index,
-            }
-        )
+        nodes.append({
+            "id": leaf_id,
+            "parent": parent,
+            "label": parts[-1],
+            "value": value,
+            "file_index": index,
+        })
         for ancestor_id in ancestor_ids:
             _fold_into_aggregate(aggregates[ancestor_id], entry, value)
 

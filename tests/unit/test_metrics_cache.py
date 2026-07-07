@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from antipasta.core.aggregator import MetricAggregator
-from antipasta.core.cache import MetricsCache
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.metrics import MetricResult, MetricType
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.metrics import MetricResult, MetricType
+from antipasta.core.store.cache import MetricsCache
+from antipasta.engine import MetricAggregator
 
 SAMPLE_SOURCE = """\
 def helper(value):
@@ -123,7 +123,7 @@ class TestAggregatorCacheIntegration:
         )
 
         calls: list[tuple[str, str]] = []
-        import antipasta.core.aggregator as aggregator_module
+        import antipasta.engine as aggregator_module
 
         real_collect = aggregator_module._collect_file_metrics
 

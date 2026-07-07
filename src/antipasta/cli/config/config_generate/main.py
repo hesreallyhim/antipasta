@@ -5,7 +5,7 @@ from typing import Any
 
 import click
 
-from antipasta.core.config import AntipastaConfig
+from antipasta.core.model.config import AntipastaConfig
 
 from .file_operations import (
     confirm_file_overwrite,

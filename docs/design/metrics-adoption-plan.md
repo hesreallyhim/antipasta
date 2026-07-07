@@ -13,6 +13,289 @@ with reasons recorded in the phase's closing commit.
 
 ## Status log (updated at each checkpoint)
 
+- **Golden-set core split — EXECUTED 2026-07-04** (branch
+  `feat/golden-set-core-split`; the flat before-state is the tip of
+  `feat/metrics-phase-4`, per the owner's protocol). Layers planned from the
+  tool's own measurements: `core/model` (the afferent-19 stable core: metrics,
+  metric_models, violations, config, config_override, detector, derivation),
+  `core/store` (cache, snapshot×3, treemap), `core/derive` (the seven
+  derivers + cohesion; abstractness merged into import_graph to stay in
+  band), `core/mining` (vcs, coverage_matrix), and **aggregator promoted out
+  of core to `antipasta/engine.py`** — fixing the measured upward import.
+  The snapshot→aggregator wart died via a pure `summarize_reports` in the
+  model layer. 83 files' imports rewritten mechanically; gates green at
+  every step.
+  **Before → after:** fan-out over band 1 (core at 21, triple the band) → 0;
+  upward importers 2 → 0; cycles 1 (false) → 0. The layering config
+  `[cli, report, engine, runners, core]` now passes clean and is READY to
+  enable as a gate on the owner's word.
+  **The experiment's real yield — the metrics caught three defects DURING
+  the refactor they guided:** (1) `import pydry.engine` false-resolved to
+  the new local `engine` module — the prefix-stripping resolver now strips
+  only the analyzed root package's own name (pinned by test); (2)
+  `class_registry` reaching up into a runners module for cohesion — the
+  algorithm moved down into `core/derive` where it belonged; (3)
+  `core/mining/test_health.py` matched the `**/test_*.py` ignore glob and
+  had NEVER been analyzed (ungated since creation) — renamed
+  `coverage_matrix.py`. The remediation-product thesis, demonstrated on the
+  tool itself.
+  **Note:** import paths changed (antipasta.core.X → layered homes;
+  antipasta.engine) — a breaking change for library importers, fine for the
+  CLI; version bump to 2.0 or a 1.x deprecation-shim release is the owner's
+  packaging call.
+
+- **Tracks A, B, D — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  - **A (duplication, pydry)**: config-gated deriver over the owner's engine
+    (distributed on PyPI as `pydry-cli`, imported as `pydry`).
+    Clone groups + per-file ratios. First sweep: 11 groups in src — incl.
+    `_module_name` duplicated between import_graph and narrative, i.e. the
+    engine caught its integrator's own session copy-paste (since fixed by
+    moving shared predicates to core.detector).
+  - **B (version-control)**: `antipasta vcs` — churn, change-coupling pairs
+    (support ≥ 3 + confidence), hotspots joined against the COMMITTED
+    snapshot (the history convention feeding its sibling — no re-analysis),
+    plus D3 suite-health rows (test-churn ratio, co-churn multiplicity).
+    Reckoning: hotspots finger the session's heavy files; test-churn ratio
+    0.081 — the suite has not been brittle through heavy change. Deviations:
+    keyed caching deferred (mining measures in tens of ms).
+  - **D1 (static test smells)**: assertions-per-test, mock call-count
+    assertions, big-literal assertions — rows only for test functions in
+    test paths. Reckoning: 19 of our tests carry ≥ 8 assertions.
+  - **D2 (coverage matrix)**: `antipasta test-health` ingests a
+    contexts-enabled coverage.py artifact (never runs tests): per-test
+    unique-coverage, greedy-set-cover **suite redundancy index**, per-file
+    blast radius. **Dogfood reckoning — the owner's thesis, measured on our
+    own agent-grown suite: redundancy index 0.7445 (371 of 458 contexts add
+    zero unique line coverage; a 117-test greedy cover reaches every line);
+    blast radius of core/metrics.py is 209 tests.** Honesty label on every
+    row: line subsumption is candidacy, not verdict.
+  - **D4 + track C (LLM)** remain deferred per owner direction.
+  QA at this point: 491 tests, all gates green throughout; one gate-chain
+  flaw found and fixed (piping mypy through tail masked an exit code —
+  caught one commit later, noted honestly).
+
+- **Phase 4, part 5 — LANDED 2026-07-04, PHASE 4 COMPLETE** (branch
+  `feat/metrics-phase-4`): the Single-Responsibility composite, on the
+  class-registry reports. Transparent formula — cohesion components ×
+  (1 + weighted-methods/30) × (1 + statements/60) — joining the house
+  cohesion data, radon's weighted-methods rows, and callable-fact statement
+  counts. Informational only, `validated: false` in details pending owner
+  sign-off. **Validation pass (the review's precondition) run and passed
+  emphatically**: on the pydantic bench corpus the top scorers are
+  GenerateJsonSchema (2850), BaseModel (1223 — 27 cohesion components, the
+  ecosystem's canonical God class), GenerateSchema, FieldInfo — exactly the
+  classes an expert would name; clean antipasta tops out at 15.4
+  (MetricAggregator — the same class the layering probe flagged, metrics
+  agreeing with each other). Two orders of magnitude of discrimination.
+  QA: 468 tests green; all gates green.
+  **Phase 4 is complete.** Remaining program: tracks A (pydry — awaiting the
+  owner's PyPI release), B (version-control mode), C (LLM, deferred), D
+  (test-suite health), the golden-set core-split experiment (now eligible:
+  the backlog is measured — fan-out 14, two upward importers, 90 mixed
+  functions at standard, five two-job names), and report-UI surfacing of
+  project rows (product-shape work, owner-negotiable per directive).
+
+- **Phase 4, part 4 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  name clarity + linguistic antipatterns, completing the Narrative Index.
+  The layered lexicon per design: vendored English wordlist
+  (`data/wordlist.txt.gz`, ~198k words from the public-domain web2 list,
+  598 KB gz — over my 300–500 KB estimate, kept because the bulk is real
+  mid-length vocabulary; swappable for a frequency-ranked list) + curated
+  abbreviations + anchor-harvested project vocabulary (modules and class
+  names only — junk cannot self-whitelist, pinned by test) + config
+  allowlist; junk stop-list overrides all layers. Naive-stemming fallback
+  (plurals/participles) because web2 is singular-only — caught by the prose
+  fixture scoring `users` as a miss. Antipatterns fire on positive evidence
+  of name/behavior contradiction: lying predicates (is_* annotated non-bool),
+  getters returning nothing, two-job `_and_` names. Per-module rows
+  `name_clarity` (mean, worst offenders in details) and
+  `naming_antipatterns`; clarity gates only via an explicit floor.
+  QA: 468 tests green (14 new); all gates green.
+  **Reckoning:** antipasta's mean clarity 0.851 (floor 0.667); the
+  antipattern detector's first sweep found five genuine two-job names in the
+  cli layer (`finalize_and_save_config`, `collect_and_validate_files`,
+  `analyze_and_display_file_breakdown`, ...) — textbook catches, straight
+  onto the remediation backlog.
+  **Remaining for Phase 4:** the Single-Responsibility composite +
+  validation pass (last item; then the phase closes and the golden-set
+  experiment becomes eligible).
+
+- **Phase 4, part 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  the layering half of Module Tree Shape. `tree_shape.layers` lists layers
+  top to bottom; earlier may import later; a later layer importing an
+  earlier one is an upward-import violation (config presence is the gate —
+  no configured order, no invented one; unlisted top segments ignored).
+  Rides the exported module graph. QA: 458 tests green (4 new: downward
+  allowed, upward flagged with target details, unlisted ignored, no-config
+  no-op); all gates green.
+  **Reckoning (ad-hoc — adding layers to the dogfood config would gate, and
+  the owner said not yet):** under hypothesis [cli, report, runners, core,
+  utils], exactly two upward importers: `core.aggregator` → all five runner
+  modules (the orchestrator is misfiled in the data layer — the single
+  clearest input to the golden-set split), and `utils.schema_generator` →
+  core.config. Antipasta is two moves from cleanly layered.
+  **Remaining for Phase 4:** lexicon/name clarity + linguistic antipatterns
+  (wordlist vendoring approved), Single-Responsibility composite validation.
+
+- **Phase 4, part 2 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  the Narrative Index core. Callable facts gained the narrative ingredients
+  (call names incl. self-method calls, RAW computation weight — calls are
+  steps, never computation; a semantics bug caught by the prose fixture —
+  statement count, nesting, return info). New deriver classifies every
+  function narrator/computer/MIXED/trivial against the whole-program symbol
+  table (classes count: constructors are named steps) with ambient-
+  vocabulary exclusion (called by ≥20% of functions and ≥5 callers), applies
+  the altitude budgets, and computes per-module step-down ordering. Reports
+  are compact per-module counts with offender names in details. Gating
+  opt-in via a `narrative` config block. **The profile dial got its first
+  real consumer**: mixing tolerance (extreme 0 / standard 4 / relaxed 8, or
+  explicit) decides how much raw computation a narrator may carry —
+  derivation-side, so the cache is untouched by profile changes.
+  QA: 454 tests green (16 new); all gates green.
+  **Reckoning (the most instructive yet):** at extreme, 148 functions across
+  47 antipasta modules are mixed-altitude — including this session's own
+  reviewed code — confirming extreme is aspirational; at standard the count
+  is 90. One over-budget narrator (`check_metric_violation`), 37 over-budget
+  computers, 14 modules with step-down under 0.5 (the cli display modules
+  are written bottom-up). These are the tool's richest observations so far
+  and exactly the remediation backlog the golden-set experiment wants.
+  **Remaining for Phase 4:** layering half, lexicon/name clarity +
+  linguistic antipatterns, Single-Responsibility composite validation.
+
+- **Phase 4, part 1 — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
+  the Main-Sequence composites. Class facts now carry raw decorator and
+  metaclass-keyword markers (judgment-free; classification stays
+  derivation-side); abstractness = abstract classes / total classes
+  (abstract-base/Protocol bases incl. parametrized, abstractmethod members,
+  ABCMeta metaclass — labeled approximate), emitted only for modules WITH
+  classes; distance-from-main-sequence = |A + I − 1| joins instability on
+  the module reports; dependency-inversion = mean abstractness of imported
+  targets (classless targets count concrete; no row without edges). QA: 439
+  tests green (14 new); all gates green.
+  **Reckoning observation:** antipasta's "pain corner" (distance 1.0:
+  concrete + maximally stable) is exactly its data-model leaves —
+  core.metrics, core.metric_models, core.detector, snapshot_diff_types.
+  This is the textbook caveat of Martin's D metric: stable concrete
+  data-structure modules score as "pain" by formula and are fine in
+  practice. Treat distance as a scatter to read, not a gate to promote —
+  candidate refinement: exempt or annotate dataclass-only modules.
+  **Remaining for Phase 4:** tree-shape layering half (config-ordered
+  layers), the full Narrative Index (classification + budgets + step-down +
+  lexicon with the approved vendored wordlist + linguistic antipatterns),
+  and the Single-Responsibility composite validation.
+
+- **Owner decision round — 2026-07-04** (start of `feat/metrics-phase-4`):
+  (a) Branch stack continues as a long merge queue (phases are strictly
+  additive; no coupling requires early merges). (b) pydry integration waits
+  on the owner's PyPI v0.0.1 — confirmed antipasta needs only the engine +
+  JSON report, NOT the TUI (owner is cutting it). (c) No gate promotions
+  yet. (d) **exception_discipline reclassified as lint-adjacent** (owner
+  judgment, accepted): bare/broad/silent handlers are line-level rules a
+  linter owns (ruff E722/BLE001/S110); it stays because it is already built
+  and its *history* (via committed snapshots) is something linters don't
+  provide, but it is demoted from ever being a headline metric and excluded
+  from future composites. (e) **Cycle semantics: vicious circles only** —
+  child→ancestor package edges (re-export plumbing) are exempt from the
+  graph by fixed rule; the two cli `__init__` loops correctly vanish while
+  sibling cycles still report (pinned by tests). (f) **core/ split deferred
+  and reshaped into an experiment**: implementation has priority over
+  dogfooding; when Phase 4 lands, run the "golden set" protocol — plan
+  sub-layers using the tool's own dependency/cohesion data, checkpoint the
+  flat pre-refactor state, execute the split, and keep the before/after pair
+  as the first test case for the mechanical-remediation product direction.
+  (g) Snapshot refresh wired into a committed pre-commit hook
+  (`.githooks/pre-commit`, `make install-hooks`; stages only when something
+  besides the timestamp changed). (h) Wordlist vendoring approved; LLM track
+  deferred until after the static phases.
+
+- **Phase 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-3`). The
+  import graph: raw import facts resolved against the analyzed module set
+  (relative dots, `from X import name` submodule-vs-symbol with
+  specific-wins-fallback, leading-package stripping for src layouts), then
+  per-module efferent/afferent coupling, instability, stable-dependencies
+  counts (0.2 tolerance), dependency cycles via iterative Tarjan, and
+  package-level rollups. Gating opt-in via an `import_graph` config block
+  (cycles = Acyclic Dependencies violations; stable-dependencies capped);
+  informational without it. QA: 423 tests green (10 new: coupling triples on
+  a chain, relative/src-layout resolution, cycle report + gating + acyclic
+  case, package rollup, self-import/external hygiene); ruff/mypy clean;
+  dogfood green.
+  **Two real bugs caught by the dogfood reckoning:** (1) the cache
+  fingerprint didn't include the metric roster, so entries cached before a
+  new runner existed still hit and silently lacked its rows/facts — fixed by
+  folding the MetricType enum into the fingerprint (any new runner adds
+  types → natural full miss); (2) the CLI never threaded the analysis root
+  into derivation (Phase 0 deferral come due) — module names carried a
+  src.antipasta prefix imports don't have, yielding a zero-edge graph; the
+  metrics/report commands now pass their -d directory as root.
+  **Reckoning findings:** 71 modules, 149 edges. Stable core confirmed:
+  core.config and core.metrics at afferent 19 (instability 0.14/0.0) — the
+  dependency arrows point exactly where the architecture wants. One
+  stable-dependencies breach (cli, count 1). **Two real import cycles
+  found**: `cli <-> cli.main <-> cli.report <-> cli.stats` and
+  `cli.config <-> config_generate <-> config_view` — package-__init__
+  re-export loops from Click wiring. Genuine cycles by Python import
+  semantics; whether __init__ re-export edges deserve an exemption knob is
+  an owner decision (refinement candidate for the config block). The
+  cognitive gate forced one refactor mid-build (iterative Tarjan at
+  cognitive 28 → decomposed into a named-steps class) — the seventh.
+  Deviation: tree-shape layering half (config-ordered layers) deferred to
+  Phase 4 alongside Abstractness/Distance, which its report view needs
+  anyway.
+
+- **Phase 2 — LANDED 2026-07-04** (branch `feat/metrics-phase-2`). Class
+  scope complete: lack of cohesion (connected-components formulation; edges
+  = shared fields ∪ local calls; dunders excluded except ``__init__``) and
+  coupling-between-objects (labeled approximation: distinct imported names
+  referenced) computed in the house-style walk from the Phase 1 class facts;
+  weighted-methods-per-class emitted by the radon runner (its per-method
+  rows already carry class names — one aggregation, no second parse);
+  depth-of-inheritance + number-of-children via a new cross-file class
+  registry deriver (same-module + import-fact resolution; external bases
+  contribute one level and are labeled approximate; cycle-safe). All
+  informational-first. QA: 413 tests green (12 new: cohesive/God-class
+  twins, call-edge connectivity, dunder policy, coupling counting, weighted
+  sums with the file-average protected by a regression test, same-module and
+  cross-module inheritance chains, external-base flagging, inheritance-cycle
+  survival); ruff/mypy clean; dogfood green.
+  **Reckoning observations:** five classes show cohesion components > 1 —
+  HouseStyleRunner at 3 (it aggregates three row families; a fair candidate
+  for a later split), and MetricResult/FactRow at 2, which is the known
+  LCOM caveat for data carriers (serialization pairs share no fields with
+  accessors) — evidence for validating the Single-Responsibility composite
+  against real God-classes before trusting it, exactly as Round 1 warned.
+  Zero classes deeper than inheritance depth 2: the codebase is flat, as the
+  house style wants. Deviation: the Single-Responsibility index rider
+  deferred to Phase 4 with the composite work (needs the validation pass).
+
+- **Phase 1 — LANDED 2026-07-04** (branch `feat/metrics-phase-1`). Ten
+  house-style metrics live (chain depth, arity, boolean flags, exception
+  discipline, global-state reach, statement count, expression flatness,
+  pipeline linearity, marker density, comment density) via one single-walk
+  runner (`runners/python/house_style/`, split into expressions/structure/
+  comments/facts modules); fact rows (imports/callables/classes) extracted in
+  the same parse for Phases 2–3; Module Tree Shape tree-half shipped as the
+  first deriver, pioneering project-scoped reporting end to end (aggregator →
+  CLI PROJECT FINDINGS → snapshot `project` block). All informational-first
+  per policy — zero new gates. QA: 401 tests green (44 new: good/bad twins
+  per metric, fact extraction, tree-shape counting/gating/exclusions,
+  default-deriver wiring); ruff/mypy clean; dogfood green.
+  **Dogfood reckoning findings (observed, not gated):** `src/antipasta/core`
+  fan-out is 14 — double the 5–7 band; a missing layer by the owner's rule
+  (refactor decision deferred to the owner). Five single-child directories
+  are pointless-layer candidates (most defensibly small). Chain depth ≥ 3 in
+  exactly 2 functions — both written this session (`_resolve_jobs`,
+  `_relative_to_root`). The two undisciplined exception handlers are the
+  house-style runner's own deliberate catch-alls (subprocess-era parity
+  semantics) — the metric caught its own implementation; left as
+  observations. The cognitive-complexity gate forced one refactor mid-build
+  (`own_statements`, 18 → compose-method extraction) — sixth gate-forced
+  refactor on this effort, this time on the code implementing the metrics.
+  Deviations: profile threshold-scaling deferred to its first real consumer
+  (metric values are fixed/profile-free by cache-safety design); message-
+  chain fluent allowlist deferred (would make cached values config-dependent;
+  needs violation-layer filtering instead — noted for Phase 4).
+
 - **Phase 0 — LANDED 2026-07-04** (`6924d18`, checkpoint branch
   `feat/report-command`). QA: 371 unit tests green (12 new: fact-row and
   cache-v2 round-trips, project-report accounting, deriver end-to-end
@@ -104,7 +387,7 @@ from the profile):
   reporting: file p50/p90 as informational rows).
 - `expression_flatness`, `pipeline_linearity` (Narrative Index components
   that need no symbol table; algorithms seeded from
-  `tests/temp/narrative_index_probe.temp.py`).
+  `metrics/scripts/narrative_index_probe.py`).
 
 **Fact rows emitted in the same walk** (consumed later, cached now):
 - `imports`: raw, unresolved — `[{module: ".x"|"pkg.mod", names: [...],
@@ -262,8 +545,8 @@ plan's thesis test: the owner's house style, enforced on real code.
 
 ## Track A — pydry duplication runner (M; any time after Phase 0)
 
-Optional dependency (`antipasta[dry]`) importing the pydry engine (owner's
-package) — subprocess JSON envelope as fallback. Per-file
+Runtime dependency importing the pydry engine (distributed as `pydry-cli`,
+imported as `pydry`) — subprocess JSON envelope as fallback. Per-file
 `duplication_ratio` (duplicated lines ÷ SLOC) and `clone_pair_count`;
 project-level worst-offenders ProjectReport. The pairwise near-match stage is
 the one derivation that earns Merkle-tree-hash memoization (see

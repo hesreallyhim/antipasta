@@ -28,7 +28,7 @@ jobs:
 
     - name: Run quick checks
       run: |
+        ruff format --check src/antipasta tests
         ruff check src/antipasta tests
-        black --check src/antipasta tests
         mypy src/antipasta tests
         pytest -v

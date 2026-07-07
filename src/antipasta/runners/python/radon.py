@@ -13,8 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from antipasta.core.detector import Language
-from antipasta.core.metrics import FileMetrics, MetricResult, MetricType
+from antipasta.core.model.detector import Language
+from antipasta.core.model.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
 
 if TYPE_CHECKING:
@@ -141,6 +141,10 @@ class RadonRunner(BaseRunner):
             metrics.append(self._build_cc_result(file_path, block, cc_rank(block.complexity)))
 
         if metrics:
+            # Order matters: the average and its function_count describe the
+            # per-function cyclomatic rows only, so aggregate rows are
+            # appended after both are computed.
+            weighted_rows = self._weighted_methods_rows(file_path, metrics)
             avg_complexity = sum(m.value for m in metrics) / len(metrics)
             metrics.append(
                 MetricResult(
@@ -150,8 +154,34 @@ class RadonRunner(BaseRunner):
                     details={"type": "average", "function_count": len(metrics)},
                 )
             )
+            metrics.extend(weighted_rows)
 
         return metrics
+
+    @staticmethod
+    def _weighted_methods_rows(file_path: Path, cc_rows: list[MetricResult]) -> list[MetricResult]:
+        """Weighted Methods per Class: sum of member cyclomatic complexity.
+
+        Derived here because radon's per-method rows already carry the owning
+        class name — one aggregation, no second parse (adoption plan, Phase 2).
+        """
+        sums: dict[str, float] = {}
+        counts: dict[str, int] = {}
+        for row in cc_rows:
+            class_name = (row.details or {}).get("classname")
+            if class_name:
+                sums[class_name] = sums.get(class_name, 0.0) + row.value
+                counts[class_name] = counts.get(class_name, 0) + 1
+        return [
+            MetricResult(
+                file_path=file_path,
+                metric_type=MetricType.WEIGHTED_METHODS_PER_CLASS,
+                value=total,
+                function_name=class_name,
+                details={"methods": counts[class_name]},
+            )
+            for class_name, total in sums.items()
+        ]
 
     @staticmethod
     def _build_cc_result(file_path: Path, block: RadonFunction, rank: str) -> MetricResult:

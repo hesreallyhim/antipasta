@@ -13,6 +13,8 @@ from antipasta.cli.config.config_validate import validate as validate_cmd
 from antipasta.cli.metrics import metrics as metrics_cmd
 from antipasta.cli.report import report as report_cmd
 from antipasta.cli.stats import stats as stats_cmd
+from antipasta.cli.test_health import test_health as test_health_cmd
+from antipasta.cli.vcs import vcs as vcs_cmd
 
 
 @click.group()
@@ -26,6 +28,8 @@ cli.add_command(config_group, name="config")
 cli.add_command(metrics_cmd, name="metrics")
 cli.add_command(report_cmd, name="report")
 cli.add_command(stats_cmd, name="stats")
+cli.add_command(vcs_cmd, name="vcs")
+cli.add_command(test_health_cmd)
 
 
 # Backward compatibility aliases (hidden from help)

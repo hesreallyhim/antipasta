@@ -20,9 +20,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from antipasta.core.config import AntipastaConfig
-    from antipasta.core.metrics import FactRow
-    from antipasta.core.violations import FileReport, ProjectReport
+    from antipasta.core.model.config import AntipastaConfig
+    from antipasta.core.model.metrics import FactRow
+    from antipasta.core.model.violations import FileReport, ProjectReport
 
 
 @dataclass

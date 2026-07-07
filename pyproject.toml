@@ -35,18 +35,21 @@ dependencies = [
     "pydantic>=2.5.0",
     "pyyaml>=6.0",
     "pathspec>=1.1.1",
+    # PyPI package is pydry-cli; import module is pydry.
+    "pydry-cli",
     "click>=8.1.0",
     "plotly>=6.3.0",
     "pandas>=2.3.0",
 ]
 
 [project.optional-dependencies]
+# Backward-compatible no-op extra; duplication support is installed by default.
+dry = []
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-testmon>=2.0.20",
-    "ruff>=0.1.0",
-    "black>=25.0.0,<26.0.0",
+    "ruff>=0.15.20",
     "mypy>=2.1.0",
     "tox>=4.56.2",
     "types-PyYAML>=6.0",
@@ -99,11 +102,6 @@ known-first-party = ["antipasta"]
 combine-as-imports = true
 force-sort-within-sections = true
 
-[tool.black]
-line-length = 100
-target-version = ["py311"]
-extend-exclude = "__INTERNAL__|DEMOS"
-
 [tool.mypy]
 python_version = "3.11"
 strict = true
@@ -125,6 +123,10 @@ exclude = ["__INTERNAL__", "DEMOS"]
 module = ["radon.*", "complexipy.*", "lizard.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["pydry.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
@@ -142,7 +144,7 @@ source = ["src/antipasta"]
 parallel = false
 concurrency = []
 disable_warnings = ["module-not-measured"]
-omit = ["*/__INTERNAL__/*", "*/DEMOS/*", "*/INTERNAL/*"]
+omit = ["*/__INTERNAL__/*", "*/DEMOS/*", "*/INTERNAL/*", "metrics/scripts/*"]
 
 [tool.coverage.report]
 exclude_lines = [

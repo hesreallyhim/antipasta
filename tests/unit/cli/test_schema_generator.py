@@ -2,10 +2,9 @@
 
 import json
 from pathlib import Path
-import sys
 from unittest.mock import MagicMock, mock_open, patch
 
-from antipasta.utils.schema_generator import generate_config_schema
+from antipasta.cli.config.schema_generator import PACKAGE_SCHEMA_PATH, generate_config_schema
 
 
 class TestGenerateConfigSchema:
@@ -147,7 +146,7 @@ class TestGenerateConfigSchema:
             assert "properties" in schema
             assert isinstance(schema["properties"], dict)
 
-    @patch("antipasta.utils.schema_generator.Path.mkdir")
+    @patch("antipasta.cli.config.schema_generator.Path.mkdir")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     def test_generate_schema_file_operations(
@@ -173,51 +172,13 @@ class TestGenerateConfigSchema:
 class TestSchemaGeneratorMain:
     """Test the __main__ block execution."""
 
-    def test_main_block_execution(self, tmp_path: Path) -> None:
-        """Test running the module as a script."""
-        test_script = tmp_path / "test_run.py"
-
-        # Create a test script that imports and runs the main block
-        script_content = """
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-# Mock the path to write to temp directory
-import antipasta.utils.schema_generator as sg
-original_path = Path(sg.__file__)
-sg.__file__ = str(Path(__file__))
-
-# Run the main block
-if __name__ == "__main__":
-    schema_path = Path(sg.__file__).parent.parent / "schemas" / "metrics-config.schema.json"
-    sg.generate_config_schema(schema_path)
-    print(f"Schema generated at: {schema_path}")
-"""
-
-        test_script.write_text(script_content)
-
-        # Run the script
-        import subprocess
-
-        result = subprocess.run(
-            [sys.executable, str(test_script)],
-            capture_output=True,
-            text=True,
-            cwd=str(tmp_path),
-        )
-
-        # Check the output
-        assert "Schema generated at:" in result.stdout
-        assert "schemas/metrics-config.schema.json" in result.stdout
-
-    @patch("antipasta.utils.schema_generator.generate_config_schema")
+    @patch("antipasta.cli.config.schema_generator.generate_config_schema")
     @patch("builtins.print")
     def test_main_block_with_mock(
         self, mock_print: MagicMock, mock_generate: MagicMock, tmp_path: Path
     ) -> None:
         """Test __main__ block using mocks."""
-        from antipasta.utils import schema_generator
+        from antipasta.cli.config import schema_generator
 
         # Save original __file__ and replace with temp path
         original_file = schema_generator.__file__
@@ -226,7 +187,7 @@ if __name__ == "__main__":
         # Execute main block code directly
         if __name__ != "__main__":  # Simulate __main__ execution
             schema_path = (
-                Path(schema_generator.__file__).parent.parent
+                Path(schema_generator.__file__).parents[2]
                 / "schemas"
                 / "metrics-config.schema.json"
             )
@@ -349,3 +310,10 @@ class TestSchemaContent:
         if "use_gitignore" in properties:
             gitignore_schema = properties["use_gitignore"]
             assert gitignore_schema.get("type") == "boolean"
+
+    def test_committed_schema_matches_model(self) -> None:
+        """The packaged schema should not drift from the Pydantic model."""
+        with open(PACKAGE_SCHEMA_PATH) as f:
+            committed_schema = json.load(f)
+
+        assert committed_schema == generate_config_schema()

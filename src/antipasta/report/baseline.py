@@ -1,6 +1,6 @@
 """Baseline payload assembly for the HTML report's "vs baseline" mode.
 
-Converts a :class:`~antipasta.core.snapshot_diff_types.SnapshotDiff` into the
+Converts a :class:`~antipasta.core.store.snapshot_diff_types.SnapshotDiff` into the
 JSON-serializable ``baseline`` object embedded in the report data.  The
 renderer uses it for delta tile coloring, the regressions table, and the meta
 line naming the baseline.
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from antipasta.core.snapshot_diff import FunctionDelta, SnapshotDiff
+from antipasta.core.store.snapshot_diff import FunctionDelta, SnapshotDiff
 
 
 def build_baseline_payload(

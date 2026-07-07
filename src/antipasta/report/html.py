@@ -64,7 +64,6 @@ def render_report(snapshot: dict[str, Any]) -> str:
     )
     if _NETWORK_REF.search(html):
         raise ValueError(
-            "Rendered report contains a network reference; refusing to emit "
-            "a non-offline report."
+            "Rendered report contains a network reference; refusing to emit a non-offline report."
         )
     return html

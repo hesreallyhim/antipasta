@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.config_override import ConfigOverride
-from antipasta.core.detector import LanguageDetector
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_override import ConfigOverride
+from antipasta.core.model.detector import LanguageDetector
 
 
 def collect_files(

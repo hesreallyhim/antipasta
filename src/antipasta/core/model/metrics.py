@@ -28,6 +28,65 @@ class MetricType(StrEnum):
     SOURCE_LINES_OF_CODE = "source_lines_of_code"
     COMMENT_LINES = "comment_lines"
     BLANK_LINES = "blank_lines"
+    # House-style metrics (adoption plan, Phase 1). Informational-first:
+    # none carries a default threshold; gates are opt-in per config.
+    MESSAGE_CHAIN_DEPTH = "message_chain_depth"
+    FUNCTION_ARITY = "function_arity"
+    BOOLEAN_FLAG_PARAMETERS = "boolean_flag_parameters"
+    EXCEPTION_DISCIPLINE = "exception_discipline"
+    GLOBAL_STATE_REACH = "global_state_reach"
+    MARKER_DENSITY = "marker_density"
+    COMMENT_DENSITY = "comment_density"
+    FUNCTION_STATEMENTS = "function_statements"
+    EXPRESSION_FLATNESS = "expression_flatness"
+    PIPELINE_LINEARITY = "pipeline_linearity"
+    # Class-scope metrics (adoption plan, Phase 2). Informational-first.
+    LACK_OF_COHESION = "lack_of_cohesion"
+    WEIGHTED_METHODS_PER_CLASS = "weighted_methods_per_class"
+    COUPLING_BETWEEN_OBJECTS = "coupling_between_objects"
+    DEPTH_OF_INHERITANCE_TREE = "depth_of_inheritance_tree"
+    NUMBER_OF_CHILDREN = "number_of_children"
+    SINGLE_RESPONSIBILITY_INDEX = "single_responsibility_index"
+    # Project-scope metrics (derivation stage).
+    DIRECTORY_CHILDREN = "directory_children"
+    # Import-graph metrics (adoption plan, Phase 3). Informational-first.
+    EFFERENT_COUPLING = "efferent_coupling"
+    AFFERENT_COUPLING = "afferent_coupling"
+    INSTABILITY = "instability"
+    DEPENDENCY_CYCLES = "dependency_cycles"
+    STABLE_DEPENDENCIES_VIOLATIONS = "stable_dependencies_violations"
+    # Main-Sequence composites (adoption plan, Phase 4). Informational-first;
+    # all three are labeled approximations (Python abstractness is inferred
+    # from abstract-base/Protocol/abstractmethod markers).
+    ABSTRACTNESS = "abstractness"
+    DISTANCE_FROM_MAIN_SEQUENCE = "distance_from_main_sequence"
+    DEPENDENCY_INVERSION = "dependency_inversion"
+    # Narrative Index (adoption plan, Phase 4). Per-module counts;
+    # informational-first.
+    NARRATIVE_MIXED_FUNCTIONS = "narrative_mixed_functions"
+    NARRATOR_BUDGET_EXCEEDED = "narrator_budget_exceeded"
+    COMPUTER_BUDGET_EXCEEDED = "computer_budget_exceeded"
+    STEP_DOWN_ORDERING = "step_down_ordering"
+    LAYERING_VIOLATIONS = "layering_violations"
+    NAME_CLARITY = "name_clarity"
+    NAMING_ANTIPATTERNS = "naming_antipatterns"
+    # Duplication (track A, pydry engine). Config-gated.
+    DUPLICATION_RATIO = "duplication_ratio"
+    CLONE_OCCURRENCES = "clone_occurrences"
+    # Version-control mining (track B; opt-in command, never the default path).
+    # Test-suite health, static smells (track D1). Rows appear only for
+    # test functions in test-looking files.
+    ASSERTIONS_PER_TEST = "assertions_per_test"
+    MOCK_CALL_ASSERTIONS = "mock_call_assertions"
+    BIG_LITERAL_ASSERTIONS = "big_literal_assertions"
+    CODE_CHURN = "code_churn"
+    CHANGE_COUPLING = "change_coupling"
+    HOTSPOT = "hotspot"
+    TEST_CHURN_RATIO = "test_churn_ratio"
+    CO_CHURN_MULTIPLICITY = "co_churn_multiplicity"
+    # Coverage-matrix analytics (track D2; artifact ingestion).
+    SUITE_REDUNDANCY_INDEX = "suite_redundancy_index"
+    BLAST_RADIUS = "blast_radius"
 
 
 @dataclass

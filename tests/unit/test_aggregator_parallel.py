@@ -6,15 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from antipasta.core.aggregator import (
+from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.metrics import MetricType
+from antipasta.core.store.cache import MetricsCache
+from antipasta.engine import (
     PARALLEL_THRESHOLD,
     MetricAggregator,
     _collect_file_metrics,
     _resolve_jobs,
 )
-from antipasta.core.cache import MetricsCache
-from antipasta.core.config import AntipastaConfig
-from antipasta.core.metrics import MetricType
 
 SAMPLE_SOURCE = """\
 def helper(value):

@@ -4,7 +4,7 @@ from pathlib import Path
 import statistics
 from typing import Any
 
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 
 def should_collect_loc_metrics(metrics_to_include: list[str]) -> bool:

@@ -8,10 +8,10 @@ import operator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from antipasta.core.config import ComparisonOperator, MetricConfig
+from antipasta.core.model.config import ComparisonOperator, MetricConfig
 
 if TYPE_CHECKING:
-    from antipasta.core.metrics import MetricResult, MetricType
+    from antipasta.core.model.metrics import MetricResult, MetricType
 
 
 @dataclass
@@ -202,3 +202,26 @@ def check_metric_violation(metric: MetricResult, config: MetricConfig) -> Violat
         line_number=metric.line_number,
         function_name=metric.function_name,
     )
+
+
+def summarize_reports(reports: list[FileReport]) -> dict[str, Any]:
+    """Suite-level summary over file reports (pure; shared by engine and
+    snapshot so the store layer never reaches up into orchestration)."""
+    from collections import defaultdict
+
+    violations_by_type: dict[str, int] = defaultdict(int)
+    files_by_language: dict[str, int] = defaultdict(int)
+    total_violations = 0
+    for report in reports:
+        files_by_language[report.language] += 1
+        total_violations += report.violation_count
+        for violation in report.violations:
+            violations_by_type[violation.metric_type.value] += 1
+    return {
+        "total_files": len(reports),
+        "files_with_violations": sum(1 for r in reports if r.has_violations),
+        "total_violations": total_violations,
+        "violations_by_type": dict(violations_by_type),
+        "files_by_language": dict(files_by_language),
+        "success": total_violations == 0,
+    }

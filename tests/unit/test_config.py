@@ -5,14 +5,14 @@ from pathlib import Path
 from pydantic import ValidationError
 import pytest
 
-from antipasta.core.config import (
+from antipasta.core.model.config import (
     AntipastaConfig,
     ComparisonOperator,
     DefaultsConfig,
     LanguageConfig,
     MetricConfig,
 )
-from antipasta.core.metrics import MetricType
+from antipasta.core.model.metrics import MetricType
 
 
 class TestMetricConfig:
