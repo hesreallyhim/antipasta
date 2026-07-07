@@ -18,7 +18,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: install-hooks metrics-snapshot help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
+.PHONY: install-hooks help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -95,13 +95,9 @@ metrics-quiet: install  ## Run antipasta metrics analysis on src/ (quiet mode - 
 metrics-json: install  ## Run antipasta metrics analysis and output JSON
 	@$(VENV_DIR)/bin/antipasta metrics -d src/ --format json
 
-install-hooks:  ## Point git at the committed hooks (.githooks/pre-commit refreshes the metrics snapshot)
+install-hooks:  ## Point git at the committed hooks
 	@git config core.hooksPath .githooks
 	@echo "✅ core.hooksPath -> .githooks"
-
-metrics-snapshot: install  ## Refresh metrics/snapshot.json (commit with non-trivial changes)
-	@$(VENV_DIR)/bin/antipasta report -d src/antipasta --format json -o metrics/snapshot.json
-	@echo "✅ metrics/snapshot.json refreshed — include it in your commit"
 
 metrics-report: install  ## Generate detailed metrics report with statistics
 	@echo "═══════════════════════════════════════════════════════"

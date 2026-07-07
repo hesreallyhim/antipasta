@@ -116,7 +116,7 @@ antipasta provides the following commands:
 | `metrics` | Analyze code metrics for specified files | Uses `.antipasta.yaml` config, shows helpful message if missing |
 | `stats` | Collect and display code metrics statistics | Analyzes files matching the specified pattern |
 | `report` | Generate a visual complexity report (offline HTML or JSON) | Writes a single self-contained HTML file |
-| `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Uses the current repository and `metrics/snapshot.json` when present |
+| `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Uses the current repository; hotspot join is skipped unless a snapshot is supplied |
 | `test-health` | Analyze coverage contexts for test redundancy and blast radius | Reads coverage.py data recorded with `--cov-context=test` |
 
 > **Note**: The old commands `generate-config` and `validate-config` are deprecated but still work for backward compatibility. They will show a deprecation warning. Please use `config generate` and `config validate` instead.
@@ -228,8 +228,12 @@ antipasta stats --pattern "**/*.py" --format all --output ./reports/
 ### Version-Control Mining
 
 ```bash
-# Mine the last 90 days of git history, joining hotspots to metrics/snapshot.json if present
+# Mine the last 90 days of git history
 antipasta vcs
+
+# Join hotspots to a previously generated report snapshot
+antipasta report --directory src/antipasta --format json --output .cache/antipasta-snapshot.json
+antipasta vcs --snapshot .cache/antipasta-snapshot.json
 
 # Use a different history window or emit JSON
 antipasta vcs --window 30 --format json

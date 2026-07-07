@@ -52,8 +52,8 @@ with reasons recorded in the phase's closing commit.
     engine caught its integrator's own session copy-paste (since fixed by
     moving shared predicates to core.detector).
   - **B (version-control)**: `antipasta vcs` — churn, change-coupling pairs
-    (support ≥ 3 + confidence), hotspots joined against the COMMITTED
-    snapshot (the history convention feeding its sibling — no re-analysis),
+    (support ≥ 3 + confidence), hotspots joined against a supplied report
+    snapshot (no re-analysis in the history miner),
     plus D3 suite-health rows (test-churn ratio, co-churn multiplicity).
     Reckoning: hotspots finger the session's heavy files; test-churn ratio
     0.081 — the suite has not been brittle through heavy change. Deviations:
@@ -192,7 +192,7 @@ with reasons recorded in the phase's closing commit.
   yet. (d) **exception_discipline reclassified as lint-adjacent** (owner
   judgment, accepted): bare/broad/silent handlers are line-level rules a
   linter owns (ruff E722/BLE001/S110); it stays because it is already built
-  and its *history* (via committed snapshots) is something linters don't
+  and its *history* (via saved snapshots) is something linters don't
   provide, but it is demoted from ever being a headline metric and excluded
   from future composites. (e) **Cycle semantics: vicious circles only** —
   child→ancestor package edges (re-export plumbing) are exempt from the
@@ -203,10 +203,10 @@ with reasons recorded in the phase's closing commit.
   sub-layers using the tool's own dependency/cohesion data, checkpoint the
   flat pre-refactor state, execute the split, and keep the before/after pair
   as the first test case for the mechanical-remediation product direction.
-  (g) Snapshot refresh wired into a committed pre-commit hook
-  (`.githooks/pre-commit`, `make install-hooks`; stages only when something
-  besides the timestamp changed). (h) Wordlist vendoring approved; LLM track
-  deferred until after the static phases.
+  (g) Snapshot refresh was temporarily wired into a committed pre-commit
+  hook during the transition, then retired once the V2 branch landed.
+  (h) Wordlist vendoring approved; LLM track deferred until after the
+  static phases.
 
 - **Phase 3 — LANDED 2026-07-04** (branch `feat/metrics-phase-3`). The
   import graph: raw import facts resolved against the analyzed module set
@@ -300,7 +300,7 @@ with reasons recorded in the phase's closing commit.
   `feat/report-command`). QA: 371 unit tests green (12 new: fact-row and
   cache-v2 round-trips, project-report accounting, deriver end-to-end
   including the exit-code fold, profile validation, snapshot v2); ruff +
-  mypy clean; dogfood 0 violations; committed metrics snapshot regenerated
+  mypy clean; dogfood 0 violations; metrics snapshot regenerated
   on schema v2. Recorded deviations from the spec: (a) Violation reuses
   `file_path` as the project subject instead of a new field — smaller diff,
   same information; (b) CLI root-threading deferred until the first real

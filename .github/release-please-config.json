@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "python",
+  "include-component-in-tag": false,
+  "packages": {
+    ".": {
+      "package-name": "antipasta",
+      "release-type": "python",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "src/antipasta/__version__.py"
+        }
+      ]
+    }
+  }
+}
