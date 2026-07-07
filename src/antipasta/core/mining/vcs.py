@@ -7,8 +7,7 @@ Opt-in by design — this never runs on the default analysis path. One
 - **change coupling** (files that change together: co-commit support), the
   strongest coupling signal static analysis cannot see;
 - **hotspots** — churn × worst cyclomatic complexity, joined against the
-  committed metrics snapshot (``metrics/snapshot.json``) so no re-analysis
-  is needed: the metrics-history convention feeds its sibling feature;
+  supplied report snapshot so no re-analysis is needed;
 - **test-suite health D3**: test-churn ratio (test lines changed per source
   line changed) and co-churn multiplicity (median test files touched per
   source-touching commit) — the owner's "a hundred tests break" pain,

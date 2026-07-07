@@ -1,9 +1,8 @@
 """The `antipasta vcs` command: churn, change coupling, hotspots.
 
 Opt-in by definition — history mining never runs on the default metrics
-path. Hotspots join against the committed metrics snapshot when present
-(``metrics/snapshot.json`` by convention), so no re-analysis happens here.
-stdout carries data; diagnostics go to stderr.
+path. Hotspots can join against an explicit report JSON snapshot, so no
+re-analysis happens here. stdout carries data; diagnostics go to stderr.
 """
 
 from __future__ import annotations
@@ -31,8 +30,8 @@ from antipasta.core.model.violations import ProjectReport
 @click.option(
     "--snapshot",
     type=click.Path(path_type=Path),
-    default=Path("metrics/snapshot.json"),
-    help="Metrics snapshot for the hotspot join (skipped when absent)",
+    default=None,
+    help="Optional report JSON snapshot for the hotspot join",
 )
 @click.option(
     "--format",
@@ -41,7 +40,7 @@ from antipasta.core.model.violations import ProjectReport
     default="text",
     help="Output format",
 )
-def vcs(repo: Path, window: int, snapshot: Path, output_format: str) -> None:
+def vcs(repo: Path, window: int, snapshot: Path | None, output_format: str) -> None:
     """Mine git history: churn, change coupling, hotspots, suite health."""
     try:
         history = mine_history(repo.resolve(), window_days=window)
@@ -58,7 +57,9 @@ def vcs(repo: Path, window: int, snapshot: Path, output_format: str) -> None:
         _print_text(reports)
 
 
-def _load_complexity(snapshot_path: Path) -> dict[str, float]:
+def _load_complexity(snapshot_path: Path | None) -> dict[str, float]:
+    if snapshot_path is None:
+        return {}
     try:
         snapshot = json.loads(snapshot_path.read_text())
     except (OSError, json.JSONDecodeError):
