@@ -46,16 +46,15 @@ def _derive(root: Path, config: AntipastaConfig) -> list[ProjectReport]:
     )
 
 
-requires_pydry = pytest.mark.skipif(not pydry_available(), reason="pydry not installed")
-
-
 class TestDuplicationDeriver:
+    def test_pydry_runtime_dependency_is_available(self) -> None:
+        assert pydry_available()
+
     def test_disabled_without_config(self, tmp_path: Path) -> None:
         _write(tmp_path, {"a.py": TWIN_A, "b.py": TWIN_B})
 
         assert _derive(tmp_path, AntipastaConfig()) == []
 
-    @requires_pydry
     def test_twins_form_a_clone_group(self, tmp_path: Path) -> None:
         _write(tmp_path, {"a.py": TWIN_A, "b.py": TWIN_B + "\n" + LONER})
         config = AntipastaConfig(duplication=DuplicationConfig())
@@ -69,7 +68,6 @@ class TestDuplicationDeriver:
         assert any("alpha" in m for m in members)
         assert any("beta" in m for m in members)
 
-    @requires_pydry
     def test_per_file_ratio_rows(self, tmp_path: Path) -> None:
         _write(tmp_path, {"a.py": TWIN_A, "b.py": TWIN_B})
         config = AntipastaConfig(duplication=DuplicationConfig())
@@ -80,7 +78,6 @@ class TestDuplicationDeriver:
         assert a_report.metrics[0].metric_type is MetricType.DUPLICATION_RATIO
         assert a_report.metrics[0].value == 1.0  # the whole file is one clone
 
-    @requires_pydry
     def test_ratio_gate(self, tmp_path: Path) -> None:
         _write(tmp_path, {"a.py": TWIN_A, "b.py": TWIN_B})
         config = AntipastaConfig(duplication=DuplicationConfig(max_ratio=0.5))
@@ -90,7 +87,6 @@ class TestDuplicationDeriver:
         a_report = next(r for r in reports if r.subject == "a.py")
         assert a_report.has_violations
 
-    @requires_pydry
     def test_no_clones_no_reports(self, tmp_path: Path) -> None:
         _write(tmp_path, {"a.py": TWIN_A, "b.py": LONER})
         config = AntipastaConfig(duplication=DuplicationConfig())

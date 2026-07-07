@@ -3,6 +3,7 @@ VENV_NAME := venv
 VENV_DIR := $(VENV_NAME)
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
+TOX := $(VENV_DIR)/bin/tox
 
 # Release configuration
 VERSION_FILE := src/antipasta/__version__.py
@@ -17,7 +18,7 @@ else
 	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 endif
 
-.PHONY: install-hooks metrics-snapshot help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-all clean clean-venv clean-cov build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
+.PHONY: install-hooks metrics-snapshot help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check version-show version-bump-patch version-bump-minor version-bump-major release-test release release-check release-dry-run gh-release gh-release-draft gh-release-test gh-check-cli release-patch release-minor release-major release-dry-patch release-dry-minor release-dry-major gh-release-dry release-doctor release-safety-check gh-release-safe release-patch-safe release-minor-safe release-major-safe treemap
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -76,6 +77,9 @@ test-cov: install-dev  ## Run tests with coverage report
 	mv .coverage/.coverage .coverage 2>/dev/null || true
 
 check: lint type-check test  ## Run all quality checks (lint, type-check, test)
+
+check-ci: install-dev  ## Run CI parity checks in isolated tox environments
+	$(TOX) run
 
 # Antipasta metrics analysis targets
 
@@ -145,6 +149,9 @@ clean-venv:  ## Remove virtual environment
 
 clean-cov:  ## Clean up coverage files
 	rm -rf .coverage htmlcov
+
+clean-tox:  ## Remove tox-managed virtual environments
+	rm -rf .tox
 
 # Build and Release Targets
 

@@ -69,7 +69,7 @@
       "type": "object"
     },
     "DuplicationConfig": {
-      "description": "WET-code detection via the optional pydry engine. Presence of this\nblock ENABLES the deriver (it re-parses the tree, so the default path\nnever pays); max_ratio additionally gates.",
+      "description": "WET-code detection via the pydry engine. Presence of this block ENABLES\nthe deriver (it re-parses the tree, so the default command path never\npays); max_ratio additionally gates.",
       "properties": {
         "normalize_local_names": {
           "default": true,

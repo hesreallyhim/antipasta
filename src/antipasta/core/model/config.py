@@ -169,9 +169,9 @@ MIXING_TOLERANCE_BY_PROFILE: dict[str, int] = {
 
 
 class DuplicationConfig(BaseModel):
-    """WET-code detection via the optional pydry engine. Presence of this
-    block ENABLES the deriver (it re-parses the tree, so the default path
-    never pays); max_ratio additionally gates."""
+    """WET-code detection via the pydry engine. Presence of this block ENABLES
+    the deriver (it re-parses the tree, so the default command path never
+    pays); max_ratio additionally gates."""
 
     normalize_local_names: bool = Field(default=True)
     normalize_constants: bool = Field(default=False)

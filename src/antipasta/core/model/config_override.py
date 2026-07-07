@@ -115,8 +115,8 @@ class ConfigOverride:
             "less_than_equal": lambda: (
                 f"{metric_type} must be <= {ctx.get('le', 'max')}, got {value}"
             ),
-            "greater_than": lambda: (f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}"),
-            "less_than": lambda: (f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}"),
+            "greater_than": lambda: f"{metric_type} must be > {ctx.get('gt', 0)}, got {value}",
+            "less_than": lambda: f"{metric_type} must be < {ctx.get('lt', 'max')}, got {value}",
             "int_type": lambda: f"{metric_type} must be an integer, got {value}",
             "int_parsing": lambda: f"{metric_type} must be a valid integer",
         }

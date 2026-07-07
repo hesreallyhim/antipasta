@@ -6,18 +6,19 @@ finds exact structural duplicates after syntax-tree normalization (Type-2
 clones: local names and constants normalizable). This deriver is
 **config-gated on presence** of a ``duplication`` block, unlike the
 informational-first derivers: pydry re-parses the tree on every run, so the
-default path must not pay for it. Merkle-tree memoization (see
+default command path must not pay for it. Merkle-tree memoization (see
 structural-metrics-caching.md) is the recorded follow-up if the cost ever
 matters at scale.
 
-pydry is an optional dependency (``pip install antipasta[dry]`` — the PyPI
-package is named pydry-cli; the import module is pydry). Absent, the
-deriver reports nothing and says so once via a diagnostic row.
+The PyPI package is named pydry-cli; the import module is pydry. The runtime
+dependency is still probed defensively so a broken environment yields a
+diagnostic row instead of crashing a full report run.
 """
 
 from __future__ import annotations
 
 from collections import defaultdict
+import importlib.util
 from pathlib import Path
 from typing import Any
 
@@ -28,12 +29,11 @@ from antipasta.core.model.violations import ProjectReport, Violation, check_metr
 
 
 def pydry_available() -> bool:
-    """Is the optional pydry engine importable?"""
+    """Is the pydry engine importable?"""
     try:
-        import pydry.engine  # type: ignore[import-untyped]  # noqa: F401
-    except ImportError:
+        return importlib.util.find_spec("pydry.engine") is not None
+    except ModuleNotFoundError:
         return False
-    return True
 
 
 def derive_duplication(derivation_input: DerivationInput) -> list[ProjectReport]:
@@ -59,7 +59,7 @@ def _unavailable_report() -> ProjectReport:
         file_path=Path("."),
         metric_type=MetricType.CLONE_OCCURRENCES,
         value=0.0,
-        details={"unavailable": "pydry is not installed (pip install antipasta[dry])"},
+        details={"unavailable": "pydry engine is unavailable; reinstall antipasta"},
     )
     return ProjectReport(subject="duplication", metrics=[row], violations=[])
 

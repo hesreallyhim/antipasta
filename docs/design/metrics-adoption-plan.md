@@ -46,7 +46,7 @@ with reasons recorded in the phase's closing commit.
 
 - **Tracks A, B, D — LANDED 2026-07-04** (branch `feat/metrics-phase-4`):
   - **A (duplication, pydry)**: config-gated deriver over the owner's engine
-    (installed from GitHub pending PyPI; `antipasta[dry]` extra declared).
+    (distributed on PyPI as `pydry-cli`, imported as `pydry`).
     Clone groups + per-file ratios. First sweep: 11 groups in src — incl.
     `_module_name` duplicated between import_graph and narrative, i.e. the
     engine caught its integrator's own session copy-paste (since fixed by
@@ -545,8 +545,8 @@ plan's thesis test: the owner's house style, enforced on real code.
 
 ## Track A — pydry duplication runner (M; any time after Phase 0)
 
-Optional dependency (`antipasta[dry]`) importing the pydry engine (owner's
-package) — subprocess JSON envelope as fallback. Per-file
+Runtime dependency importing the pydry engine (distributed as `pydry-cli`,
+imported as `pydry`) — subprocess JSON envelope as fallback. Per-file
 `duplication_ratio` (duplicated lines ÷ SLOC) and `clone_pair_count`;
 project-level worst-offenders ProjectReport. The pairwise near-match stage is
 the one derivation that earns Merkle-tree-hash memoization (see

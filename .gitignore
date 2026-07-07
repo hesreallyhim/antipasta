@@ -37,6 +37,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .mypy_cache/
+.tox/
 .dmypy.json
 dmypy.json
 .pyre/
