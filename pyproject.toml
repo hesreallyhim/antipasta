@@ -5,16 +5,18 @@ build-backend = "hatchling.build"
 [project]
 name = "antipasta"
 version = "1.2.0"
-description = "A code quality monitoring and enforcement tool that analyzes a variety of code complexity metrics"
+description = "A code quality library that goes beyond complexity and line-counts, covering readability, SOLID principles, version-control, and more"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
+license-files = ["LICENSE"]
+license = "MIT"
 authors = [{ name = "Really Him", email = "hesreallyhim@proton.me" }]
 keywords = [
     "code-quality",
     "complexity",
     "metrics",
-    "linting",
+    "readability",
+    "refactoring",
     "static-analysis",
 ]
 classifiers = [

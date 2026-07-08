@@ -2,7 +2,15 @@
 
 # antipasta
 
-A code quality enforcement tool that analyzes code complexity across a number of metrics and helps maintain readable, maintainable code.
+A code quality static analysis library that covers a wide range of metrics, including:
+
+- lines of code
+- complexity
+- readability
+- SOLID adherence
+- DRYness
+- VCS-based metrics
+- 
 
 ## What is antipasta?
 
@@ -120,8 +128,6 @@ antipasta provides the following commands:
 | `report` | Generate a visual complexity report (offline HTML or JSON) | Writes a single self-contained HTML file |
 | `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Uses the current repository; hotspot join is skipped unless a snapshot is supplied |
 | `test-health` | Analyze coverage contexts for test redundancy and blast radius | Reads coverage.py data recorded with `--cov-context=test` |
-
-> **Note**: The old commands `generate-config` and `validate-config` are deprecated but still work for backward compatibility. They will show a deprecation warning. Please use `config generate` and `config validate` instead.
 
 ## Basic Usage
 
@@ -566,42 +572,6 @@ CYCLOMATIC COMPLEXITY STATISTICS:
 3. **Compare modules**: See which parts of your code are most complex
 4. **Team metrics**: Compare complexity across different team areas
 5. **Refactoring targets**: Find directories with high average complexity
-
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run only tests affected by your recent changes (requires initial baseline run)
-make test-fast
-
-# Clear pytest-testmon cache to force a full recalculation
-make test-fast-clean
-
-# Run with coverage
-make test-cov
-
-# Run specific test file
-pytest tests/unit/test_config.py -v
-```
-
-The `make test-fast` target automatically stores its SQLite cache under `.cache/testmon.sqlite` via the `TESTMON_DATAFILE` environment variable so the repository root stays clean. If the cache ever gets out of date (for example after switching branches), run `make test-fast-clean` to remove the `.cache/testmon.sqlite*` files and trigger a fresh baseline on the next `make test-fast`.
-
-### Code Quality
-
-```bash
-# Format code
-make format
-
-# Run linters
-make lint
-
-# Type checking
-make type-check
-```
 
 ### Project Structure
 

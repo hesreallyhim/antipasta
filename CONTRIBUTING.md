@@ -69,7 +69,7 @@ If you are iterating quickly, `make test-fast` can run the tests most likely to 
 
 Keep pull requests focused. If a change affects behavior, include or update tests that demonstrate the expected behavior.
 
-## Release Process
+## Maintainers - Release Process
 
 antipasta uses Release Please for normal releases. Contributors do not need to bump versions, edit release notes, create tags, or publish packages manually.
 
