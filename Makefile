@@ -1,24 +1,10 @@
-# Virtual environment configuration
 VENV_NAME := venv
 VENV_DIR := $(VENV_NAME)
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 TOX := $(VENV_DIR)/bin/tox
 
-# Release configuration
-VERSION_FILE := src/antipasta/__version__.py
-CURRENT_VERSION = $(shell grep -oE '[0-9]+\.[0-9]+\.[0-9]+' $(VERSION_FILE))
-
-# Detect OS for activation script
-ifeq ($(OS),Windows_NT)
-	VENV_ACTIVATE := $(VENV_DIR)/Scripts/activate
-	PYTHON := $(VENV_DIR)/Scripts/python
-	PIP := $(VENV_DIR)/Scripts/pip
-else
-	VENV_ACTIVATE := $(VENV_DIR)/bin/activate
-endif
-
-.PHONY: install-hooks help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check version-show release-check release-dry-run gh-release-test gh-check-cli release-doctor treemap
+.PHONY: install-hooks help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check release-dry-run treemap
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -149,7 +135,7 @@ clean-cov:  ## Clean up coverage files
 clean-tox:  ## Remove tox-managed virtual environments
 	rm -rf .tox
 
-# Build and Release Targets
+# Build targets
 
 build: clean venv  ## Build distribution packages
 	$(PYTHON) -m pip install --upgrade build
@@ -159,76 +145,6 @@ build-check: build  ## Build and validate distribution packages
 	$(PYTHON) -m pip install --upgrade check-wheel-contents
 	$(VENV_DIR)/bin/check-wheel-contents dist/*.whl
 
-# Version and release helpers
-
-version-show:  ## Show current version
-	@echo "Current version: $(CURRENT_VERSION)"
-
-release-check:  ## Show the Release Please release checklist
-	@echo "Release Checklist:"
-	@echo "=================="
-	@echo "[ ] CI parity passing (make check-ci)"
-	@echo "[ ] PR titles use conventional commits"
-	@echo "[ ] Release Please PR version and changelog reviewed"
-	@echo "[ ] Publish to PyPI workflow monitored after release PR merge"
-	@echo ""
-	@echo "Current version: $(CURRENT_VERSION)"
-	@echo ""
-	@echo "Normal releases are handled by Release Please and GitHub trusted publishing."
-
 release-dry-run: build-check  ## Build and show distribution packages without uploading
 	@echo "Files that will be uploaded:"
 	@ls -la dist/
-
-gh-check-cli:  ## Check if GitHub CLI is installed
-	@which gh > /dev/null 2>&1 || (echo "Error: GitHub CLI (gh) is not installed. Install from: https://cli.github.com/" && exit 1)
-	@gh auth status > /dev/null 2>&1 || (echo "Error: Not authenticated with GitHub. Run: gh auth login" && exit 1)
-
-gh-release-test: gh-check-cli  ## Trigger TestPyPI deployment via GitHub Actions
-	@echo "Triggering TestPyPI deployment workflow..."
-	gh workflow run "Publish to PyPI" \
-		--field target=testpypi
-	@echo "✅ Workflow triggered! Monitor progress at:"
-	@echo "https://github.com/hesreallyhim/antipasta/actions/workflows/publish.yml"
-	@echo ""
-	@echo "Once deployed, test with:"
-	@echo "pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ antipasta"
-
-release-doctor:  ## Check release workflow prerequisites
-	@echo "Release Doctor"
-	@echo "=============="
-	@echo ""
-	@echo "Checking GitHub CLI..."
-	@which gh > /dev/null 2>&1 && echo "  ✓ GitHub CLI installed" || echo "  ✗ GitHub CLI not found - install from https://cli.github.com/"
-	@gh auth status > /dev/null 2>&1 && echo "  ✓ GitHub authenticated" || echo "  ✗ Not authenticated - run: gh auth login"
-	@echo ""
-	@echo "Checking Git state..."
-	@git diff --quiet HEAD 2>/dev/null && echo "  ✓ No uncommitted changes" || echo "  ⚠ Uncommitted changes detected"
-	@git diff --quiet --cached 2>/dev/null && echo "  ✓ No staged changes" || echo "  ⚠ Staged changes detected"
-	@echo "  Current branch: $$(git rev-parse --abbrev-ref HEAD)"
-	@[ "$$(git rev-parse --abbrev-ref HEAD)" = "main" ] && echo "  ✓ On main branch" || echo "  ⚠ Not on main branch"
-	@echo ""
-	@echo "Checking versions..."
-	@echo "  Current version: $(CURRENT_VERSION)"
-	@LATEST_PYPI_VERSION=$$($(PYTHON) -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/antipasta/json', timeout=5))['info']['version'])" 2>/dev/null || echo "unknown"); \
-	echo "  Latest PyPI release: $$LATEST_PYPI_VERSION"
-	@echo ""
-	@echo "Checking Python environment..."
-	@echo "  Python: $$($(PYTHON) --version 2>&1 || echo 'not found')"
-	@$(PYTHON) -m pip show build > /dev/null 2>&1 && echo "  ✓ build installed" || echo "  ✗ build not installed"
-	@$(PYTHON) -m pip show hatchling > /dev/null 2>&1 && echo "  ✓ hatchling installed" || echo "  ℹ hatchling is installed in build isolation when needed"
-	@echo ""
-	@echo "Checking GitHub repository..."
-	@gh repo view --json name,url 2>/dev/null | jq -r '"  Repository: " + .url' || echo "  ✗ Cannot access repository"
-	@if gh workflow list 2>/dev/null | grep -q "Release Please"; then \
-		echo "  ✓ 'Release Please' workflow found"; \
-	else \
-		echo "  ✗ 'Release Please' workflow not found"; \
-	fi
-	@if gh workflow list 2>/dev/null | grep -q "Publish to PyPI"; then \
-		echo "  ✓ 'Publish to PyPI' workflow found"; \
-	else \
-		echo "  ✗ 'Publish to PyPI' workflow not found"; \
-	fi
-	@echo ""
-	@echo "Normal releases are created by merging the Release Please PR."

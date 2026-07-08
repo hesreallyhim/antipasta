@@ -653,16 +653,13 @@ Use conventional commit-style PR titles so Release Please can infer the correct 
 
 After changes are merged to `main`, Release Please opens or updates a release PR. Merging that release PR creates the GitHub release and triggers the `Publish to PyPI` workflow.
 
-Useful maintainer commands:
+Useful maintainer command:
 
 ```bash
-make release-check    # Show the Release Please checklist
-make release-doctor   # Check local release workflow prerequisites
 make release-dry-run  # Build and inspect distributions without uploading
-make gh-release-test  # Trigger the TestPyPI workflow
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor setup and release notes.
+For TestPyPI or production publishing, use the manual `Publish to PyPI` workflow dispatch in GitHub Actions. See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor setup and release notes.
 
 ## License
 
