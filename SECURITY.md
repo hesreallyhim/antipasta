@@ -15,9 +15,11 @@ reporting an issue unless the vulnerability also affects the latest release.
 
 Please do not report suspected vulnerabilities in public GitHub issues.
 
-Use GitHub's private vulnerability reporting for this repository if it is
-available. If private vulnerability reporting is unavailable, email the
-maintainer at <hesreallyhim@proton.me>.
+Use GitHub's private vulnerability reporting for this repository:
+<https://github.com/hesreallyhim/antipasta/security/advisories/new>
+
+If private vulnerability reporting is unavailable, email the maintainer at
+<hesreallyhim@proton.me>.
 
 When reporting a vulnerability, include:
 
@@ -27,11 +29,12 @@ When reporting a vulnerability, include:
 - reproduction steps, proof-of-concept input, or a minimal affected project
 - whether the issue appears to affect the latest released version
 
-The maintainer will review reports on a best-effort basis. You can usually
-expect an initial response within 7 days, but complex issues may take longer to
-validate and fix. If the report is accepted, the fix will normally be released
-in the next suitable patch or minor release. If the report is declined, the
-maintainer will explain why when practical.
+The maintainer will review reports on a best-effort basis. You can expect an
+initial response within 7 days. If the report appears valid, the maintainer will
+discuss remediation scope and timing within 7 days of the initial response.
+Complex issues may take longer to validate and fix. If the report is accepted,
+the fix will normally be released in the next suitable patch or minor release.
+If the report is declined, the maintainer will explain why when practical.
 
 ## Scope
 
