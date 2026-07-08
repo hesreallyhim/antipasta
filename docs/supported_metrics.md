@@ -29,7 +29,7 @@ configured layers, or coverage.py artifacts, are listed separately in
 
 | Metric | Category | Scope | Value range | Default | Supported languages | Additional inputs / context | Source | What it measures |
 |---|---|---:|---|---|---|---|---|---|
-| `cyclomatic_complexity` | Complexity | Function and file | `>= 1` when emitted | `<= 10` | Python, JS/TS | None | Radon for Python; lizard for JS/TS | Independent control-flow paths through functions. |
+| `cyclomatic_complexity` | Complexity | Function and file | `>= 1` | `<= 10` | Python, JS/TS | None | Radon for Python; lizard for JS/TS | Independent control-flow paths through functions. |
 | `maintainability_index` | Mixed | File | `0..100` | `>= 50` in generated Python config | Python | None | Radon | Composite maintainability score from complexity, size, and Halstead data. |
 | `halstead_volume` | Complexity | File and function | `>= 0` | `<= 1000` for file-level rows | Python | None | Radon | Halstead program volume derived from operator and operand vocabulary. |
 | `halstead_difficulty` | Complexity | File and function | `>= 0` | `<= 10` for file-level rows | Python | None | Radon | Halstead estimate of how hard the code is to understand or write. |
@@ -62,11 +62,11 @@ configured layers, or coverage.py artifacts, are listed separately in
 | `efferent_coupling` | SOLID | Module/package | `>= 0` | None | Python | None | Custom | Number of analyzed modules/packages this module/package imports. |
 | `afferent_coupling` | SOLID | Module/package | `>= 0` | None | Python | None | Custom | Number of analyzed modules/packages importing this module/package. |
 | `instability` | SOLID | Module | `0..1` | None | Python | None | Custom | Efferent coupling divided by total afferent plus efferent coupling. |
-| `dependency_cycles` | SOLID | Cycle | `>= 2` when emitted | None unless `import_graph` config exists; then `forbid_cycles` defaults true and requires zero cycles | Python | None | Custom | Strongly connected import-cycle member count. |
+| `dependency_cycles` | SOLID | Cycle | `>= 2` | None unless `import_graph` config exists; then `forbid_cycles` defaults true and requires zero cycles | Python | None | Custom | Strongly connected import-cycle member count. |
 | `stable_dependencies_violations` | SOLID | Module | `>= 0` | None unless `import_graph` config exists; then `<= 0` | Python | None | Custom | Imports pointing toward materially less stable modules. |
 | `abstractness` | SOLID | Module | `0..1` | None | Python | None | Custom | Ratio of abstract classes to total classes in a module. |
 | `distance_from_main_sequence` | SOLID | Module | `0..1` | None | Python | None | Custom | Absolute distance from Martin's main sequence, `abs(A + I - 1)`. |
-| `dependency_inversion` | SOLID | Module | `0..1` when emitted | None | Python | None | Custom | Mean abstractness of imported project targets. |
+| `dependency_inversion` | SOLID | Module | `0..1` | None | Python | None | Custom | Mean abstractness of imported project targets. |
 | `narrative_mixed_functions` | Readability | Module | `>= 0` | None unless `narrative` config exists; then `<= 0` offenders | Python | None | Custom | Count of functions that both narrate through project calls and compute raw details. |
 | `narrator_budget_exceeded` | Readability | Module | `>= 0` | None unless `narrative` config exists; computation uses narrator budget `9`, then `<= 0` offenders | Python | None | Custom | Count of narrator functions exceeding the step budget. |
 | `computer_budget_exceeded` | Readability | Module | `>= 0` | None unless `narrative` config exists; computation uses budgets `8` statements and nesting `1`, then `<= 0` offenders | Python | None | Custom | Count of leaf/computer functions exceeding statement or nesting budgets. |
@@ -80,7 +80,7 @@ configured layers, or coverage.py artifacts, are listed separately in
 | `mock_call_assertions` | Test quality | Test function | `>= 0` | None | Python | Test-looking file path and test function name | Custom | Mock call-count or call-argument assertion calls per test. |
 | `big_literal_assertions` | Test quality | Test function | `>= 0` | None | Python | Test-looking file path and test function name | Custom | Assertions involving large inline literal structures. |
 | `code_churn` | VCS | File | `>= 0` | None | Any | Git history | git plus custom | Lines added plus deleted over the mined history window. |
-| `change_coupling` | VCS | File pair | `>= 3` when emitted | None | Any | Git history | git plus custom | Number of commits in which a file pair changed together. |
+| `change_coupling` | VCS | File pair | `>= 3` | None | Any | Git history | git plus custom | Number of commits in which a file pair changed together. |
 | `hotspot` | Mixed | File | `>= 0` | None | Any | Git history and report snapshot with complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
 | `test_churn_ratio` | Test quality | Suite | `>= 0` | None | Any | Git history and test path conventions | git plus custom | Test lines changed divided by source lines changed. |
 | `co_churn_multiplicity` | Test quality | Suite | `>= 0` | None | Any | Git history and test path conventions | git plus custom | Median number of test files touched in source-touching commits. |

@@ -43,8 +43,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Backward-compatible no-op extra; duplication support is installed by default.
-dry = []
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
