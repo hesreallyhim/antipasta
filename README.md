@@ -643,69 +643,26 @@ Contributions are welcome! Please:
 
 ## Release Process
 
-antipasta supports two release workflows:
+antipasta releases are managed with Release Please and GitHub trusted publishing.
 
-### Automated Release (Recommended)
+Use conventional commit-style PR titles so Release Please can infer the correct version bump:
 
-Using GitHub Actions for automated PyPI deployment:
+- `fix: ...` for patch releases
+- `feat: ...` for minor releases
+- `feat!: ...` or a `BREAKING CHANGE:` footer for major releases
 
-```bash
-# Pre-flight check
-make release-doctor      # Check system health before releasing
+After changes are merged to `main`, Release Please opens or updates a release PR. Merging that release PR creates the GitHub release and triggers the `Publish to PyPI` workflow.
 
-# Safe one-command release (recommended)
-make release-patch-safe  # Bug fixes with safety checks
-make release-minor-safe  # New features with safety checks
-make release-major-safe  # Breaking changes with safety checks
-
-# Test before releasing
-make release-dry-patch   # Simulate what will happen
-make gh-release-dry      # Test GitHub release creation
-
-# Standard releases (without safety checks)
-make release-patch       # For bug fixes
-make release-minor       # For new features
-make release-major       # For breaking changes
-
-# Or step-by-step for more control:
-make version-bump-patch  # Bump version
-make gh-release-safe     # Create release with safety checks
-
-# Create a draft release to review first
-make gh-release-draft    # Creates draft, publish manually on GitHub
-```
-
-### Manual Release
-
-For direct PyPI uploads from your machine:
+Useful maintainer commands:
 
 ```bash
-# 1. Pre-release checks
-make release-doctor      # Comprehensive health check
-make release-safety-check # Validate repository state
-
-# 2. Test first
-make release-dry-patch   # Simulate the release
-
-# 3. Full release workflow
-make check               # Run all tests
-make version-bump-patch  # Bump version
-make release            # Upload to PyPI
+make release-check    # Show the Release Please checklist
+make release-doctor   # Check local release workflow prerequisites
+make release-dry-run  # Build and inspect distributions without uploading
+make gh-release-test  # Trigger the TestPyPI workflow
 ```
 
-### Testing Releases
-
-Test on TestPyPI before production:
-
-```bash
-# Using Makefile (recommended)
-make gh-release-test  # Triggers TestPyPI workflow
-
-# Or manually via GitHub UI
-# Go to Actions → "Publish to PyPI" → Run workflow → Choose 'testpypi'
-```
-
-See [RELEASE.md](RELEASE.md) for detailed release instructions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor setup and release notes.
 
 ## License
 
