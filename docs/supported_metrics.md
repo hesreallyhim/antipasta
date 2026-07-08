@@ -17,73 +17,76 @@ Some producers need context beyond source files: duplication needs a
 need git history, coverage metrics need a coverage.py dynamic-context artifact,
 and hotspots need a prior report snapshot.
 
-The "What it measures" column is the metric definition. The "Default /
-threshold behavior" column is only about configuration thresholds; absence of a
-built-in threshold does not mean the metric is unsupported. Runtime requirements
-and non-config inputs, such as git history, report snapshots, or coverage.py
-artifacts, are listed separately in "Supported languages / required context."
+The "What it measures" column is the metric definition. The "Supported
+languages" column is only about the languages the library can report on;
+`Any` means the metric is language-agnostic. The "Default / threshold behavior"
+column is only about
+configuration thresholds; absence of a built-in threshold does not mean the
+metric is unsupported. Runtime inputs or producer context, such as git history,
+report snapshots, configured layers, or coverage.py artifacts, are listed
+separately in "Additional inputs / context."
 
 ## Metric List
 
-| Metric | Category | Scope | Value range | Default / threshold behavior in current code | Supported languages / required context | Source | What it measures |
-|---|---|---:|---|---|---|---|---|
-| `cyclomatic_complexity` | Complexity | Function and file | `>= 1` when emitted | Default threshold `<= 10` | Python, JS/TS | Radon for Python; lizard for JS/TS | Independent control-flow paths through functions. |
-| `maintainability_index` | Mixed | File | `0..100` | Default threshold `>= 50` in generated Python config | Python | Radon | Composite maintainability score from complexity, size, and Halstead data. |
-| `halstead_volume` | Complexity | File and function | `>= 0` | Default threshold `<= 1000` for file-level rows | Python | Radon | Halstead program volume derived from operator and operand vocabulary. |
-| `halstead_difficulty` | Complexity | File and function | `>= 0` | Default threshold `<= 10` for file-level rows | Python | Radon | Halstead estimate of how hard the code is to understand or write. |
-| `halstead_effort` | Complexity | File and function | `>= 0` | Default threshold `<= 10000` for file-level rows | Python | Radon | Halstead mental-effort estimate. |
-| `halstead_time` | Complexity | File and function | `>= 0` seconds | No built-in default threshold | Python | Radon | Halstead implementation-time estimate. |
-| `halstead_bugs` | Complexity | File and function | `>= 0` | No built-in default threshold | Python | Radon | Halstead estimated delivered defects. |
-| `cognitive_complexity` | Readability | Function and file | `>= 0` | Threshold default `<= 15`; generated Python default metric row is disabled | Python | Complexipy | Human-comprehension complexity, especially nesting and flow disruption. |
-| `lines_of_code` | Lines of code | File | `>= 0` | No built-in default threshold | Python, JS/TS | Radon for Python; lizard for JS/TS | Physical line count. |
-| `logical_lines_of_code` | Lines of code | File | `>= 0` | No built-in default threshold | Python | Radon | Logical statement count. |
-| `source_lines_of_code` | Lines of code | File | `>= 0` | No built-in default threshold | Python, JS/TS | Radon for Python; lizard for JS/TS | Non-blank, non-comment source line count. |
-| `comment_lines` | Lines of code | File | `>= 0` | No built-in default threshold | Python | Radon | Comment line count. |
-| `blank_lines` | Lines of code | File | `>= 0` | No built-in default threshold | Python | Radon | Blank line count. |
-| `message_chain_depth` | Readability | Function | `>= 0` | No built-in default threshold | Python | Custom | Deepest attribute/call chain in the function. |
-| `function_arity` | Readability | Function | `>= 0` | No built-in default threshold | Python | Custom | Number of function parameters after excluding `self` or `cls` for methods. |
-| `boolean_flag_parameters` | Readability | Function | `>= 0` | No built-in default threshold | Python | Custom | Positional parameters that look like boolean mode flags. |
-| `exception_discipline` | Readability | Function | `>= 0` | No built-in default threshold | Python | Custom | Bare, broad-without-reraise, or silent exception handlers. |
-| `global_state_reach` | Readability | Function | `>= 0` | No built-in default threshold | Python | Custom | Distinct mutable module-level names touched by a function. |
-| `marker_density` | Readability | File | `>= 0` per 1000 lines | No built-in default threshold | Python | Custom | TODO/FIXME/HACK/XXX marker density. |
-| `comment_density` | Readability | File | `0..100` percent | No built-in default threshold | Python | Custom | Percentage of physical lines that are comments. |
-| `function_statements` | Complexity | Function | `>= 0` | No built-in default threshold | Python | Custom | Count of statements owned by the function, excluding nested scopes. |
-| `expression_flatness` | Readability | Function | `0..1` | No built-in default threshold | Python | Custom | Share of statements that stay within the one-idea operation budget. |
-| `pipeline_linearity` | Readability | Function | `0..1` | No built-in default threshold | Python | Custom | Share of assigned local names written once and read once. |
-| `lack_of_cohesion` | SOLID | Class | `>= 0` | No built-in default threshold | Python | Custom | Number of disconnected method/field/call components in a class. |
-| `weighted_methods_per_class` | SOLID | Class | `>= 0` | No built-in default threshold | Python | Custom, Radon-derived | Sum of member method cyclomatic complexity for a class. |
-| `coupling_between_objects` | SOLID | Class | `>= 0` | No built-in default threshold | Python | Custom | Distinct imported names referenced from a class body. |
-| `depth_of_inheritance_tree` | SOLID | Class | `>= 1` | No built-in default threshold | Python | Custom | Inheritance depth after resolving known project bases. |
-| `number_of_children` | SOLID | Class | `>= 0` | No built-in default threshold | Python | Custom | Number of known immediate subclasses. |
-| `single_responsibility_index` | Mixed | Class | `>= 1` | No built-in default threshold | Python | Custom | Composite responsibility pressure from cohesion, method weight, and class statement count. |
-| `directory_children` | SOLID | Directory | `>= 0` | Thresholds only if `tree_shape` config exists: non-root `>= 2`, all dirs `<= 7` | Python, JS/TS analyzed files | Custom | Immediate module/subdirectory fan-out for analyzed directories. |
-| `efferent_coupling` | SOLID | Module/package | `>= 0` | No built-in default threshold | Python | Custom | Number of analyzed modules/packages this module/package imports. |
-| `afferent_coupling` | SOLID | Module/package | `>= 0` | No built-in default threshold | Python | Custom | Number of analyzed modules/packages importing this module/package. |
-| `instability` | SOLID | Module | `0..1` | No built-in default threshold | Python | Custom | Efferent coupling divided by total afferent plus efferent coupling. |
-| `dependency_cycles` | SOLID | Cycle | `>= 2` when emitted | Threshold only if `import_graph.forbid_cycles=true`: zero cycles | Python | Custom | Strongly connected import-cycle member count. |
-| `stable_dependencies_violations` | SOLID | Module | `>= 0` | Threshold only if `import_graph` config exists: default `<= 0` | Python | Custom | Imports pointing toward materially less stable modules. |
-| `abstractness` | SOLID | Module | `0..1` | No built-in default threshold | Python | Custom | Ratio of abstract classes to total classes in a module. |
-| `distance_from_main_sequence` | SOLID | Module | `0..1` | No built-in default threshold | Python | Custom | Absolute distance from Martin's main sequence, `abs(A + I - 1)`. |
-| `dependency_inversion` | SOLID | Module | `0..1` when emitted | No built-in default threshold | Python | Custom | Mean abstractness of imported project targets. |
-| `narrative_mixed_functions` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders | Python | Custom | Count of functions that both narrate through project calls and compute raw details. |
-| `narrator_budget_exceeded` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders; default narrator budget `9` | Python | Custom | Count of narrator functions exceeding the step budget. |
-| `computer_budget_exceeded` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders; default computer budgets `8` statements and nesting `1` | Python | Custom | Count of leaf/computer functions exceeding statement or nesting budgets. |
-| `step_down_ordering` | Readability | Module | `0..1` | No built-in default threshold | Python | Custom | Share of intra-module calls whose callee is defined below the caller. |
-| `layering_violations` | SOLID | Module | `>= 0` | Zero upward imports when a layer order is configured | Python plus `tree_shape.layers` config | Custom | Imports from a configured lower layer back upward into an earlier layer. |
-| `name_clarity` | Readability | Module | `0..1` | Threshold only if `narrative.name_clarity_floor` is set | Python | Custom | Mean lexical clarity of callable names against the layered vocabulary. |
-| `naming_antipatterns` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders | Python | Custom | Count of naming/behavior contradictions such as lying predicates or two-job names. |
-| `duplication_ratio` | Other | File | `0..1` | Threshold applies only when `duplication.max_ratio` is set | Python plus `duplication` config block and pydry | pydry plus custom | Per-file duplicated-line ratio from pydry clone groups. |
-| `clone_occurrences` | Other | Clone group | `>= 0` | No built-in default threshold | Python plus `duplication` config block and pydry | pydry plus custom | Number of occurrences in an exact structural clone group. |
-| `assertions_per_test` | Other | Test function | `>= 0` | No built-in default threshold | Python test files | Custom | Plain assertions plus mock-style assertion calls per test. |
-| `mock_call_assertions` | Other | Test function | `>= 0` | No built-in default threshold | Python test files | Custom | Mock call-count or call-argument assertion calls per test. |
-| `big_literal_assertions` | Other | Test function | `>= 0` | No built-in default threshold | Python test files | Custom | Assertions involving large inline literal structures. |
-| `code_churn` | VCS | File | `>= 0` | No built-in default threshold | Git history | git plus custom | Lines added plus deleted over the mined history window. |
-| `change_coupling` | VCS | File pair | `>= 3` when emitted | No built-in default threshold | Git history | git plus custom | Number of commits in which a file pair changed together. |
-| `hotspot` | Mixed | File | `>= 0` | No built-in default threshold | Git history plus a report snapshot; emitted only when the snapshot supplies complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
-| `test_churn_ratio` | VCS | Suite | `>= 0` | No built-in default threshold | Git history plus test path conventions | git plus custom | Test lines changed divided by source lines changed. |
-| `co_churn_multiplicity` | VCS | Suite | `>= 0` | No built-in default threshold | Git history plus test path conventions | git plus custom | Median number of test files touched in source-touching commits. |
-| `suite_redundancy_index` | Other | Coverage artifact | `0..1` | No built-in default threshold | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Share of tests that the greedy line-coverage cover can omit. |
-| `blast_radius` | Other | Covered file | `>= 0` | No built-in default threshold | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Number of distinct tests executing a file. |
+| Metric | Category | Scope | Value range | Default / threshold behavior in current code | Supported languages | Additional inputs / context | Source | What it measures |
+|---|---|---:|---|---|---|---|---|---|
+| `cyclomatic_complexity` | Complexity | Function and file | `>= 1` when emitted | Default threshold `<= 10` | Python, JS/TS | None | Radon for Python; lizard for JS/TS | Independent control-flow paths through functions. |
+| `maintainability_index` | Mixed | File | `0..100` | Default threshold `>= 50` in generated Python config | Python | None | Radon | Composite maintainability score from complexity, size, and Halstead data. |
+| `halstead_volume` | Complexity | File and function | `>= 0` | Default threshold `<= 1000` for file-level rows | Python | None | Radon | Halstead program volume derived from operator and operand vocabulary. |
+| `halstead_difficulty` | Complexity | File and function | `>= 0` | Default threshold `<= 10` for file-level rows | Python | None | Radon | Halstead estimate of how hard the code is to understand or write. |
+| `halstead_effort` | Complexity | File and function | `>= 0` | Default threshold `<= 10000` for file-level rows | Python | None | Radon | Halstead mental-effort estimate. |
+| `halstead_time` | Complexity | File and function | `>= 0` seconds | No built-in default threshold | Python | None | Radon | Halstead implementation-time estimate. |
+| `halstead_bugs` | Complexity | File and function | `>= 0` | No built-in default threshold | Python | None | Radon | Halstead estimated delivered defects. |
+| `cognitive_complexity` | Readability | Function and file | `>= 0` | Threshold default `<= 15`; generated Python default metric row is disabled | Python | None | Complexipy | Human-comprehension complexity, especially nesting and flow disruption. |
+| `lines_of_code` | Lines of code | File | `>= 0` | No built-in default threshold | Python, JS/TS | None | Radon for Python; lizard for JS/TS | Physical line count. |
+| `logical_lines_of_code` | Lines of code | File | `>= 0` | No built-in default threshold | Python | None | Radon | Logical statement count. |
+| `source_lines_of_code` | Lines of code | File | `>= 0` | No built-in default threshold | Python, JS/TS | None | Radon for Python; lizard for JS/TS | Non-blank, non-comment source line count. |
+| `comment_lines` | Lines of code | File | `>= 0` | No built-in default threshold | Python | None | Radon | Comment line count. |
+| `blank_lines` | Lines of code | File | `>= 0` | No built-in default threshold | Python | None | Radon | Blank line count. |
+| `message_chain_depth` | Readability | Function | `>= 0` | No built-in default threshold | Python | None | Custom | Deepest attribute/call chain in the function. |
+| `function_arity` | Readability | Function | `>= 0` | No built-in default threshold | Python | None | Custom | Number of function parameters after excluding `self` or `cls` for methods. |
+| `boolean_flag_parameters` | Readability | Function | `>= 0` | No built-in default threshold | Python | None | Custom | Positional parameters that look like boolean mode flags. |
+| `exception_discipline` | Readability | Function | `>= 0` | No built-in default threshold | Python | None | Custom | Bare, broad-without-reraise, or silent exception handlers. |
+| `global_state_reach` | Readability | Function | `>= 0` | No built-in default threshold | Python | None | Custom | Distinct mutable module-level names touched by a function. |
+| `marker_density` | Readability | File | `>= 0` per 1000 lines | No built-in default threshold | Python | None | Custom | TODO/FIXME/HACK/XXX marker density. |
+| `comment_density` | Readability | File | `0..100` percent | No built-in default threshold | Python | None | Custom | Percentage of physical lines that are comments. |
+| `function_statements` | Complexity | Function | `>= 0` | No built-in default threshold | Python | None | Custom | Count of statements owned by the function, excluding nested scopes. |
+| `expression_flatness` | Readability | Function | `0..1` | No built-in default threshold | Python | None | Custom | Share of statements that stay within the one-idea operation budget. |
+| `pipeline_linearity` | Readability | Function | `0..1` | No built-in default threshold | Python | None | Custom | Share of assigned local names written once and read once. |
+| `lack_of_cohesion` | SOLID | Class | `>= 0` | No built-in default threshold | Python | None | Custom | Number of disconnected method/field/call components in a class. |
+| `weighted_methods_per_class` | SOLID | Class | `>= 0` | No built-in default threshold | Python | None | Custom, Radon-derived | Sum of member method cyclomatic complexity for a class. |
+| `coupling_between_objects` | SOLID | Class | `>= 0` | No built-in default threshold | Python | None | Custom | Distinct imported names referenced from a class body. |
+| `depth_of_inheritance_tree` | SOLID | Class | `>= 1` | No built-in default threshold | Python | None | Custom | Inheritance depth after resolving known project bases. |
+| `number_of_children` | SOLID | Class | `>= 0` | No built-in default threshold | Python | None | Custom | Number of known immediate subclasses. |
+| `single_responsibility_index` | Mixed | Class | `>= 1` | No built-in default threshold | Python | None | Custom | Composite responsibility pressure from cohesion, method weight, and class statement count. |
+| `directory_children` | SOLID | Directory | `>= 0` | Thresholds only if `tree_shape` config exists: non-root `>= 2`, all dirs `<= 7` | Python, JS/TS | None | Custom | Immediate module/subdirectory fan-out for analyzed directories. |
+| `efferent_coupling` | SOLID | Module/package | `>= 0` | No built-in default threshold | Python | None | Custom | Number of analyzed modules/packages this module/package imports. |
+| `afferent_coupling` | SOLID | Module/package | `>= 0` | No built-in default threshold | Python | None | Custom | Number of analyzed modules/packages importing this module/package. |
+| `instability` | SOLID | Module | `0..1` | No built-in default threshold | Python | None | Custom | Efferent coupling divided by total afferent plus efferent coupling. |
+| `dependency_cycles` | SOLID | Cycle | `>= 2` when emitted | Threshold only if `import_graph.forbid_cycles=true`: zero cycles | Python | None | Custom | Strongly connected import-cycle member count. |
+| `stable_dependencies_violations` | SOLID | Module | `>= 0` | Threshold only if `import_graph` config exists: default `<= 0` | Python | None | Custom | Imports pointing toward materially less stable modules. |
+| `abstractness` | SOLID | Module | `0..1` | No built-in default threshold | Python | None | Custom | Ratio of abstract classes to total classes in a module. |
+| `distance_from_main_sequence` | SOLID | Module | `0..1` | No built-in default threshold | Python | None | Custom | Absolute distance from Martin's main sequence, `abs(A + I - 1)`. |
+| `dependency_inversion` | SOLID | Module | `0..1` when emitted | No built-in default threshold | Python | None | Custom | Mean abstractness of imported project targets. |
+| `narrative_mixed_functions` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders | Python | None | Custom | Count of functions that both narrate through project calls and compute raw details. |
+| `narrator_budget_exceeded` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders; default narrator budget `9` | Python | None | Custom | Count of narrator functions exceeding the step budget. |
+| `computer_budget_exceeded` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders; default computer budgets `8` statements and nesting `1` | Python | None | Custom | Count of leaf/computer functions exceeding statement or nesting budgets. |
+| `step_down_ordering` | Readability | Module | `0..1` | No built-in default threshold | Python | None | Custom | Share of intra-module calls whose callee is defined below the caller. |
+| `layering_violations` | SOLID | Module | `>= 0` | Zero upward imports when a layer order is configured | Python | `tree_shape.layers` config | Custom | Imports from a configured lower layer back upward into an earlier layer. |
+| `name_clarity` | Readability | Module | `0..1` | Threshold only if `narrative.name_clarity_floor` is set | Python | None | Custom | Mean lexical clarity of callable names against the layered vocabulary. |
+| `naming_antipatterns` | Readability | Module | `>= 0` | Threshold only if `narrative` config exists: zero offenders | Python | None | Custom | Count of naming/behavior contradictions such as lying predicates or two-job names. |
+| `duplication_ratio` | Other | File | `0..1` | Threshold applies only when `duplication.max_ratio` is set | Python | `duplication` config block | pydry plus custom | Per-file duplicated-line ratio from pydry clone groups. |
+| `clone_occurrences` | Other | Clone group | `>= 0` | No built-in default threshold | Python | `duplication` config block | pydry plus custom | Number of occurrences in an exact structural clone group. |
+| `assertions_per_test` | Test quality | Test function | `>= 0` | No built-in default threshold | Python | Test-looking file path and test function name | Custom | Plain assertions plus mock-style assertion calls per test. |
+| `mock_call_assertions` | Test quality | Test function | `>= 0` | No built-in default threshold | Python | Test-looking file path and test function name | Custom | Mock call-count or call-argument assertion calls per test. |
+| `big_literal_assertions` | Test quality | Test function | `>= 0` | No built-in default threshold | Python | Test-looking file path and test function name | Custom | Assertions involving large inline literal structures. |
+| `code_churn` | VCS | File | `>= 0` | No built-in default threshold | Any | Git history | git plus custom | Lines added plus deleted over the mined history window. |
+| `change_coupling` | VCS | File pair | `>= 3` when emitted | No built-in default threshold | Any | Git history | git plus custom | Number of commits in which a file pair changed together. |
+| `hotspot` | Mixed | File | `>= 0` | No built-in default threshold | Any | Git history and report snapshot with complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
+| `test_churn_ratio` | Test quality | Suite | `>= 0` | No built-in default threshold | Any | Git history and test path conventions | git plus custom | Test lines changed divided by source lines changed. |
+| `co_churn_multiplicity` | Test quality | Suite | `>= 0` | No built-in default threshold | Any | Git history and test path conventions | git plus custom | Median number of test files touched in source-touching commits. |
+| `suite_redundancy_index` | Test quality | Coverage artifact | `0..1` | No built-in default threshold | Python coverage data | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Share of tests that the greedy line-coverage cover can omit. |
+| `blast_radius` | Test quality | Covered file | `>= 0` | No built-in default threshold | Python coverage data | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Number of distinct tests executing a file. |
 
 ## Custom Metric Computation Notes
 
