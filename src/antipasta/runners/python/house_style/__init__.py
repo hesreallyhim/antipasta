@@ -6,9 +6,8 @@ flatness, pipeline linearity), per-file rows (marker density, comment
 density), and the fact rows (imports, callables, classes) that later phases'
 derivers consume — one parse, everything extracted.
 
-Python-only: these analyzers read Python's syntax tree. The concepts are
-language-agnostic; JavaScript/TypeScript coverage waits on a real
-multi-language parse layer (see the adoption plan's cross-cutting notes).
+Python-only: these analyzers read Python's syntax tree. JavaScript/TypeScript
+uses its own lexical house-style runner with the same metric/fact contracts.
 All rules are fixed and config-free so results stay pure functions of file
 content (cache-safe); strictness profiles act at the threshold layer.
 """

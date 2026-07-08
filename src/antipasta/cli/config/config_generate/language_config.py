@@ -23,8 +23,11 @@ def collect_language_config(defaults_dict: dict[str, Any]) -> list[dict[str, Any
     if click.confirm("[x] Python", default=True):
         languages.append(create_python_config(defaults_dict))
 
-    # JavaScript/TypeScript support coming soon
-    click.echo("[ ] JavaScript/TypeScript (coming soon)")
+    if click.confirm("[ ] JavaScript", default=False):
+        languages.append(create_javascript_config(defaults_dict))
+
+    if click.confirm("[ ] TypeScript", default=False):
+        languages.append(create_typescript_config(defaults_dict))
 
     return languages
 
@@ -72,29 +75,27 @@ def create_python_config(defaults: dict[str, Any]) -> dict[str, Any]:
 
 
 def create_javascript_config(defaults: dict[str, Any]) -> dict[str, Any]:
-    """Create JavaScript/TypeScript language configuration.
-
-    Note: This function is ready for when JavaScript/TypeScript support is added.
-    Currently not used but kept for future implementation.
-    """
-    # For JS/TS, we only support cyclomatic and cognitive complexity currently
-    metrics: list[dict[str, Any]] = []
-
-    metrics.extend((
-        {
-            "type": "cyclomatic_complexity",
-            "threshold": defaults["max_cyclomatic_complexity"],
-            "comparison": "<=",
-        },
-        {
-            "type": "cognitive_complexity",
-            "threshold": defaults["max_cognitive_complexity"],
-            "comparison": "<=",
-        },
-    ))
+    """Create JavaScript language configuration."""
 
     return {
         "name": "javascript",
-        "extensions": [".js", ".jsx", ".ts", ".tsx"],
-        "metrics": metrics,
+        "extensions": [".js", ".mjs", ".cjs", ".jsx"],
+        "metrics": [_cyclomatic_metric(defaults)],
+    }
+
+
+def create_typescript_config(defaults: dict[str, Any]) -> dict[str, Any]:
+    """Create TypeScript language configuration."""
+    return {
+        "name": "typescript",
+        "extensions": [".ts", ".tsx", ".mts", ".cts"],
+        "metrics": [_cyclomatic_metric(defaults)],
+    }
+
+
+def _cyclomatic_metric(defaults: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "type": "cyclomatic_complexity",
+        "threshold": defaults["max_cyclomatic_complexity"],
+        "comparison": "<=",
     }

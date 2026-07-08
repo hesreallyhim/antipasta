@@ -154,6 +154,7 @@ def complex_function(a, b, c, d):
         assert {r.file_path for r in reports} == {py_file, js_file}
         js_report = next(r for r in reports if r.file_path == js_file)
         assert js_report.language == "javascript"
+        assert any(metric.metric_type == MetricType.FUNCTION_ARITY for metric in js_report.metrics)
 
     def test_analyze_with_ignore_patterns(self, tmp_path: Path) -> None:
         """Test that ignored files are skipped."""

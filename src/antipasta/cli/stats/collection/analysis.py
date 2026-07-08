@@ -5,7 +5,7 @@ from typing import Any
 
 import click
 
-from antipasta.core.model.detector import LanguageDetector
+from antipasta.core.model.detector import Language, LanguageDetector
 from antipasta.engine import MetricAggregator
 
 from .file_collection import validate_analyzable_files
@@ -33,7 +33,7 @@ def analyze_and_display_file_breakdown(
 
 
 def _count_analyzable_files(files_by_language: dict[Any, list[Path]]) -> int:
-    """Count files that can be analyzed (currently only Python).
+    """Count files that can be analyzed by the registered source runners.
 
     Args:
         files_by_language: Files grouped by language
@@ -41,7 +41,7 @@ def _count_analyzable_files(files_by_language: dict[Any, list[Path]]) -> int:
     Returns:
         Number of analyzable files
     """
-    return sum(len(files) for lang, files in files_by_language.items() if lang.value == "python")
+    return sum(len(files) for lang, files in files_by_language.items() if _is_supported(lang))
 
 
 def _count_ignored_files(all_files: list[Path], files_by_language: dict[Any, list[Path]]) -> int:
@@ -87,7 +87,7 @@ def _get_language_support_status(language: str) -> str:
     Returns:
         Status display string
     """
-    return "✓" if language == "python" else "✗ (not supported)"
+    return "✓" if language in _SUPPORTED_LANGUAGE_VALUES else "✗ (not supported)"
 
 
 def perform_analysis_with_feedback(
@@ -103,7 +103,7 @@ def perform_analysis_with_feedback(
     Returns:
         List of analysis reports
     """
-    click.echo(f"\nAnalyzing {analyzable_files} Python files...")
+    click.echo(f"\nAnalyzing {analyzable_files} supported files...")
     return aggregator.analyze_files(files)
 
 
@@ -131,3 +131,14 @@ def analyze_files_with_validation(
 
     reports = perform_analysis_with_feedback(aggregator, files, analyzable_files)
     return analyzable_files, reports
+
+
+_SUPPORTED_LANGUAGE_VALUES = {
+    Language.PYTHON.value,
+    Language.JAVASCRIPT.value,
+    Language.TYPESCRIPT.value,
+}
+
+
+def _is_supported(language: Any) -> bool:
+    return getattr(language, "value", None) in _SUPPORTED_LANGUAGE_VALUES

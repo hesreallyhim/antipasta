@@ -171,7 +171,7 @@ class LanguageDetector:
 
 
 def is_test_path(path: str) -> bool:
-    """Path-convention test detection (pytest naming + tests directories)."""
+    """Path-convention test detection across Python and JS/TS suites."""
     from pathlib import PurePosixPath
 
     name = PurePosixPath(path).name
@@ -179,5 +179,19 @@ def is_test_path(path: str) -> bool:
         "/tests/" in f"/{path}"
         or path.startswith("tests/")
         or name.startswith("test_")
-        or name.endswith("_test.py")
+        or name.endswith((
+            "_test.py",
+            "_test.js",
+            "_test.jsx",
+            "_test.ts",
+            "_test.tsx",
+            ".test.js",
+            ".test.jsx",
+            ".test.ts",
+            ".test.tsx",
+            ".spec.js",
+            ".spec.jsx",
+            ".spec.ts",
+            ".spec.tsx",
+        ))
     )

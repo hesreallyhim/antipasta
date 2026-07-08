@@ -65,7 +65,7 @@ class TestEdgeCasesAndErrors:
         assert "No files found" in result.output or "No analyzable files" in result.output
 
     def test_mixed_file_types(self, tmp_path: Path) -> None:
-        """Test directory with non-Python files."""
+        """Test directory with supported and unsupported file types."""
         runner = CliRunner()
 
         mixed_dir = tmp_path / "mixed"
@@ -73,11 +73,12 @@ class TestEdgeCasesAndErrors:
 
         # Create various file types
         (mixed_dir / "test.py").write_text("def hello(): pass")
+        (mixed_dir / "app.js").write_text("function hello() { return 1; }")
         (mixed_dir / "readme.md").write_text("# README")
         (mixed_dir / "data.json").write_text("{}")
 
         result = runner.invoke(stats, ["-d", str(mixed_dir), "--by-directory", "--depth", "1"])
 
         assert result.exit_code == 0
-        # Should only analyze Python files
         assert "1 python files" in result.output.lower()
+        assert "1 javascript files" in result.output.lower()
