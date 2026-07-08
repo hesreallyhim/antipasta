@@ -9,20 +9,23 @@ release. The authoritative code paths are:
 - `src/antipasta/core/mining/` for VCS and coverage-artifact analytics.
 - `src/antipasta/core/model/config.py` and `src/antipasta/schemas/metrics-config.schema.json` for defaults and schema coverage.
 
-The table below treats "supported" as "the current code can emit this metric
-row." Most static rows are emitted by the normal `antipasta metrics` path,
-duplication rows and layering rows require specific config to be computed, and
-VCS/coverage rows come from separate commands rather than language config.
+The table below treats "supported" as "the current library code has a producer
+for this metric row." Producers include language runners, project-level
+derivers, the VCS miner, the coverage-matrix loader, and snapshot-based joins.
+Some producers need context beyond source files: duplication needs a
+`duplication` config block, layering needs a configured layer order, VCS metrics
+need git history, coverage metrics need a coverage.py dynamic-context artifact,
+and hotspots need a prior report snapshot.
 
 The "What it measures" column is the metric definition. The "Default /
 threshold behavior" column is only about configuration thresholds; absence of a
 built-in threshold does not mean the metric is unsupported. Runtime requirements
 and non-config inputs, such as git history, report snapshots, or coverage.py
-artifacts, are listed separately in "Supported languages / required inputs."
+artifacts, are listed separately in "Supported languages / required context."
 
 ## Metric List
 
-| Metric | Category | Scope | Value range | Default / threshold behavior in current code | Supported languages / required inputs | Source | What it measures |
+| Metric | Category | Scope | Value range | Default / threshold behavior in current code | Supported languages / required context | Source | What it measures |
 |---|---|---:|---|---|---|---|---|
 | `cyclomatic_complexity` | Complexity | Function and file | `>= 1` when emitted | Default threshold `<= 10` | Python, JS/TS | Radon for Python; lizard for JS/TS | Independent control-flow paths through functions. |
 | `maintainability_index` | Mixed | File | `0..100` | Default threshold `>= 50` in generated Python config | Python | Radon | Composite maintainability score from complexity, size, and Halstead data. |
@@ -74,13 +77,13 @@ artifacts, are listed separately in "Supported languages / required inputs."
 | `assertions_per_test` | Other | Test function | `>= 0` | No built-in default threshold | Python test files | Custom | Plain assertions plus mock-style assertion calls per test. |
 | `mock_call_assertions` | Other | Test function | `>= 0` | No built-in default threshold | Python test files | Custom | Mock call-count or call-argument assertion calls per test. |
 | `big_literal_assertions` | Other | Test function | `>= 0` | No built-in default threshold | Python test files | Custom | Assertions involving large inline literal structures. |
-| `code_churn` | VCS | File | `>= 0` | No built-in default threshold | Git history via `antipasta vcs` | git plus custom | Lines added plus deleted over the mined history window. |
-| `change_coupling` | VCS | File pair | `>= 3` when emitted | No built-in default threshold | Git history via `antipasta vcs` | git plus custom | Number of commits in which a file pair changed together. |
-| `hotspot` | Mixed | File | `>= 0` | No built-in default threshold | Git history plus `antipasta vcs --snapshot`; emitted only when the snapshot supplies complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
-| `test_churn_ratio` | VCS | Suite | `>= 0` | No built-in default threshold | Git history via `antipasta vcs` plus test path conventions | git plus custom | Test lines changed divided by source lines changed. |
-| `co_churn_multiplicity` | VCS | Suite | `>= 0` | No built-in default threshold | Git history via `antipasta vcs` plus test path conventions | git plus custom | Median number of test files touched in source-touching commits. |
-| `suite_redundancy_index` | Other | Coverage artifact | `0..1` | No built-in default threshold | coverage.py dynamic-context artifact via `antipasta test-health` | coverage.py artifact plus custom | Share of tests that the greedy line-coverage cover can omit. |
-| `blast_radius` | Other | Covered file | `>= 0` | No built-in default threshold | coverage.py dynamic-context artifact via `antipasta test-health` | coverage.py artifact plus custom | Number of distinct tests executing a file. |
+| `code_churn` | VCS | File | `>= 0` | No built-in default threshold | Git history | git plus custom | Lines added plus deleted over the mined history window. |
+| `change_coupling` | VCS | File pair | `>= 3` when emitted | No built-in default threshold | Git history | git plus custom | Number of commits in which a file pair changed together. |
+| `hotspot` | Mixed | File | `>= 0` | No built-in default threshold | Git history plus a report snapshot; emitted only when the snapshot supplies complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
+| `test_churn_ratio` | VCS | Suite | `>= 0` | No built-in default threshold | Git history plus test path conventions | git plus custom | Test lines changed divided by source lines changed. |
+| `co_churn_multiplicity` | VCS | Suite | `>= 0` | No built-in default threshold | Git history plus test path conventions | git plus custom | Median number of test files touched in source-touching commits. |
+| `suite_redundancy_index` | Other | Coverage artifact | `0..1` | No built-in default threshold | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Share of tests that the greedy line-coverage cover can omit. |
+| `blast_radius` | Other | Covered file | `>= 0` | No built-in default threshold | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Number of distinct tests executing a file. |
 
 ## Custom Metric Computation Notes
 
@@ -152,7 +155,7 @@ artifacts, are listed separately in "Supported languages / required inputs."
 - Several supported metrics are project-, VCS-, or artifact-scoped and are not
   meaningfully thresholded through `languages[].metrics`; project metrics use
   optional config blocks such as `tree_shape`, `import_graph`, `narrative`, and
-  `duplication`, while VCS and coverage metrics depend on command inputs rather
+  `duplication`, while VCS and coverage metrics depend on provider inputs rather
   than language config.
 - `LanguageConfig.name` is a free string in the schema, while the current
   detector only recognizes Python, JavaScript, and TypeScript extensions.
