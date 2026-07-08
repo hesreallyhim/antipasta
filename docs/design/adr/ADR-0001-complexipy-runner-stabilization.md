@@ -140,4 +140,3 @@ Revisit vendoring or in-house analyzer if any of the following recur after this 
 - recurring runtime incompatibilities across environments,
 - persistent subprocess/output instability,
 - performance constraints that require direct library/API integration.
-

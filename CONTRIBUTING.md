@@ -18,6 +18,12 @@ make install-dev
 
 The Makefile creates and uses a local `venv/` directory. You do not need to activate it for the documented Make targets.
 
+To install the repository's pre-commit hooks:
+
+```sh
+make install-hooks
+```
+
 ## Common Commands
 
 Show available Make targets:

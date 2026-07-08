@@ -3,6 +3,7 @@ VENV_DIR := $(VENV_NAME)
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 TOX := $(VENV_DIR)/bin/tox
+PRE_COMMIT := $(VENV_DIR)/bin/pre-commit
 
 .PHONY: install-hooks help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check release-dry-run treemap
 
@@ -81,9 +82,8 @@ metrics-quiet: install  ## Run antipasta metrics analysis on src/ (quiet mode - 
 metrics-json: install  ## Run antipasta metrics analysis and output JSON
 	@$(VENV_DIR)/bin/antipasta metrics -d src/ --format json
 
-install-hooks:  ## Point git at the committed hooks
-	@git config core.hooksPath .githooks
-	@echo "✅ core.hooksPath -> .githooks"
+install-hooks: install-dev  ## Install pre-commit hooks
+	$(PRE_COMMIT) install
 
 metrics-report: install  ## Generate detailed metrics report with statistics
 	@echo "═══════════════════════════════════════════════════════"

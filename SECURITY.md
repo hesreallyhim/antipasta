@@ -3,8 +3,6 @@
 ## Supported Versions
 
 Security updates are provided for the latest released version of antipasta.
-Older versions are not actively maintained, and users should upgrade before
-reporting an issue unless the vulnerability also affects the latest release.
 
 | Version | Supported |
 | ------- | --------- |
@@ -19,7 +17,7 @@ Use GitHub's private vulnerability reporting for this repository:
 <https://github.com/hesreallyhim/antipasta/security/advisories/new>
 
 If private vulnerability reporting is unavailable, email the maintainer at
-<hesreallyhim@proton.me>.
+<security@hesreallyhim.com>.
 
 When reporting a vulnerability, include:
 
@@ -29,8 +27,7 @@ When reporting a vulnerability, include:
 - reproduction steps, proof-of-concept input, or a minimal affected project
 - whether the issue appears to affect the latest released version
 
-The maintainer will review reports on a best-effort basis. You can expect an
-initial response within 7 days. If the report appears valid, the maintainer will
+You can expect an initial response within 7 days. The maintainer will
 discuss remediation scope and timing within 7 days of the initial response.
 Complex issues may take longer to validate and fix. If the report is accepted,
 the fix will normally be released in the next suitable patch or minor release.

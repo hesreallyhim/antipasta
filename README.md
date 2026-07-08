@@ -1,3 +1,5 @@
+![antipasta banner](assets/antipasta-banner.png)
+
 # antipasta
 
 A code quality enforcement tool that analyzes code complexity across a number of metrics and helps maintain readable, maintainable code.

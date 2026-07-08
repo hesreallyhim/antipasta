@@ -144,14 +144,12 @@ def build_rows(
             continue
         rel = fpath.relative_to(root)
         parts = list(rel.parts)
-        rows.append(
-            {
-                "parts": parts[:-1],
-                "name": parts[-1],
-                "value": value,
-                "full_path": str(rel),
-            }
-        )
+        rows.append({
+            "parts": parts[:-1],
+            "name": parts[-1],
+            "value": value,
+            "full_path": str(rel),
+        })
 
     if not rows:
         return pd.DataFrame(columns=["name", "value", "full_path"])
@@ -186,30 +184,26 @@ def build_tree_dataframe(df: pd.DataFrame, root: Path) -> pd.DataFrame:
     for path_tuple, value in sorted(dir_totals.items()):
         node_id = "/".join(path_tuple)
         parent_id = root_id if len(path_tuple) == 1 else "/".join(path_tuple[:-1])
-        nodes.append(
-            {
-                "id": node_id,
-                "label": path_tuple[-1],
-                "parent": parent_id,
-                "value": value,
-                "full_path": node_id,
-                "is_dir": True,
-            }
-        )
+        nodes.append({
+            "id": node_id,
+            "label": path_tuple[-1],
+            "parent": parent_id,
+            "value": value,
+            "full_path": node_id,
+            "is_dir": True,
+        })
 
     for _, row in df.iterrows():
         parts = row["parts"]
         parent_id = root_id if not parts else "/".join(parts)
-        nodes.append(
-            {
-                "id": row["full_path"],
-                "label": row["name"],
-                "parent": parent_id,
-                "value": int(row["value"]),
-                "full_path": row["full_path"],
-                "is_dir": False,
-            }
-        )
+        nodes.append({
+            "id": row["full_path"],
+            "label": row["name"],
+            "parent": parent_id,
+            "value": int(row["value"]),
+            "full_path": row["full_path"],
+            "is_dir": False,
+        })
 
     return pd.DataFrame(nodes)
 
