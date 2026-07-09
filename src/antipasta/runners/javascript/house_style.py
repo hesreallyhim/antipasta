@@ -285,9 +285,7 @@ class HouseStyleRunner(BaseRunner):
             ],
         )
 
-    def _raw_rows(
-        self, file_path: Path, content: str, source: SourceTokens
-    ) -> list[MetricResult]:
+    def _raw_rows(self, file_path: Path, content: str, source: SourceTokens) -> list[MetricResult]:
         line_count = total_lines(content)
         blank_lines = sum(1 for line in content.splitlines() if not line.strip())
         return [
@@ -311,9 +309,7 @@ class HouseStyleRunner(BaseRunner):
             ),
         ]
 
-    def _file_rows(
-        self, file_path: Path, content: str, source: SourceTokens
-    ) -> list[MetricResult]:
+    def _file_rows(self, file_path: Path, content: str, source: SourceTokens) -> list[MetricResult]:
         line_count = total_lines(content)
         return [
             MetricResult(
@@ -959,9 +955,7 @@ def _next_identifier(tokens: list[Token], start: int) -> int | None:
     return None
 
 
-def _next_value(
-    tokens: list[Token], value: str, start: int, end: int | None = None
-) -> int | None:
+def _next_value(tokens: list[Token], value: str, start: int, end: int | None = None) -> int | None:
     real_end = len(tokens) if end is None else min(end, len(tokens))
     for index in range(start, real_end):
         if tokens[index].value == value:
@@ -1160,8 +1154,7 @@ def _is_boolean_param(param: list[Token]) -> bool:
     if "true" in values or "false" in values:
         return True
     return any(
-        values[index] == ":" and values[index + 1] == "boolean"
-        for index in range(len(values) - 1)
+        values[index] == ":" and values[index + 1] == "boolean" for index in range(len(values) - 1)
     )
 
 
