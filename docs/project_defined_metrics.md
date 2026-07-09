@@ -1,47 +1,8 @@
-# Project-Defined Metrics Explained
-
-Antipasta reports some metrics with widely used definitions, such as
-cyclomatic complexity, line counts, Halstead metrics, and package coupling.
-It also reports metrics that operationalize design heuristics with local
-formulas. This document explains those project-defined metrics: what they are
-trying to reveal, how to interpret them, and what kind of code usually causes
-them to rise.
-
-These metrics are review signals, not verdicts. A high value means "inspect
-this code"; it does not mean "this code is wrong." The most useful readings are
-comparative: worst offenders in a module, trends over time, or places where a
-metric disagrees with the team's intuition.
-
-The complete metric list, supported languages, and threshold defaults live in
-[`supported_metrics.md`](supported_metrics.md).
-
-## Interpretation Rules
-
-Use these rules when reading the project-defined metrics:
-
-- Prefer outliers over absolutes. A value that is normal in one codebase may be
-  suspicious in another.
-- Treat generated code, framework glue, adapters, and performance-critical
-  code as special cases.
-- Look for repeated signals. A long function with poor flatness, high global
-  reach, and mixed narrative/computation is more concerning than any one row.
-- Use suppressions or thresholds sparingly. If many files need an exception,
-  the rule or threshold probably needs adjustment.
-
-For JavaScript and TypeScript, several design-style metrics are extracted with
-a lightweight lexical analyzer. Rows that depend on source-shape recovery are
-labeled approximate in `details`.
-
 ## Expression Flatness
 
-`expression_flatness` measures how often a function's statements stay within a
-small operation budget. It is meant to find statements that force the reader to
-understand several ideas at once: selection, transformation, indexing,
-branching, and collaborator calls.
+`expression_flatness` measures how often a function's statements stay within a small operation budget. It is meant to find statements that force the reader to understand several ideas at once: selection, transformation, indexing, branching, and collaborator calls.
 
-Dense statements are not automatically bad. They are costly when the code has
-no names for intermediate concepts and therefore gives the reader no place to
-pause.
+The metric names statements that hide intermediate concepts instead of exposing them as local names.
 
 Dense:
 
@@ -63,18 +24,13 @@ def active_names(users):
     return sorted(names)
 ```
 
-The flatter version is longer, but it exposes two named steps: choosing active
-users and extracting names.
+The flatter version names two intermediate steps: choosing active users and extracting names.
 
 ## Pipeline Linearity
 
-`pipeline_linearity` measures whether local names form a one-way pipeline:
-assigned once, read once, then handed to the next step. High linearity often
-corresponds to code that reads as "first this, then this, then this."
+`pipeline_linearity` measures whether local names form a one-way pipeline: assigned once, read once, then handed to the next step. High linearity often corresponds to code that reads as "first this, then this, then this."
 
-The metric rewards explaining variables. It tends to drop when a function
-mutates scratch variables repeatedly or sends data through loops and branches
-that obscure the path from input to output.
+The metric drops when a function mutates scratch variables repeatedly or sends data through loops and branches that obscure the path from input to output.
 
 Less linear:
 
@@ -98,15 +54,11 @@ def summarize(order):
     return taxed
 ```
 
-The second version leaves a short audit trail of the computation.
+The second version names each transition in the computation.
 
 ## Narrative Mixed Functions
 
-`narrative_mixed_functions` counts functions that mix orchestration with local
-computation. It is a measurable form of "one level of abstraction per
-function." A narrative function advances the story by calling named project
-steps. A computational function performs a local calculation. A mixed function
-does both in the same body.
+`narrative_mixed_functions` counts functions that mix orchestration with local computation. It is a measurable form of "one level of abstraction per function." A narrative function advances the story by calling named project steps. A computational function performs a local calculation. A mixed function does both in the same body.
 
 Mixed:
 
@@ -130,30 +82,21 @@ def keep_active(users):
     return [user for user in users if user.status == "active"]
 ```
 
-The separated version lets `publish()` stay at one abstraction level: fetch,
-filter, render. The filtering rule has a name and can be tested independently.
+The separated version makes `publish()` call named project steps: fetch, filter, render. The filtering rule is represented by `keep_active()`.
 
 ## Narrator And Computer Budgets
 
-`narrator_budget_exceeded` and `computer_budget_exceeded` apply size limits to
-the roles used by the narrative classifier.
+`narrator_budget_exceeded` and `computer_budget_exceeded` apply size limits to the roles used by the narrative classifier.
 
-A narrator exceeds its budget when an orchestration function contains too many
-steps. Even if each call is clear, a long sequence can become a run-on
-procedure that should be split into named phases.
+A narrator exceeds its budget when an orchestration function contains too many steps. The named shape is a long procedural sequence without smaller named phases.
 
-A computer exceeds its budget when a leaf calculation has too many statements
-or too much nesting. That usually means the "leaf" is hiding multiple smaller
-rules.
+A computer exceeds its budget when a leaf calculation has too many statements or too much nesting. The named shape is a leaf function with multiple smaller rules embedded in its body.
 
-These rows are useful for finding functions that are readable statement by
-statement but still too large at their current abstraction level.
+These rows name functions whose role is identifiable but whose body exceeds the configured role budget.
 
 ## Step-Down Ordering
 
-`step_down_ordering` measures whether functions in a module tend to call helpers
-defined below them. This supports a top-down reading order: public or
-high-level functions first, details later.
+`step_down_ordering` measures whether functions in a module tend to call helpers defined below them. This supports a top-down reading order: public or high-level functions first, details later.
 
 Less step-down:
 
@@ -179,31 +122,19 @@ def normalize(user):
     return user.strip().lower()
 ```
 
-This is a style signal. Alphabetic order, framework order, or lifecycle order
-can be valid in some modules. The metric is most useful when a module is meant
-to read as a top-down story but does not.
+The metric names modules whose intra-module call order diverges from that top-down shape.
 
 ## Name Clarity
 
-`name_clarity` scores callable names against a layered vocabulary: common
-English words, code vocabulary, project anchor words, and configured allowlist
-terms. It looks for names that are hard to pronounce, decode, search for, or
-distinguish from each other.
+`name_clarity` scores callable names against a layered vocabulary: common English words, code vocabulary, project anchor words, and configured allowlist terms. It looks for names that are hard to pronounce, decode, search for, or distinguish from each other.
 
-Low-scoring names often look like `chk`, `proc2`, `fn_hlpr`, or `do_stuff`.
-High-scoring names expose intent: `collect_active_users`, `render_invoice`,
-`normalize_token`, `load_project_snapshot`.
+Low-scoring names often look like `chk`, `proc2`, `fn_hlpr`, or `do_stuff`. High-scoring names expose intent: `collect_active_users`, `render_invoice`, `normalize_token`, `load_project_snapshot`.
 
-Domain vocabulary matters. Product names, protocol terms, abbreviations, and
-specialized nouns may need to be added to the allowlist so the metric learns
-the project's language.
+Allowlisted product names, protocol terms, abbreviations, and specialized nouns are treated as project vocabulary.
 
 ## Naming Antipatterns
 
-`naming_antipatterns` counts names whose grammar conflicts with visible
-behavior. The checks are conservative: they fire when there is positive
-evidence, such as a predicate-looking name returning a non-boolean annotation,
-a getter/fetcher returning no value, or an `_and_` name advertising two jobs.
+`naming_antipatterns` counts names whose grammar conflicts with visible behavior. The checks are conservative: they fire when there is positive evidence, such as a predicate-looking name returning a non-boolean annotation, a getter/fetcher returning no value, or an `_and_` name advertising two jobs.
 
 Examples:
 
@@ -221,15 +152,11 @@ def fetch_and_save_user(id):
     return save_user(user)
 ```
 
-The metric treats names as contracts. A predicate should answer a yes/no
-question. A fetcher should return what it fetched. A function name should not
-usually announce multiple responsibilities.
+The metric treats names as contracts. A predicate-shaped name is treated as a yes/no contract. A fetcher-shaped name is treated as a returned-value contract. An `_and_` name is treated as a multi-responsibility contract.
 
 ## Message Chain Depth
 
-`message_chain_depth` measures long reach-through chains such as
-`order.customer.account.owner.email`. It is a Law of Demeter style signal: the
-current function may know too much about another object's internal structure.
+`message_chain_depth` measures long reach-through chains such as `order.customer.account.owner.email`. Each attribute or call hop adds another level of object-boundary traversal.
 
 Reach-through:
 
@@ -243,26 +170,17 @@ Encapsulated:
 email = order.owner_email()
 ```
 
-Long chains are common in fluent APIs, query builders, and test assertions.
-They are most suspicious in business logic, where repeated chains often point
-to missing methods on the object that owns the data.
+The metric names code that reaches through a sequence of collaborators instead of asking one object for the needed value.
 
 ## Global State Reach
 
-`global_state_reach` counts mutable module-level names a function touches. It
-is a hidden-dependency signal: the function's behavior depends on state that is
-not visible in its parameters.
+`global_state_reach` counts mutable module-level names a function touches. It is a hidden-dependency signal: the function's behavior depends on state that is not visible in its parameters.
 
-Global state can be deliberate: caches, registries, feature flags, plugin
-tables, or framework integration points. The metric identifies the functions
-coupled to that state so tests, concurrency changes, and refactors can inspect
-those dependencies deliberately.
+The named state includes caches, registries, feature flags, plugin tables, framework integration points, and other mutable names stored at module scope.
 
 ## Exception Discipline
 
-`exception_discipline` counts bare, silent, or overly broad exception handlers
-that do not re-raise. The goal is to preserve failure information and make
-error-handling intent visible.
+`exception_discipline` counts bare, silent, or overly broad exception handlers that do not re-raise. It names handlers that discard failure information or hide error-handling intent.
 
 Risky:
 
@@ -283,35 +201,23 @@ except PublishError as error:
     raise
 ```
 
-Best-effort cleanup, optional telemetry, and compatibility shims can justify
-swallowing an exception. Those cases should be narrow and explicit.
+The metric names handlers that catch an error and then erase it without a narrow exception type, a visible recovery action, or a reraised exception.
 
 ## Lack Of Cohesion
 
-`lack_of_cohesion` counts disconnected groups of methods inside a class, using
-shared fields and local method calls as connecting evidence. A value above one
-suggests that the class may contain multiple responsibilities.
+`lack_of_cohesion` counts disconnected groups of methods inside a class, using shared fields and local method calls as connecting evidence. A value above one means the class graph split into more than one method group.
 
-For example, a class whose persistence methods share `self.connection` while
-its rendering methods share `self.template` may be two concepts under one class
-name. The metric is approximate because field sharing is only a proxy for
-conceptual unity, but unrelated responsibilities often leave this structural
-trace.
+For example, a class whose persistence methods share `self.connection` while its rendering methods share `self.template` forms two structural groups under one class name. The metric is approximate because field sharing is only a proxy for conceptual unity.
 
 ## Coupling Between Objects
 
-`coupling_between_objects` approximates class-level coupling by counting
-distinct imported names referenced inside the class body. It asks how many
-external collaborators the class knows about.
+`coupling_between_objects` approximates class-level coupling by counting distinct imported names referenced inside the class body. It asks how many external collaborators the class knows about.
 
-High coupling is normal at integration boundaries. It is more concerning inside
-domain logic, where a class that imports many collaborators may be coordinating
-too much of the system itself.
+The metric names classes whose bodies mention many imported collaborators.
 
 ## Single Responsibility Index
 
-`single_responsibility_index` is a composite pressure score for classes. It
-combines:
+`single_responsibility_index` is a composite pressure score for classes. It combines:
 
 - cohesion components: disconnected method groups
 - weighted methods: accumulated method complexity
@@ -323,32 +229,18 @@ The formula is intentionally transparent:
 cohesion_components * (1 + weighted_methods / 30) * (1 + statements / 60)
 ```
 
-The score is a sorting heuristic, not a formal proof of Single Responsibility
-Principle compliance. Classes that are disconnected, complex, and large should
-rise toward the top of a refactoring review list.
+The score rises when a class is structurally disconnected, method-heavy, and large.
 
 ## Test-Smell Metrics
 
-`assertions_per_test`, `mock_call_assertions`, and `big_literal_assertions`
-identify static signs of brittle tests.
+`assertions_per_test`, `mock_call_assertions`, and `big_literal_assertions` identify three static test shapes.
 
-Many assertions in one test can mean the test is checking a broad scenario
-diff rather than one behavior. Mock call assertions can pin implementation
-details instead of externally visible outcomes. Large inline literals can
-become hand-written snapshots without snapshot tooling or review workflow.
+`assertions_per_test` names tests with many assertion sites. `mock_call_assertions` names tests that assert call counts or call arguments on mocks. `big_literal_assertions` names tests that compare against large inline literal values.
 
-These rows should be interpreted in context. A protocol adapter may need exact
-mock-call checks. An integration test may need many assertions. The useful
-question is whether the brittleness is intentional.
+These rows name tests whose static shape depends on broad assertion sets, implementation-level mock expectations, or large literal expected values.
 
 ## Marker And Comment Density
 
-`marker_density` counts TODO/FIXME/HACK/XXX markers per thousand physical
-lines. It is a debt inventory signal. It is especially useful as a trend: is
-the project accumulating unresolved markers faster than it resolves them?
+`marker_density` counts TODO/FIXME/HACK/XXX markers per thousand physical lines. It names the concentration of unresolved work markers in a file.
 
-`comment_density` measures how much of a file is comment text. Very low comment
-density can be fine in self-explanatory code. Very high comment density can be
-fine in protocol, security, or numerical code where the "why" matters. Outliers
-are worth inspecting because comments often reveal either careful explanation
-or code that is too confusing to stand on its own.
+`comment_density` measures how much of a file is comment text. It names the proportion of physical lines devoted to comments rather than executable or declarative code.
