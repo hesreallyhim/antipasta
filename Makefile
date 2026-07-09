@@ -111,10 +111,10 @@ self-check: install  ## Run antipasta on its own source code
 	@echo "✅ All complexity checks passed!"
 
 TREEMAP_METRIC ?= sloc
-TREEMAP_OUTPUT ?= treemap_loc.html
+TREEMAP_OUTPUT ?= INTERNAL/treemap_loc.html
 
 treemap: install-dev  ## Generate Plotly treemap for src (override METRIC=loc|sloc|lloc)
-	$(PYTHON) treemap_loc.py --root src --metric $(TREEMAP_METRIC) --output $(TREEMAP_OUTPUT)
+	$(PYTHON) INTERNAL/treemap_loc.py --root src --metric $(TREEMAP_METRIC) --output $(TREEMAP_OUTPUT)
 
 check-all: check metrics-quiet  ## Run all checks including complexity metrics
 
