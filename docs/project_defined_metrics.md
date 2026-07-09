@@ -1,49 +1,57 @@
 # Project-Defined Metrics Explained
 
-Antipasta includes familiar metrics such as cyclomatic complexity, line counts,
-Halstead metrics, and the Martin package metrics. It also includes metrics that
-are less standardized: they turn design advice about readability, abstraction,
-names, tests, and class responsibility into concrete signals.
+Antipasta reports some metrics with widely used definitions, such as
+cyclomatic complexity, line counts, Halstead metrics, and package coupling.
+It also reports metrics that operationalize design heuristics with local
+formulas. This document explains those project-defined metrics: what they are
+trying to reveal, how to interpret them, and what kind of code usually causes
+them to rise.
 
-These are not meant to imply that the ideas are private inventions. Most of the
-underlying principles are old and recognizable: small functions, one level of
-abstraction, Law of Demeter, low coupling, high cohesion, intention-revealing
-names, acyclic dependencies, and tests that specify behavior rather than
-implementation trivia. The project-defined part is the decision to make those
-principles measurable in this particular way.
+These metrics are review signals, not verdicts. A high value means "inspect
+this code"; it does not mean "this code is wrong." The most useful readings are
+comparative: worst offenders in a module, trends over time, or places where a
+metric disagrees with the team's intuition.
 
-Treat these rows as diagnostic instruments. A high value is a prompt to inspect
-the code, not proof that the code is wrong. A low value is a reason to be less
-worried, not proof that the design is good. They are most useful for ranking
-refactoring candidates, finding surprising outliers, and making team preferences
-explicit enough to discuss.
+The complete metric list, supported languages, and threshold defaults live in
+[`supported_metrics.md`](supported_metrics.md).
 
-## How To Read The Examples
+## Interpretation Rules
 
-The examples below are intentionally small. Real code usually has more context:
-performance constraints, framework idioms, generated code, tests with fixture
-setup, or domain notation that is terse because the domain itself is terse. The
-metric is useful when it points to a question worth asking.
+Use these rules when reading the project-defined metrics:
+
+- Prefer outliers over absolutes. A value that is normal in one codebase may be
+  suspicious in another.
+- Treat generated code, framework glue, adapters, and performance-critical
+  code as special cases.
+- Look for repeated signals. A long function with poor flatness, high global
+  reach, and mixed narrative/computation is more concerning than any one row.
+- Use suppressions or thresholds sparingly. If many files need an exception,
+  the rule or threshold probably needs adjustment.
+
+For JavaScript and TypeScript, several design-style metrics are extracted with
+a lightweight lexical analyzer. Rows that depend on source-shape recovery are
+labeled approximate in `details`.
 
 ## Expression Flatness
 
-`expression_flatness` asks whether a function is written as a sequence of
-readable steps or as dense statements that each do several jobs. The value is
-the fraction of a function's own statements that stay under a small operation
-budget. A low score often means a reader has to parse computation, branching,
-indexing, and calls all at once.
+`expression_flatness` measures how often a function's statements stay within a
+small operation budget. It is meant to find statements that force the reader to
+understand several ideas at once: selection, transformation, indexing,
+branching, and collaborator calls.
 
-The underlying idea is not that every line must be trivial. It is that a line
-should usually communicate one move in the program. When a statement both
-selects data, transforms it, applies conditionals, indexes deeply, and calls
-out to collaborators, the function becomes harder to scan and harder to safely
-change.
+Dense statements are not automatically bad. They are costly when the code has
+no names for intermediate concepts and therefore gives the reader no place to
+pause.
 
 Dense:
 
 ```python
 def active_names(users):
-    return sorted(u["profile"]["name"].strip() for u in users if u["active"] and u["profile"])
+    return sorted(
+        user["profile"]["name"].strip()
+        for user in users
+        if user["active"] and user["profile"]
+    )
 ```
 
 Flatter:
@@ -55,19 +63,18 @@ def active_names(users):
     return sorted(names)
 ```
 
-The second version is longer, but it gives the reader named intermediate
-concepts. That is the tradeoff this metric tries to make visible.
+The flatter version is longer, but it exposes two named steps: choosing active
+users and extracting names.
 
 ## Pipeline Linearity
 
-`pipeline_linearity` looks for the "then, then, then" shape: local names are
-assigned once and read once as the function progresses. A high score often
-means the function is using explaining variables well. A low score can indicate
-mutation-heavy code, reused scratch variables, or a function where data flows
-in circles.
+`pipeline_linearity` measures whether local names form a one-way pipeline:
+assigned once, read once, then handed to the next step. High linearity often
+corresponds to code that reads as "first this, then this, then this."
 
-This metric is not anti-variable. It is almost the opposite: it rewards local
-names that explain a step and then hand the result to the next step.
+The metric rewards explaining variables. It tends to drop when a function
+mutates scratch variables repeatedly or sends data through loops and branches
+that obscure the path from input to output.
 
 Less linear:
 
@@ -91,16 +98,15 @@ def summarize(order):
     return taxed
 ```
 
-The second version is easier to debug because each name records a particular
-stage of the computation.
+The second version leaves a short audit trail of the computation.
 
 ## Narrative Mixed Functions
 
-`narrative_mixed_functions` counts functions that both orchestrate project-level
-steps and perform raw computation in the same body. This is an operational
-version of "one level of abstraction per function." A narrator function should
-tell the story by calling named steps. A computer function should do the local
-calculation. A mixed function does both, so the reader has to shift altitude.
+`narrative_mixed_functions` counts functions that mix orchestration with local
+computation. It is a measurable form of "one level of abstraction per
+function." A narrative function advances the story by calling named project
+steps. A computational function performs a local calculation. A mixed function
+does both in the same body.
 
 Mixed:
 
@@ -124,34 +130,30 @@ def keep_active(users):
     return [user for user in users if user.status == "active"]
 ```
 
-The point is not that list comprehensions are bad. The point is that
-`publish()` now reads at one altitude: fetch, filter, render. The filtering
-details have a name and a home.
+The separated version lets `publish()` stay at one abstraction level: fetch,
+filter, render. The filtering rule has a name and can be tested independently.
 
 ## Narrator And Computer Budgets
 
 `narrator_budget_exceeded` and `computer_budget_exceeded` apply size limits to
-the two function roles used by the narrative metric.
+the roles used by the narrative classifier.
 
-A narrator has a step budget because orchestration can become a run-on sentence:
-fetch this, validate that, enrich the result, dispatch three side effects, log
-four events, and return a DTO. Past a point, even individually clear steps stop
-forming a clear story.
+A narrator exceeds its budget when an orchestration function contains too many
+steps. Even if each call is clear, a long sequence can become a run-on
+procedure that should be split into named phases.
 
-A computer has a statement and nesting budget because leaf calculations should
-stay small. If a leaf function is long or deeply nested, it is often hiding
-several smaller concepts that could be named.
+A computer exceeds its budget when a leaf calculation has too many statements
+or too much nesting. That usually means the "leaf" is hiding multiple smaller
+rules.
 
-The budgets are intentionally simple. They do not know whether a function is
-business critical or performance sensitive. They mark functions that deserve
-human attention.
+These rows are useful for finding functions that are readable statement by
+statement but still too large at their current abstraction level.
 
 ## Step-Down Ordering
 
-`step_down_ordering` measures whether a module reads top-down: callers appear
-before the helpers they call. This is the "newspaper" or "table of contents"
-style of source organization. The public or high-level function appears first,
-then its supporting details appear below it.
+`step_down_ordering` measures whether functions in a module tend to call helpers
+defined below them. This supports a top-down reading order: public or
+high-level functions first, details later.
 
 Less step-down:
 
@@ -177,34 +179,31 @@ def normalize(user):
     return user.strip().lower()
 ```
 
-This is deliberately stylistic. Some teams prefer alphabetic order, framework
-order, or grouping by lifecycle hook. The metric exists because top-down
-ordering is a real readability convention, not because it is the only valid
-one.
+This is a style signal. Alphabetic order, framework order, or lifecycle order
+can be valid in some modules. The metric is most useful when a module is meant
+to read as a top-down story but does not.
 
 ## Name Clarity
 
 `name_clarity` scores callable names against a layered vocabulary: common
 English words, code vocabulary, project anchor words, and configured allowlist
-terms. It is designed to catch names that are difficult to pronounce, decode,
-or search for.
+terms. It looks for names that are hard to pronounce, decode, search for, or
+distinguish from each other.
 
-Low-scoring names tend to look like `chk`, `proc2`, `fn_hlpr`, or `do_stuff`.
-High-scoring names tend to expose intent: `collect_active_users`,
-`render_invoice`, `normalize_token`, `load_project_snapshot`.
+Low-scoring names often look like `chk`, `proc2`, `fn_hlpr`, or `do_stuff`.
+High-scoring names expose intent: `collect_active_users`, `render_invoice`,
+`normalize_token`, `load_project_snapshot`.
 
-This metric is necessarily approximate. A short domain word can be perfectly
-clear inside a particular project, and a long English name can still be vague.
-The allowlist exists because good names often include product names, protocol
-terms, or domain-specific language that a general dictionary will not know.
+Domain vocabulary matters. Product names, protocol terms, abbreviations, and
+specialized nouns may need to be added to the allowlist so the metric learns
+the project's language.
 
 ## Naming Antipatterns
 
-`naming_antipatterns` counts cases where a function name makes a behavioral
-promise that the implementation contradicts. The current checks are deliberately
-conservative: they fire only on positive evidence, such as a predicate-looking
-name returning a non-boolean annotation, a getter/fetcher returning nothing, or
-a name with `_and_` that advertises two jobs.
+`naming_antipatterns` counts names whose grammar conflicts with visible
+behavior. The checks are conservative: they fire when there is positive
+evidence, such as a predicate-looking name returning a non-boolean annotation,
+a getter/fetcher returning no value, or an `_and_` name advertising two jobs.
 
 Examples:
 
@@ -222,20 +221,15 @@ def fetch_and_save_user(id):
     return save_user(user)
 ```
 
-The issue is not grammatical purity. Names are contracts. When a name says
-"predicate," "query," or "one job," callers build expectations around that
-contract.
+The metric treats names as contracts. A predicate should answer a yes/no
+question. A fetcher should return what it fetched. A function name should not
+usually announce multiple responsibilities.
 
 ## Message Chain Depth
 
 `message_chain_depth` measures long reach-through chains such as
-`order.customer.account.owner.email`. This is a Law of Demeter style signal:
-the current function may know too much about the shape of other objects.
-
-Long chains are not always wrong. Fluent APIs, builders, query objects, and
-test assertions often use chains intentionally. The smell is strongest in
-business logic where a function repeatedly reaches through several layers of
-another object's internals.
+`order.customer.account.owner.email`. It is a Law of Demeter style signal: the
+current function may know too much about another object's internal structure.
 
 Reach-through:
 
@@ -249,8 +243,9 @@ Encapsulated:
 email = order.owner_email()
 ```
 
-The second version moves knowledge about the object's internal path closer to
-the object that owns it.
+Long chains are common in fluent APIs, query builders, and test assertions.
+They are most suspicious in business logic, where repeated chains often point
+to missing methods on the object that owns the data.
 
 ## Global State Reach
 
@@ -258,16 +253,16 @@ the object that owns it.
 is a hidden-dependency signal: the function's behavior depends on state that is
 not visible in its parameters.
 
-Sometimes global state is a deliberate cache, registry, feature flag store, or
-framework integration point. The metric does not forbid that. It tells you
-which functions are coupled to those shared names so that tests, refactors, and
-concurrency changes can be more careful.
+Global state can be deliberate: caches, registries, feature flags, plugin
+tables, or framework integration points. The metric identifies the functions
+coupled to that state so tests, concurrency changes, and refactors can inspect
+those dependencies deliberately.
 
 ## Exception Discipline
 
 `exception_discipline` counts bare, silent, or overly broad exception handlers
-that do not re-raise. The principle is that failure handling should preserve
-information and make intent explicit.
+that do not re-raise. The goal is to preserve failure information and make
+error-handling intent visible.
 
 Risky:
 
@@ -288,46 +283,39 @@ except PublishError as error:
     raise
 ```
 
-There are legitimate boundary cases: best-effort cleanup, optional telemetry,
-or compatibility shims. Those cases should usually be local and obvious.
+Best-effort cleanup, optional telemetry, and compatibility shims can justify
+swallowing an exception. Those cases should be narrow and explicit.
 
 ## Lack Of Cohesion
 
 `lack_of_cohesion` counts disconnected groups of methods inside a class, using
-shared fields and local method calls as the connecting evidence. A value above
-one suggests the class may contain multiple responsibilities that do not
-communicate with each other.
+shared fields and local method calls as connecting evidence. A value above one
+suggests that the class may contain multiple responsibilities.
 
-For example, a class with `load_user()` and `save_user()` methods using
-`self.connection`, plus `render_invoice()` and `format_currency()` methods
-using `self.template`, may be two objects wearing one class name. Cohesion is
-about whether the methods form one concept, not whether the class is large.
-
-The metric is approximate because static field access is only a proxy for
-conceptual unity. It is still useful because unrelated responsibilities often
-leave exactly this structural trace.
+For example, a class whose persistence methods share `self.connection` while
+its rendering methods share `self.template` may be two concepts under one class
+name. The metric is approximate because field sharing is only a proxy for
+conceptual unity, but unrelated responsibilities often leave this structural
+trace.
 
 ## Coupling Between Objects
 
 `coupling_between_objects` approximates class-level coupling by counting
-distinct imported names referenced inside the class body. It is a local version
-of the larger coupling question: how many external collaborators must this class
-know about?
+distinct imported names referenced inside the class body. It asks how many
+external collaborators the class knows about.
 
-A class with many imported collaborators can still be correct, especially at an
-integration boundary. But high coupling raises the cost of change: more imports
-mean more reasons the class might break when other modules move, rename, or
-change behavior.
+High coupling is normal at integration boundaries. It is more concerning inside
+domain logic, where a class that imports many collaborators may be coordinating
+too much of the system itself.
 
 ## Single Responsibility Index
 
-`single_responsibility_index` is a composite pressure score. It combines three
-signals:
+`single_responsibility_index` is a composite pressure score for classes. It
+combines:
 
-- cohesion components: how many disconnected method groups the class appears to
-  contain
-- weighted methods: how much method complexity is attached to the class
-- class statements: how much method body volume the class owns
+- cohesion components: disconnected method groups
+- weighted methods: accumulated method complexity
+- class statements: method body volume
 
 The formula is intentionally transparent:
 
@@ -335,51 +323,32 @@ The formula is intentionally transparent:
 cohesion_components * (1 + weighted_methods / 30) * (1 + statements / 60)
 ```
 
-The score is not a formal proof of SRP compliance. It is a sorting heuristic:
-classes that are disconnected, complex, and large should float toward the top
-of a refactoring list.
+The score is a sorting heuristic, not a formal proof of Single Responsibility
+Principle compliance. Classes that are disconnected, complex, and large should
+rise toward the top of a refactoring review list.
 
 ## Test-Smell Metrics
 
-`assertions_per_test`, `mock_call_assertions`, and `big_literal_assertions` are
-static signals for brittle tests.
+`assertions_per_test`, `mock_call_assertions`, and `big_literal_assertions`
+identify static signs of brittle tests.
 
-Many assertions in one test can mean the test is checking a whole scenario
-diff rather than one behavior. Mock call assertions can over-specify
-implementation details instead of externally visible outcomes. Large inline
-literals can become hand-written snapshots without snapshot tooling, update
-workflow, or review discipline.
+Many assertions in one test can mean the test is checking a broad scenario
+diff rather than one behavior. Mock call assertions can pin implementation
+details instead of externally visible outcomes. Large inline literals can
+become hand-written snapshots without snapshot tooling or review workflow.
 
-None of these is categorically wrong. A high-value integration test may
-legitimately assert many facts. A protocol adapter may need to prove that it
-calls a dependency with exact wire-format arguments. The metric's job is to
-find tests where that brittleness may be accidental.
+These rows should be interpreted in context. A protocol adapter may need exact
+mock-call checks. An integration test may need many assertions. The useful
+question is whether the brittleness is intentional.
 
 ## Marker And Comment Density
 
 `marker_density` counts TODO/FIXME/HACK/XXX markers per thousand physical
-lines. It is a debt inventory signal. The best interpretation is trend-based:
-is the project accumulating unresolved markers faster than it resolves them?
+lines. It is a debt inventory signal. It is especially useful as a trend: is
+the project accumulating unresolved markers faster than it resolves them?
 
-`comment_density` measures how much of a file is comment text. Extremely low
-comment density can be fine in self-explanatory code. Extremely high comment
-density can be fine in protocol, security, or numerical code where the "why"
-matters. Outliers are worth inspecting because comments often reveal either
-careful explanation or code that is too confusing to stand on its own.
-
-## Why These Are Still Metrics
-
-The fact that a metric encodes judgment does not make it useless. Cyclomatic
-complexity also encodes a judgment: that branch count is a useful proxy for
-test and comprehension burden. The difference is that cyclomatic complexity has
-a longer history and a more standardized definition.
-
-Project-defined metrics are useful when they are:
-
-- named honestly
-- documented clearly
-- cheap to compute
-- stable enough to compare over time
-- treated as prompts for review rather than automatic moral verdicts
-
-That is the intended role of these metrics in antipasta.
+`comment_density` measures how much of a file is comment text. Very low comment
+density can be fine in self-explanatory code. Very high comment density can be
+fine in protocol, security, or numerical code where the "why" matters. Outliers
+are worth inspecting because comments often reveal either careful explanation
+or code that is too confusing to stand on its own.
