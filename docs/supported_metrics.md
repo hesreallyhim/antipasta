@@ -25,6 +25,9 @@ Runtime inputs or producer context, such as git history, report snapshots,
 configured layers, or coverage.py artifacts, are listed separately in
 "Additional inputs / context."
 
+For a more interpretive explanation of the less-standard metrics and why they
+exist, see [`project_defined_metrics.md`](project_defined_metrics.md).
+
 ## Metric List
 
 | Metric | Category | Scope | Value range | Default | Supported languages | Additional inputs / context | Source | What it measures |
