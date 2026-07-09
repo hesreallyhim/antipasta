@@ -43,6 +43,19 @@ use_gitignore: true
             assert "Languages: 1" in result.output
             assert "python: 1 metrics" in result.output
 
+    def test_validate_preset_config(self) -> None:
+        """Test validating a preset-only configuration file."""
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_file = Path(tmpdir) / "preset.yaml"
+            config_file.write_text("preset: compact\nprofile: relaxed\n")
+
+            result = runner.invoke(validate, [str(config_file)])
+
+            assert result.exit_code == 0
+            assert "Preset: compact (relaxed)" in result.output
+            assert "Languages: 3" in result.output
+
     def test_validate_invalid_config(self) -> None:
         """Test validating an invalid configuration file."""
         runner = CliRunner()

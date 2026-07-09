@@ -302,6 +302,18 @@
       "title": "NarrativeConfig",
       "type": "object"
     },
+    "PresetName": {
+      "description": "Named configuration presets.",
+      "enum": [
+        "balanced",
+        "readable",
+        "compact",
+        "architecture",
+        "testing"
+      ],
+      "title": "PresetName",
+      "type": "string"
+    },
     "TreeShapeConfig": {
       "description": "Module Tree Shape gating (fan-out band). Presence of this block turns\nthe tree-shape deriver's rows into enforceable violations; without it the\nderiver stays informational.",
       "properties": {
@@ -338,6 +350,17 @@
   },
   "description": "Schema for .antipasta.yaml configuration files",
   "properties": {
+    "preset": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresetName"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "defaults": {
       "$ref": "#/$defs/DefaultsConfig"
     },

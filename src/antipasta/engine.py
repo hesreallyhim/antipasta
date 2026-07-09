@@ -363,6 +363,9 @@ class MetricAggregator:
             if metric.metric_type not in config_map:
                 continue
 
+            if not config_map[metric.metric_type].enabled:
+                continue
+
             # Skip informational per-function rows (see _PER_FUNCTION_INFORMATIONAL)
             if (
                 metric.function_name is not None

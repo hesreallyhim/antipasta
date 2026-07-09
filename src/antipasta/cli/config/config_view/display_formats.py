@@ -46,6 +46,19 @@ def _display_thresholds(config: AntipastaConfig) -> None:
     click.echo()
 
 
+def _display_preset(config: AntipastaConfig) -> None:
+    """Display preset settings."""
+    if config.preset is None and config.profile == "standard":
+        return
+    click.echo("PRESET")
+    click.echo("━" * 50)
+    if config.preset is None:
+        click.echo("No preset")
+    else:
+        click.echo(f"{config.preset.value} ({config.profile})")
+    click.echo()
+
+
 def _display_languages(config: AntipastaConfig) -> None:
     """Display language configurations."""
     click.echo("LANGUAGES")
@@ -76,6 +89,7 @@ def _display_ignore_patterns(config: AntipastaConfig) -> None:
 def display_summary(config: AntipastaConfig, config_path: Path, is_valid: bool) -> None:
     """Display configuration in summary format."""
     _display_header(config_path, is_valid)
+    _display_preset(config)
     _display_thresholds(config)
     _display_languages(config)
     _display_ignore_patterns(config)

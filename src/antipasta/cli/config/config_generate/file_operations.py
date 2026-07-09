@@ -34,6 +34,7 @@ def save_config(config: AntipastaConfig, output: Path) -> None:
         "",
     ])
 
+    _append_preset_block(yaml_lines, data)
     _append_defaults_block(yaml_lines, data.get("defaults", {}))
     _append_languages_block(yaml_lines, data.get("languages") or [])
     _append_ignore_patterns_block(yaml_lines, data.get("ignore_patterns", []))
@@ -43,6 +44,7 @@ def save_config(config: AntipastaConfig, output: Path) -> None:
         "# Whether to use .gitignore file for excluding files",
         f"use_gitignore: {_dump_scalar(data.get('use_gitignore', True))}",
     ])
+    _append_project_blocks(yaml_lines, data)
 
     # Write file
     try:
@@ -87,6 +89,23 @@ def _append_defaults_block(yaml_lines: list[str], defaults: dict[str, Any]) -> N
     ])
 
 
+def _append_preset_block(yaml_lines: list[str], data: dict[str, Any]) -> None:
+    """Append preset/profile metadata."""
+    preset = data.get("preset")
+    profile = data.get("profile", "standard")
+    if preset is None and profile == "standard":
+        return
+    yaml_lines.extend([
+        "# Preset and strictness profile",
+    ])
+    if preset is not None:
+        yaml_lines.append(f"preset: {_dump_scalar(preset)}")
+    yaml_lines.extend([
+        f"profile: {_dump_scalar(profile)}",
+        "",
+    ])
+
+
 def _append_languages_block(yaml_lines: list[str], languages: list[dict[str, Any]]) -> None:
     """Append language configuration block."""
     yaml_lines.append("# Language-specific configurations")
@@ -125,6 +144,8 @@ def _append_single_language(yaml_lines: list[str], lang: dict[str, Any]) -> None
             f"        threshold: {threshold}",
             f"        comparison: {comparison}",
         ))
+        if metric.get("enabled") is False:
+            yaml_lines.append("        enabled: false")
         if index < len(metrics) - 1:
             yaml_lines.append("")
 
@@ -142,6 +163,31 @@ def _append_ignore_patterns_block(yaml_lines: list[str], patterns: list[str]) ->
     yaml_lines.append("ignore_patterns:")
     for pattern in patterns:
         yaml_lines.append(f"  - {_dump_scalar(pattern)}")
+
+
+def _append_project_blocks(yaml_lines: list[str], data: dict[str, Any]) -> None:
+    """Append optional project-scoped preset/config blocks."""
+    blocks = [
+        ("tree_shape", "# Directory fan-out and optional layer-order gates"),
+        ("import_graph", "# Import-cycle and stable-dependencies gates"),
+        ("narrative", "# Narrative/readability gates"),
+        ("duplication", "# Duplication gates"),
+    ]
+    for key, comment in blocks:
+        value = data.get(key)
+        if value is not None:
+            _append_yaml_block(yaml_lines, key, value, comment)
+
+
+def _append_yaml_block(yaml_lines: list[str], key: str, value: Any, comment: str) -> None:
+    yaml_lines.extend(["", comment])
+    dumped = yaml.safe_dump(
+        {key: value},
+        allow_unicode=False,
+        default_flow_style=False,
+        sort_keys=False,
+    ).strip()
+    yaml_lines.extend(dumped.splitlines())
 
 
 def confirm_file_overwrite(output: Path) -> bool:

@@ -67,6 +67,9 @@ antipasta config generate
 # Non-interactive mode - uses defaults
 antipasta config generate --non-interactive
 
+# Start from a preset
+antipasta config generate --preset readable --non-interactive
+
 # Generate to a custom location
 antipasta config generate --output my-config.yaml
 ```
@@ -77,6 +80,8 @@ The interactive mode will guide you through setting up:
 - Python language setup; JavaScript/TypeScript can be configured manually for cyclomatic complexity and line counts
 - Ignore patterns (enter one at a time, with default test patterns optional)
 - Gitignore integration settings
+
+Presets provide smaller starting points for common tradeoffs such as readability, compactness, architecture, and test-suite maintainability. See [`docs/presets.md`](docs/presets.md) for the preset list and merge rules.
 
 The interactive mode validates all inputs and shows valid ranges:
 - **Cyclomatic Complexity**: 1-50 (recommended: 10)
@@ -335,6 +340,7 @@ profile: standard
         -   **enabled**: (optional) Whether to check this metric (default: true, can be omitted)
 -   **ignore_patterns**: Additional gitignore-style patterns for files to skip (combined with .gitignore if `use_gitignore` is true)
 -   **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
+-   **preset**: Optional coarse metric bundle (`balanced`, `readable`, `compact`, `architecture`, or `testing`)
 -   **profile**: Strictness profile for profile-aware derived metrics (`standard`, `relaxed`, or `extreme`)
 -   **tree_shape**, **import_graph**, **narrative**, **duplication**: Optional blocks that turn project-scoped informational metrics into configured gates
 

@@ -11,8 +11,18 @@ from antipasta.core.model.config import (
     DefaultsConfig,
     LanguageConfig,
     MetricConfig,
+    NarrativeConfig,
 )
 from antipasta.core.model.metrics import MetricType
+from antipasta.core.model.presets import PRESET_DEFINITIONS, PresetName
+
+
+def _contains_callable(value: object) -> bool:
+    if isinstance(value, dict):
+        return any(_contains_callable(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_callable(item) for item in value)
+    return callable(value)
 
 
 class TestMetricConfig:
@@ -179,3 +189,85 @@ languages:
         assert isinstance(config.defaults, DefaultsConfig)
         assert len(config.languages) == 0  # No languages defined
         assert len(config.ignore_patterns) == 0  # No ignore patterns
+
+    def test_preset_definitions_are_declarative_data(self) -> None:
+        """Preset definitions should stay data-only, with generic expansion code."""
+        assert not _contains_callable(PRESET_DEFINITIONS)
+
+    def test_readable_preset_expands_language_and_narrative_gates(self) -> None:
+        """Readable preset materializes local readability and narrative gates."""
+        config = AntipastaConfig(preset=PresetName.READABLE)
+        python = config.get_language_config("python")
+
+        assert config.preset is PresetName.READABLE
+        assert python is not None
+        metrics = {metric.type: metric for metric in python.metrics}
+        assert metrics[MetricType.COGNITIVE_COMPLEXITY].threshold == 12
+        assert metrics[MetricType.FUNCTION_STATEMENTS].threshold == 12
+        assert metrics[MetricType.MESSAGE_CHAIN_DEPTH].threshold == 2
+        assert config.narrative is not None
+        assert config.narrative.name_clarity_floor == 0.65
+
+    def test_profile_scales_preset_thresholds(self) -> None:
+        """Profiles tune preset thresholds without changing the preset name."""
+        config = AntipastaConfig(preset=PresetName.READABLE, profile="extreme")
+        python = config.get_language_config("python")
+
+        assert python is not None
+        metrics = {metric.type: metric for metric in python.metrics}
+        assert metrics[MetricType.COGNITIVE_COMPLEXITY].threshold == 8
+        assert metrics[MetricType.FUNCTION_STATEMENTS].threshold == 8
+        assert config.narrative is not None
+        assert config.narrative.name_clarity_floor == 0.75
+
+    def test_explicit_language_metric_wins_over_preset(self) -> None:
+        """Preset expansion fills missing metrics without replacing explicit ones."""
+        config = AntipastaConfig(
+            preset=PresetName.READABLE,
+            languages=[
+                LanguageConfig(
+                    name="python",
+                    extensions=[".py"],
+                    metrics=[
+                        MetricConfig(
+                            type=MetricType.COGNITIVE_COMPLEXITY,
+                            threshold=99,
+                            comparison=ComparisonOperator.LE,
+                        )
+                    ],
+                )
+            ],
+        )
+
+        python = config.get_language_config("python")
+        javascript = config.get_language_config("javascript")
+
+        assert python is not None
+        metrics = {metric.type: metric for metric in python.metrics}
+        assert metrics[MetricType.COGNITIVE_COMPLEXITY].threshold == 99
+        assert metrics[MetricType.FUNCTION_STATEMENTS].threshold == 12
+        assert javascript is None
+
+    def test_explicit_project_block_values_win_over_preset(self) -> None:
+        """Preset expansion fills missing project-block fields only."""
+        config = AntipastaConfig(
+            preset=PresetName.READABLE,
+            narrative=NarrativeConfig(name_clarity_floor=0.9),
+        )
+
+        assert config.narrative is not None
+        assert config.narrative.name_clarity_floor == 0.9
+        assert config.narrative.narrator_step_budget == 9
+
+    def test_compact_preset_enables_duplication_config(self) -> None:
+        """Compact preset turns on duplication with profile-aware thresholds."""
+        config = AntipastaConfig(preset=PresetName.COMPACT, profile="relaxed")
+
+        assert config.duplication is not None
+        assert config.duplication.normalize_constants is True
+        assert config.duplication.max_ratio == 0.12
+
+    def test_invalid_preset_fails_validation(self) -> None:
+        """Unknown preset names are rejected."""
+        with pytest.raises(ValidationError):
+            AntipastaConfig.model_validate({"preset": "tiny"})

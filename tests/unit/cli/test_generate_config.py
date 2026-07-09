@@ -33,6 +33,30 @@ class TestGenerateConfigCommand:
             assert len(config.languages) == 1
             assert config.languages[0].name == "python"
 
+    def test_non_interactive_generates_preset_config(self) -> None:
+        """Test non-interactive generation with a materialized preset."""
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_file = Path(tmpdir) / "readable.yaml"
+
+            result = runner.invoke(
+                generate,
+                ["--non-interactive", "--preset", "readable", "--output", str(output_file)],
+            )
+
+            assert result.exit_code == 0
+            config = AntipastaConfig.from_yaml(output_file)
+            python = config.get_language_config("python")
+            assert config.preset == "readable"
+            assert python is not None
+            assert config.narrative is not None
+            assert any(metric.type.value == "function_statements" for metric in python.metrics)
+
+            content = output_file.read_text()
+            assert "preset: readable" in content
+            assert "profile: standard" in content
+            assert "narrative:" in content
+
     def test_non_interactive_overwrites_existing_file(self) -> None:
         """Test that non-interactive mode overwrites existing files without prompting."""
         runner = CliRunner()
