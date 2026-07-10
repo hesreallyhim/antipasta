@@ -2,34 +2,13 @@
 
 # antipasta
 
-A code quality static analysis library that covers a wide range of metrics, including:
-
-- lines of code
-- complexity
-- readability
-- SOLID adherence
-- DRYness
-- VCS-based metrics
-- 
+A code quality static analysis library that helps you maintain code that is well-architected according to SOLID principles, readable and well-factored, 
 
 ## What is antipasta?
 
 antipasta analyzes your source code files and measures various complexity metrics, comparing them against configurable thresholds. If any metrics exceed their thresholds, antipasta reports violations and exits with a non-zero status code, making it suitable for CI/CD pipelines.
 
 antipasta has full Python analysis and lightweight JavaScript/TypeScript support in the metrics and report pipeline through lizard for cyclomatic complexity and line-count metrics.
-
-## Why use antipasta?
-
-Complex code is harder to understand, test, and maintain. By enforcing limits on complexity metrics, you can:
-
--   Catch overly complex functions before they're merged
--   Maintain consistent code quality standards across your team
--   Identify refactoring opportunities
--   Reduce technical debt over time
-
-### What makes antipasta different than other code complexity tools like `radon`?
-
-I have no idea, I've never used them - this library is mostly a combination of [radon](https://github.com/rubik/radon) and [complexipy](https://github.com/rohaquinlop/complexipy) with an amazing CLI.
 
 ## Installation
 
