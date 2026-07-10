@@ -45,6 +45,17 @@ def _render_thresholds_section(box: Callable[[str, str], str], config: Antipasta
         echo_box(box, ("", f"  {display_key:<35} {op} {value:>10.1f}"))
 
 
+def _render_preset_section(box: Callable[[str, str], str], config: AntipastaConfig) -> None:
+    """Render preset/profile metadata if configured."""
+    if config.preset is None and config.profile == "standard":
+        return
+    echo_box(box, ("", " PRESET"))
+    echo_box(box, ("╟─╢", ""))
+    preset = config.preset.value if config.preset is not None else "none"
+    echo_box(box, ("", f"  {preset}: {config.profile}"))
+    echo_box(box, ("╟─╢", ""))
+
+
 def _render_languages_section(
     box: Callable[[str, str], str], languages: list[LanguageConfig]
 ) -> None:
@@ -97,6 +108,7 @@ def display_table(config: AntipastaConfig) -> None:
     box = _create_box_renderer(width)
 
     _render_table_header(box, width)
+    _render_preset_section(box, config)
     _render_thresholds_section(box, config)
     _render_languages_section(box, config.languages)
     _render_ignore_patterns_section(box, config.ignore_patterns, width)

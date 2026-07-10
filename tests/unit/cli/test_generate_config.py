@@ -33,6 +33,30 @@ class TestGenerateConfigCommand:
             assert len(config.languages) == 1
             assert config.languages[0].name == "python"
 
+    def test_non_interactive_generates_preset_config(self) -> None:
+        """Test non-interactive generation with a materialized preset."""
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_file = Path(tmpdir) / "readable.yaml"
+
+            result = runner.invoke(
+                generate,
+                ["--non-interactive", "--preset", "readable", "--output", str(output_file)],
+            )
+
+            assert result.exit_code == 0
+            config = AntipastaConfig.from_yaml(output_file)
+            python = config.get_language_config("python")
+            assert config.preset == "readable"
+            assert python is not None
+            assert config.narrative is not None
+            assert any(metric.type.value == "function_statements" for metric in python.metrics)
+
+            content = output_file.read_text()
+            assert "preset: readable" in content
+            assert "profile: standard" in content
+            assert "narrative:" in content
+
     def test_non_interactive_overwrites_existing_file(self) -> None:
         """Test that non-interactive mode overwrites existing files without prompting."""
         runner = CliRunner()
@@ -63,6 +87,8 @@ class TestGenerateConfigCommand:
                 "50",  # min maintainability index
                 "n",  # no advanced metrics
                 "y",  # include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "y",  # use default test patterns
                 "",  # no additional patterns (press Enter to continue)
@@ -95,6 +121,8 @@ class TestGenerateConfigCommand:
                 "15",  # max halstead difficulty
                 "20000",  # max halstead effort
                 "y",  # include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "n",  # don't use gitignore
                 "n",  # don't use default test patterns
                 "*.pyc",  # first custom pattern
@@ -115,7 +143,7 @@ class TestGenerateConfigCommand:
             assert config.defaults.max_halstead_volume == 2000
             assert config.defaults.max_halstead_difficulty == 15
             assert config.defaults.max_halstead_effort == 20000
-            assert len(config.languages) == 1  # Only Python now, JS coming soon
+            assert len(config.languages) == 1
             assert config.use_gitignore is False
             assert "*.pyc" in config.ignore_patterns
             assert "__pycache__" in config.ignore_patterns
@@ -134,6 +162,8 @@ class TestGenerateConfigCommand:
                 "50",  # min maintainability index
                 "n",  # no advanced metrics
                 "y",  # include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "y",  # use default test patterns
                 "",  # no additional patterns
@@ -164,6 +194,8 @@ class TestGenerateConfigCommand:
                 "50",  # min maintainability index
                 "n",  # no advanced metrics
                 "y",  # include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "y",  # use default test patterns
                 "",  # no additional patterns
@@ -209,20 +241,20 @@ class TestGenerateConfigCommand:
             assert "# Files and patterns to ignore during analysis" in content
             assert "# Whether to use .gitignore file for excluding files" in content
 
-    def test_javascript_coming_soon_message(self) -> None:
-        """Test that JavaScript/TypeScript shows 'coming soon' message."""
+    def test_javascript_typescript_can_be_selected(self) -> None:
+        """Test JavaScript and TypeScript language config selection."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "config.yaml"
 
-            # Try to configure without Python (to see JS message clearly)
             user_input = "\n".join([
                 "10",  # max cyclomatic complexity
                 "15",  # max cognitive complexity
                 "50",  # min maintainability index
                 "n",  # no advanced metrics
-                "y",  # yes Python (at least one language needed)
-                # No JavaScript prompt anymore - just shows "coming soon"
+                "y",  # include Python
+                "y",  # include JavaScript
+                "y",  # include TypeScript
                 "y",  # use gitignore
                 "y",  # use default test patterns
                 "",  # no additional patterns
@@ -231,12 +263,13 @@ class TestGenerateConfigCommand:
             result = runner.invoke(generate, ["--output", str(output_file)], input=user_input)
 
             assert result.exit_code == 0
-            assert "JavaScript/TypeScript (coming soon)" in result.output
 
-            # Verify only Python is configured
             config = AntipastaConfig.from_yaml(output_file)
-            assert len(config.languages) == 1
-            assert config.languages[0].name == "python"
+            assert [language.name for language in config.languages] == [
+                "python",
+                "javascript",
+                "typescript",
+            ]
 
     def test_permission_error_handling(self) -> None:
         """Test that permission errors are handled gracefully."""
@@ -265,6 +298,8 @@ class TestGenerateConfigCommand:
                 "50",  # Valid maintainability
                 "n",  # No advanced metrics
                 "y",  # Include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # Use gitignore
                 "y",  # Use default test patterns
                 "",  # No additional patterns
@@ -290,9 +325,10 @@ class TestGenerateConfigCommand:
                 "15",
                 "50",
                 "n",
-                "y",
-                "n",
-                "y",
+                "y",  # Include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
+                "y",  # Use gitignore
                 "y",  # Use default test patterns
                 "",  # No additional patterns
             ])
@@ -322,6 +358,8 @@ class TestGenerateConfigCommand:
                 "-5000",  # Invalid: negative effort
                 "10000",  # Valid effort
                 "y",  # Include Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # Use gitignore
                 "y",  # Use default test patterns
                 "",  # No additional patterns

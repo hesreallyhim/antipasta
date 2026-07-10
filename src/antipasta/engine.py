@@ -31,6 +31,7 @@ from antipasta.core.model.violations import (
 )
 from antipasta.core.store.cache import MetricsCache
 from antipasta.runners.base import BaseRunner
+from antipasta.runners.javascript.house_style import HouseStyleRunner as JavaScriptHouseStyleRunner
 from antipasta.runners.javascript.lizard_runner import LizardRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
 from antipasta.runners.python.house_style import HouseStyleRunner
@@ -45,10 +46,11 @@ def _build_runners() -> dict[Language, list[BaseRunner]]:
     """Construct the language → runners table (JS and TS share one lizard
     instance; its availability check is cached)."""
     lizard_runner = LizardRunner()
+    javascript_house_style = JavaScriptHouseStyleRunner()
     return {
         Language.PYTHON: [RadonRunner(), ComplexipyRunner(), HouseStyleRunner()],
-        Language.JAVASCRIPT: [lizard_runner],
-        Language.TYPESCRIPT: [lizard_runner],
+        Language.JAVASCRIPT: [lizard_runner, javascript_house_style],
+        Language.TYPESCRIPT: [lizard_runner, javascript_house_style],
     }
 
 
@@ -359,6 +361,9 @@ class MetricAggregator:
         for metric in file_metrics.metrics:
             # Skip metrics without configuration
             if metric.metric_type not in config_map:
+                continue
+
+            if not config_map[metric.metric_type].enabled:
                 continue
 
             # Skip informational per-function rows (see _PER_FUNCTION_INFORMATIONAL)

@@ -1,9 +1,8 @@
 """Treemap node-table construction for the HTML report.
 
-Built in Python on purpose (the mixed-depth-tree fix from
-``docs/treemap_loc_fix.md``): the renderer (d3.stratify) must never see a node
-whose parent is missing, so this module emits an explicit ``{id, parent,
-label}`` table with a single root and every intermediate directory present.
+Built in Python on purpose: the renderer (d3.stratify) must never see a node
+whose parent is missing, so this module emits an explicit ``{id, parent, label}``
+table with a single root and every intermediate directory present.
 Directory rows additionally carry a hoverable ``aggregate`` rollup (file
 count, total tile value, violation count, per-metric subtree maxima) so the
 treemap's inner rectangles are data, not just structure.

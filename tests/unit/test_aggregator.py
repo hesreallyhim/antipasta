@@ -8,7 +8,7 @@ from antipasta.core.model.config import (
     LanguageConfig,
     MetricConfig,
 )
-from antipasta.core.model.metrics import MetricType
+from antipasta.core.model.metrics import FileMetrics, MetricResult, MetricType
 from antipasta.engine import MetricAggregator
 
 
@@ -154,6 +154,7 @@ def complex_function(a, b, c, d):
         assert {r.file_path for r in reports} == {py_file, js_file}
         js_report = next(r for r in reports if r.file_path == js_file)
         assert js_report.language == "javascript"
+        assert any(metric.metric_type == MetricType.FUNCTION_ARITY for metric in js_report.metrics)
 
     def test_analyze_with_ignore_patterns(self, tmp_path: Path) -> None:
         """Test that ignored files are skipped."""
@@ -284,3 +285,29 @@ def x(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
         assert len(reports) == 1
         # Should still analyze using defaults
         assert len(reports[0].metrics) > 0
+
+    def test_disabled_metric_config_does_not_violate(self) -> None:
+        """Disabled metric rows are advisory even when the threshold is exceeded."""
+        config = AntipastaConfig()
+        aggregator = MetricAggregator(config)
+        metric_configs = [
+            MetricConfig(
+                type=MetricType.CYCLOMATIC_COMPLEXITY,
+                threshold=1,
+                comparison=ComparisonOperator.LE,
+                enabled=False,
+            )
+        ]
+        file_metrics = FileMetrics(
+            file_path=Path("sample.py"),
+            language="python",
+            metrics=[
+                MetricResult(
+                    file_path=Path("sample.py"),
+                    metric_type=MetricType.CYCLOMATIC_COMPLEXITY,
+                    value=99,
+                )
+            ],
+        )
+
+        assert aggregator._check_violations(file_metrics, metric_configs) == []

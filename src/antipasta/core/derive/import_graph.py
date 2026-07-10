@@ -415,6 +415,7 @@ def _package_of(module: str) -> str:
 _ABSTRACT_BASE_MARKERS = ("ABC", "Protocol")
 _ABSTRACT_METACLASS_MARKER = "ABCMeta"
 _ABSTRACT_METHOD_MARKER = "abstractmethod"
+_ABSTRACT_CLASS_DECORATORS = ("abstract",)
 
 
 def module_abstractness(facts: list[FactRow]) -> float | None:
@@ -428,6 +429,11 @@ def module_abstractness(facts: list[FactRow]) -> float | None:
 
 def _is_abstract(payload: dict[str, Any]) -> bool:
     if any(_base_is_abstract(base) for base in payload["bases"]):
+        return True
+    if any(
+        any(marker in decorator for marker in _ABSTRACT_CLASS_DECORATORS)
+        for decorator in payload.get("decorators", [])
+    ):
         return True
     if any(_ABSTRACT_METACLASS_MARKER in keyword for keyword in payload.get("keywords", [])):
         return True

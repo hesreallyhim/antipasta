@@ -1,25 +1,14 @@
+![antipasta banner](assets/antipasta-banner.png)
+
 # antipasta
 
-A code quality enforcement tool that analyzes code complexity across a number of metrics and helps maintain readable, maintainable code.
+A code quality static analysis library that helps you maintain code that is well-architected according to SOLID principles, readable and well-factored, 
 
 ## What is antipasta?
 
 antipasta analyzes your source code files and measures various complexity metrics, comparing them against configurable thresholds. If any metrics exceed their thresholds, antipasta reports violations and exits with a non-zero status code, making it suitable for CI/CD pipelines.
 
 antipasta has full Python analysis and lightweight JavaScript/TypeScript support in the metrics and report pipeline through lizard for cyclomatic complexity and line-count metrics.
-
-## Why use antipasta?
-
-Complex code is harder to understand, test, and maintain. By enforcing limits on complexity metrics, you can:
-
--   Catch overly complex functions before they're merged
--   Maintain consistent code quality standards across your team
--   Identify refactoring opportunities
--   Reduce technical debt over time
-
-### What makes antipasta different than other code complexity tools like `radon`?
-
-I have no idea, I've never used them - this library is mostly a combination of [radon](https://github.com/rubik/radon) and [complexipy](https://github.com/rohaquinlop/complexipy) with an amazing CLI.
 
 ## Installation
 
@@ -57,6 +46,9 @@ antipasta config generate
 # Non-interactive mode - uses defaults
 antipasta config generate --non-interactive
 
+# Start from a preset
+antipasta config generate --preset readable --non-interactive
+
 # Generate to a custom location
 antipasta config generate --output my-config.yaml
 ```
@@ -67,6 +59,8 @@ The interactive mode will guide you through setting up:
 - Python language setup; JavaScript/TypeScript can be configured manually for cyclomatic complexity and line counts
 - Ignore patterns (enter one at a time, with default test patterns optional)
 - Gitignore integration settings
+
+Presets provide smaller starting points for common tradeoffs such as readability, compactness, architecture, and test-suite maintainability. See [`docs/presets.md`](docs/presets.md) for the preset list and merge rules.
 
 The interactive mode validates all inputs and shows valid ranges:
 - **Cyclomatic Complexity**: 1-50 (recommended: 10)
@@ -118,8 +112,6 @@ antipasta provides the following commands:
 | `report` | Generate a visual complexity report (offline HTML or JSON) | Writes a single self-contained HTML file |
 | `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Uses the current repository; hotspot join is skipped unless a snapshot is supplied |
 | `test-health` | Analyze coverage contexts for test redundancy and blast radius | Reads coverage.py data recorded with `--cov-context=test` |
-
-> **Note**: The old commands `generate-config` and `validate-config` are deprecated but still work for backward compatibility. They will show a deprecation warning. Please use `config generate` and `config validate` instead.
 
 ## Basic Usage
 
@@ -327,6 +319,7 @@ profile: standard
         -   **enabled**: (optional) Whether to check this metric (default: true, can be omitted)
 -   **ignore_patterns**: Additional gitignore-style patterns for files to skip (combined with .gitignore if `use_gitignore` is true)
 -   **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
+-   **preset**: Optional coarse metric bundle (`balanced`, `readable`, `compact`, `architecture`, or `testing`)
 -   **profile**: Strictness profile for profile-aware derived metrics (`standard`, `relaxed`, or `extreme`)
 -   **tree_shape**, **import_graph**, **narrative**, **duplication**: Optional blocks that turn project-scoped informational metrics into configured gates
 
@@ -565,42 +558,6 @@ CYCLOMATIC COMPLEXITY STATISTICS:
 4. **Team metrics**: Compare complexity across different team areas
 5. **Refactoring targets**: Find directories with high average complexity
 
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run only tests affected by your recent changes (requires initial baseline run)
-make test-fast
-
-# Clear pytest-testmon cache to force a full recalculation
-make test-fast-clean
-
-# Run with coverage
-make test-cov
-
-# Run specific test file
-pytest tests/unit/test_config.py -v
-```
-
-The `make test-fast` target automatically stores its SQLite cache under `.cache/testmon.sqlite` via the `TESTMON_DATAFILE` environment variable so the repository root stays clean. If the cache ever gets out of date (for example after switching branches), run `make test-fast-clean` to remove the `.cache/testmon.sqlite*` files and trigger a fresh baseline on the next `make test-fast`.
-
-### Code Quality
-
-```bash
-# Format code
-make format
-
-# Run linters
-make lint
-
-# Type checking
-make type-check
-```
-
 ### Project Structure
 
 ```
@@ -643,69 +600,23 @@ Contributions are welcome! Please:
 
 ## Release Process
 
-antipasta supports two release workflows:
+antipasta releases are managed with Release Please and GitHub trusted publishing.
 
-### Automated Release (Recommended)
+Use conventional commit-style PR titles so Release Please can infer the correct version bump:
 
-Using GitHub Actions for automated PyPI deployment:
+- `fix: ...` for patch releases
+- `feat: ...` for minor releases
+- `feat!: ...` or a `BREAKING CHANGE:` footer for major releases
 
-```bash
-# Pre-flight check
-make release-doctor      # Check system health before releasing
+After changes are merged to `main`, Release Please opens or updates a release PR. Merging that release PR creates the GitHub release and triggers the `Publish to PyPI` workflow.
 
-# Safe one-command release (recommended)
-make release-patch-safe  # Bug fixes with safety checks
-make release-minor-safe  # New features with safety checks
-make release-major-safe  # Breaking changes with safety checks
-
-# Test before releasing
-make release-dry-patch   # Simulate what will happen
-make gh-release-dry      # Test GitHub release creation
-
-# Standard releases (without safety checks)
-make release-patch       # For bug fixes
-make release-minor       # For new features
-make release-major       # For breaking changes
-
-# Or step-by-step for more control:
-make version-bump-patch  # Bump version
-make gh-release-safe     # Create release with safety checks
-
-# Create a draft release to review first
-make gh-release-draft    # Creates draft, publish manually on GitHub
-```
-
-### Manual Release
-
-For direct PyPI uploads from your machine:
+Useful maintainer command:
 
 ```bash
-# 1. Pre-release checks
-make release-doctor      # Comprehensive health check
-make release-safety-check # Validate repository state
-
-# 2. Test first
-make release-dry-patch   # Simulate the release
-
-# 3. Full release workflow
-make check               # Run all tests
-make version-bump-patch  # Bump version
-make release            # Upload to PyPI
+make release-dry-run  # Build and inspect distributions without uploading
 ```
 
-### Testing Releases
-
-Test on TestPyPI before production:
-
-```bash
-# Using Makefile (recommended)
-make gh-release-test  # Triggers TestPyPI workflow
-
-# Or manually via GitHub UI
-# Go to Actions → "Publish to PyPI" → Run workflow → Choose 'testpypi'
-```
-
-See [RELEASE.md](RELEASE.md) for detailed release instructions.
+For TestPyPI or production publishing, use the manual `Publish to PyPI` workflow dispatch in GitHub Actions. See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor setup and release notes.
 
 ## License
 

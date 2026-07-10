@@ -80,7 +80,7 @@ def validate_analyzable_files(analyzable_files: int) -> bool:
     """
     if analyzable_files == 0:
         click.echo(
-            "\nNo analyzable files found (only Python is currently supported).",
+            "\nNo analyzable files found (supported: Python, JavaScript, TypeScript).",
             err=True,
         )
         return False

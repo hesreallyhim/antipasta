@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from enum import StrEnum
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 import yaml
 
 from antipasta.core.model.metric_models import (
@@ -22,6 +22,7 @@ from antipasta.core.model.metric_models import (
     MaintainabilityIndex,
 )
 from antipasta.core.model.metrics import MetricType
+from antipasta.core.model.presets import PresetName, expand_preset_config
 
 if TYPE_CHECKING:
     from antipasta.core.model.config_override import ConfigOverride
@@ -230,6 +231,7 @@ class NarrativeConfig(BaseModel):
 class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
+    preset: PresetName | None = Field(default=None)
     defaults: DefaultsConfig = Field(default_factory=DefaultsConfig)
     languages: list[LanguageConfig] = Field(default_factory=list)
     ignore_patterns: list[str] = Field(default_factory=list)
@@ -239,6 +241,14 @@ class AntipastaConfig(BaseModel):
     import_graph: ImportGraphConfig | None = Field(default=None)
     narrative: NarrativeConfig | None = Field(default=None)
     duplication: DuplicationConfig | None = Field(default=None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def expand_preset(cls, data: Any) -> Any:
+        """Materialize preset defaults before normal validation."""
+        if isinstance(data, dict):
+            return expand_preset_config(data)
+        return data
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> AntipastaConfig:
@@ -253,8 +263,10 @@ class AntipastaConfig(BaseModel):
         return cls(**data)
 
     @classmethod
-    def generate_default(cls) -> AntipastaConfig:
+    def generate_default(cls, preset: PresetName | str | None = None) -> AntipastaConfig:
         """Generate default configuration with sensible values."""
+        if preset is not None:
+            return cls(preset=PresetName(str(preset)))
         return cls(
             defaults=DefaultsConfig(),
             languages=[_get_default_python_config()],

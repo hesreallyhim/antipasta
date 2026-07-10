@@ -153,7 +153,7 @@ class TestBuildSnapshot:
 
 
 class TestTreemapNodes:
-    """Regression tests for the treemap node table (docs/treemap_loc_fix.md)."""
+    """Regression tests for the treemap node table."""
 
     def _files(self, *paths: str) -> list[dict[str, Any]]:
         return [

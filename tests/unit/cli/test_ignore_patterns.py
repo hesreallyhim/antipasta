@@ -24,6 +24,8 @@ class TestIgnorePatternInput:
                 "50",  # maintainability
                 "n",  # no advanced
                 "y",  # Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "y",  # use default test patterns
                 "*.pyc",  # first additional pattern
@@ -62,6 +64,8 @@ class TestIgnorePatternInput:
                 "50",  # maintainability
                 "n",  # no advanced
                 "y",  # Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "n",  # NO default test patterns
                 "build/**",  # only custom pattern
@@ -92,6 +96,8 @@ class TestIgnorePatternInput:
                 "50",  # maintainability
                 "n",  # no advanced
                 "y",  # Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "n",  # no default test patterns
                 "",  # no custom patterns either
@@ -117,6 +123,8 @@ class TestIgnorePatternInput:
                 "50",  # maintainability
                 "n",  # no advanced
                 "y",  # Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "y",  # use default test patterns
                 "*.tmp",  # one custom pattern
@@ -142,6 +150,8 @@ class TestIgnorePatternInput:
                 "50",  # maintainability
                 "n",  # no advanced
                 "y",  # Python
+                "n",  # skip JavaScript
+                "n",  # skip TypeScript
                 "y",  # use gitignore
                 "n",  # no default test patterns
                 "  *.spaces  ",  # pattern with leading/trailing spaces

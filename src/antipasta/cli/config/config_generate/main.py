@@ -6,6 +6,7 @@ from typing import Any
 import click
 
 from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.presets import preset_choices
 
 from .file_operations import (
     confirm_file_overwrite,
@@ -36,7 +37,13 @@ from .project_config import collect_project_settings
     is_flag=True,
     help="Generate with defaults without prompting",
 )
-def generate(output: Path, non_interactive: bool) -> None:
+@click.option(
+    "--preset",
+    type=click.Choice(preset_choices(), case_sensitive=False),
+    default=None,
+    help="Apply a metric preset",
+)
+def generate(output: Path, non_interactive: bool, preset: str | None) -> None:
     """Generate an antipasta configuration file.
 
     Creates a configuration file with sensible defaults. In interactive mode,
@@ -44,7 +51,7 @@ def generate(output: Path, non_interactive: bool) -> None:
     """
     if non_interactive:
         # Generate with defaults
-        config = AntipastaConfig.generate_default()
+        config = AntipastaConfig.generate_default(preset=preset)
         save_config(config, output)
         return
 
@@ -53,6 +60,8 @@ def generate(output: Path, non_interactive: bool) -> None:
 
     # Build configuration interactively
     config_dict = build_interactive_config()
+    if preset:
+        config_dict["preset"] = preset
 
     # Create and save configuration
     finalize_and_save_config(config_dict, output)

@@ -55,6 +55,20 @@ use_gitignore: true
             assert "IGNORE PATTERNS (2)" in result.output
             assert "Using .gitignore: Yes" in result.output
 
+    def test_view_preset_summary(self) -> None:
+        """Test viewing preset metadata in summary format."""
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_file = Path(tmpdir) / "preset.yaml"
+            config_file.write_text("preset: readable\n")
+
+            result = runner.invoke(view, ["--path", str(config_file)])
+
+            assert result.exit_code == 0
+            assert "PRESET" in result.output
+            assert "readable (standard)" in result.output
+            assert "Python (.py)" in result.output
+
     def test_view_nonexistent_config(self) -> None:
         """Test viewing a nonexistent configuration file."""
         runner = CliRunner()

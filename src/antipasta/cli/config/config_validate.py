@@ -29,6 +29,10 @@ def validate(config_file: Path) -> None:
 
         # Print summary
         click.echo("\nConfiguration summary:")
+        if config.preset is not None:
+            click.echo(f"  Preset: {config.preset.value} ({config.profile})")
+        elif config.profile != "standard":
+            click.echo(f"  Profile: {config.profile}")
         click.echo(f"  Languages: {len(config.languages)}")
         for lang in config.languages:
             click.echo(f"    - {lang.name}: {len(lang.metrics)} metrics")

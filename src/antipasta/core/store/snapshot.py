@@ -6,9 +6,8 @@ offline HTML report consume.
 
 The treemap node table is deliberately built here, in Python, as an explicit
 ``{id, parent, label, value}`` row set with a root node and every intermediate
-directory present.  This is the mixed-depth-tree fix documented in
-``docs/treemap_loc_fix.md``: the renderer (d3.stratify) must never see a node
-whose parent is missing.
+directory present.  This is the mixed-depth-tree fix: the renderer
+(d3.stratify) must never see a node whose parent is missing.
 """
 
 from __future__ import annotations

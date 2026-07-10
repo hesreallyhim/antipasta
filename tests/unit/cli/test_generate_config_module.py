@@ -14,6 +14,7 @@ from antipasta.cli.config.config_generate.file_operations import save_config as 
 from antipasta.cli.config.config_generate.language_config import (
     create_javascript_config as _create_javascript_config,
     create_python_config as _create_python_config,
+    create_typescript_config as _create_typescript_config,
 )
 from antipasta.cli.config.config_generate.validation import (
     prompt_with_validation,
@@ -192,7 +193,8 @@ class TestGenerateConfigCommand:
             mock_confirm.side_effect = [
                 False,  # no advanced metrics
                 True,  # include Python
-                # False,  # no JavaScript
+                False,  # skip JavaScript
+                False,  # skip TypeScript
                 True,  # use gitignore
                 False,  # no test defaults
                 # File doesn't exist, so no overwrite prompt
@@ -226,7 +228,8 @@ class TestGenerateConfigCommand:
             mock_confirm.side_effect = [
                 True,  # advanced metrics
                 True,  # include Python
-                # True,  # include JavaScript
+                True,  # include JavaScript
+                True,  # include TypeScript
                 True,  # use gitignore
                 True,  # use test defaults
             ]
@@ -239,7 +242,11 @@ class TestGenerateConfigCommand:
             # Verify config content
             config = AntipastaConfig.from_yaml(output_path)
             assert config.defaults.max_halstead_volume == 1000
-            assert len(config.languages) == 1  # Python (JS not supported yet)
+            assert [language.name for language in config.languages] == [
+                "python",
+                "javascript",
+                "typescript",
+            ]
             assert "**/vendor/**" in config.ignore_patterns
 
     @patch("click.confirm")
@@ -257,7 +264,8 @@ class TestGenerateConfigCommand:
                 mock_confirm.side_effect = [
                     False,  # no advanced
                     True,  # Python
-                    # False,  # no JS
+                    False,  # skip JavaScript
+                    False,  # skip TypeScript
                     True,  # gitignore
                     False,  # no test defaults
                     False,  # Don't overwrite existing file
@@ -304,7 +312,7 @@ class TestCreateLanguageConfigs:
         assert cyclo_metric["comparison"] == "<="
 
     def test_create_javascript_config(self) -> None:
-        """Test JavaScript/TypeScript configuration creation."""
+        """Test JavaScript configuration creation."""
         defaults = {
             "max_cyclomatic_complexity": 10,
             "max_cognitive_complexity": 15,
@@ -315,18 +323,35 @@ class TestCreateLanguageConfigs:
 
         assert config["name"] == "javascript"
         assert ".js" in config["extensions"]
-        assert ".ts" in config["extensions"]
         assert ".jsx" in config["extensions"]
-        assert ".tsx" in config["extensions"]
-        assert len(config["metrics"]) == 2  # Only cyclomatic and cognitive
+        assert ".ts" not in config["extensions"]
+        assert len(config["metrics"]) == 1
 
         # Check metric types
         metric_types = [m["type"] for m in config["metrics"]]
         assert "cyclomatic_complexity" in metric_types
-        assert "cognitive_complexity" in metric_types
 
-        # Verify Halstead metrics are not included
+        # Verify unsupported threshold metrics are not included
+        assert "cognitive_complexity" not in metric_types
         assert "halstead_volume" not in metric_types
+
+    def test_create_typescript_config(self) -> None:
+        """Test TypeScript configuration creation."""
+        defaults = {"max_cyclomatic_complexity": 10}
+
+        config = _create_typescript_config(defaults)
+
+        assert config["name"] == "typescript"
+        assert ".ts" in config["extensions"]
+        assert ".tsx" in config["extensions"]
+        assert ".js" not in config["extensions"]
+        assert config["metrics"] == [
+            {
+                "type": "cyclomatic_complexity",
+                "threshold": 10,
+                "comparison": "<=",
+            }
+        ]
 
 
 class TestSaveConfig:

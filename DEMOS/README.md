@@ -39,6 +39,10 @@ This directory contains Python demo files that exhibit varying degrees of comple
 - **Maintainability**: 41.99 (Poor)
 - **Issues**: Deep nesting, mixed abstraction levels
 
+### 6. `PROJECT_DEFINED_METRICS/` ⚠️ → ✅
+- **Complexity**: Refactoring sequence for custom project-defined metrics
+- **Pattern**: Snapshot-by-snapshot cleanup of expression shape, pipeline shape, narrative separation, naming, hidden state, exception handling, class responsibility, comment debt, and test smells
+
 ## Key Learnings
 
 ### Refactoring Patterns (File 2 → File 3)

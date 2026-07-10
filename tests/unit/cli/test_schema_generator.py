@@ -39,6 +39,7 @@ class TestGenerateConfigSchema:
         assert "languages" in properties
         assert "ignore_patterns" in properties
         assert "use_gitignore" in properties
+        assert "preset" in properties
 
         # Check defaults structure - it may use $ref
         defaults = properties["defaults"]
@@ -61,6 +62,14 @@ class TestGenerateConfigSchema:
         assert "max_halstead_volume" in default_props
         assert "max_halstead_difficulty" in default_props
         assert "max_halstead_effort" in default_props
+
+    def test_schema_includes_preset_enum(self) -> None:
+        """Test that the generated schema exposes preset names."""
+        schema = generate_config_schema()
+        schema_text = json.dumps(schema)
+
+        for preset in ("balanced", "readable", "compact", "architecture", "testing"):
+            assert preset in schema_text
 
     def test_generate_schema_with_output_path(self, tmp_path: Path) -> None:
         """Test generating schema writes to specified file."""
