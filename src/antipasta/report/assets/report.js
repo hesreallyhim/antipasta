@@ -1,24 +1,28 @@
-/* antipasta offline report renderer.
+/* antipasta offline report renderer — Analytical Console.
  *
- * Reads window.ANTIPASTA_DATA (injected by antipasta.report.html) and renders:
- *  - a d3 treemap (area = SLOC, color = selected metric vs threshold)
- *  - hover tooltip with all file metrics
- *  - click-to-inspect detail panel with a sortable function table
- *  - a global "worst functions" table
- *  - per-language metric coverage chips (missing metrics render neutral)
- *  - when DATA.baseline is present: "vs baseline" mode — delta tile coloring
- *    (red = regressed, green = improved), a regressions table, and baseline
- *    metadata in the header
+ * Reads window.ANTIPASTA_DATA (injected by antipasta.report.html) and renders a
+ * self-contained dashboard: hero health score, KPI strip, "fix these first"
+ * list, 5 category panels (Complexity, Size, Architecture, Object Orientation,
+ * Naming — the last three from the project[] block), an elevated d3 treemap,
+ * top-hotspots + architecture watchlist rails, drill-down file detail with a
+ * sortable function table, a worst-functions table, a violations-by-type
+ * breakdown, a light/dark toggle, and — when DATA.baseline exists — full
+ * "vs baseline" mode (delta tile coloring, regressions/improvements tables,
+ * baseline chips, per-file delta tooltips).
  *
- * Framework-free ES6; d3 v7 is embedded in the same document.
+ * Framework-free ES6; d3 v7 is embedded in the same document. All health
+ * scoring is derived here from the snapshot; every tunable lives in the
+ * HEALTH block below so it can be retuned without hunting through render code.
  */
 (() => {
   "use strict";
 
-  const DATA = window.ANTIPASTA_DATA;
+  const DATA = window.ANTIPASTA_DATA || {};
   const files = DATA.files || [];
   const thresholds = DATA.thresholds || {};
   const coverage = DATA.language_coverage || {};
+  const project = DATA.project || [];
+  const summary = DATA.summary || {};
   const baseline = DATA.baseline || null;
   const baselineAddedFiles = new Set(baseline ? baseline.files_added : []);
   let baselineMode = Boolean(baseline);
@@ -30,63 +34,105 @@
     "logical_lines_of_code", "source_lines_of_code", "comment_lines",
     "blank_lines",
   ];
+  const PRESSURE_METRIC = "pressure";
 
-  const NEUTRAL = "#d3d7dc";
-  const badnessColor = d3.scaleLinear()
-    .domain([0, 0.5, 1, 1.5])
-    .range(["#1a9850", "#a6d96a", "#fee08b", "#d73027"])
-    .clamp(true);
+  // ===== HEALTH ENGINE (tunables) ==========================================
+  const HEALTH_WEIGHTS = { complexity: .30, architecture: .20, naming: .20, size: .15, oo: .15 };
+  const SEV_W = { viol: 0.55, prox: 0.30, worst: 0.15 };
+  const PROX_LO = 0.70, PROX_HI = 1.00;
+  const SOFT = {
+    source_lines_of_code: 1000, single_responsibility_index: 5,
+    depth_of_inheritance_tree: 5, name_clarity_floor: 0.60,
+    distance_tolerance: 0.50,
+  };
+  // Complexity/Size threshold table (falls back to DATA.thresholds where present).
+  const COMPLEXITY_FILE_UNITS = {
+    maintainability_index: { T: 50, dir: "min" },
+    halstead_volume: { T: 1000, dir: "max" },
+    halstead_difficulty: { T: 10, dir: "max" },
+    halstead_effort: { T: 10000, dir: "max" },
+  };
 
-  // ----- helpers ----------------------------------------------------------
+  const CATS = [
+    { id: "complexity", name: "Complexity", src: "files · thresholds" },
+    { id: "size", name: "Size & Volume", src: "files" },
+    { id: "architecture", name: "Architecture & Coupling", src: "project" },
+    { id: "oo", name: "Object Orientation", src: "project" },
+    { id: "naming", name: "Naming & Narrative", src: "project" },
+  ];
 
+  const METRIC_CAT = {
+    efferent_coupling: "architecture", afferent_coupling: "architecture", instability: "architecture",
+    abstractness: "architecture", distance_from_main_sequence: "architecture",
+    stable_dependencies_violations: "architecture", dependency_inversion: "architecture",
+    depth_of_inheritance_tree: "oo", number_of_children: "oo", single_responsibility_index: "oo",
+    name_clarity: "naming", naming_antipatterns: "naming", narrative_mixed_functions: "naming",
+    narrator_budget_exceeded: "naming", computer_budget_exceeded: "naming", step_down_ordering: "naming",
+  };
+
+  // ===== small helpers =====================================================
   function metricLabel(key) {
-    const text = key.replace(/_/g, " ");
+    if (key === PRESSURE_METRIC) return "Pressure (composite)";
+    const text = String(key).replace(/_/g, " ");
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
-
   function fmt(value) {
-    if (value === null || value === undefined) return "—";
+    if (value === null || value === undefined || Number.isNaN(value)) return "—";
     if (Math.abs(value) >= 1000) return Math.round(value).toLocaleString();
     return Number.isInteger(value) ? String(value) : value.toFixed(2);
   }
-
   function el(tag, attrs, text) {
     const node = document.createElement(tag);
     if (attrs) for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
     if (text !== undefined) node.textContent = text;
     return node;
   }
+  function clear(node) { while (node && node.firstChild) node.removeChild(node.firstChild); }
+  function byId(id) { return document.getElementById(id); }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  function baseName(p) { return String(p).split("/").pop(); }
 
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
+  // ===== severity ==========================================================
+  const SEV = {
+    good: { glyph: "●", word: "Healthy" },
+    warn: { glyph: "▲", word: "Watch" },
+    bad: { glyph: "■", word: "Critical" },
+    none: { glyph: "—", word: "n/a" },
+  };
+  function tier(h) {
+    if (h === null || h === undefined) return "none";
+    if (h >= 85) return "good";
+    if (h >= 70) return "warn";
+    return "bad";
+  }
+  function grade(h) {
+    if (h === null || h === undefined) return "—";
+    if (h >= 97) return "A+"; if (h >= 93) return "A"; if (h >= 90) return "A-";
+    if (h >= 87) return "B+"; if (h >= 83) return "B"; if (h >= 80) return "B-";
+    if (h >= 77) return "C+"; if (h >= 73) return "C"; if (h >= 70) return "C-";
+    if (h >= 67) return "D+"; if (h >= 63) return "D"; if (h >= 60) return "D-";
+    return "F";
   }
 
-  function availableMetrics() {
-    const seen = new Set();
-    for (const f of files) {
-      for (const k of Object.keys(f.metrics)) seen.add(k);
-      for (const fn of f.functions) for (const k of Object.keys(fn.metrics)) seen.add(k);
-    }
-    const ordered = CANONICAL_METRICS.filter((k) => seen.has(k));
-    for (const k of [...seen].sort()) if (!ordered.includes(k)) ordered.push(k);
-    return ordered;
+  // ===== pressure / badness ================================================
+  function pressure(value, T, dir) {
+    if (value === null || value === undefined) return null;
+    if (dir === "min") return value > 0 ? T / value : 2.0;
+    return T > 0 ? value / T : null;
   }
-
-  // 90th percentile per metric, for coloring metrics that have no threshold.
   const relativeScale = {};
   function relScale(metricKey) {
     if (!(metricKey in relativeScale)) {
-      const values = files
-        .map((f) => f.metrics[metricKey])
-        .filter((v) => v !== undefined && v !== null)
-        .sort((a, b) => a - b);
+      const values = files.map((f) => f.metrics[metricKey])
+        .filter((v) => v !== undefined && v !== null).sort((a, b) => a - b);
       relativeScale[metricKey] = values.length
-        ? values[Math.min(values.length - 1, Math.floor(values.length * 0.9))]
-        : 0;
+        ? values[Math.min(values.length - 1, Math.floor(values.length * 0.9))] : 0;
     }
     return relativeScale[metricKey];
   }
-
   function badness(metricKey, value) {
     const th = thresholds[metricKey];
     if (th && th.threshold > 0) {
@@ -96,445 +142,886 @@
     const scale = relScale(metricKey);
     return scale > 0 ? value / scale : 0;
   }
-
-  function tileFill(fileEntry, metricKey) {
-    const value = fileEntry ? fileEntry.metrics[metricKey] : undefined;
-    if (value === undefined || value === null) return NEUTRAL;
-    return badnessColor(badness(metricKey, value));
-  }
-
   function isOverThreshold(metricKey, value) {
     if (value === undefined || value === null) return false;
     const th = thresholds[metricKey];
     if (!th || th.threshold <= 0) return false;
     return th.direction === "min" ? value < th.threshold : value > th.threshold;
   }
-
-  // ----- baseline deltas ----------------------------------------------------
-
-  const UNCHANGED_FILL = "#eef1f4";
-  const NEW_FILE_FILL = "#cfdcec";
-  const regressRamp = d3.scaleLinear().domain([0, 1]).range(["#f6ebe8", "#c62828"]).clamp(true);
-  const improveRamp = d3.scaleLinear().domain([0, 1]).range(["#e8f0ea", "#1b7837"]).clamp(true);
-
-  function fmtDelta(value) {
-    if (value === null || value === undefined) return "—";
-    const text = fmt(Math.abs(value));
-    return value >= 0 ? `+${text}` : `−${text}`;
+  // Composite per-file pressure across canonical file + function metrics.
+  function filePressure(fileEntry) {
+    let mx = 0, seen = false;
+    for (const k of CANONICAL_METRICS) {
+      const v = fileEntry.metrics[k];
+      if (v === undefined || v === null) continue;
+      seen = true; mx = Math.max(mx, badness(k, v));
+    }
+    for (const fn of fileEntry.functions || []) {
+      for (const k of ["cyclomatic_complexity", "cognitive_complexity"]) {
+        const v = fn.metrics[k];
+        if (v === undefined || v === null) continue;
+        seen = true; mx = Math.max(mx, badness(k, v));
+      }
+    }
+    return seen ? mx : null;
   }
 
-  function baselineDelta(fileEntry, metricKey) {
-    const deltas = baseline.file_deltas[fileEntry.path];
-    return deltas ? deltas[metricKey] : undefined;
+  // ===== project[] bucketing ==============================================
+  const buckets = { architecture: [], oo: [], naming: [] };
+  (function bucketProject() {
+    for (const row of project) {
+      for (const m of row.metrics || []) {
+        const cat = METRIC_CAT[m.type];
+        if (!cat) continue;
+        buckets[cat].push({
+          subject: row.subject, type: m.type, value: m.value,
+          details: m.details, line: m.line_number, fn: m.function_name,
+        });
+      }
+    }
+  })();
+  function bucketByType(bucket, type) { return bucket.filter((u) => u.type === type); }
+  function valuesOf(bucket, type) {
+    return bucketByType(bucket, type).map((u) => u.value).filter((v) => v !== null && v !== undefined);
   }
 
-  // Largest |delta| per metric across files, for red/green intensity.
+  // ===== per-category unit pressures + health =============================
+  function complexityUnits() {
+    const P = [];
+    for (const f of files) {
+      for (const fn of f.functions || []) {
+        if (fn.metrics.cyclomatic_complexity != null)
+          P.push(pressure(fn.metrics.cyclomatic_complexity, (thresholds.cyclomatic_complexity || {}).threshold || 10, "max"));
+        if (fn.metrics.cognitive_complexity != null)
+          P.push(pressure(fn.metrics.cognitive_complexity, (thresholds.cognitive_complexity || {}).threshold || 15, "max"));
+      }
+      for (const [k, u] of Object.entries(COMPLEXITY_FILE_UNITS)) {
+        if (f.metrics[k] != null) {
+          const th = thresholds[k];
+          P.push(pressure(f.metrics[k], th ? th.threshold : u.T, th ? th.direction : u.dir));
+        }
+      }
+    }
+    return P;
+  }
+  function sizeUnits() {
+    return files.filter((f) => f.metrics.source_lines_of_code != null)
+      .map((f) => pressure(f.metrics.source_lines_of_code, SOFT.source_lines_of_code, "max"));
+  }
+  function architectureUnits() {
+    const b = buckets.architecture, P = [];
+    for (const v of valuesOf(b, "distance_from_main_sequence")) P.push(pressure(v, SOFT.distance_tolerance, "max"));
+    for (const v of valuesOf(b, "stable_dependencies_violations")) P.push(v > 0 ? 1.5 : 0.2);
+    return P;
+  }
+  function ooUnits() {
+    const b = buckets.oo, P = [];
+    for (const v of valuesOf(b, "single_responsibility_index")) P.push(pressure(v, SOFT.single_responsibility_index, "max"));
+    for (const v of valuesOf(b, "depth_of_inheritance_tree")) P.push(pressure(v, SOFT.depth_of_inheritance_tree, "max"));
+    return P;
+  }
+  function namingUnits() {
+    const b = buckets.naming, P = [];
+    for (const v of valuesOf(b, "name_clarity")) P.push(v > 0 ? SOFT.name_clarity_floor / v : 2.0);
+    for (const v of valuesOf(b, "naming_antipatterns")) P.push(v > 0 ? 1.5 : 0.2);
+    return P;
+  }
+  function categoryHealth(P) {
+    const units = P.filter((p) => p !== null && p !== undefined);
+    const n = units.length;
+    if (n === 0) return { health: null, n: 0 };
+    const violationRate = units.filter((p) => p > 1).length / n;
+    const proximity = units.reduce((s, p) => s + clamp((p - PROX_LO) / (PROX_HI - PROX_LO), 0, 1), 0) / n;
+    const worstExcess = clamp(Math.max(...units) - 1, 0, 1);
+    const severity = clamp(SEV_W.viol * violationRate + SEV_W.prox * proximity + SEV_W.worst * worstExcess, 0, 1);
+    return { health: Math.round(100 * (1 - severity)), n };
+  }
+
+  const HEALTH = {};
+  HEALTH.complexity = categoryHealth(complexityUnits());
+  HEALTH.size = categoryHealth(sizeUnits());
+  HEALTH.architecture = categoryHealth(architectureUnits());
+  HEALTH.oo = categoryHealth(ooUnits());
+  HEALTH.naming = categoryHealth(namingUnits());
+
+  function overallHealth() {
+    let wsum = 0, acc = 0;
+    for (const c of CATS) {
+      const h = HEALTH[c.id].health;
+      if (h === null) continue;
+      wsum += HEALTH_WEIGHTS[c.id]; acc += HEALTH_WEIGHTS[c.id] * h;
+    }
+    return wsum > 0 ? Math.round(acc / wsum) : null;
+  }
+  const OVERALL = overallHealth();
+
+  // ===== SVG gauge / dial builders =========================================
+  function arcPath(cx, cy, r, a0, a1) {
+    // angles in radians, 0 at 12 o'clock, clockwise positive.
+    const p = (a) => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+    const [x0, y0] = p(a0), [x1, y1] = p(a1);
+    const large = (a1 - a0) > Math.PI ? 1 : 0;
+    return `M${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)}`;
+  }
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs) {
+    const node = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    return node;
+  }
+  // 270° gauge, ring style. health null -> track only + neutral.
+  function drawGauge(svg, health, opts) {
+    clear(svg);
+    const o = opts || {};
+    const cx = 50, cy = 50, r = o.r || 40, w = o.w || 9;
+    const span = (270 * Math.PI) / 180, start = -span / 2;
+    const t = tier(health);
+    const col = cssVar("--sev-" + (t === "none" ? "none" : t));
+    svg.appendChild(svgEl("path", {
+      d: arcPath(cx, cy, r, start, start + span), fill: "none",
+      stroke: cssVar("--line"), "stroke-width": w, "stroke-linecap": "round",
+    }));
+    const frac = health === null ? 0 : clamp(health / 100, 0, 1);
+    if (frac > 0) {
+      svg.appendChild(svgEl("path", {
+        class: "gauge-arc", d: arcPath(cx, cy, r, start, start + span * frac), fill: "none",
+        stroke: col, "stroke-width": w, "stroke-linecap": "round",
+      }));
+    }
+  }
+  // full-circle ring (0..1 depletion), for the hotspot KPI.
+  function drawRing(svg, frac, t) {
+    clear(svg);
+    const cx = 24, cy = 24, r = 18, w = 5;
+    const col = cssVar("--sev-" + (t === "none" ? "none" : t));
+    svg.setAttribute("viewBox", "0 0 48 48");
+    svg.appendChild(svgEl("circle", { cx, cy, r, fill: "none", stroke: cssVar("--line"), "stroke-width": w }));
+    const f = clamp(frac, 0, 1);
+    if (f > 0.001) {
+      const span = 2 * Math.PI * 0.999;
+      svg.appendChild(svgEl("path", {
+        class: "k-ring-arc", d: arcPath(cx, cy, r, -Math.PI, -Math.PI + span * f),
+        fill: "none", stroke: col, "stroke-width": w, "stroke-linecap": "round",
+      }));
+    }
+  }
+
+  // ===== top bar ===========================================================
+  function renderTopbar() {
+    const meta = byId("meta-line");
+    meta.textContent = `${DATA.root} · ${files.length} files · antipasta v${DATA.tool_version}`
+      + ` · schema v${DATA.schema_version} · ${DATA.generated_at}`
+      + (baseline ? ` · vs baseline ${baseline.label}` + (baseline.generated_at ? ` (${baseline.generated_at})` : "") : "");
+
+    const leg = byId("sev-legend");
+    clear(leg);
+    for (const key of ["good", "warn", "bad", "none"]) {
+      const s = el("span", { class: "sl", "data-sev": key });
+      s.append(el("span", { class: "shape" }, SEV[key].glyph));
+      s.append(document.createTextNode(SEV[key].word));
+      s.style.color = "var(--c)";
+      leg.append(s);
+    }
+
+    const chips = byId("summary-chips");
+    clear(chips);
+    chips.append(el("span", { class: "chip" }, `${summary.total_files ?? files.length} files`));
+    for (const [lang, count] of Object.entries(summary.files_by_language || {}))
+      chips.append(el("span", { class: "chip" }, `${lang}: ${count}`));
+    const violations = summary.total_violations ?? 0;
+    chips.append(el("span", { class: `chip ${violations > 0 ? "alert" : "ok"}` },
+      violations > 0 ? `${violations} violations · ${summary.files_with_violations} files` : "no violations"));
+    if (baseline) renderBaselineChips(chips);
+  }
+  function renderBaselineChips(chips) {
+    const added = baseline.files_added.length, removed = baseline.files_removed.length;
+    if (added || removed) chips.append(el("span", { class: "chip" }, `files +${added} / −${removed}`));
+    const regressed = baseline.regressions.length, improved = baseline.improvements.length;
+    chips.append(el("span", { class: `chip ${regressed > 0 ? "delta-reg" : "ok"}` }, `${regressed} regressed`));
+    if (improved) chips.append(el("span", { class: "chip delta-imp" }, `${improved} improved`));
+    if (baseline.violations_added > 0)
+      chips.append(el("span", { class: "chip alert" }, `+${baseline.violations_added} new violations`));
+  }
+
+  // ===== hero ==============================================================
+  function worstHotspot() {
+    // File carrying the most violations, tie-broken by composite pressure.
+    let best = null;
+    files.forEach((f, i) => {
+      const vc = (f.violations || []).length;
+      const p = filePressure(f) || 0;
+      const cand = { i, file: f, vc, p };
+      if (!best || vc > best.vc || (vc === best.vc && p > best.p)) best = cand;
+    });
+    return best;
+  }
+  function renderHero() {
+    const card = byId("overall-card");
+    const t = tier(OVERALL);
+    card.dataset.sev = t;
+    byId("overall-score").textContent = OVERALL === null ? "n/a" : OVERALL;
+    const badge = byId("overall-grade-badge");
+    badge.dataset.sev = t;
+    clear(badge);
+    badge.append(el("span", { class: "shape" }, SEV[t].glyph));
+    badge.append(document.createTextNode(` ${grade(OVERALL)} · ${SEV[t].word}`));
+    drawGauge(byId("overall-gauge"), OVERALL, { r: 40, w: 10 });
+
+    const s = summary;
+    const clean = (s.total_files ?? files.length) - (s.files_with_violations ?? 0);
+    const hot = worstHotspot();
+    const verdict = byId("hero-verdict");
+    clear(verdict);
+    if (baselineMode && baseline) {
+      const reg = baseline.regressions.length, imp = baseline.improvements.length;
+      verdict.append(document.createTextNode(
+        reg > 0
+          ? `Compared to baseline ${baseline.label}: ${reg} function${reg === 1 ? "" : "s"} regressed`
+            + (imp ? `, ${imp} improved` : "") + `. `
+          : `No regressions vs baseline ${baseline.label}` + (imp ? ` — ${imp} improved.` : ".")));
+      if (baseline.violations_added > 0)
+        verdict.append(document.createTextNode(`${baseline.violations_added} new violation${baseline.violations_added === 1 ? "" : "s"} introduced.`));
+    } else if (OVERALL === null) {
+      verdict.textContent = "Not enough measured signal to score this codebase.";
+    } else {
+      const totalV = s.total_violations ?? 0;
+      const band = t === "good" ? "A healthy codebase" : t === "warn" ? "A codebase worth watching" : "A codebase under real pressure";
+      verdict.append(document.createTextNode(`${band} — ${clean} of ${s.total_files ?? files.length} files are clean`));
+      if (totalV > 0 && hot && hot.vc === totalV && hot.vc > 0) {
+        verdict.append(document.createTextNode(`; all ${totalV} violations live in `));
+        verdict.append(el("code", null, hot.file.path)); verdict.append(document.createTextNode("."));
+      } else if (totalV > 0) {
+        verdict.append(document.createTextNode(`; ${totalV} threshold violation${totalV === 1 ? "" : "s"} across ${s.files_with_violations} file${s.files_with_violations === 1 ? "" : "s"}.`));
+      } else {
+        verdict.append(document.createTextNode(" with no threshold violations."));
+      }
+    }
+    const trend = byId("hero-trend");
+    const worstCat = CATS.map((c) => ({ c, h: HEALTH[c.id].health })).filter((x) => x.h !== null).sort((a, b) => a.h - b.h)[0];
+    trend.textContent = worstCat
+      ? `weakest area: ${worstCat.c.name} (${worstCat.h}/100 · ${grade(worstCat.h)})`
+      : "no measured categories";
+  }
+
+  // ===== KPI strip =========================================================
+  function kpiCard(lab, val, sub, sev) {
+    const c = el("div", { class: "card kpi" });
+    if (sev) c.dataset.sev = sev;
+    c.append(el("div", { class: "k-lab" }, lab));
+    c.append(el("span", { class: "k-val" }, val));
+    c.append(el("div", { class: "k-sub" }, sub));
+    return c;
+  }
+  function renderKPIs() {
+    const strip = byId("kpi-strip");
+    clear(strip);
+    const s = summary;
+    const langs = Object.keys(s.files_by_language || {});
+    strip.append(kpiCard("Files analyzed", String(s.total_files ?? files.length),
+      langs.length ? `${langs.length} language${langs.length === 1 ? "" : "s"}: ${langs.join(", ")}` : "—", null));
+
+    const totalV = s.total_violations ?? 0;
+    if (baselineMode && baseline) {
+      const net = baseline.violations_added;
+      strip.append(kpiCard("Δ violations vs baseline", (net >= 0 ? "+" : "−") + Math.abs(net),
+        `${baseline.regressions.length} regressed · ${baseline.improvements.length} improved`,
+        net > 0 ? "bad" : net < 0 ? "good" : "none"));
+    } else {
+      strip.append(kpiCard("Threshold violations", String(totalV),
+        `${s.files_with_violations ?? 0} of ${s.total_files ?? files.length} files affected`,
+        totalV === 0 ? "good" : totalV <= 5 ? "warn" : "bad"));
+    }
+
+    // hotspot KPI with MI-depletion / pressure ring.
+    const hot = worstHotspot();
+    const hotCard = el("div", { class: "card kpi" });
+    if (hot) {
+      const p = hot.p || 0;
+      const frac = clamp((p - 0.7) / 0.8, 0, 1);
+      const st = hot.vc > 0 || p > 1 ? (p > 1.3 || hot.vc > 3 ? "bad" : "warn") : "good";
+      hotCard.dataset.sev = st;
+      hotCard.append(el("div", { class: "k-lab" }, "Primary hotspot"));
+      hotCard.append(el("span", { class: "k-val", style: "font-size:16px;line-height:1.3;white-space:normal;word-break:break-all" }, baseName(hot.file.path)));
+      const mi = hot.file.metrics.maintainability_index;
+      hotCard.append(el("div", { class: "k-sub" },
+        `${hot.vc} violation${hot.vc === 1 ? "" : "s"}` + (mi != null ? ` · MI ${fmt(mi)}` : "")));
+      const ring = svgEl("svg", { class: "k-ring", viewBox: "0 0 48 48" });
+      hotCard.append(ring);
+      const depletion = mi != null ? clamp(1 - mi / 100, 0, 1) : frac;
+      drawRing(ring, depletion, st);
+      const num = el("div", { class: "k-ringnum" }, mi != null ? String(Math.round(mi)) : "");
+      hotCard.append(num);
+      hotCard.style.cursor = "pointer";
+      hotCard.addEventListener("click", () => { selectFile(hot.i, null); scrollToDetail(); });
+    } else {
+      hotCard.dataset.sev = "none";
+      hotCard.append(el("div", { class: "k-lab" }, "Primary hotspot"));
+      hotCard.append(el("span", { class: "k-val" }, "—"));
+      hotCard.append(el("div", { class: "k-sub" }, "no files"));
+    }
+    strip.append(hotCard);
+
+    const cleanFiles = (s.total_files ?? files.length) - (s.files_with_violations ?? 0);
+    const cleanPct = files.length ? Math.round((cleanFiles / (s.total_files ?? files.length)) * 100) : 0;
+    strip.append(kpiCard("Clean files", `${cleanPct}%`, `${cleanFiles} of ${s.total_files ?? files.length} without violations`,
+      cleanPct >= 90 ? "good" : cleanPct >= 70 ? "warn" : "bad"));
+  }
+
+  // ===== fix these first ===================================================
+  function buildFixList() {
+    const items = [];
+    // 1) files with violations, weighted by count.
+    files.forEach((f, i) => {
+      const vc = (f.violations || []).length;
+      if (!vc) return;
+      const p = filePressure(f) || 0;
+      items.push({
+        kind: "file", index: i,
+        score: vc * 10 + p,
+        sev: vc > 3 || p > 1.3 ? "bad" : "warn",
+        title: f.path,
+        why: `${vc} threshold violation${vc === 1 ? "" : "s"}`
+          + (f.metrics.maintainability_index != null ? ` · MI ${fmt(f.metrics.maintainability_index)}` : ""),
+      });
+    });
+    // 2) worst architecture modules (distance off main sequence).
+    const arch = buckets.architecture.filter((u) => u.type === "distance_from_main_sequence" && u.value != null)
+      .sort((a, b) => b.value - a.value).slice(0, 2);
+    for (const u of arch) {
+      if (u.value <= SOFT.distance_tolerance) continue;
+      items.push({
+        kind: "arch", subject: u.subject,
+        score: 5 + u.value * 3,
+        sev: u.value >= 0.9 ? "bad" : "warn",
+        title: u.subject,
+        why: `distance from main sequence ${fmt(u.value)} — in the zone of pain`,
+      });
+    }
+    // 3) worst OO (single responsibility index).
+    const sri = buckets.oo.filter((u) => u.type === "single_responsibility_index" && u.value != null)
+      .sort((a, b) => b.value - a.value).slice(0, 1);
+    for (const u of sri) {
+      if (u.value <= SOFT.single_responsibility_index) continue;
+      items.push({
+        kind: "oo", subject: u.subject,
+        score: 4 + u.value / 5,
+        sev: u.value > 10 ? "bad" : "warn",
+        title: u.subject,
+        why: `single-responsibility index ${fmt(u.value)} (soft cap ${SOFT.single_responsibility_index})`,
+      });
+    }
+    items.sort((a, b) => b.score - a.score);
+    return items.slice(0, 6);
+  }
+  function renderFixList() {
+    const ol = byId("fix-list");
+    clear(ol);
+    const items = buildFixList();
+    if (!items.length) {
+      ol.append(el("li", { class: "fixempty" },
+        summary.total_violations ? "No ranked items." : "No threshold violations or architectural hotspots — nothing urgent to fix."));
+      return;
+    }
+    for (const it of items) {
+      const li = el("li", { class: "fixrow" });
+      li.dataset.sev = it.sev;
+      li.append(el("span", { class: "fx-rank" }));
+      const main = el("div", { class: "fx-main" });
+      const title = el("div", { class: "fx-title" });
+      title.append(el("code", null, it.title));
+      main.append(title);
+      main.append(el("div", { class: "fx-why" }, it.why));
+      li.append(main);
+      const st = el("span", { class: "status" });
+      st.append(el("span", { class: "shape" }, SEV[it.sev].glyph));
+      st.append(document.createTextNode(SEV[it.sev].word));
+      li.append(st);
+      if (it.kind === "file") li.addEventListener("click", () => { selectFile(it.index, null); scrollToDetail(); });
+      else li.addEventListener("click", () => { document.getElementById("cat-section").scrollIntoView({ behavior: "smooth", block: "start" }); });
+      ol.append(li);
+    }
+  }
+
+  // ===== category grid =====================================================
+  function catMetrics(catId) {
+    // Returns the up-to-4 headline numbers for a category panel.
+    if (catId === "complexity") {
+      let overCyc = 0, overCog = 0, maxCog = 0, miLow = 0;
+      for (const f of files) {
+        for (const fn of f.functions || []) {
+          const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
+          if (cyc != null && cyc > (thresholds.cyclomatic_complexity || { threshold: 10 }).threshold) overCyc++;
+          if (cog != null) { maxCog = Math.max(maxCog, cog); if (cog > (thresholds.cognitive_complexity || { threshold: 15 }).threshold) overCog++; }
+        }
+        if (f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50) miLow++;
+      }
+      return [
+        { v: overCyc, l: "fns over cyclomatic", over: overCyc > 0 },
+        { v: overCog, l: "fns over cognitive", over: overCog > 0 },
+        { v: fmt(maxCog), l: "max cognitive", over: maxCog > (thresholds.cognitive_complexity || { threshold: 15 }).threshold },
+        { v: miLow, l: "files MI < 50", over: miLow > 0 },
+      ];
+    }
+    if (catId === "size") {
+      const slocs = files.map((f) => f.metrics.source_lines_of_code).filter((v) => v != null);
+      const total = slocs.reduce((a, b) => a + b, 0);
+      const largest = slocs.length ? Math.max(...slocs) : 0;
+      const big = slocs.filter((v) => v > 400).length;
+      return [
+        { v: fmt(total), l: "total SLOC", over: false },
+        { v: slocs.length ? fmt(Math.round(total / slocs.length)) : "—", l: "avg / file", over: false },
+        { v: fmt(largest), l: "largest file", over: largest > SOFT.source_lines_of_code },
+        { v: big, l: "files > 400 SLOC", over: big > 0 },
+      ];
+    }
+    if (catId === "architecture") {
+      const b = buckets.architecture;
+      const dist = valuesOf(b, "distance_from_main_sequence");
+      const off = dist.filter((v) => v > SOFT.distance_tolerance).length;
+      const ca = valuesOf(b, "afferent_coupling");
+      const inst = valuesOf(b, "instability");
+      const sdv = valuesOf(b, "stable_dependencies_violations").filter((v) => v > 0).length;
+      return [
+        { v: off, l: "modules off main-seq", over: off > 0 },
+        { v: ca.length ? fmt(Math.max(...ca)) : "—", l: "max afferent (Ca)", over: false },
+        { v: inst.length ? (inst.reduce((a, x) => a + x, 0) / inst.length).toFixed(2) : "—", l: "mean instability", over: false },
+        { v: sdv, l: "SDV breaches", over: sdv > 0 },
+      ];
+    }
+    if (catId === "oo") {
+      const b = buckets.oo;
+      const classes = new Set(b.map((u) => u.subject)).size;
+      const dit = valuesOf(b, "depth_of_inheritance_tree");
+      const sri = valuesOf(b, "single_responsibility_index");
+      const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
+      const noc = valuesOf(b, "number_of_children");
+      return [
+        { v: classes, l: "classes scanned", over: false },
+        { v: dit.length ? fmt(Math.max(...dit)) : "—", l: "max inheritance depth", over: false },
+        { v: sriOut, l: "SRI outliers (>5)", over: sriOut > 0 },
+        { v: noc.length ? fmt(Math.max(...noc)) : "—", l: "max children", over: false },
+      ];
+    }
+    if (catId === "naming") {
+      const b = buckets.naming;
+      const clar = valuesOf(b, "name_clarity");
+      const anti = valuesOf(b, "naming_antipatterns").filter((v) => v > 0).length;
+      const budgets = valuesOf(b, "narrator_budget_exceeded").filter((v) => v > 0).length
+        + valuesOf(b, "computer_budget_exceeded").filter((v) => v > 0).length;
+      const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
+      const low = clar.length ? Math.min(...clar) : null;
+      return [
+        { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: false },
+        { v: low == null ? "—" : low.toFixed(2), l: "lowest clarity", over: low != null && low < SOFT.name_clarity_floor },
+        { v: anti, l: "antipattern hits", over: anti > 0 },
+        { v: budgets, l: "budget watches", over: false },
+      ];
+    }
+    return [];
+  }
+  function renderCategoryGrid() {
+    const grid = byId("cat-grid");
+    clear(grid);
+    for (const c of CATS) {
+      const h = HEALTH[c.id].health;
+      const n = HEALTH[c.id].n;
+      const t = tier(h);
+      const card = el("div", { class: "card cat" });
+      card.dataset.cat = c.id; card.dataset.sev = t;
+      card.append(el("span", { class: "accent-edge" }));
+      const top = el("div", { class: "c-top" });
+      const left = el("div");
+      left.append(el("div", { class: "c-name" }, c.name));
+      left.append(el("div", { class: "c-src" }, n ? `${c.src} · n=${n}` : "unmeasured"));
+      top.append(left);
+      const st = el("span", { class: "status" });
+      st.append(el("span", { class: "shape" }, SEV[t].glyph));
+      st.append(document.createTextNode(SEV[t].word));
+      top.append(st);
+      card.append(top);
+
+      const row = el("div", { class: "c-score-row" });
+      const dialWrap = el("div", { class: "dial-wrap" });
+      const dial = el("div", { class: "cat-dial" });
+      const svg = svgEl("svg", { viewBox: "0 0 100 100" });
+      dial.append(svg);
+      const score = el("div", { class: "c-score" });
+      score.append(el("b", null, h === null ? "n/a" : String(h)));
+      score.append(el("span", null, h === null ? "unmeasured" : "/ 100"));
+      dialWrap.append(dial); dialWrap.append(score);
+      row.append(dialWrap);
+      const gb = el("span", { class: "grade-badge" });
+      gb.dataset.sev = t;
+      gb.append(el("span", { class: "shape" }, SEV[t].glyph));
+      gb.append(document.createTextNode(" " + grade(h)));
+      row.append(gb);
+      card.append(row);
+      drawGauge(svg, h, { r: 38, w: 9 });
+
+      const metrics = el("div", { class: "c-metrics" });
+      for (const m of catMetrics(c.id)) {
+        const cell = el("div", { class: "m" + (m.over ? " over" : "") });
+        cell.append(el("div", { class: "mv" }, String(m.v)));
+        cell.append(el("div", { class: "ml" }, m.l));
+        metrics.append(cell);
+      }
+      card.append(metrics);
+
+      // optional drill for size + architecture
+      if (c.id === "size" || c.id === "architecture") {
+        const drill = el("div", { class: "c-drill", hidden: "" });
+        const btn = el("button", { class: "c-more", type: "button", "data-drill": c.id }, "details ›");
+        btn.addEventListener("click", () => {
+          const open = drill.hasAttribute("hidden");
+          if (open) { drill.removeAttribute("hidden"); btn.textContent = "hide ‹"; if (c.id === "size") drawSizeStrip(drill); else drawArchQuadrant(drill); }
+          else { drill.setAttribute("hidden", ""); btn.textContent = "details ›"; }
+        });
+        card.append(btn);
+        card.append(drill);
+      }
+      grid.append(card);
+    }
+  }
+
+  function drawSizeStrip(container) {
+    clear(container);
+    const slocs = files.map((f, i) => ({ i, v: f.metrics.source_lines_of_code })).filter((x) => x.v != null);
+    if (!slocs.length) { container.append(el("p", { class: "drill-note" }, "No SLOC data.")); return; }
+    const max = Math.max(...slocs.map((x) => x.v));
+    const strip = el("div", { class: "dotstrip" });
+    strip.append(el("div", { class: "axis" }));
+    for (const x of slocs) {
+      const p = pressure(x.v, SOFT.source_lines_of_code, "max");
+      const t = p > 1 ? "bad" : p > 0.7 ? "warn" : "good";
+      const dot = el("span", { class: "dot" });
+      dot.style.left = `${(x.v / max) * 100}%`;
+      dot.style.background = cssVar("--sev-" + t);
+      dot.title = `${files[x.i].path} — ${fmt(x.v)} SLOC`;
+      dot.addEventListener("click", () => { selectFile(x.i, null); scrollToDetail(); });
+      dot.style.cursor = "pointer";
+      strip.append(dot);
+    }
+    container.append(strip);
+    container.append(el("p", { class: "drill-note" }, `one dot per file · position = SLOC / ${fmt(max)} (largest) · color = size pressure`));
+  }
+
+  function drawArchQuadrant(container) {
+    clear(container);
+    const b = buckets.architecture;
+    const bySubj = {};
+    for (const u of b) {
+      if (u.type !== "instability" && u.type !== "abstractness") continue;
+      (bySubj[u.subject] = bySubj[u.subject] || {})[u.type] = u.value;
+    }
+    const pts = Object.entries(bySubj).map(([s, o]) => ({ s, x: o.instability, y: o.abstractness }))
+      .filter((p) => p.x != null && p.y != null);
+    if (!pts.length) { container.append(el("p", { class: "drill-note" }, "No instability/abstractness data.")); return; }
+    const W = 240, H = 160, pad = 18;
+    const svg = svgEl("svg", { class: "drill-svg", viewBox: `0 0 ${W} ${H}` });
+    const px = (x) => pad + x * (W - 2 * pad);
+    const py = (y) => (H - pad) - y * (H - 2 * pad);
+    // frame
+    svg.appendChild(svgEl("rect", { x: pad, y: pad, width: W - 2 * pad, height: H - 2 * pad, fill: "none", stroke: cssVar("--line") }));
+    // main sequence diagonal (A + I = 1)
+    svg.appendChild(svgEl("line", { x1: px(0), y1: py(1), x2: px(1), y2: py(0), stroke: cssVar("--faint"), "stroke-dasharray": "4 3" }));
+    for (const p of pts) {
+      const d = Math.abs(p.x + p.y - 1);
+      const t = d > SOFT.distance_tolerance ? "bad" : d > 0.3 ? "warn" : "good";
+      const c = svgEl("circle", { cx: px(p.x), cy: py(p.y), r: 4, fill: cssVar("--sev-" + t), stroke: cssVar("--surface"), "stroke-width": 1 });
+      c.appendChild(svgEl("title", {}));
+      c.lastChild.textContent = `${p.s} — I=${fmt(p.x)} A=${fmt(p.y)} D=${fmt(d)}`;
+      svg.appendChild(c);
+    }
+    const l1 = svgEl("text", { x: px(0.04), y: py(0.06) }); l1.textContent = "zone of pain";
+    const l2 = svgEl("text", { x: px(0.62), y: py(0.94) }); l2.textContent = "zone of uselessness";
+    svg.appendChild(l1); svg.appendChild(l2);
+    container.append(svg);
+    container.append(el("p", { class: "drill-note" }, "x = instability · y = abstractness · dashed = main sequence (A+I=1)"));
+  }
+
+  // ===== treemap ===========================================================
+  const svgTM = d3.select("#treemap");
+  const WIDTH = 960, HEIGHT = 560;
+  let leafSelection = null, selectedTile = null;
+
+  let RAMP, REGRESS, IMPROVE, NEUTRAL_FILL, NEW_FILE_FILL, UNCHANGED_FILL;
+  function refreshRamps() {
+    RAMP = d3.scaleLinear().domain([0, 0.55, 0.85, 1.15])
+      .range([cssVar("--sev-good"), cssVar("--sev-ok"), cssVar("--sev-warn"), cssVar("--sev-bad")]).clamp(true);
+    REGRESS = d3.scaleLinear().domain([0, 1]).range([cssVar("--surface-2"), cssVar("--sev-bad")]).clamp(true);
+    IMPROVE = d3.scaleLinear().domain([0, 1]).range([cssVar("--surface-2"), cssVar("--sev-good")]).clamp(true);
+    NEUTRAL_FILL = cssVar("--sev-none-soft");
+    NEW_FILE_FILL = cssVar("--accent-soft");
+    UNCHANGED_FILL = cssVar("--line-2");
+  }
+
   const deltaScaleCache = {};
   function deltaScale(metricKey) {
     if (!(metricKey in deltaScaleCache)) {
       let max = 0;
       for (const deltas of Object.values(baseline.file_deltas)) {
-        const d = deltas[metricKey];
-        if (d !== undefined && d !== null) max = Math.max(max, Math.abs(d));
+        const dd = deltas[metricKey];
+        if (dd !== undefined && dd !== null) max = Math.max(max, Math.abs(dd));
       }
       deltaScaleCache[metricKey] = max;
     }
     return deltaScaleCache[metricKey];
   }
-
+  function baselineDelta(fileEntry, metricKey) {
+    const deltas = baseline.file_deltas[fileEntry.path];
+    return deltas ? deltas[metricKey] : undefined;
+  }
   function deltaFill(fileEntry, metricKey) {
     if (baselineAddedFiles.has(fileEntry.path)) return NEW_FILE_FILL;
-    const delta = baselineDelta(fileEntry, metricKey);
+    const dm = metricKey === PRESSURE_METRIC ? "cyclomatic_complexity" : metricKey;
+    const delta = baselineDelta(fileEntry, dm);
     if (delta === undefined || delta === null || delta === 0) return UNCHANGED_FILL;
-    const th = thresholds[metricKey];
+    const th = thresholds[dm];
     const worse = th && th.direction === "min" ? -delta : delta;
-    const scale = deltaScale(metricKey);
+    const scale = deltaScale(dm);
     const intensity = scale > 0 ? Math.abs(worse) / scale : 0;
-    return worse > 0 ? regressRamp(intensity) : improveRamp(intensity);
+    return worse > 0 ? REGRESS(intensity) : IMPROVE(intensity);
   }
-
+  function metricTileFill(fileEntry, metricKey) {
+    if (metricKey === PRESSURE_METRIC) {
+      const p = filePressure(fileEntry);
+      return p === null ? NEUTRAL_FILL : RAMP(p);
+    }
+    const value = fileEntry ? fileEntry.metrics[metricKey] : undefined;
+    if (value === undefined || value === null) return NEUTRAL_FILL;
+    return RAMP(badness(metricKey, value));
+  }
   function currentTileFill(fileEntry, metricKey) {
     if (baselineMode && baseline) return deltaFill(fileEntry, metricKey);
-    return tileFill(fileEntry, metricKey);
+    return metricTileFill(fileEntry, metricKey);
   }
-
-  // ----- header -----------------------------------------------------------
-
-  function renderHeader() {
-    const meta = document.getElementById("meta-line");
-    meta.textContent = `${DATA.root} · generated ${DATA.generated_at}` +
-      ` · antipasta v${DATA.tool_version} · schema v${DATA.schema_version}` +
-      (baseline
-        ? ` · vs baseline ${baseline.label}` +
-          (baseline.generated_at ? ` (${baseline.generated_at})` : "")
-        : "");
-
-    const chips = document.getElementById("summary-chips");
-    const s = DATA.summary || {};
-    chips.append(el("span", { class: "chip" }, `${s.total_files ?? files.length} files`));
-    const byLang = s.files_by_language || {};
-    for (const [lang, count] of Object.entries(byLang)) {
-      chips.append(el("span", { class: "chip" }, `${lang}: ${count}`));
-    }
-    const violations = s.total_violations ?? 0;
-    chips.append(el(
-      "span",
-      { class: `chip ${violations > 0 ? "alert" : "ok"}` },
-      violations > 0
-        ? `${violations} violations in ${s.files_with_violations} files`
-        : "no violations",
-    ));
-    if (baseline) renderBaselineChips(chips);
-  }
-
-  function renderBaselineChips(chips) {
-    const added = baseline.files_added.length;
-    const removed = baseline.files_removed.length;
-    if (added || removed) {
-      chips.append(el("span", { class: "chip" }, `files +${added} / −${removed}`));
-    }
-    const regressed = baseline.regressions.length;
-    const improved = baseline.improvements.length;
-    chips.append(el(
-      "span",
-      { class: `chip ${regressed > 0 ? "delta-reg" : "ok"}` },
-      `${regressed} regressed`,
-    ));
-    if (improved) chips.append(el("span", { class: "chip delta-imp" }, `${improved} improved`));
-    if (baseline.violations_added > 0) {
-      chips.append(el("span", { class: "chip alert" },
-        `+${baseline.violations_added} new violations`));
-    }
-  }
-
-  // ----- coverage chips ---------------------------------------------------
-
-  function renderCoverageChips(selectedMetric) {
-    const box = document.getElementById("coverage-chips");
-    clear(box);
-    for (const [lang, metrics] of Object.entries(coverage)) {
-      const has = metrics.includes(selectedMetric);
-      const chip = el(
-        "span",
-        { class: `chip ${has ? "" : "missing"}` },
-        has
-          ? `${lang} · ${metrics.length} metrics`
-          : `${lang} · no ${metricLabel(selectedMetric).toLowerCase()}`,
-      );
-      chip.title = `${lang} coverage: ${metrics.map(metricLabel).join(", ")}`;
-      box.append(chip);
-    }
-  }
-
-  function renderLegend(selectedMetric) {
-    const th = thresholds[selectedMetric];
-    const low = document.getElementById("legend-low");
-    const high = document.getElementById("legend-high");
-    const bar = document.getElementById("legend-bar");
-    bar.classList.toggle("delta", baselineMode && Boolean(baseline));
-    if (baselineMode && baseline) {
-      low.textContent = "improved";
-      high.textContent = "regressed vs baseline";
-      return;
-    }
-    if (th && th.threshold > 0) {
-      low.textContent = th.direction === "min" ? "high (good)" : "low (good)";
-      high.textContent = `${th.direction === "min" ? "below" : "over"} threshold (${fmt(th.threshold)})`;
-    } else {
-      low.textContent = "low";
-      high.textContent = "high (relative scale, no threshold)";
-    }
-  }
-
-  // ----- treemap ----------------------------------------------------------
-
-  const svg = d3.select("#treemap");
-  const WIDTH = 1160;
-  const HEIGHT = 640;
-  let leafSelection = null;
-  let selectedTile = null;
 
   function buildHierarchy() {
-    const rootNode = d3.stratify()
-      .id((d) => d.id)
-      .parentId((d) => d.parent)(DATA.treemap);
+    const rootNode = d3.stratify().id((d) => d.id).parentId((d) => d.parent)(DATA.treemap);
     rootNode.sum((d) => d.value || 0);
     rootNode.sort((a, b) => b.value - a.value);
-    d3.treemap()
-      .size([WIDTH, HEIGHT])
-      .paddingInner(2)
-      .paddingTop((d) => (d.depth > 0 ? 16 : 4))
-      .paddingLeft(3)
-      .paddingRight(3)
-      .paddingBottom(3)
-      .round(true)(rootNode);
+    d3.treemap().size([WIDTH, HEIGHT]).paddingInner(2)
+      .paddingTop((d) => (d.depth > 0 ? 16 : 4)).paddingLeft(3).paddingRight(3).paddingBottom(3).round(true)(rootNode);
     return rootNode;
   }
-
   function renderTreemap(selectedMetric) {
-    clear(svg.node());
-    if (!files.length) {
-      svg.append("text").attr("class", "empty-note").attr("x", 24).attr("y", 40)
-        .text("No analyzable files found.");
+    refreshRamps();
+    clear(svgTM.node());
+    if (!files.length || !DATA.treemap || !DATA.treemap.length) {
+      svgTM.append("text").attr("class", "empty-note").attr("x", 24).attr("y", 40).text("No analyzable files found.");
       return;
     }
-
     let rootNode;
-    try {
-      rootNode = buildHierarchy();
-    } catch (err) {
-      svg.append("text").attr("class", "empty-note").attr("x", 24).attr("y", 40)
-        .text(`Treemap error: ${err.message}`);
+    try { rootNode = buildHierarchy(); }
+    catch (err) {
+      svgTM.append("text").attr("class", "empty-note").attr("x", 24).attr("y", 40).text(`Treemap error: ${err.message}`);
       return;
     }
-
     const dirs = rootNode.descendants().filter((d) => d.children && d.depth > 0);
-    const dirGroups = svg.selectAll("g.dir").data(dirs).join("g").attr("class", "dir");
-    dirGroups.append("rect")
-      .attr("class", "dir-rect")
+    const dirGroups = svgTM.selectAll("g.dir").data(dirs).join("g").attr("class", "dir");
+    dirGroups.append("rect").attr("class", "dir-rect")
       .attr("x", (d) => d.x0).attr("y", (d) => d.y0)
-      .attr("width", (d) => Math.max(0, d.x1 - d.x0))
-      .attr("height", (d) => Math.max(0, d.y1 - d.y0))
-      .on("mousemove", (event, d) => showDirTooltip(event, d, selectedMetricNow()))
-      .on("mouseleave", hideTooltip);
-    dirGroups.append("text")
-      .attr("class", "dir-label")
-      .attr("x", (d) => d.x0 + 4).attr("y", (d) => d.y0 + 12)
-      .text((d) => truncate(d.data.label, d.x1 - d.x0 - 8));
+      .attr("width", (d) => Math.max(0, d.x1 - d.x0)).attr("height", (d) => Math.max(0, d.y1 - d.y0))
+      .on("mousemove", (event, d) => showDirTooltip(event, d, selectedMetricNow())).on("mouseleave", hideTooltip);
+    dirGroups.append("text").attr("class", "dir-label")
+      .attr("x", (d) => d.x0 + 4).attr("y", (d) => d.y0 + 12).text((d) => truncate(d.data.label, d.x1 - d.x0 - 8));
 
     const leaves = rootNode.leaves().filter((d) => d.data.file_index !== undefined && d.data.file_index !== null);
-    const groups = svg.selectAll("g.leaf").data(leaves).join("g").attr("class", "leaf");
-
-    leafSelection = groups.append("rect")
-      .attr("class", "tile")
+    const groups = svgTM.selectAll("g.leaf").data(leaves).join("g").attr("class", "leaf");
+    leafSelection = groups.append("rect").attr("class", "tile")
       .attr("x", (d) => d.x0).attr("y", (d) => d.y0)
-      .attr("width", (d) => Math.max(0, d.x1 - d.x0))
-      .attr("height", (d) => Math.max(0, d.y1 - d.y0))
+      .attr("width", (d) => Math.max(0, d.x1 - d.x0)).attr("height", (d) => Math.max(0, d.y1 - d.y0))
       .attr("fill", (d) => currentTileFill(files[d.data.file_index], selectedMetric))
-      .on("mousemove", (event, d) => showTooltip(event, files[d.data.file_index], selectedMetricNow()))
-      .on("mouseleave", hideTooltip)
+      .on("mousemove", (event, d) => showTooltip(event, files[d.data.file_index], selectedMetricNow())).on("mouseleave", hideTooltip)
       .on("click", (event, d) => selectFile(d.data.file_index, event.currentTarget));
 
-    groups.filter((d) => d.x1 - d.x0 > 56 && d.y1 - d.y0 > 16)
-      .append("text")
-      .attr("class", "tile-label")
-      .attr("x", (d) => d.x0 + 4).attr("y", (d) => d.y0 + 12)
-      .text((d) => truncate(d.data.label, d.x1 - d.x0 - 8));
+    groups.filter((d) => d.x1 - d.x0 > 56 && d.y1 - d.y0 > 16).append("text").attr("class", "tile-label")
+      .attr("x", (d) => d.x0 + 4).attr("y", (d) => d.y0 + 12).text((d) => truncate(d.data.label, d.x1 - d.x0 - 8));
 
     const badged = groups.filter((d) => (files[d.data.file_index].violations || []).length > 0);
-    badged.append("circle")
-      .attr("class", "badge")
-      .attr("cx", (d) => d.x1 - 9).attr("cy", (d) => d.y0 + 9).attr("r", 7);
-    badged.append("text")
-      .attr("class", "badge-text")
-      .attr("x", (d) => d.x1 - 9).attr("y", (d) => d.y0 + 12)
+    badged.append("circle").attr("class", "badge").attr("cx", (d) => d.x1 - 9).attr("cy", (d) => d.y0 + 9).attr("r", 7);
+    badged.append("text").attr("class", "badge-text").attr("x", (d) => d.x1 - 9).attr("y", (d) => d.y0 + 12)
       .text((d) => files[d.data.file_index].violations.length);
-  }
 
+    // re-mark the currently selected tile after a re-render.
+    if (currentSelectedIndex !== null) {
+      leafSelection.filter((d) => d.data.file_index === currentSelectedIndex).each(function () {
+        selectedTile = this; this.classList.add("selected");
+      });
+    }
+  }
   function truncate(label, width) {
     const maxChars = Math.floor(width / 6.2);
     if (maxChars <= 1) return "";
     return label.length > maxChars ? label.slice(0, Math.max(1, maxChars - 1)) + "…" : label;
   }
-
   function recolorTreemap(selectedMetric) {
-    if (leafSelection) {
-      leafSelection.attr("fill", (d) => currentTileFill(files[d.data.file_index], selectedMetric));
-    }
+    refreshRamps();
+    if (leafSelection) leafSelection.attr("fill", (d) => currentTileFill(files[d.data.file_index], selectedMetric));
   }
 
-  // ----- tooltip ----------------------------------------------------------
+  // ===== coverage chips + legend ==========================================
+  function renderCoverageChips(selectedMetric) {
+    const box = byId("coverage-chips");
+    clear(box);
+    if (selectedMetric === PRESSURE_METRIC) return;
+    for (const [lang, metrics] of Object.entries(coverage)) {
+      const has = metrics.includes(selectedMetric);
+      const chip = el("span", { class: `chip ${has ? "" : "missing"}` },
+        has ? `${lang} · ${metrics.length} metrics` : `${lang} · no ${metricLabel(selectedMetric).toLowerCase()}`);
+      chip.title = `${lang} coverage: ${metrics.map(metricLabel).join(", ")}`;
+      box.append(chip);
+    }
+  }
+  function renderLegend(selectedMetric) {
+    const th = thresholds[selectedMetric];
+    const low = byId("legend-low"), high = byId("legend-high"), bar = byId("legend-bar");
+    bar.classList.toggle("delta", baselineMode && Boolean(baseline));
+    byId("tm-metric-name").textContent = metricLabel(selectedMetric).toLowerCase();
+    if (baselineMode && baseline) { low.textContent = "improved"; high.textContent = "regressed vs baseline"; return; }
+    if (selectedMetric === PRESSURE_METRIC) { low.textContent = "safe"; high.textContent = "over threshold"; return; }
+    if (th && th.threshold > 0) {
+      low.textContent = th.direction === "min" ? "high (good)" : "low (good)";
+      high.textContent = `${th.direction === "min" ? "below" : "over"} threshold (${fmt(th.threshold)})`;
+    } else { low.textContent = "low"; high.textContent = "high (relative scale, no threshold)"; }
+  }
 
-  const tooltip = document.getElementById("tooltip");
-
+  // ===== tooltip ===========================================================
+  const tooltip = byId("tooltip");
   function tooltipMetricsTable(fileEntry) {
     const table = el("table");
     const addRow = (label, value, over) => {
       const tr = el("tr");
       tr.append(el("td", null, label));
-      const td = el("td", null, value);
-      if (over) td.style.color = "#ff9e97";
-      tr.append(td);
-      table.append(tr);
+      const td = el("td", over ? { class: "over" } : null, value);
+      tr.append(td); table.append(tr);
     };
     addRow("Language", fileEntry.language);
     for (const key of CANONICAL_METRICS) {
-      if (key in fileEntry.metrics) {
-        addRow(metricLabel(key), fmt(fileEntry.metrics[key]),
-          isOverThreshold(key, fileEntry.metrics[key]));
-      }
+      if (key in fileEntry.metrics) addRow(metricLabel(key), fmt(fileEntry.metrics[key]), isOverThreshold(key, fileEntry.metrics[key]));
     }
     return table;
   }
-
   function baselineTooltipNote(fileEntry, selectedMetric) {
     if (!baselineMode || !baseline) return null;
-    if (baselineAddedFiles.has(fileEntry.path)) {
-      return el("div", { class: "tt-note" }, "New file — not in baseline");
-    }
-    const delta = baselineDelta(fileEntry, selectedMetric);
-    const label = metricLabel(selectedMetric).toLowerCase();
+    if (baselineAddedFiles.has(fileEntry.path)) return el("div", { class: "tt-note" }, "New file — not in baseline");
+    const dm = selectedMetric === PRESSURE_METRIC ? "cyclomatic_complexity" : selectedMetric;
+    const delta = baselineDelta(fileEntry, dm);
+    const label = metricLabel(dm).toLowerCase();
     return el("div", { class: "tt-note" },
-      delta === undefined || delta === null
-        ? `No ${label} change vs baseline`
-        : `Δ ${label} vs baseline: ${fmtDelta(delta)}`);
+      delta === undefined || delta === null ? `No ${label} change vs baseline` : `Δ ${label} vs baseline: ${fmtDelta(delta)}`);
   }
-
   function positionTooltip(event) {
-    const pad = 14;
-    const rect = tooltip.getBoundingClientRect();
-    let x = event.clientX + pad;
-    let y = event.clientY + pad;
+    const pad = 14, rect = tooltip.getBoundingClientRect();
+    let x = event.clientX + pad, y = event.clientY + pad;
     if (x + rect.width > window.innerWidth - 8) x = event.clientX - rect.width - pad;
     if (y + rect.height > window.innerHeight - 8) y = event.clientY - rect.height - pad;
     tooltip.style.left = `${Math.max(4, x)}px`;
     tooltip.style.top = `${Math.max(4, y)}px`;
   }
-
   function showDirTooltip(event, node, selectedMetric) {
     const agg = node.data.aggregate;
     if (!agg) return;
     clear(tooltip);
-    tooltip.append(el("div", { class: "tt-path" }, node.data.id === "__root__" ? node.data.label : node.data.id));
+    tooltip.append(el("div", { class: "tt-path" }, node.data.parent === null ? node.data.label : node.data.id));
     const table = el("table");
-    const addRow = (label, value) => {
-      const tr = el("tr");
-      tr.append(el("td", null, label));
-      tr.append(el("td", null, value));
-      table.append(tr);
+    const addRow = (label, value, over) => {
+      const tr = el("tr"); tr.append(el("td", null, label));
+      tr.append(el("td", over ? { class: "over" } : null, value)); table.append(tr);
     };
     addRow("Files", String(agg.files));
     addRow("Total size", `${fmt(agg.value)} lines`);
     if (agg.violations > 0) addRow("Violations", String(agg.violations));
-    const worst = agg.metrics_max ? agg.metrics_max[selectedMetric] : undefined;
-    if (worst) {
-      const tr = el("tr");
-      tr.append(el("td", null, `Worst ${metricLabel(selectedMetric).toLowerCase()}`));
-      const td = el("td", null, `${fmt(worst.value)} — ${worst.path.split("/").pop()}`);
-      if (isOverThreshold(selectedMetric, worst.value)) td.style.color = "#ff9e97";
-      tr.append(td);
-      table.append(tr);
-    }
+    const worstKey = selectedMetric === PRESSURE_METRIC ? "cyclomatic_complexity" : selectedMetric;
+    const worst = agg.metrics_max ? agg.metrics_max[worstKey] : undefined;
+    if (worst) addRow(`Worst ${metricLabel(worstKey).toLowerCase()}`, `${fmt(worst.value)} — ${baseName(worst.path)}`, isOverThreshold(worstKey, worst.value));
     tooltip.append(table);
-    if (agg.violations > 0) {
-      tooltip.append(el("div", { class: "tt-alert" },
-        `${agg.violations} threshold violation(s) in this directory`));
-    }
-    tooltip.hidden = false;
-    positionTooltip(event);
+    if (agg.violations > 0) tooltip.append(el("div", { class: "tt-alert" }, `${agg.violations} threshold violation(s) in this directory`));
+    tooltip.hidden = false; positionTooltip(event);
   }
-
   function showTooltip(event, fileEntry, selectedMetric) {
     clear(tooltip);
     tooltip.append(el("div", { class: "tt-path" }, fileEntry.path));
     tooltip.append(tooltipMetricsTable(fileEntry));
     const note = baselineTooltipNote(fileEntry, selectedMetric);
     if (note) tooltip.append(note);
-    if (!(selectedMetric in fileEntry.metrics)) {
-      tooltip.append(el("div", { class: "tt-note" },
-        `No ${metricLabel(selectedMetric).toLowerCase()} data for ${fileEntry.language} — shown neutral`));
-    }
-    if ((fileEntry.violations || []).length) {
-      tooltip.append(el("div", { class: "tt-alert" },
-        `${fileEntry.violations.length} threshold violation(s)`));
-    }
-    if (fileEntry.error) {
-      tooltip.append(el("div", { class: "tt-alert" }, `Analysis error: ${fileEntry.error}`));
-    }
-    tooltip.hidden = false;
-    positionTooltip(event);
+    if (selectedMetric !== PRESSURE_METRIC && !(selectedMetric in fileEntry.metrics))
+      tooltip.append(el("div", { class: "tt-note" }, `No ${metricLabel(selectedMetric).toLowerCase()} data for ${fileEntry.language} — shown neutral`));
+    if ((fileEntry.violations || []).length) tooltip.append(el("div", { class: "tt-alert" }, `${fileEntry.violations.length} threshold violation(s)`));
+    if (fileEntry.error) tooltip.append(el("div", { class: "tt-alert" }, `Analysis error: ${fileEntry.error}`));
+    tooltip.hidden = false; positionTooltip(event);
   }
+  function hideTooltip() { tooltip.hidden = true; }
 
-  function hideTooltip() {
-    tooltip.hidden = true;
+  // ===== deltas / sortable tables =========================================
+  function fmtDelta(value) {
+    if (value === null || value === undefined) return "—";
+    const text = fmt(Math.abs(value));
+    return value >= 0 ? `+${text}` : `−${text}`;
   }
-
-  // ----- sortable tables --------------------------------------------------
-
   function renderSortableTable(table, columns, rows, onRowClick) {
     const state = { key: null, desc: true };
-
     const renderHead = () => {
-      const thead = table.querySelector("thead");
-      clear(thead);
+      const thead = table.querySelector("thead"); clear(thead);
       const tr = el("tr");
       for (const col of columns) {
         const th = el("th", { class: col.numeric ? "num" : "" }, col.label);
-        if (state.key === col.key) {
-          th.append(el("span", { class: "arrow" }, state.desc ? "▼" : "▲"));
-        }
+        if (state.key === col.key) th.append(el("span", { class: "arrow" }, state.desc ? "▼" : "▲"));
         th.addEventListener("click", () => {
-          state.desc = state.key === col.key ? !state.desc : true;
-          state.key = col.key;
-          renderBody();
-          renderHead();
+          state.desc = state.key === col.key ? !state.desc : true; state.key = col.key; renderBody(); renderHead();
         });
         tr.append(th);
       }
       thead.append(tr);
     };
-
     const compareRows = (a, b) => {
-      const av = a[state.key];
-      const bv = b[state.key];
+      const av = a[state.key], bv = b[state.key];
       if (av === null || av === undefined) return 1;
       if (bv === null || bv === undefined) return -1;
       const dir = state.desc ? -1 : 1;
       if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
       return String(av).localeCompare(String(bv)) * dir;
     };
-
-    const cellText = (col, value) => {
-      if (col.delta) return fmtDelta(value);
-      if (col.numeric) return fmt(value);
-      return value ?? "—";
-    };
-
+    const cellText = (col, value) => col.delta ? fmtDelta(value) : (col.numeric ? fmt(value) : (value ?? "—"));
     const buildCell = (col, value) => {
       const td = el("td", { class: col.numeric ? "num" : "" }, cellText(col, value));
       if (col.metric && isOverThreshold(col.metric, value)) td.classList.add("cell-over");
-      if (col.delta && typeof value === "number" && value !== 0) {
-        td.classList.add(value > 0 ? "delta-pos" : "delta-neg");
-      }
+      if (col.delta && typeof value === "number" && value !== 0) td.classList.add(value > 0 ? "delta-pos" : "delta-neg");
       return td;
     };
-
     const buildRow = (row) => {
       const tr = el("tr");
       for (const col of columns) tr.append(buildCell(col, row[col.key]));
       if (onRowClick) tr.addEventListener("click", () => onRowClick(row));
       return tr;
     };
-
     const renderBody = () => {
-      const tbody = table.querySelector("tbody");
-      clear(tbody);
+      const tbody = table.querySelector("tbody"); clear(tbody);
       const sorted = [...rows];
       if (state.key !== null) sorted.sort(compareRows);
       for (const row of sorted) tbody.append(buildRow(row));
     };
-
-    renderHead();
-    renderBody();
+    renderHead(); renderBody();
   }
 
-  // ----- detail panel -----------------------------------------------------
-
+  // ===== detail panel ======================================================
+  let currentSelectedIndex = null;
+  function scrollToDetail() { byId("detail-panel").scrollIntoView({ behavior: "smooth", block: "nearest" }); }
   function selectFile(fileIndex, tileNode) {
+    currentSelectedIndex = fileIndex;
     if (selectedTile) selectedTile.classList.remove("selected");
-    if (tileNode) {
-      selectedTile = tileNode;
-      selectedTile.classList.add("selected");
+    selectedTile = null;
+    if (tileNode) { selectedTile = tileNode; selectedTile.classList.add("selected"); }
+    else if (leafSelection) {
+      leafSelection.filter((d) => d.data.file_index === fileIndex).each(function () { selectedTile = this; this.classList.add("selected"); });
     }
     const fileEntry = files[fileIndex];
-    document.getElementById("detail-placeholder").hidden = true;
-    document.getElementById("detail-body").hidden = false;
-    document.getElementById("detail-title").textContent = "File details";
-    document.getElementById("detail-path").textContent =
-      `${fileEntry.path} (${fileEntry.language})`;
+    byId("detail-section").hidden = false;
+    byId("detail-placeholder").hidden = true;
+    byId("detail-body").hidden = false;
+    byId("detail-path").textContent = `${fileEntry.path} (${fileEntry.language})`;
 
-    const meta = document.getElementById("detail-meta");
-    clear(meta);
+    const meta = byId("detail-meta"); clear(meta);
     for (const key of CANONICAL_METRICS) {
       if (key in fileEntry.metrics) {
         meta.append(el("span", { class: "k" }, metricLabel(key)));
@@ -543,29 +1030,22 @@
         meta.append(v);
       }
     }
-
-    const violationsBox = document.getElementById("detail-violations");
-    clear(violationsBox);
+    const violationsBox = byId("detail-violations"); clear(violationsBox);
     if ((fileEntry.violations || []).length) {
       const ul = el("ul", { class: "violation-list" });
-      for (const violation of fileEntry.violations) {
-        ul.append(el("li", null, violation.message));
-      }
+      for (const violation of fileEntry.violations) ul.append(el("li", null, violation.message));
       violationsBox.append(ul);
     }
-    if (fileEntry.error) {
-      violationsBox.append(el("p", { class: "violation-list" }, `Analysis error: ${fileEntry.error}`));
-    }
+    if (fileEntry.error) violationsBox.append(el("p", { class: "violation-list" }, `Analysis error: ${fileEntry.error}`));
 
-    const rows = fileEntry.functions.map((fn) => ({
-      name: fn.name,
-      line: fn.line,
+    const rows = (fileEntry.functions || []).map((fn) => ({
+      name: fn.name, line: fn.line,
       cyclomatic_complexity: fn.metrics.cyclomatic_complexity ?? null,
       cognitive_complexity: fn.metrics.cognitive_complexity ?? null,
       halstead_volume: fn.metrics.halstead_volume ?? null,
       halstead_difficulty: fn.metrics.halstead_difficulty ?? null,
     }));
-    renderSortableTable(document.getElementById("function-table"), [
+    renderSortableTable(byId("function-table"), [
       { key: "name", label: "Function" },
       { key: "line", label: "Line", numeric: true },
       { key: "cyclomatic_complexity", label: "Cyc", numeric: true, metric: "cyclomatic_complexity" },
@@ -575,34 +1055,29 @@
     ], rows);
   }
 
-  // ----- worst functions --------------------------------------------------
-
-  function renderWorstFunctions() {
+  // ===== hotspots + arch watchlist + risk breakdown ========================
+  function collectWorst() {
     const rows = [];
     files.forEach((fileEntry, index) => {
-      for (const fn of fileEntry.functions) {
-        const cyc = fn.metrics.cyclomatic_complexity;
-        const cog = fn.metrics.cognitive_complexity;
+      for (const fn of fileEntry.functions || []) {
+        const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
         const candidates = [cyc, cog].filter((v) => v !== undefined && v !== null);
         if (!candidates.length) continue;
         rows.push({
-          score: Math.max(...candidates),
-          name: fn.name,
-          path: fileEntry.path,
-          line: fn.line,
-          cyclomatic_complexity: cyc ?? null,
-          cognitive_complexity: cog ?? null,
-          halstead_volume: fn.metrics.halstead_volume ?? null,
-          fileIndex: index,
+          score: Math.max(...candidates), name: fn.name, path: fileEntry.path, line: fn.line,
+          cyclomatic_complexity: cyc ?? null, cognitive_complexity: cog ?? null,
+          halstead_volume: fn.metrics.halstead_volume ?? null, fileIndex: index,
         });
       }
     });
     rows.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
+    return rows;
+  }
+  function renderWorstFunctions() {
+    const rows = collectWorst();
     const top = rows.slice(0, 50);
-    document.getElementById("worst-count").textContent =
-      rows.length > 50 ? `(top 50 of ${rows.length})` : `(${rows.length})`;
-
-    renderSortableTable(document.getElementById("worst-table"), [
+    byId("worst-total").textContent = rows.length > 50 ? `(top 50 of ${rows.length})` : `(${rows.length})`;
+    renderSortableTable(byId("worst-table"), [
       { key: "score", label: "Score", numeric: true },
       { key: "name", label: "Function" },
       { key: "path", label: "File" },
@@ -610,100 +1085,174 @@
       { key: "cyclomatic_complexity", label: "Cyc", numeric: true, metric: "cyclomatic_complexity" },
       { key: "cognitive_complexity", label: "Cog", numeric: true, metric: "cognitive_complexity" },
       { key: "halstead_volume", label: "Volume", numeric: true },
-    ], top, (row) => {
-      selectFile(row.fileIndex, null);
-      document.getElementById("detail-panel").scrollIntoView({ block: "nearest" });
-    });
+    ], top, (row) => { selectFile(row.fileIndex, null); scrollToDetail(); });
+
+    // hotspots rail — top 6.
+    const box = byId("hotspots"); clear(box);
+    byId("worst-count").textContent = rows.length ? `${Math.min(6, rows.length)} of ${rows.length}` : "";
+    if (!rows.length) { box.append(el("div", { class: "rank-empty" }, "No function complexity data.")); return; }
+    const rank = el("div", { class: "rank" });
+    for (const r of rows.slice(0, 6)) {
+      const t = r.score > 15 ? "bad" : r.score > 10 ? "warn" : "good";
+      const row = el("div", { class: "rank-row" }); row.dataset.sev = t;
+      row.append(el("span", { class: "r-dot" }));
+      const main = el("div", { class: "r-main" });
+      main.append(el("div", { class: "r-name" }, r.name));
+      main.append(el("div", { class: "r-sub" }, `${baseName(r.path)}:${r.line}`));
+      row.append(main);
+      row.append(el("span", { class: "r-val" }, fmt(r.score)));
+      row.title = `${r.path}:${r.line} — cyc ${fmt(r.cyclomatic_complexity)} · cog ${fmt(r.cognitive_complexity)}`;
+      row.addEventListener("click", () => { selectFile(r.fileIndex, null); scrollToDetail(); });
+      rank.append(row);
+    }
+    box.append(rank);
+  }
+  function renderArchWatchlist() {
+    const box = byId("archlist"); clear(box);
+    const dist = buckets.architecture.filter((u) => u.type === "distance_from_main_sequence" && u.value != null)
+      .sort((a, b) => b.value - a.value).slice(0, 6);
+    if (!dist.length) {
+      box.append(el("div", { class: "rank-empty" }, project.length ? "No main-sequence data." : "n/a — no architecture data for this project."));
+      return;
+    }
+    const rank = el("div", { class: "rank" });
+    for (const u of dist) {
+      const t = u.value > SOFT.distance_tolerance ? (u.value >= 0.9 ? "bad" : "warn") : "good";
+      const row = el("div", { class: "rank-row" }); row.dataset.sev = t;
+      row.append(el("span", { class: "r-dot" }));
+      const main = el("div", { class: "r-main" });
+      main.append(el("div", { class: "r-name" }, baseName(u.subject.replace(/\./g, "/"))));
+      main.append(el("div", { class: "r-sub" }, u.subject));
+      row.append(main);
+      row.append(el("span", { class: "r-val" }, "D " + fmt(u.value)));
+      row.title = `${u.subject} — distance from main sequence ${fmt(u.value)}`;
+      rank.append(row);
+    }
+    box.append(rank);
+  }
+  function renderRiskBreakdown() {
+    const box = byId("viol-break"); clear(box);
+    const byType = summary.violations_by_type || {};
+    const entries = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) { box.append(el("div", { class: "rank-empty" }, "No threshold violations.")); return; }
+    const max = Math.max(...entries.map((e) => e[1]));
+    for (const [type, count] of entries) {
+      const row = el("div", { class: "vb-row" });
+      row.append(el("div", { class: "vb-lab" }, metricLabel(type)));
+      row.append(el("div", { class: "vb-num" }, String(count)));
+      const track = el("div", { class: "vb-track" });
+      const fill = el("div", { class: "vb-fill" });
+      fill.style.width = `${(count / max) * 100}%`;
+      track.append(fill); row.append(track);
+      box.append(row);
+    }
   }
 
-  // ----- baseline regressions / improvements tables -------------------------
-
+  // ===== baseline tables ===================================================
   function baselineFunctionRow(entry, pathIndex) {
-    const cyc = entry.deltas.cyclomatic_complexity;
-    const cog = entry.deltas.cognitive_complexity;
+    const cyc = entry.deltas.cyclomatic_complexity, cog = entry.deltas.cognitive_complexity;
     return {
-      score_delta: entry.score_delta,
-      name: (entry.new_violation ? "⚠ " : "") + entry.name,
-      path: entry.path,
-      line: entry.line,
-      cyc_delta: cyc ? cyc.delta : null,
-      cog_delta: cog ? cog.delta : null,
+      score_delta: entry.score_delta, name: (entry.new_violation ? "⚠ " : "") + entry.name,
+      path: entry.path, line: entry.line,
+      cyc_delta: cyc ? cyc.delta : null, cog_delta: cog ? cog.delta : null,
       fileIndex: pathIndex.has(entry.path) ? pathIndex.get(entry.path) : null,
     };
   }
-
   function renderBaselineFunctionTable(tableId, countId, entries, pathIndex) {
     const rows = entries.slice(0, 50).map((entry) => baselineFunctionRow(entry, pathIndex));
-    document.getElementById(countId).textContent =
-      entries.length > 50 ? `(top 50 of ${entries.length})` : `(${entries.length})`;
-    renderSortableTable(document.getElementById(tableId), [
+    byId(countId).textContent = entries.length > 50 ? `(top 50 of ${entries.length})` : `(${entries.length})`;
+    renderSortableTable(byId(tableId), [
       { key: "score_delta", label: "Δ score", numeric: true, delta: true },
       { key: "name", label: "Function" },
       { key: "path", label: "File" },
       { key: "line", label: "Line", numeric: true },
       { key: "cyc_delta", label: "Δ cyc", numeric: true, delta: true },
       { key: "cog_delta", label: "Δ cog", numeric: true, delta: true },
-    ], rows, (row) => {
-      if (row.fileIndex === null) return;
-      selectFile(row.fileIndex, null);
-      document.getElementById("detail-panel").scrollIntoView({ block: "nearest" });
+    ], rows, (row) => { if (row.fileIndex === null) return; selectFile(row.fileIndex, null); scrollToDetail(); });
+  }
+  function renderBaselineTables() {
+    if (!baseline) return;
+    byId("regressions-section").hidden = false;
+    const pathIndex = new Map(files.map((entry, index) => [entry.path, index]));
+    renderBaselineFunctionTable("regressions-table", "regressions-count", baseline.regressions, pathIndex);
+    renderBaselineFunctionTable("improvements-table", "improvements-count", baseline.improvements, pathIndex);
+  }
+
+  // ===== footer ============================================================
+  function renderFooter() {
+    byId("foot").textContent = `antipasta v${DATA.tool_version} · schema v${DATA.schema_version} · analyzed ${DATA.root} at ${DATA.generated_at}`;
+  }
+
+  // ===== theme toggle ======================================================
+  function reRenderThemedVisuals() {
+    drawGauge(byId("overall-gauge"), OVERALL, { r: 40, w: 10 });
+    renderKPIs();
+    renderCategoryGrid();
+    recolorTreemap(selectedMetricNow());
+    renderRiskBreakdown();
+    renderArchWatchlist();
+  }
+  function initTheme() {
+    const root = document.documentElement;
+    try { const saved = localStorage.getItem("antipasta-theme"); if (saved) root.dataset.theme = saved; } catch (e) { /* offline / no storage */ }
+    byId("theme-toggle").addEventListener("click", () => {
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try { localStorage.setItem("antipasta-theme", next); } catch (e) { /* ignore */ }
+      reRenderThemedVisuals();
     });
   }
 
-  function renderBaselineTables() {
-    if (!baseline) return;
-    document.getElementById("regressions-section").hidden = false;
-    const pathIndex = new Map(files.map((entry, index) => [entry.path, index]));
-    renderBaselineFunctionTable(
-      "regressions-table", "regressions-count", baseline.regressions, pathIndex);
-    renderBaselineFunctionTable(
-      "improvements-table", "improvements-count", baseline.improvements, pathIndex);
-  }
+  // ===== boot ==============================================================
+  const metricSelect = byId("metric-select");
+  function selectedMetricNow() { return metricSelect.value; }
 
-  // ----- boot -------------------------------------------------------------
-
-  const metricSelect = document.getElementById("metric-select");
-
-  function selectedMetricNow() {
-    return metricSelect.value;
+  function availableMetrics() {
+    const seen = new Set();
+    for (const f of files) {
+      for (const k of Object.keys(f.metrics)) seen.add(k);
+      for (const fn of f.functions || []) for (const k of Object.keys(fn.metrics)) seen.add(k);
+    }
+    const ordered = CANONICAL_METRICS.filter((k) => seen.has(k));
+    for (const k of [...seen].sort()) if (!ordered.includes(k)) ordered.push(k);
+    return ordered;
   }
 
   function boot() {
-    renderHeader();
+    initTheme();
+    renderTopbar();
+    renderHero();
+    renderKPIs();
+    renderFixList();
+    renderCategoryGrid();
 
-    const metrics = availableMetrics();
-    for (const key of metrics) {
-      metricSelect.append(el("option", { value: key }, metricLabel(key)));
-    }
-    const initial = metrics.includes("cyclomatic_complexity")
-      ? "cyclomatic_complexity"
-      : metrics[0] || "";
-    if (initial) metricSelect.value = initial;
-
+    const metrics = [PRESSURE_METRIC, ...availableMetrics()];
+    for (const key of metrics) metricSelect.append(el("option", { value: key }, metricLabel(key)));
+    const initial = PRESSURE_METRIC;
+    metricSelect.value = initial;
     metricSelect.addEventListener("change", () => {
       const metric = selectedMetricNow();
-      recolorTreemap(metric);
-      renderLegend(metric);
-      renderCoverageChips(metric);
+      recolorTreemap(metric); renderLegend(metric); renderCoverageChips(metric);
     });
 
     if (baseline) {
-      const wrap = document.getElementById("baseline-toggle-wrap");
-      const toggle = document.getElementById("baseline-toggle");
-      wrap.hidden = false;
-      toggle.checked = baselineMode;
+      const wrap = byId("baseline-toggle-wrap"), toggle = byId("baseline-toggle");
+      wrap.hidden = false; toggle.checked = baselineMode;
       toggle.addEventListener("change", () => {
         baselineMode = toggle.checked;
-        recolorTreemap(selectedMetricNow());
-        renderLegend(selectedMetricNow());
+        recolorTreemap(selectedMetricNow()); renderLegend(selectedMetricNow());
+        renderHero();
       });
     }
 
     renderTreemap(initial);
     renderLegend(initial);
     renderCoverageChips(initial);
+    renderArchWatchlist();
+    renderRiskBreakdown();
     renderBaselineTables();
     renderWorstFunctions();
+    renderFooter();
   }
 
   boot();
