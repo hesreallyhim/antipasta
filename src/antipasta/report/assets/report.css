@@ -280,6 +280,34 @@ html[data-theme="dark"] .icon-btn .moon{display:block}
 #treemap .badge-text{fill:#fff; font-size:9px; font-weight:700; text-anchor:middle; pointer-events:none}
 #treemap .empty-note{fill:var(--muted); font-size:14px}
 
+/* ===== dependency graph (SOLID focus) ===== */
+.viz-col{min-width:0}
+#depgraph{width:100%; height:auto; display:block; background:var(--bg-grid); border-radius:var(--r-md)}
+#depgraph .dep-link{stroke:var(--faint); fill:none; opacity:.5}
+#depgraph .dep-link.sdv{stroke:var(--sev-bad); opacity:.8}
+#depgraph .dep-node{cursor:pointer}
+#depgraph .dep-node circle{stroke:var(--surface); stroke-width:1.5; transition:stroke .1s}
+#depgraph .dep-node.group circle{stroke-dasharray:3 2}
+#depgraph .dep-node:hover circle{stroke:var(--ink); stroke-width:2.5}
+#depgraph .dep-node.dim{opacity:.22}
+#depgraph .dep-node text{fill:var(--ink); font-size:10px; font-weight:600; pointer-events:none; paint-order:stroke; stroke:var(--bg-grid); stroke-width:2.5px}
+#depgraph .empty-note{fill:var(--muted); font-size:14px}
+.graph-reset{
+  font:inherit; font-size:11px; font-weight:600; cursor:pointer; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:3px 10px;
+}
+.graph-reset:hover{border-color:var(--faint); color:var(--ink)}
+.seg-toggle{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--surface)}
+.seg-toggle button{
+  font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; border:none; background:none;
+  color:var(--muted); padding:4px 12px;
+}
+.seg-toggle button.active{background:var(--accent); color:#fff}
+#graph-legend{gap:10px; flex-wrap:wrap}
+#graph-legend .gl{display:inline-flex; align-items:center; gap:5px}
+#graph-legend .gl .dot{width:9px; height:9px; border-radius:50%}
+#graph-legend .gl.edge .dot{border-radius:1px; width:14px; height:3px}
+
 /* ranked lists (hotspots / archlist) */
 .rank{display:flex; flex-direction:column; gap:4px}
 .rank-row{

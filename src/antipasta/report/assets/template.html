@@ -28,7 +28,7 @@
   <div class="spacer"></div>
   <div id="sev-legend" class="sev-legend" aria-label="Severity legend"></div>
   <div id="summary-chips" class="summary-chips"></div>
-  <label class="seg metric-picker">Color by
+  <label class="seg metric-picker" id="metric-picker-wrap">Color by
     <select id="metric-select"></select>
   </label>
   <label class="pill-toggle" id="baseline-toggle-wrap" hidden
@@ -86,10 +86,11 @@
   </section>
 
   <!-- ===== SPATIAL MAP + RAIL ===== -->
-  <section class="sec">
-    <div class="sec-head"><h2>Spatial map</h2>
-      <span class="sec-note">area = SLOC &middot; color = <span id="tm-metric-name">pressure</span> &middot; badge = violations</span></div>
+  <section class="sec" id="spatial-section">
+    <div class="sec-head"><h2 id="spatial-title">Spatial map</h2>
+      <span class="sec-note" id="spatial-note">area = SLOC &middot; color = <span id="tm-metric-name">pressure</span> &middot; badge = violations</span></div>
     <div class="main-grid">
+      <div class="viz-col">
       <div class="card panel" id="treemap-panel">
         <div class="panel-head"><h3>Codebase treemap</h3><div class="spacer"></div>
           <div id="coverage-chips" class="coverage-chips" title="Metric coverage per language"></div>
@@ -100,6 +101,16 @@
         <svg id="treemap" viewBox="0 0 960 560" preserveAspectRatio="xMidYMid meet"
              role="img" aria-label="Treemap of files by source lines of code"></svg>
         <p class="hint tm-foot">Tile area = source lines of code. Hover for metrics; click a tile to open its function table. Badged tiles have threshold violations.</p>
+      </div>
+      <div class="card panel" id="graph-panel" hidden>
+        <div class="panel-head"><h3>Dependency graph</h3><div class="spacer"></div>
+          <div class="seg-toggle" id="graph-mode" role="tablist" aria-label="Graph view"></div>
+          <button class="graph-reset" id="graph-reset" type="button" hidden>&larr; collapse</button>
+          <div class="legend" id="graph-legend"></div></div>
+        <svg id="depgraph" viewBox="0 0 960 560" preserveAspectRatio="xMidYMid meet"
+             role="img" aria-label="Module dependency graph"></svg>
+        <p class="hint" id="graph-foot"></p>
+      </div>
       </div>
       <aside class="rail">
         <div class="card panel" id="hotspots-panel">

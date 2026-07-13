@@ -989,6 +989,304 @@
     if (leafSelection) leafSelection.attr("fill", (d) => currentTileFill(files[d.data.file_index], selectedMetric));
   }
 
+  // ===== dependency graph (SOLID focus) ===================================
+  // Relational metrics (coupling, instability) don't aggregate by area, so
+  // SOLID gets a force-directed module graph instead of the treemap. Nodes are
+  // grouped by package and collapse/expand for the layered-architecture drill:
+  // start at high-level components, click a dashed node to open its submodules.
+  function orEmptyGraph(g) { return g && g.edges ? g : { modules: {}, edges: [] }; }
+  const importGraph = orEmptyGraph(DATA.import_graph);
+  const GW = 960, GH = 560;
+
+  function commonPrefix(names) {
+    if (!names.length) return "";
+    let parts = names[0].split(".");
+    for (const n of names) {
+      const p = n.split(".");
+      let i = 0;
+      while (i < parts.length && i < p.length && parts[i] === p[i]) i++;
+      parts = parts.slice(0, i);
+    }
+    return parts.join(".");
+  }
+  const graphRoot = commonPrefix(Object.keys(importGraph.modules));
+  let graphExpanded = new Set();
+  let graphMode = "graph";
+
+  function visibleNode(module) {
+    const parts = module.split(".");
+    let prefix = parts[0];
+    for (let i = 1; i < parts.length; i++) {
+      if (!graphExpanded.has(prefix)) return prefix;
+      prefix += "." + parts[i];
+    }
+    return prefix;
+  }
+  function solidMetric(subject, type) {
+    for (const u of buckets.solid) if (u.subject === subject && u.type === type) return u.value;
+    return null;
+  }
+  function meanMemberMetric(members, type) {
+    const vals = members.map((m) => solidMetric(m, type)).filter((v) => v != null);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  }
+  // members = the modules that collapse into this visible node (one per module),
+  // so a package's size/aggregates never double-count its own visible children.
+  function graphNode(id, members) {
+    const sloc = members.reduce((s, m) => s + (importGraph.modules[m].sloc || 0), 0);
+    const dist = solidMetric(id, "distance_from_main_sequence");
+    const inst = solidMetric(id, "instability");
+    return {
+      id, members: members.length, sloc,
+      expandable: members.length > 1 || members[0] !== id,
+      dist: dist != null ? dist : meanMemberMetric(members, "distance_from_main_sequence"),
+      inst: inst != null ? inst : meanMemberMetric(members, "instability"),
+      abst: solidMetric(id, "abstractness"),
+      ce: solidMetric(id, "efferent_coupling"), ca: solidMetric(id, "afferent_coupling"),
+    };
+  }
+  function graphModel() {
+    const membersByNode = new Map();
+    for (const m of Object.keys(importGraph.modules)) {
+      const v = visibleNode(m);
+      if (!membersByNode.has(v)) membersByNode.set(v, []);
+      membersByNode.get(v).push(m);
+    }
+    const nodes = [...membersByNode].map(([id, members]) => graphNode(id, members));
+    const linkMap = new Map();
+    for (const [s, t] of importGraph.edges) {
+      const a = visibleNode(s), b = visibleNode(t);
+      if (a === b) continue;
+      const key = a + " " + b;
+      const cur = linkMap.get(key) || { source: a, target: b, weight: 0 };
+      cur.weight++;
+      linkMap.set(key, cur);
+    }
+    return { nodes, links: [...linkMap.values()] };
+  }
+  function nodeRadius(d) { return clamp(Math.sqrt(Math.max(1, d.sloc)) * 0.9, 7, 46); }
+  function distSeverity(d) {
+    if (d == null) return "none";
+    if (d > SOFT.distance_tolerance) return "bad";
+    if (d > 0.3) return "warn";
+    return "good";
+  }
+  function runGraphSim(model) {
+    const sim = d3.forceSimulation(model.nodes)
+      .force("link", d3.forceLink(model.links).id((d) => d.id).distance(92).strength(0.35))
+      .force("charge", d3.forceManyBody().strength(-280))
+      .force("center", d3.forceCenter(GW / 2, GH / 2))
+      .force("collide", d3.forceCollide().radius((d) => nodeRadius(d) + 7))
+      .stop();
+    for (let i = 0; i < 240; i++) sim.tick();
+  }
+  function drawGraphDefs(svg) {
+    const marker = svg.append("defs").append("marker")
+      .attr("id", "dep-arrow").attr("viewBox", "0 -5 10 10").attr("refX", 9).attr("refY", 0)
+      .attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto");
+    marker.append("path").attr("d", "M0,-4L8,0L0,4").attr("fill", cssVar("--faint"));
+  }
+  function linkIsSdv(l) {
+    return l.source.inst != null && l.target.inst != null && l.target.inst - l.source.inst > 0.2;
+  }
+  function linkPath(l) {
+    const s = l.source, t = l.target;
+    const dx = t.x - s.x, dy = t.y - s.y, len = Math.hypot(dx, dy) || 1;
+    const tr = nodeRadius(t) + 8;
+    const ex = t.x - (dx / len) * tr, ey = t.y - (dy / len) * tr;
+    return `M${s.x.toFixed(1)},${s.y.toFixed(1)} L${ex.toFixed(1)},${ey.toFixed(1)}`;
+  }
+  function drawGraphLinks(svg, links) {
+    const maxW = Math.max(1, ...links.map((l) => l.weight));
+    svg.append("g").selectAll("path").data(links).join("path")
+      .attr("class", (l) => "dep-link" + (linkIsSdv(l) ? " sdv" : ""))
+      .attr("stroke-width", (l) => 0.8 + (l.weight / maxW) * 3.6)
+      .attr("marker-end", "url(#dep-arrow)")
+      .attr("d", linkPath);
+  }
+  function graphNodeLabel(d) {
+    const short = d.id.split(".").pop();
+    return short.length > 15 ? short.slice(0, 14) + "…" : short;
+  }
+  function drawGraphNodes(svg, nodes) {
+    const g = svg.append("g").selectAll("g").data(nodes).join("g")
+      .attr("class", (d) => "dep-node" + (d.expandable ? " group" : ""))
+      .attr("transform", (d) => `translate(${d.x.toFixed(1)},${d.y.toFixed(1)})`)
+      .on("mousemove", (e, d) => showGraphTooltip(e, d))
+      .on("mouseleave", hideTooltip)
+      .on("click", (e, d) => onGraphNodeClick(d));
+    g.append("circle").attr("r", nodeRadius).attr("fill", (d) => cssVar("--sev-" + distSeverity(d.dist)));
+    g.filter((d) => nodeRadius(d) > 13).append("text")
+      .attr("text-anchor", "middle").attr("dy", "0.32em").text(graphNodeLabel);
+  }
+  function onGraphNodeClick(d) {
+    if (!d.expandable) return;
+    graphExpanded.add(d.id);
+    renderDepGraph();
+  }
+  function resetGraph() {
+    graphExpanded = new Set(graphRoot ? [graphRoot] : []);
+    renderDepGraph();
+  }
+  function graphTooltipRow(table, key, value) {
+    const tr = el("tr");
+    tr.append(el("td", null, key));
+    tr.append(el("td", null, value));
+    table.append(tr);
+  }
+  function showGraphTooltip(event, d) {
+    clear(tooltip);
+    tooltip.append(el("div", { class: "tt-path" }, d.id));
+    const table = el("table");
+    if (d.members > 1) graphTooltipRow(table, "Modules", String(d.members));
+    graphTooltipRow(table, "SLOC", fmt(d.sloc));
+    for (const [label, v] of [["Instability", d.inst], ["Abstractness", d.abst],
+      ["Distance (D)", d.dist], ["Efferent (Ce)", d.ce], ["Afferent (Ca)", d.ca]]) {
+      if (v != null) graphTooltipRow(table, label, fmt(v));
+    }
+    tooltip.append(table);
+    if (d.expandable) tooltip.append(el("div", { class: "tt-note" }, "Click to drill into submodules"));
+    tooltip.hidden = false;
+    positionTooltip(event);
+  }
+  function renderDepGraph() {
+    const svg = d3.select("#depgraph");
+    clear(svg.node());
+    refreshRamps();
+    const model = graphModel();
+    if (!model.nodes.length) {
+      svg.append("text").attr("class", "empty-note").attr("x", 24).attr("y", 40)
+        .text("No dependency data — needs Python import facts.");
+      updateGraphChrome();
+      return;
+    }
+    runGraphSim(model);
+    drawGraphDefs(svg);
+    drawGraphLinks(svg, model.links);
+    drawGraphNodes(svg, model.nodes);
+    updateGraphChrome();
+  }
+  function mainSeqPoints() {
+    const by = {};
+    for (const u of buckets.solid) {
+      if (u.type !== "instability" && u.type !== "abstractness") continue;
+      (by[u.subject] = by[u.subject] || {})[u.type] = u.value;
+    }
+    return Object.entries(by).map(([s, o]) => ({ s, x: o.instability, y: o.abstractness }))
+      .filter((p) => p.x != null && p.y != null);
+  }
+  function drawMainSeqFrame(svg, px, py) {
+    svg.append("rect").attr("x", px(0)).attr("y", py(1)).attr("width", px(1) - px(0))
+      .attr("height", py(0) - py(1)).attr("fill", "none").attr("stroke", cssVar("--line"));
+    svg.append("line").attr("x1", px(0)).attr("y1", py(1)).attr("x2", px(1)).attr("y2", py(0))
+      .attr("stroke", cssVar("--faint")).attr("stroke-dasharray", "6 4");
+    svg.append("text").attr("x", px(0.02)).attr("y", py(0.05)).attr("class", "empty-note")
+      .attr("font-size", 12).text("zone of pain");
+    svg.append("text").attr("x", px(0.7)).attr("y", py(0.96)).attr("class", "empty-note")
+      .attr("font-size", 12).text("zone of uselessness");
+  }
+  function drawMainSeqPoints(svg, pts, px, py) {
+    const g = svg.append("g").selectAll("g").data(pts).join("g")
+      .attr("transform", (p) => `translate(${px(p.x).toFixed(1)},${py(p.y).toFixed(1)})`);
+    g.append("circle").attr("r", 5)
+      .attr("fill", (p) => cssVar("--sev-" + distSeverity(Math.abs(p.x + p.y - 1))))
+      .attr("stroke", cssVar("--surface")).attr("stroke-width", 1)
+      .append("title").text((p) => `${p.s} — I=${fmt(p.x)} A=${fmt(p.y)} D=${fmt(Math.abs(p.x + p.y - 1))}`);
+  }
+  function renderMainSequence() {
+    const svg = d3.select("#depgraph");
+    clear(svg.node());
+    const pts = mainSeqPoints();
+    if (!pts.length) {
+      svg.append("text").attr("class", "empty-note").attr("x", 24).attr("y", 40)
+        .text("No instability / abstractness data.");
+      updateGraphChrome();
+      return;
+    }
+    const pad = 46;
+    const px = (x) => pad + x * (GW - 2 * pad);
+    const py = (y) => (GH - pad) - y * (GH - 2 * pad);
+    drawMainSeqFrame(svg, px, py);
+    drawMainSeqPoints(svg, pts, px, py);
+    updateGraphChrome();
+  }
+  function renderGraphToggle() {
+    const box = byId("graph-mode");
+    if (!box) return;
+    clear(box);
+    for (const [id, label] of [["graph", "Graph"], ["sequence", "Main sequence"]]) {
+      const b = el("button", { type: "button" }, label);
+      if (graphMode === id) b.classList.add("active");
+      b.addEventListener("click", () => { graphMode = id; renderGraphMode(); });
+      box.append(b);
+    }
+  }
+  function renderGraphLegend() {
+    const box = byId("graph-legend");
+    if (!box) return;
+    clear(box);
+    const items = graphMode === "sequence"
+      ? [["good", "near main sequence"], ["warn", "drifting"], ["bad", "zone of pain/uselessness"]]
+      : [["good", "stable"], ["warn", "drifting"], ["bad", "off main sequence"]];
+    for (const [sev, label] of items) {
+      const gl = el("span", { class: "gl" });
+      const dot = el("span", { class: "dot" });
+      dot.style.background = cssVar("--sev-" + sev);
+      gl.append(dot);
+      gl.append(document.createTextNode(label));
+      box.append(gl);
+    }
+    if (graphMode === "graph") renderGraphEdgeLegend(box);
+  }
+  function renderGraphEdgeLegend(box) {
+    const gl = el("span", { class: "gl edge" });
+    const dot = el("span", { class: "dot" });
+    dot.style.background = cssVar("--sev-bad");
+    gl.append(dot);
+    gl.append(document.createTextNode("import → less-stable module"));
+    box.append(gl);
+  }
+  function updateGraphChrome() {
+    const btn = byId("graph-reset");
+    if (btn) btn.hidden = graphMode !== "graph" || graphExpanded.size <= (graphRoot ? 1 : 0);
+    const foot = byId("graph-foot");
+    if (foot) {
+      foot.textContent = graphMode === "sequence"
+        ? "Each dot is a module: x = instability, y = abstractness. The dashed diagonal is Martin's main sequence (A + I = 1); distance from it is the SOLID pressure."
+        : "Node area ∝ SLOC · color = distance from main sequence · arrows = imports · click a dashed (package) node to drill into its submodules.";
+    }
+  }
+  function renderGraphMode() {
+    renderGraphToggle();
+    renderGraphLegend();
+    if (graphMode === "sequence") renderMainSequence();
+    else renderDepGraph();
+  }
+  function initGraph() {
+    graphExpanded = new Set(graphRoot ? [graphRoot] : []);
+    const btn = byId("graph-reset");
+    if (btn) btn.addEventListener("click", resetGraph);
+  }
+  // Choose the right spatial viz for the current focus: treemap for everything
+  // except SOLID (relational → dependency graph).
+  function renderTreemapView() {
+    const m = selectedMetricNow();
+    renderTreemap(m);
+    renderLegend(m);
+    renderCoverageChips(m);
+  }
+  function renderSpatialViz() {
+    const solid = focusedCat === "solid" && importGraph.edges.length > 0;
+    byId("treemap-panel").hidden = solid;
+    byId("graph-panel").hidden = !solid;
+    byId("metric-picker-wrap").hidden = solid;
+    byId("spatial-title").textContent = solid ? "Dependency map" : "Spatial map";
+    const note = byId("spatial-note");
+    if (note) note.hidden = solid;
+    if (solid) renderGraphMode();
+    else renderTreemapView();
+  }
+
   // ===== coverage chips + legend ==========================================
   function renderCoverageChips(selectedMetric) {
     const box = byId("coverage-chips");
@@ -1332,7 +1630,7 @@
     drawGauge(byId("overall-gauge"), OVERALL, { r: 40, w: 10 });
     renderKPIs();
     renderCategoryGrid();
-    recolorTreemap(selectedMetricNow());
+    renderSpatialViz();
     renderRiskBreakdown();
     renderArchWatchlist();
   }
@@ -1425,8 +1723,7 @@
     renderFocusBar();
     renderCategoryGrid();
     rebuildMetricOptions();
-    const m = selectedMetricNow();
-    renderTreemap(m); renderLegend(m); renderCoverageChips(m);
+    renderSpatialViz();
     renderFixList();
     renderRiskBreakdown();
     applySectionFocus();
@@ -1449,6 +1746,7 @@
 
   function boot() {
     initTheme();
+    initGraph();
     renderTopbar();
     renderHero();
     renderKPIs();
@@ -1458,7 +1756,6 @@
     renderCategoryGrid();
 
     rebuildMetricOptions();
-    const initial = PRESSURE_METRIC;
     metricSelect.addEventListener("change", () => {
       const metric = selectedMetricNow();
       recolorTreemap(metric); renderLegend(metric); renderCoverageChips(metric);
@@ -1474,9 +1771,7 @@
       });
     }
 
-    renderTreemap(initial);
-    renderLegend(initial);
-    renderCoverageChips(initial);
+    renderSpatialViz();
     renderArchWatchlist();
     renderRiskBreakdown();
     renderBaselineTables();
