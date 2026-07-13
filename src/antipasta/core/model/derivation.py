@@ -45,6 +45,10 @@ class AnalysisResult:
 
     file_reports: list[FileReport]
     project_reports: list[ProjectReport] = field(default_factory=list)
+    #: JSON-serializable module dependency graph for the HTML report's SOLID
+    #: view: ``{"modules": {name: {...}}, "edges": [[src, tgt], ...]}``. Empty
+    #: when no derivers run (Phase 0) or no import facts were collected.
+    import_graph: dict[str, object] = field(default_factory=dict)
 
     @property
     def has_project_violations(self) -> bool:

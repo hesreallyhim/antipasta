@@ -151,6 +151,19 @@ class TestBuildSnapshot:
         assert "cyclomatic_complexity" in snapshot["language_coverage"]["python"]
         assert "halstead_volume" in snapshot["language_coverage"]["python"]
 
+    def test_import_graph_defaults_when_absent(self, snapshot: dict[str, Any]) -> None:
+        """Every snapshot carries an import_graph block; empty when none supplied."""
+        assert snapshot["import_graph"] == {"modules": {}, "edges": []}
+
+    def test_import_graph_passthrough(self) -> None:
+        """A provided import_graph payload is embedded verbatim for the SOLID view."""
+        config = AntipastaConfig.generate_default()
+        payload = {"modules": {"a": {"sloc": 10.0, "files": 1}}, "edges": [["a", "b"]]}
+        snap = build_snapshot(
+            [_synthetic_report()], config, root=Path.cwd(), import_graph=payload
+        )
+        assert snap["import_graph"] == payload
+
 
 class TestTreemapNodes:
     """Regression tests for the treemap node table."""
@@ -371,3 +384,23 @@ class TestReportCommand:
         assert result.exit_code == 0, result.output
         assert "branchy" in result.stdout
         assert json.loads(out.read_text())["schema_version"] == 2
+
+    def test_import_graph_edges_surfaced(self, tmp_path: Path) -> None:
+        """The snapshot's import_graph carries real module edges + per-module SLOC."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("")
+        (pkg / "a.py").write_text("from pkg import b\n\n\ndef run():\n    return b.value()\n")
+        (pkg / "b.py").write_text("def value():\n    return 1\n")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            report,
+            ["-d", str(tmp_path), "--format", "json", "-c", str(tmp_path / "missing.yaml")],
+        )
+
+        assert result.exit_code == 0, result.output
+        import_graph = json.loads(result.stdout)["import_graph"]
+        assert "pkg.a" in import_graph["modules"]
+        assert import_graph["modules"]["pkg.a"]["files"] == 1
+        assert ["pkg.a", "pkg.b"] in import_graph["edges"]

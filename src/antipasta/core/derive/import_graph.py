@@ -65,6 +65,35 @@ def build_module_graph(derivation_input: DerivationInput) -> dict[str, set[str]]
     return _build_graph(derivation_input)
 
 
+def build_import_graph_payload(derivation_input: DerivationInput) -> dict[str, Any]:
+    """A JSON-serializable dependency graph for the HTML report's SOLID view.
+
+    Returns ``{"modules": {name: {"sloc", "files"}}, "edges": [[src, tgt], ...]}``.
+    Node ids are dotted module names matching the ``project`` block's coupling
+    subjects, so the renderer can join edges to per-module instability etc.
+    """
+    graph = _build_graph(derivation_input)
+    sloc: dict[str, float] = dict.fromkeys(graph, 0.0)
+    files: dict[str, int] = dict.fromkeys(graph, 0)
+    for report in derivation_input.file_reports:
+        module = _module_name(report.file_path, derivation_input.root)
+        if module is None or module not in graph:
+            continue
+        sloc[module] += _report_sloc(report)
+        files[module] += 1
+    modules = {name: {"sloc": sloc[name], "files": files[name]} for name in graph}
+    edges = [[source, target] for source, targets in graph.items() for target in sorted(targets)]
+    return {"modules": modules, "edges": edges}
+
+
+def _report_sloc(report: Any) -> float:
+    """A file report's source-lines-of-code (file-level row), or 0.0."""
+    for metric in report.metrics:
+        if metric.function_name is None and metric.metric_type == MetricType.SOURCE_LINES_OF_CODE:
+            return float(metric.value)
+    return 0.0
+
+
 def _build_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
     """module → set of analyzed modules it imports (self-edges dropped)."""
     root = derivation_input.root

@@ -230,30 +230,33 @@ class MetricAggregator:
                 self._finalize_report(file_path, language, metrics, errors, lang_config.metrics)
             )
 
-        return AnalysisResult(
-            file_reports=file_reports,
-            project_reports=self._derive(file_reports, facts_by_file, root),
-        )
-
-    def _derive(
-        self,
-        file_reports: list[FileReport],
-        facts_by_file: dict[Path, list[FactRow]],
-        root: Path | None,
-    ) -> list[ProjectReport]:
-        """Run every registered deriver over the collected facts."""
         if not self.derivers:
-            return []
+            return AnalysisResult(file_reports=file_reports)
         derivation_input = DerivationInput(
             file_reports=file_reports,
             facts_by_file=facts_by_file,
             root=(root or Path.cwd()).resolve(),
             config=self.config,
         )
+        return AnalysisResult(
+            file_reports=file_reports,
+            project_reports=self._derive(derivation_input),
+            import_graph=self._import_graph(derivation_input),
+        )
+
+    def _derive(self, derivation_input: DerivationInput) -> list[ProjectReport]:
+        """Run every registered deriver over the collected facts."""
         project_reports: list[ProjectReport] = []
         for deriver in self.derivers:
             project_reports.extend(deriver(derivation_input))
         return project_reports
+
+    @staticmethod
+    def _import_graph(derivation_input: DerivationInput) -> dict[str, object]:
+        """Module dependency graph payload for the report's SOLID view."""
+        from antipasta.core.derive.import_graph import build_import_graph_payload
+
+        return build_import_graph_payload(derivation_input)
 
     def _collect_with_cache(
         self, work: list[tuple[Path, Language, LanguageConfig]], jobs: int | None

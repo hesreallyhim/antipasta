@@ -76,6 +76,7 @@ def execute_analysis(
         "reports": result.file_reports,
         "project_reports": result.project_reports,
         "summary": summary,
+        "import_graph": result.import_graph,
     }
 
 

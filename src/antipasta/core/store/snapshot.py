@@ -39,6 +39,7 @@ def build_snapshot(
     root: Path | None = None,
     summary: dict[str, Any] | None = None,
     project_reports: list[ProjectReport] | None = None,
+    import_graph: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a JSON-serializable snapshot of an analysis run.
 
@@ -82,6 +83,7 @@ def build_snapshot(
         "files": files,
         "project": [report.to_dict() for report in (project_reports or [])],
         "treemap": build_treemap_nodes(files, root_label=root_path.name or str(root_path)),
+        "import_graph": import_graph or {"modules": {}, "edges": []},
     }
 
 
