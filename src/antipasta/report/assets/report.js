@@ -37,7 +37,7 @@
   const PRESSURE_METRIC = "pressure";
 
   // ===== HEALTH ENGINE (tunables) ==========================================
-  const HEALTH_WEIGHTS = { complexity: .30, architecture: .20, naming: .20, size: .15, oo: .15 };
+  const HEALTH_WEIGHTS = { complexity: .30, readability: .24, solid: .20, mixed: .14, loc: .12 };
   const SEV_W = { viol: 0.55, prox: 0.30, worst: 0.15 };
   const PROX_LO = 0.70, PROX_HI = 1.00;
   const SOFT = {
@@ -45,30 +45,56 @@
     depth_of_inheritance_tree: 5, name_clarity_floor: 0.60,
     distance_tolerance: 0.50,
   };
-  // Complexity/Size threshold table (falls back to DATA.thresholds where present).
+  // File-level metrics scored against a fixed threshold (falls back to DATA.thresholds).
   const COMPLEXITY_FILE_UNITS = {
-    maintainability_index: { T: 50, dir: "min" },
     halstead_volume: { T: 1000, dir: "max" },
     halstead_difficulty: { T: 10, dir: "max" },
     halstead_effort: { T: 10000, dir: "max" },
   };
 
+  // ===== metric categories =================================================
+  // Canonical buckets from docs/supported_metrics.md's "Category" column. Every
+  // metric belongs to exactly one; the dashboard groups and focuses by these.
+  // `needs` (empty buckets) explains why a category has no data in this run;
+  // DRYness is flagged custom because it has a dedicated view planned.
   const CATS = [
+    { id: "loc", name: "Lines of code", src: "files" },
     { id: "complexity", name: "Complexity", src: "files · thresholds" },
-    { id: "size", name: "Size & Volume", src: "files" },
-    { id: "architecture", name: "Architecture & Coupling", src: "project" },
-    { id: "oo", name: "Object Orientation", src: "project" },
-    { id: "naming", name: "Naming & Narrative", src: "project" },
+    { id: "readability", name: "Readability", src: "files · project" },
+    { id: "solid", name: "SOLID", src: "project" },
+    { id: "mixed", name: "Mixed", src: "files · project" },
+    { id: "dryness", name: "DRYness", src: "custom", custom: true,
+      needs: "a duplication config block", note: "Custom duplication analysis — dedicated view planned." },
+    { id: "test", name: "Test quality", src: "coverage · git", needs: "a coverage.py artifact or git history" },
+    { id: "vcs", name: "VCS", src: "git history", needs: "mined git history" },
   ];
+  const CAT_BY_ID = Object.fromEntries(CATS.map((c) => [c.id, c]));
 
   const METRIC_CAT = {
-    efferent_coupling: "architecture", afferent_coupling: "architecture", instability: "architecture",
-    abstractness: "architecture", distance_from_main_sequence: "architecture",
-    stable_dependencies_violations: "architecture", dependency_inversion: "architecture",
-    depth_of_inheritance_tree: "oo", number_of_children: "oo", single_responsibility_index: "oo",
-    name_clarity: "naming", naming_antipatterns: "naming", narrative_mixed_functions: "naming",
-    narrator_budget_exceeded: "naming", computer_budget_exceeded: "naming", step_down_ordering: "naming",
+    lines_of_code: "loc", logical_lines_of_code: "loc", source_lines_of_code: "loc",
+    comment_lines: "loc", blank_lines: "loc",
+    cyclomatic_complexity: "complexity", halstead_volume: "complexity", halstead_difficulty: "complexity",
+    halstead_effort: "complexity", halstead_time: "complexity", halstead_bugs: "complexity",
+    function_statements: "complexity",
+    cognitive_complexity: "readability", message_chain_depth: "readability", function_arity: "readability",
+    boolean_flag_parameters: "readability", exception_discipline: "readability", global_state_reach: "readability",
+    marker_density: "readability", comment_density: "readability", expression_flatness: "readability",
+    pipeline_linearity: "readability", narrative_mixed_functions: "readability", narrator_budget_exceeded: "readability",
+    computer_budget_exceeded: "readability", step_down_ordering: "readability", name_clarity: "readability",
+    naming_antipatterns: "readability",
+    lack_of_cohesion: "solid", weighted_methods_per_class: "solid", coupling_between_objects: "solid",
+    depth_of_inheritance_tree: "solid", number_of_children: "solid", directory_children: "solid",
+    efferent_coupling: "solid", afferent_coupling: "solid", instability: "solid", dependency_cycles: "solid",
+    stable_dependencies_violations: "solid", abstractness: "solid", distance_from_main_sequence: "solid",
+    dependency_inversion: "solid", layering_violations: "solid",
+    duplication_ratio: "dryness", clone_occurrences: "dryness",
+    assertions_per_test: "test", mock_call_assertions: "test", big_literal_assertions: "test",
+    test_churn_ratio: "test", co_churn_multiplicity: "test", suite_redundancy_index: "test", blast_radius: "test",
+    code_churn: "vcs", change_coupling: "vcs",
+    maintainability_index: "mixed", single_responsibility_index: "mixed", hotspot: "mixed",
   };
+  function categoryOf(metricKey) { return METRIC_CAT[metricKey] || null; }
+  let focusedCat = null; // null = "All"; otherwise a CATS id with data
 
   // ===== small helpers =====================================================
   function metricLabel(key) {
@@ -172,13 +198,27 @@
     return seen ? mx : null;
   }
 
+  // Composite per-file pressure restricted to one category's metrics (for the
+  // treemap when focused on that bucket). Uses badness() so metrics without a
+  // threshold fall back to a relative (90th-percentile) scale.
+  function filePressureForCat(fileEntry, catId) {
+    let mx = 0, seen = false;
+    const consider = (k, v) => {
+      if (v == null || categoryOf(k) !== catId) return;
+      seen = true; mx = Math.max(mx, badness(k, v));
+    };
+    for (const [k, v] of Object.entries(fileEntry.metrics)) consider(k, v);
+    for (const fn of fileEntry.functions || []) for (const [k, v] of Object.entries(fn.metrics)) consider(k, v);
+    return seen ? mx : null;
+  }
+
   // ===== project[] bucketing ==============================================
-  const buckets = { architecture: [], oo: [], naming: [] };
+  const buckets = Object.fromEntries(CATS.map((c) => [c.id, []]));
   (function bucketProject() {
     for (const row of project) {
       for (const m of row.metrics || []) {
         const cat = METRIC_CAT[m.type];
-        if (!cat) continue;
+        if (!cat || !buckets[cat]) continue;
         buckets[cat].push({
           subject: row.subject, type: m.type, value: m.value,
           details: m.details, line: m.line_number, fn: m.function_name,
@@ -192,11 +232,10 @@
   }
 
   // ===== per-category unit pressures + health =============================
-  function fnComplexityUnits(fn) {
+  function offenderUnits(bucket, types) {
+    // Each metric here is a "count of offenders": > 0 is a real problem.
     const P = [];
-    const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
-    if (cyc != null) P.push(pressure(cyc, thresholdOr("cyclomatic_complexity", 10), "max"));
-    if (cog != null) P.push(pressure(cog, thresholdOr("cognitive_complexity", 15), "max"));
+    for (const t of types) for (const v of valuesOf(bucket, t)) P.push(v > 0 ? 1.5 : 0.2);
     return P;
   }
   function fileComplexityUnits(f) {
@@ -208,34 +247,41 @@
     }
     return P;
   }
-  function complexityUnits() {
+  function fnMetricUnits(metricKey, T) {
     const P = [];
-    for (const f of files) {
-      for (const fn of f.functions || []) P.push(...fnComplexityUnits(fn));
-      P.push(...fileComplexityUnits(f));
+    for (const f of files) for (const fn of f.functions || []) {
+      const v = fn.metrics[metricKey];
+      if (v != null) P.push(pressure(v, T, "max"));
     }
     return P;
   }
-  function sizeUnits() {
+  function locUnits() { // Lines of code: source-lines-of-code soft-cap pressure
     return files.filter((f) => f.metrics.source_lines_of_code != null)
       .map((f) => pressure(f.metrics.source_lines_of_code, SOFT.source_lines_of_code, "max"));
   }
-  function architectureUnits() {
-    const b = buckets.architecture, P = [];
-    for (const v of valuesOf(b, "distance_from_main_sequence")) P.push(pressure(v, SOFT.distance_tolerance, "max"));
-    for (const v of valuesOf(b, "stable_dependencies_violations")) P.push(v > 0 ? 1.5 : 0.2);
+  function complexityUnits() { // cyclomatic (function) + file-level Halstead
+    const P = fnMetricUnits("cyclomatic_complexity", thresholdOr("cyclomatic_complexity", 10));
+    for (const f of files) P.push(...fileComplexityUnits(f));
     return P;
   }
-  function ooUnits() {
-    const b = buckets.oo, P = [];
-    for (const v of valuesOf(b, "single_responsibility_index")) P.push(pressure(v, SOFT.single_responsibility_index, "max"));
-    for (const v of valuesOf(b, "depth_of_inheritance_tree")) P.push(pressure(v, SOFT.depth_of_inheritance_tree, "max"));
-    return P;
-  }
-  function namingUnits() {
-    const b = buckets.naming, P = [];
+  function readabilityUnits() { // cognitive (function) + naming/narrative offenders
+    const b = buckets.readability;
+    const P = fnMetricUnits("cognitive_complexity", thresholdOr("cognitive_complexity", 15));
     for (const v of valuesOf(b, "name_clarity")) P.push(v > 0 ? SOFT.name_clarity_floor / v : 2.0);
-    for (const v of valuesOf(b, "naming_antipatterns")) P.push(v > 0 ? 1.5 : 0.2);
+    return P.concat(offenderUnits(b,
+      ["naming_antipatterns", "narrative_mixed_functions", "narrator_budget_exceeded", "computer_budget_exceeded"]));
+  }
+  function solidUnits() { // distance-from-main-sequence + inheritance depth + SDV
+    const b = buckets.solid, P = [];
+    for (const v of valuesOf(b, "distance_from_main_sequence")) P.push(pressure(v, SOFT.distance_tolerance, "max"));
+    for (const v of valuesOf(b, "depth_of_inheritance_tree")) P.push(pressure(v, SOFT.depth_of_inheritance_tree, "max"));
+    return P.concat(offenderUnits(b, ["stable_dependencies_violations"]));
+  }
+  function mixedUnits() { // maintainability index (file) + single-responsibility index
+    const P = files.filter((f) => f.metrics.maintainability_index != null)
+      .map((f) => pressure(f.metrics.maintainability_index, thresholdOr("maintainability_index", 50), "min"));
+    for (const v of valuesOf(buckets.mixed, "single_responsibility_index"))
+      P.push(pressure(v, SOFT.single_responsibility_index, "max"));
     return P;
   }
   function categoryHealth(P) {
@@ -249,12 +295,16 @@
     return { health: Math.round(100 * (1 - severity)), n };
   }
 
-  const HEALTH = {};
-  HEALTH.complexity = categoryHealth(complexityUnits());
-  HEALTH.size = categoryHealth(sizeUnits());
-  HEALTH.architecture = categoryHealth(architectureUnits());
-  HEALTH.oo = categoryHealth(ooUnits());
-  HEALTH.naming = categoryHealth(namingUnits());
+  const UNIT_FN = {
+    loc: locUnits, complexity: complexityUnits, readability: readabilityUnits,
+    solid: solidUnits, mixed: mixedUnits,
+  };
+  function computeHealth() {
+    const out = {};
+    for (const c of CATS) out[c.id] = categoryHealth(UNIT_FN[c.id] ? UNIT_FN[c.id]() : []);
+    return out;
+  }
+  const HEALTH = computeHealth();
 
   function overallHealth() {
     let wsum = 0, acc = 0;
@@ -517,58 +567,53 @@
   }
 
   // ===== fix these first ===================================================
+  function fileViolationCats(f) {
+    const s = new Set();
+    for (const v of f.violations || []) { const c = categoryOf(v.type); if (c) s.add(c); }
+    return s;
+  }
+  function fileFixItem(f, i) {
+    const vc = (f.violations || []).length;
+    const p = filePressure(f) || 0;
+    return {
+      kind: "file", index: i, cats: fileViolationCats(f),
+      score: vc * 10 + p,
+      sev: vc > 3 || p > 1.3 ? "bad" : "warn",
+      title: f.path,
+      why: `${vc} threshold violation${vc === 1 ? "" : "s"}`
+        + (f.metrics.maintainability_index != null ? ` · MI ${fmt(f.metrics.maintainability_index)}` : ""),
+    };
+  }
+  function topUnits(bucket, type, cap, limit) {
+    return bucketByType(bucket, type).filter((u) => u.value != null && u.value > cap)
+      .sort((a, b) => b.value - a.value).slice(0, limit);
+  }
   function buildFixList() {
     const items = [];
-    // 1) files with violations, weighted by count.
-    files.forEach((f, i) => {
-      const vc = (f.violations || []).length;
-      if (!vc) return;
-      const p = filePressure(f) || 0;
-      items.push({
-        kind: "file", index: i,
-        score: vc * 10 + p,
-        sev: vc > 3 || p > 1.3 ? "bad" : "warn",
-        title: f.path,
-        why: `${vc} threshold violation${vc === 1 ? "" : "s"}`
-          + (f.metrics.maintainability_index != null ? ` · MI ${fmt(f.metrics.maintainability_index)}` : ""),
-      });
-    });
-    // 2) worst architecture modules (distance off main sequence).
-    const arch = buckets.architecture.filter((u) => u.type === "distance_from_main_sequence" && u.value != null)
-      .sort((a, b) => b.value - a.value).slice(0, 2);
-    for (const u of arch) {
-      if (u.value <= SOFT.distance_tolerance) continue;
-      items.push({
-        kind: "arch", subject: u.subject,
-        score: 5 + u.value * 3,
-        sev: u.value >= 0.9 ? "bad" : "warn",
-        title: u.subject,
-        why: `distance from main sequence ${fmt(u.value)} — in the zone of pain`,
-      });
+    files.forEach((f, i) => { if ((f.violations || []).length) items.push(fileFixItem(f, i)); });
+    for (const u of topUnits(buckets.solid, "distance_from_main_sequence", SOFT.distance_tolerance, 2)) {
+      items.push({ kind: "cat", cat: "solid", cats: new Set(["solid"]),
+        score: 5 + u.value * 3, sev: u.value >= 0.9 ? "bad" : "warn", title: u.subject,
+        why: `distance from main sequence ${fmt(u.value)} — in the zone of pain` });
     }
-    // 3) worst OO (single responsibility index).
-    const sri = buckets.oo.filter((u) => u.type === "single_responsibility_index" && u.value != null)
-      .sort((a, b) => b.value - a.value).slice(0, 1);
-    for (const u of sri) {
-      if (u.value <= SOFT.single_responsibility_index) continue;
-      items.push({
-        kind: "oo", subject: u.subject,
-        score: 4 + u.value / 5,
-        sev: u.value > 10 ? "bad" : "warn",
-        title: u.subject,
-        why: `single-responsibility index ${fmt(u.value)} (soft cap ${SOFT.single_responsibility_index})`,
-      });
+    for (const u of topUnits(buckets.mixed, "single_responsibility_index", SOFT.single_responsibility_index, 1)) {
+      items.push({ kind: "cat", cat: "mixed", cats: new Set(["mixed"]),
+        score: 4 + u.value / 5, sev: u.value > 10 ? "bad" : "warn", title: u.subject,
+        why: `single-responsibility index ${fmt(u.value)} (soft cap ${SOFT.single_responsibility_index})` });
     }
-    items.sort((a, b) => b.score - a.score);
-    return items.slice(0, 6);
+    const filtered = focusedCat ? items.filter((it) => it.cats.has(focusedCat)) : items;
+    filtered.sort((a, b) => b.score - a.score);
+    return filtered.slice(0, 6);
   }
   function renderFixList() {
     const ol = byId("fix-list");
     clear(ol);
     const items = buildFixList();
     if (!items.length) {
-      ol.append(el("li", { class: "fixempty" },
-        summary.total_violations ? "No ranked items." : "No threshold violations or architectural hotspots — nothing urgent to fix."));
+      const msg = focusedCat
+        ? `Nothing urgent in ${CAT_BY_ID[focusedCat].name}.`
+        : (summary.total_violations ? "No ranked items." : "No threshold violations or architectural hotspots — nothing urgent to fix.");
+      ol.append(el("li", { class: "fixempty" }, msg));
       return;
     }
     for (const it of items) {
@@ -586,33 +631,34 @@
       st.append(document.createTextNode(SEV[it.sev].word));
       li.append(st);
       if (it.kind === "file") li.addEventListener("click", () => { selectFile(it.index, null); scrollToDetail(); });
-      else li.addEventListener("click", () => { document.getElementById("cat-section").scrollIntoView({ behavior: "smooth", block: "start" }); });
+      else li.addEventListener("click", () => setFocus(it.cat));
       ol.append(li);
     }
   }
 
   // ===== category grid =====================================================
   // Returns the up-to-4 headline numbers for a category panel.
-  function complexityFileCounters(f, cycT, cogT, acc) {
-    for (const fn of f.functions || []) {
-      const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
-      if (cyc != null && cyc > cycT) acc.overCyc++;
-      if (cog != null) { acc.maxCog = Math.max(acc.maxCog, cog); if (cog > cogT) acc.overCog++; }
+  function fnStat(metricKey, threshold) {
+    let over = 0, max = 0;
+    for (const f of files) for (const fn of f.functions || []) {
+      const v = fn.metrics[metricKey];
+      if (v == null) continue;
+      max = Math.max(max, v);
+      if (threshold != null && v > threshold) over++;
     }
-    if (f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50) acc.miLow++;
+    return { over, max };
   }
-  function catMetricsComplexity() {
-    const cycT = thresholdOr("cyclomatic_complexity", 10), cogT = thresholdOr("cognitive_complexity", 15);
-    const acc = { overCyc: 0, overCog: 0, maxCog: 0, miLow: 0 };
-    for (const f of files) complexityFileCounters(f, cycT, cogT, acc);
-    return [
-      { v: acc.overCyc, l: "fns over cyclomatic", over: acc.overCyc > 0 },
-      { v: acc.overCog, l: "fns over cognitive", over: acc.overCog > 0 },
-      { v: fmt(acc.maxCog), l: "max cognitive", over: acc.maxCog > cogT },
-      { v: acc.miLow, l: "files MI < 50", over: acc.miLow > 0 },
-    ];
+  function fileStat(metricKey, threshold) {
+    let over = 0, max = 0, min = Infinity, n = 0;
+    for (const f of files) {
+      const v = f.metrics[metricKey];
+      if (v == null) continue;
+      n++; max = Math.max(max, v); min = Math.min(min, v);
+      if (threshold != null && v > threshold) over++;
+    }
+    return { over, max, min: n ? min : null, n };
   }
-  function catMetricsSize() {
+  function catMetricsLoc() {
     const slocs = files.map((f) => f.metrics.source_lines_of_code).filter((v) => v != null);
     const total = slocs.reduce((a, b) => a + b, 0);
     const largest = slocs.length ? Math.max(...slocs) : 0;
@@ -624,119 +670,146 @@
       { v: big, l: "files > 400 SLOC", over: big > 0 },
     ];
   }
-  function catMetricsArchitecture() {
-    const b = buckets.architecture;
-    const dist = valuesOf(b, "distance_from_main_sequence");
-    const off = dist.filter((v) => v > SOFT.distance_tolerance).length;
+  function catMetricsComplexity() {
+    const cycT = thresholdOr("cyclomatic_complexity", 10);
+    const cyc = fnStat("cyclomatic_complexity", cycT);
+    const hv = fileStat("halstead_volume", thresholdOr("halstead_volume", 1000));
+    const hd = fileStat("halstead_difficulty", thresholdOr("halstead_difficulty", 10));
+    return [
+      { v: cyc.over, l: "fns over cyclomatic", over: cyc.over > 0 },
+      { v: fmt(cyc.max), l: "max cyclomatic", over: cyc.max > cycT },
+      { v: hd.over, l: "files over difficulty", over: hd.over > 0 },
+      { v: fmt(hv.max), l: "max halstead vol", over: hv.over > 0 },
+    ];
+  }
+  function catMetricsReadability() {
+    const cogT = thresholdOr("cognitive_complexity", 15);
+    const cog = fnStat("cognitive_complexity", cogT);
+    const clar = valuesOf(buckets.readability, "name_clarity");
+    const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
+    const anti = valuesOf(buckets.readability, "naming_antipatterns").filter((v) => v > 0).length;
+    return [
+      { v: cog.over, l: "fns over cognitive", over: cog.over > 0 },
+      { v: fmt(cog.max), l: "max cognitive", over: cog.max > cogT },
+      { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: avg != null && avg < SOFT.name_clarity_floor },
+      { v: anti, l: "naming antipatterns", over: anti > 0 },
+    ];
+  }
+  function catMetricsSolid() {
+    const b = buckets.solid;
+    const off = valuesOf(b, "distance_from_main_sequence").filter((v) => v > SOFT.distance_tolerance).length;
     const ca = valuesOf(b, "afferent_coupling");
     const inst = valuesOf(b, "instability");
-    const sdv = valuesOf(b, "stable_dependencies_violations").filter((v) => v > 0).length;
+    const dit = valuesOf(b, "depth_of_inheritance_tree");
     return [
       { v: off, l: "modules off main-seq", over: off > 0 },
       { v: ca.length ? fmt(Math.max(...ca)) : "—", l: "max afferent (Ca)", over: false },
       { v: inst.length ? (inst.reduce((a, x) => a + x, 0) / inst.length).toFixed(2) : "—", l: "mean instability", over: false },
-      { v: sdv, l: "SDV breaches", over: sdv > 0 },
-    ];
-  }
-  function catMetricsOO() {
-    const b = buckets.oo;
-    const classes = new Set(b.map((u) => u.subject)).size;
-    const dit = valuesOf(b, "depth_of_inheritance_tree");
-    const sri = valuesOf(b, "single_responsibility_index");
-    const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
-    const noc = valuesOf(b, "number_of_children");
-    return [
-      { v: classes, l: "classes scanned", over: false },
       { v: dit.length ? fmt(Math.max(...dit)) : "—", l: "max inheritance depth", over: false },
-      { v: sriOut, l: "SRI outliers (>5)", over: sriOut > 0 },
-      { v: noc.length ? fmt(Math.max(...noc)) : "—", l: "max children", over: false },
     ];
   }
-  function catMetricsNaming() {
-    const b = buckets.naming;
-    const clar = valuesOf(b, "name_clarity");
-    const anti = valuesOf(b, "naming_antipatterns").filter((v) => v > 0).length;
-    const budgets = valuesOf(b, "narrator_budget_exceeded").filter((v) => v > 0).length
-      + valuesOf(b, "computer_budget_exceeded").filter((v) => v > 0).length;
-    const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
-    const low = clar.length ? Math.min(...clar) : null;
+  function catMetricsMixed() {
+    const mi = fileStat("maintainability_index", null);
+    const low = files.filter((f) => f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50).length;
+    const sri = valuesOf(buckets.mixed, "single_responsibility_index");
+    const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
     return [
-      { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: false },
-      { v: low == null ? "—" : low.toFixed(2), l: "lowest clarity", over: low != null && low < SOFT.name_clarity_floor },
-      { v: anti, l: "antipattern hits", over: anti > 0 },
-      { v: budgets, l: "budget watches", over: false },
+      { v: low, l: "files MI < 50", over: low > 0 },
+      { v: mi.min == null ? "—" : fmt(mi.min), l: "lowest MI", over: mi.min != null && mi.min < 50 },
+      { v: sriOut, l: "SRI outliers (>5)", over: sriOut > 0 },
+      { v: sri.length ? fmt(Math.max(...sri)) : "—", l: "max SRI", over: false },
     ];
   }
   const CAT_METRICS_FN = {
-    complexity: catMetricsComplexity, size: catMetricsSize,
-    architecture: catMetricsArchitecture, oo: catMetricsOO, naming: catMetricsNaming,
+    loc: catMetricsLoc, complexity: catMetricsComplexity, readability: catMetricsReadability,
+    solid: catMetricsSolid, mixed: catMetricsMixed,
   };
   function catMetrics(catId) {
     const fn = CAT_METRICS_FN[catId];
     return fn ? fn() : [];
   }
+  function catCardHead(c, t, h, n) {
+    const top = el("div", { class: "c-top" });
+    const left = el("div");
+    left.append(el("div", { class: "c-name" }, c.name));
+    left.append(el("div", { class: "c-src" }, n ? `${c.src} · n=${n}` : (c.custom ? "custom analysis" : "unmeasured")));
+    top.append(left);
+    const st = el("span", { class: "status" });
+    st.append(el("span", { class: "shape" }, SEV[t].glyph));
+    st.append(document.createTextNode(SEV[t].word));
+    top.append(st);
+    return top;
+  }
+  function catCardScore(c, t, h) {
+    const row = el("div", { class: "c-score-row" });
+    const dialWrap = el("div", { class: "dial-wrap" });
+    const dial = el("div", { class: "cat-dial" });
+    const svg = svgEl("svg", { viewBox: "0 0 100 100" });
+    dial.append(svg);
+    const score = el("div", { class: "c-score" });
+    score.append(el("b", null, h === null ? "n/a" : String(h)));
+    score.append(el("span", null, h === null ? "unmeasured" : "/ 100"));
+    dialWrap.append(dial); dialWrap.append(score);
+    row.append(dialWrap);
+    const gb = el("span", { class: "grade-badge" });
+    gb.dataset.sev = t;
+    gb.append(el("span", { class: "shape" }, SEV[t].glyph));
+    gb.append(document.createTextNode(" " + grade(h)));
+    row.append(gb);
+    drawGauge(svg, h, focusedCat === c.id ? { r: 40, w: 11 } : { r: 38, w: 9 });
+    return row;
+  }
+  function catCardMetrics(c) {
+    const metrics = el("div", { class: "c-metrics" });
+    for (const m of catMetrics(c.id)) {
+      const cell = el("div", { class: "m" + (m.over ? " over" : "") });
+      cell.append(el("div", { class: "mv" }, String(m.v)));
+      cell.append(el("div", { class: "ml" }, m.l));
+      metrics.append(cell);
+    }
+    return metrics;
+  }
+  function catCardDrill(card, c) {
+    if (c.id !== "loc" && c.id !== "solid") return;
+    const drill = el("div", { class: "c-drill", hidden: "" });
+    const btn = el("button", { class: "c-more", type: "button", "data-drill": c.id }, "details ›");
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const open = drill.hasAttribute("hidden");
+      if (!open) { drill.setAttribute("hidden", ""); btn.textContent = "details ›"; return; }
+      drill.removeAttribute("hidden"); btn.textContent = "hide ‹";
+      if (c.id === "loc") drawSizeStrip(drill); else drawArchQuadrant(drill);
+    });
+    card.append(btn);
+    card.append(drill);
+  }
+  function catCard(c) {
+    const h = HEALTH[c.id].health, n = HEALTH[c.id].n, t = tier(h);
+    const focusable = n > 0;
+    const card = el("div", { class: "card cat" });
+    card.dataset.cat = c.id; card.dataset.sev = t;
+    if (focusedCat === c.id) card.classList.add("focused");
+    card.append(el("span", { class: "accent-edge" }));
+    card.append(catCardHead(c, t, h, n));
+    card.append(catCardScore(c, t, h));
+    if (!focusable) {
+      card.classList.add("unmeasured");
+      card.append(el("div", { class: "c-note" }, c.note || (c.needs ? `Unmeasured — needs ${c.needs}.` : "No data for this run.")));
+      return card;
+    }
+    card.append(catCardMetrics(c));
+    catCardDrill(card, c);
+    card.classList.add("clickable");
+    card.title = focusedCat === c.id ? "Click to clear focus" : `Focus on ${c.name}`;
+    card.addEventListener("click", () => setFocus(focusedCat === c.id ? null : c.id));
+    return card;
+  }
   function renderCategoryGrid() {
     const grid = byId("cat-grid");
     clear(grid);
-    for (const c of CATS) {
-      const h = HEALTH[c.id].health;
-      const n = HEALTH[c.id].n;
-      const t = tier(h);
-      const card = el("div", { class: "card cat" });
-      card.dataset.cat = c.id; card.dataset.sev = t;
-      card.append(el("span", { class: "accent-edge" }));
-      const top = el("div", { class: "c-top" });
-      const left = el("div");
-      left.append(el("div", { class: "c-name" }, c.name));
-      left.append(el("div", { class: "c-src" }, n ? `${c.src} · n=${n}` : "unmeasured"));
-      top.append(left);
-      const st = el("span", { class: "status" });
-      st.append(el("span", { class: "shape" }, SEV[t].glyph));
-      st.append(document.createTextNode(SEV[t].word));
-      top.append(st);
-      card.append(top);
-
-      const row = el("div", { class: "c-score-row" });
-      const dialWrap = el("div", { class: "dial-wrap" });
-      const dial = el("div", { class: "cat-dial" });
-      const svg = svgEl("svg", { viewBox: "0 0 100 100" });
-      dial.append(svg);
-      const score = el("div", { class: "c-score" });
-      score.append(el("b", null, h === null ? "n/a" : String(h)));
-      score.append(el("span", null, h === null ? "unmeasured" : "/ 100"));
-      dialWrap.append(dial); dialWrap.append(score);
-      row.append(dialWrap);
-      const gb = el("span", { class: "grade-badge" });
-      gb.dataset.sev = t;
-      gb.append(el("span", { class: "shape" }, SEV[t].glyph));
-      gb.append(document.createTextNode(" " + grade(h)));
-      row.append(gb);
-      card.append(row);
-      drawGauge(svg, h, { r: 38, w: 9 });
-
-      const metrics = el("div", { class: "c-metrics" });
-      for (const m of catMetrics(c.id)) {
-        const cell = el("div", { class: "m" + (m.over ? " over" : "") });
-        cell.append(el("div", { class: "mv" }, String(m.v)));
-        cell.append(el("div", { class: "ml" }, m.l));
-        metrics.append(cell);
-      }
-      card.append(metrics);
-
-      // optional drill for size + architecture
-      if (c.id === "size" || c.id === "architecture") {
-        const drill = el("div", { class: "c-drill", hidden: "" });
-        const btn = el("button", { class: "c-more", type: "button", "data-drill": c.id }, "details ›");
-        btn.addEventListener("click", () => {
-          const open = drill.hasAttribute("hidden");
-          if (open) { drill.removeAttribute("hidden"); btn.textContent = "hide ‹"; if (c.id === "size") drawSizeStrip(drill); else drawArchQuadrant(drill); }
-          else { drill.setAttribute("hidden", ""); btn.textContent = "details ›"; }
-        });
-        card.append(btn);
-        card.append(drill);
-      }
-      grid.append(card);
-    }
+    grid.classList.toggle("focused", focusedCat !== null);
+    const list = focusedCat ? CATS.filter((c) => c.id === focusedCat) : CATS;
+    for (const c of list) grid.append(catCard(c));
   }
 
   function drawSizeStrip(container) {
@@ -763,7 +836,7 @@
 
   function drawArchQuadrant(container) {
     clear(container);
-    const b = buckets.architecture;
+    const b = buckets.solid;
     const bySubj = {};
     for (const u of b) {
       if (u.type !== "instability" && u.type !== "abstractness") continue;
@@ -840,7 +913,7 @@
   }
   function metricTileFill(fileEntry, metricKey) {
     if (metricKey === PRESSURE_METRIC) {
-      const p = filePressure(fileEntry);
+      const p = focusedCat ? filePressureForCat(fileEntry, focusedCat) : filePressure(fileEntry);
       return p === null ? NEUTRAL_FILL : RAMP(p);
     }
     const value = fileEntry ? fileEntry.metrics[metricKey] : undefined;
@@ -1174,7 +1247,7 @@
   }
   function renderArchWatchlist() {
     const box = byId("archlist"); clear(box);
-    const dist = buckets.architecture.filter((u) => u.type === "distance_from_main_sequence" && u.value != null)
+    const dist = buckets.solid.filter((u) => u.type === "distance_from_main_sequence" && u.value != null)
       .sort((a, b) => b.value - a.value).slice(0, 6);
     if (!dist.length) {
       box.append(el("div", { class: "rank-empty" }, project.length ? "No main-sequence data." : "n/a — no architecture data for this project."));
@@ -1198,8 +1271,14 @@
   function renderRiskBreakdown() {
     const box = byId("viol-break"); clear(box);
     const byType = summary.violations_by_type || {};
-    const entries = Object.entries(byType).sort((a, b) => b[1] - a[1]);
-    if (!entries.length) { box.append(el("div", { class: "rank-empty" }, "No threshold violations.")); return; }
+    const entries = Object.entries(byType)
+      .filter(([type]) => !focusedCat || categoryOf(type) === focusedCat)
+      .sort((a, b) => b[1] - a[1]);
+    if (!entries.length) {
+      box.append(el("div", { class: "rank-empty" },
+        focusedCat ? `No ${CAT_BY_ID[focusedCat].name} violations.` : "No threshold violations."));
+      return;
+    }
     const max = Math.max(...entries.map((e) => e[1]));
     for (const [type, count] of entries) {
       const row = el("div", { class: "vb-row" });
@@ -1283,18 +1362,96 @@
     return ordered;
   }
 
+  // ===== focus mode ========================================================
+  // Focusing a bucket scopes the treemap + color-by + fix list + risk to that
+  // one category and collapses the grid to its dial; "All" restores the global
+  // view. Buckets with no data (DRYness/Test quality/VCS) are non-focusable.
+  function fileLevelMetricKeys() {
+    const seen = new Set();
+    for (const f of files) for (const k of Object.keys(f.metrics)) seen.add(k);
+    return seen;
+  }
+  function focusMetricOptions() {
+    if (!focusedCat) return [PRESSURE_METRIC, ...availableMetrics()];
+    const inCat = [...fileLevelMetricKeys()].filter((k) => categoryOf(k) === focusedCat);
+    const ordered = CANONICAL_METRICS.filter((k) => inCat.includes(k))
+      .concat(inCat.filter((k) => !CANONICAL_METRICS.includes(k)).sort());
+    return [PRESSURE_METRIC, ...ordered];
+  }
+  function focusOptionLabel(key) {
+    if (key === PRESSURE_METRIC) return focusedCat ? `${CAT_BY_ID[focusedCat].name} pressure` : "Pressure (composite)";
+    return metricLabel(key);
+  }
+  function rebuildMetricOptions() {
+    clear(metricSelect);
+    for (const key of focusMetricOptions()) metricSelect.append(el("option", { value: key }, focusOptionLabel(key)));
+    metricSelect.value = PRESSURE_METRIC;
+  }
+  function focusPill(label, catId, active, disabled, title) {
+    const pill = el("button", { class: "fpill", type: "button" }, label);
+    if (active) pill.classList.add("active");
+    if (disabled) { pill.classList.add("disabled"); pill.disabled = true; }
+    if (title) pill.title = title;
+    if (!disabled) pill.addEventListener("click", () => setFocus(catId));
+    return pill;
+  }
+  function renderFocusBar() {
+    const bar = byId("focus-bar");
+    if (!bar) return;
+    clear(bar);
+    bar.append(focusPill("All", null, focusedCat === null, false, "Show every metric bucket"));
+    for (const c of CATS) {
+      const has = HEALTH[c.id].health !== null;
+      bar.append(focusPill(c.name, c.id, focusedCat === c.id, !has, has ? `Focus on ${c.name}` : `${c.name} — no data this run`));
+    }
+  }
+  const FOCUS_SECTIONS = [
+    { id: "hotspots-panel", cats: ["complexity", "readability"] },
+    { id: "arch-watchlist-panel", cats: ["solid"] },
+  ];
+  function applySectionFocus() {
+    for (const s of FOCUS_SECTIONS) {
+      const node = byId(s.id);
+      if (node) node.hidden = focusedCat !== null && !s.cats.includes(focusedCat);
+    }
+    const note = byId("cat-focus-note");
+    if (note) {
+      note.textContent = focusedCat
+        ? `focused on ${CAT_BY_ID[focusedCat].name} — click the panel or “All” to clear`
+        : "click a dial to focus on one bucket";
+    }
+  }
+  function applyFocus() {
+    renderFocusBar();
+    renderCategoryGrid();
+    rebuildMetricOptions();
+    const m = selectedMetricNow();
+    renderTreemap(m); renderLegend(m); renderCoverageChips(m);
+    renderFixList();
+    renderRiskBreakdown();
+    applySectionFocus();
+  }
+  function setFocus(catId) {
+    focusedCat = catId;
+    applyFocus();
+  }
+  function initFocusFromHash() {
+    const m = /(?:^#|[#&])focus=([a-z]+)/.exec(location.hash || "");
+    const id = m ? m[1] : null;
+    if (id && CAT_BY_ID[id] && HEALTH[id] && HEALTH[id].health !== null) setFocus(id);
+  }
+
   function boot() {
     initTheme();
     renderTopbar();
     renderHero();
     renderKPIs();
     renderFixList();
+    renderFocusBar();
     renderCategoryGrid();
 
-    const metrics = [PRESSURE_METRIC, ...availableMetrics()];
-    for (const key of metrics) metricSelect.append(el("option", { value: key }, metricLabel(key)));
+    rebuildMetricOptions();
     const initial = PRESSURE_METRIC;
-    metricSelect.value = initial;
     metricSelect.addEventListener("change", () => {
       const metric = selectedMetricNow();
       recolorTreemap(metric); renderLegend(metric); renderCoverageChips(metric);
@@ -1317,7 +1474,9 @@
     renderRiskBreakdown();
     renderBaselineTables();
     renderWorstFunctions();
+    applySectionFocus();
     renderFooter();
+    initFocusFromHash();
   }
 
   boot();

@@ -220,6 +220,43 @@ html[data-theme="dark"] .icon-btn .moon{display:block}
 .cat .c-more:hover{color:var(--ink)}
 .cat .c-drill{margin-top:12px}
 .cat .c-drill[hidden]{display:none}
+.cat .c-note{margin-top:14px; font-size:12px; color:var(--muted); line-height:1.45}
+
+/* focus bar (bucket selector) */
+.focus-bar{display:flex; flex-wrap:wrap; gap:8px; margin:-2px 0 16px}
+.fpill{
+  font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+  padding:6px 13px; border-radius:999px; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow-sm);
+  transition:border-color .12s, color .12s, background .12s;
+}
+.fpill:hover{border-color:var(--faint); color:var(--ink)}
+.fpill.active{background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:var(--shadow-md)}
+.fpill.disabled,.fpill.disabled:hover{opacity:.45; cursor:not-allowed; color:var(--muted); border-color:var(--line); box-shadow:none; background:var(--surface)}
+
+/* clickable / focused / unmeasured category cards */
+.cat.clickable{cursor:pointer; transition:border-color .12s, box-shadow .12s}
+.cat.clickable:hover{border-color:var(--faint); box-shadow:var(--shadow-md)}
+.cat.unmeasured{opacity:.7}
+.cat.unmeasured .cat-dial{filter:none}
+.cat-grid.focused{grid-template-columns:1fr}
+.cat.focused{
+  border-color:var(--c); box-shadow:var(--shadow-md);
+  display:grid; grid-template-columns:auto 1fr; column-gap:40px; row-gap:4px;
+  grid-template-areas:"top top" "score metrics"; align-items:center;
+}
+.cat.focused .accent-edge{grid-area:1/1/-1/1}
+.cat.focused .c-top{grid-area:top}
+.cat.focused .c-score-row{grid-area:score; margin:14px 0; justify-content:flex-start; gap:24px}
+.cat.focused .dial-wrap,.cat.focused .cat-dial{width:124px}
+.cat.focused .cat-dial{height:124px}
+.cat.focused .dial-wrap{margin:0}
+.cat.focused .c-score{width:124px; transform:translateY(42px)}
+.cat.focused .c-score b{font-size:34px}
+.cat.focused .grade-badge{margin:0}
+.cat.focused .c-metrics{grid-area:metrics; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 28px; margin:0; max-width:560px}
+.cat.focused .c-more,.cat.focused .c-drill{grid-column:1/-1}
+.cat.focused .c-metrics .m .mv{font-size:20px}
 
 /* ===== spatial map ===== */
 .main-grid{display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:var(--gap); align-items:start}
