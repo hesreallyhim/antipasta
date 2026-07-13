@@ -1435,6 +1435,12 @@
     focusedCat = catId;
     applyFocus();
   }
+  // Lock the fix-list to its initial (All) height so focusing a bucket — which
+  // usually yields fewer rows — doesn't shove the sections below it up/down.
+  function lockFixListHeight() {
+    const ol = byId("fix-list");
+    if (ol) ol.style.minHeight = ol.offsetHeight + "px";
+  }
   function initFocusFromHash() {
     const m = /(?:^#|[#&])focus=([a-z]+)/.exec(location.hash || "");
     const id = m ? m[1] : null;
@@ -1447,6 +1453,7 @@
     renderHero();
     renderKPIs();
     renderFixList();
+    lockFixListHeight();
     renderFocusBar();
     renderCategoryGrid();
 
