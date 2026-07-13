@@ -108,13 +108,19 @@
     if (h >= 70) return "warn";
     return "bad";
   }
+  const GRADE_BANDS = [
+    [97, "A+"], [93, "A"], [90, "A-"], [87, "B+"], [83, "B"], [80, "B-"],
+    [77, "C+"], [73, "C"], [70, "C-"], [67, "D+"], [63, "D"], [60, "D-"],
+  ];
   function grade(h) {
     if (h === null || h === undefined) return "—";
-    if (h >= 97) return "A+"; if (h >= 93) return "A"; if (h >= 90) return "A-";
-    if (h >= 87) return "B+"; if (h >= 83) return "B"; if (h >= 80) return "B-";
-    if (h >= 77) return "C+"; if (h >= 73) return "C"; if (h >= 70) return "C-";
-    if (h >= 67) return "D+"; if (h >= 63) return "D"; if (h >= 60) return "D-";
+    for (const [lo, g] of GRADE_BANDS) if (h >= lo) return g;
     return "F";
+  }
+  // Threshold value for a metric, falling back to a default (0/undefined -> default).
+  function thresholdOr(key, dflt) {
+    const th = thresholds[key];
+    return (th && th.threshold) || dflt;
   }
 
   // ===== pressure / badness ================================================
@@ -186,21 +192,27 @@
   }
 
   // ===== per-category unit pressures + health =============================
+  function fnComplexityUnits(fn) {
+    const P = [];
+    const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
+    if (cyc != null) P.push(pressure(cyc, thresholdOr("cyclomatic_complexity", 10), "max"));
+    if (cog != null) P.push(pressure(cog, thresholdOr("cognitive_complexity", 15), "max"));
+    return P;
+  }
+  function fileComplexityUnits(f) {
+    const P = [];
+    for (const [k, u] of Object.entries(COMPLEXITY_FILE_UNITS)) {
+      if (f.metrics[k] == null) continue;
+      const th = thresholds[k];
+      P.push(pressure(f.metrics[k], th ? th.threshold : u.T, th ? th.direction : u.dir));
+    }
+    return P;
+  }
   function complexityUnits() {
     const P = [];
     for (const f of files) {
-      for (const fn of f.functions || []) {
-        if (fn.metrics.cyclomatic_complexity != null)
-          P.push(pressure(fn.metrics.cyclomatic_complexity, (thresholds.cyclomatic_complexity || {}).threshold || 10, "max"));
-        if (fn.metrics.cognitive_complexity != null)
-          P.push(pressure(fn.metrics.cognitive_complexity, (thresholds.cognitive_complexity || {}).threshold || 15, "max"));
-      }
-      for (const [k, u] of Object.entries(COMPLEXITY_FILE_UNITS)) {
-        if (f.metrics[k] != null) {
-          const th = thresholds[k];
-          P.push(pressure(f.metrics[k], th ? th.threshold : u.T, th ? th.direction : u.dir));
-        }
-      }
+      for (const fn of f.functions || []) P.push(...fnComplexityUnits(fn));
+      P.push(...fileComplexityUnits(f));
     }
     return P;
   }
@@ -355,10 +367,8 @@
     });
     return best;
   }
-  function renderHero() {
-    const card = byId("overall-card");
-    const t = tier(OVERALL);
-    card.dataset.sev = t;
+  function renderHeroScore(t) {
+    byId("overall-card").dataset.sev = t;
     byId("overall-score").textContent = OVERALL === null ? "n/a" : OVERALL;
     const badge = byId("overall-grade-badge");
     badge.dataset.sev = t;
@@ -366,41 +376,54 @@
     badge.append(el("span", { class: "shape" }, SEV[t].glyph));
     badge.append(document.createTextNode(` ${grade(OVERALL)} · ${SEV[t].word}`));
     drawGauge(byId("overall-gauge"), OVERALL, { r: 40, w: 10 });
-
+  }
+  function heroVerdictBaseline(verdict) {
+    const reg = baseline.regressions.length, imp = baseline.improvements.length;
+    verdict.append(document.createTextNode(
+      reg > 0
+        ? `Compared to baseline ${baseline.label}: ${reg} function${reg === 1 ? "" : "s"} regressed`
+          + (imp ? `, ${imp} improved` : "") + `. `
+        : `No regressions vs baseline ${baseline.label}` + (imp ? ` — ${imp} improved.` : ".")));
+    if (baseline.violations_added > 0)
+      verdict.append(document.createTextNode(`${baseline.violations_added} new violation${baseline.violations_added === 1 ? "" : "s"} introduced.`));
+  }
+  function allViolationsInHotspot(totalV, hot) {
+    return totalV > 0 && hot && hot.vc === totalV && hot.vc > 0;
+  }
+  function heroVerdictScored(verdict, t) {
     const s = summary;
     const clean = (s.total_files ?? files.length) - (s.files_with_violations ?? 0);
     const hot = worstHotspot();
+    const totalV = s.total_violations ?? 0;
+    const band = t === "good" ? "A healthy codebase" : t === "warn" ? "A codebase worth watching" : "A codebase under real pressure";
+    verdict.append(document.createTextNode(`${band} — ${clean} of ${s.total_files ?? files.length} files are clean`));
+    if (allViolationsInHotspot(totalV, hot)) {
+      verdict.append(document.createTextNode(`; all ${totalV} violations live in `));
+      verdict.append(el("code", null, hot.file.path)); verdict.append(document.createTextNode("."));
+    } else if (totalV > 0) {
+      verdict.append(document.createTextNode(`; ${totalV} threshold violation${totalV === 1 ? "" : "s"} across ${s.files_with_violations} file${s.files_with_violations === 1 ? "" : "s"}.`));
+    } else {
+      verdict.append(document.createTextNode(" with no threshold violations."));
+    }
+  }
+  function renderHeroVerdict(t) {
     const verdict = byId("hero-verdict");
     clear(verdict);
-    if (baselineMode && baseline) {
-      const reg = baseline.regressions.length, imp = baseline.improvements.length;
-      verdict.append(document.createTextNode(
-        reg > 0
-          ? `Compared to baseline ${baseline.label}: ${reg} function${reg === 1 ? "" : "s"} regressed`
-            + (imp ? `, ${imp} improved` : "") + `. `
-          : `No regressions vs baseline ${baseline.label}` + (imp ? ` — ${imp} improved.` : ".")));
-      if (baseline.violations_added > 0)
-        verdict.append(document.createTextNode(`${baseline.violations_added} new violation${baseline.violations_added === 1 ? "" : "s"} introduced.`));
-    } else if (OVERALL === null) {
-      verdict.textContent = "Not enough measured signal to score this codebase.";
-    } else {
-      const totalV = s.total_violations ?? 0;
-      const band = t === "good" ? "A healthy codebase" : t === "warn" ? "A codebase worth watching" : "A codebase under real pressure";
-      verdict.append(document.createTextNode(`${band} — ${clean} of ${s.total_files ?? files.length} files are clean`));
-      if (totalV > 0 && hot && hot.vc === totalV && hot.vc > 0) {
-        verdict.append(document.createTextNode(`; all ${totalV} violations live in `));
-        verdict.append(el("code", null, hot.file.path)); verdict.append(document.createTextNode("."));
-      } else if (totalV > 0) {
-        verdict.append(document.createTextNode(`; ${totalV} threshold violation${totalV === 1 ? "" : "s"} across ${s.files_with_violations} file${s.files_with_violations === 1 ? "" : "s"}.`));
-      } else {
-        verdict.append(document.createTextNode(" with no threshold violations."));
-      }
-    }
-    const trend = byId("hero-trend");
+    if (baselineMode && baseline) heroVerdictBaseline(verdict);
+    else if (OVERALL === null) verdict.textContent = "Not enough measured signal to score this codebase.";
+    else heroVerdictScored(verdict, t);
+  }
+  function renderHeroTrend() {
     const worstCat = CATS.map((c) => ({ c, h: HEALTH[c.id].health })).filter((x) => x.h !== null).sort((a, b) => a.h - b.h)[0];
-    trend.textContent = worstCat
+    byId("hero-trend").textContent = worstCat
       ? `weakest area: ${worstCat.c.name} (${worstCat.h}/100 · ${grade(worstCat.h)})`
       : "no measured categories";
+  }
+  function renderHero() {
+    const t = tier(OVERALL);
+    renderHeroScore(t);
+    renderHeroVerdict(t);
+    renderHeroTrend();
   }
 
   // ===== KPI strip =========================================================
@@ -412,59 +435,85 @@
     c.append(el("div", { class: "k-sub" }, sub));
     return c;
   }
+  function filesKpiCard() {
+    const s = summary;
+    const langs = Object.keys(s.files_by_language || {});
+    return kpiCard("Files analyzed", String(s.total_files ?? files.length),
+      langs.length ? `${langs.length} language${langs.length === 1 ? "" : "s"}: ${langs.join(", ")}` : "—", null);
+  }
+  function severityFor(value, goodBelow, warnBelow) {
+    if (value < goodBelow) return "good";
+    if (value < warnBelow) return "warn";
+    return "bad";
+  }
+  function deltaViolationsKpiCard() {
+    const net = baseline.violations_added;
+    const sign = net >= 0 ? "+" : "−";
+    let sev = "none";
+    if (net > 0) sev = "bad";
+    else if (net < 0) sev = "good";
+    const sub = baseline.regressions.length + " regressed · " + baseline.improvements.length + " improved";
+    return kpiCard("Δ violations vs baseline", sign + Math.abs(net), sub, sev);
+  }
+  function thresholdViolationsKpiCard() {
+    const s = summary;
+    const totalV = s.total_violations ?? 0;
+    const filesN = s.total_files ?? files.length;
+    const affected = s.files_with_violations ?? 0;
+    const sev = totalV === 0 ? "good" : severityFor(totalV, 0, 6);
+    return kpiCard("Threshold violations", String(totalV), affected + " of " + filesN + " files affected", sev);
+  }
+  function violationsKpiCard() {
+    if (baselineMode && baseline) return deltaViolationsKpiCard();
+    return thresholdViolationsKpiCard();
+  }
+  function hotspotSeverity(hot, p) {
+    if (!(hot.vc > 0 || p > 1)) return "good";
+    return p > 1.3 || hot.vc > 3 ? "bad" : "warn";
+  }
+  function emptyHotspotKpiCard() {
+    const card = el("div", { class: "card kpi" });
+    card.dataset.sev = "none";
+    card.append(el("div", { class: "k-lab" }, "Primary hotspot"));
+    card.append(el("span", { class: "k-val" }, "—"));
+    card.append(el("div", { class: "k-sub" }, "no files"));
+    return card;
+  }
+  function hotspotKpiCard() {
+    const hot = worstHotspot();
+    if (!hot) return emptyHotspotKpiCard();
+    const p = hot.p || 0;
+    const frac = clamp((p - 0.7) / 0.8, 0, 1);
+    const st = hotspotSeverity(hot, p);
+    const mi = hot.file.metrics.maintainability_index;
+    const card = el("div", { class: "card kpi" });
+    card.dataset.sev = st;
+    card.append(el("div", { class: "k-lab" }, "Primary hotspot"));
+    card.append(el("span", { class: "k-val", style: "font-size:16px;line-height:1.3;white-space:normal;word-break:break-all" }, baseName(hot.file.path)));
+    card.append(el("div", { class: "k-sub" },
+      `${hot.vc} violation${hot.vc === 1 ? "" : "s"}` + (mi != null ? ` · MI ${fmt(mi)}` : "")));
+    const ring = svgEl("svg", { class: "k-ring", viewBox: "0 0 48 48" });
+    card.append(ring);
+    drawRing(ring, mi != null ? clamp(1 - mi / 100, 0, 1) : frac, st);
+    card.append(el("div", { class: "k-ringnum" }, mi != null ? String(Math.round(mi)) : ""));
+    card.style.cursor = "pointer";
+    card.addEventListener("click", () => { selectFile(hot.i, null); scrollToDetail(); });
+    return card;
+  }
+  function cleanFilesKpiCard() {
+    const s = summary;
+    const cleanFiles = (s.total_files ?? files.length) - (s.files_with_violations ?? 0);
+    const cleanPct = files.length ? Math.round((cleanFiles / (s.total_files ?? files.length)) * 100) : 0;
+    return kpiCard("Clean files", `${cleanPct}%`, `${cleanFiles} of ${s.total_files ?? files.length} without violations`,
+      cleanPct >= 90 ? "good" : cleanPct >= 70 ? "warn" : "bad");
+  }
   function renderKPIs() {
     const strip = byId("kpi-strip");
     clear(strip);
-    const s = summary;
-    const langs = Object.keys(s.files_by_language || {});
-    strip.append(kpiCard("Files analyzed", String(s.total_files ?? files.length),
-      langs.length ? `${langs.length} language${langs.length === 1 ? "" : "s"}: ${langs.join(", ")}` : "—", null));
-
-    const totalV = s.total_violations ?? 0;
-    if (baselineMode && baseline) {
-      const net = baseline.violations_added;
-      strip.append(kpiCard("Δ violations vs baseline", (net >= 0 ? "+" : "−") + Math.abs(net),
-        `${baseline.regressions.length} regressed · ${baseline.improvements.length} improved`,
-        net > 0 ? "bad" : net < 0 ? "good" : "none"));
-    } else {
-      strip.append(kpiCard("Threshold violations", String(totalV),
-        `${s.files_with_violations ?? 0} of ${s.total_files ?? files.length} files affected`,
-        totalV === 0 ? "good" : totalV <= 5 ? "warn" : "bad"));
-    }
-
-    // hotspot KPI with MI-depletion / pressure ring.
-    const hot = worstHotspot();
-    const hotCard = el("div", { class: "card kpi" });
-    if (hot) {
-      const p = hot.p || 0;
-      const frac = clamp((p - 0.7) / 0.8, 0, 1);
-      const st = hot.vc > 0 || p > 1 ? (p > 1.3 || hot.vc > 3 ? "bad" : "warn") : "good";
-      hotCard.dataset.sev = st;
-      hotCard.append(el("div", { class: "k-lab" }, "Primary hotspot"));
-      hotCard.append(el("span", { class: "k-val", style: "font-size:16px;line-height:1.3;white-space:normal;word-break:break-all" }, baseName(hot.file.path)));
-      const mi = hot.file.metrics.maintainability_index;
-      hotCard.append(el("div", { class: "k-sub" },
-        `${hot.vc} violation${hot.vc === 1 ? "" : "s"}` + (mi != null ? ` · MI ${fmt(mi)}` : "")));
-      const ring = svgEl("svg", { class: "k-ring", viewBox: "0 0 48 48" });
-      hotCard.append(ring);
-      const depletion = mi != null ? clamp(1 - mi / 100, 0, 1) : frac;
-      drawRing(ring, depletion, st);
-      const num = el("div", { class: "k-ringnum" }, mi != null ? String(Math.round(mi)) : "");
-      hotCard.append(num);
-      hotCard.style.cursor = "pointer";
-      hotCard.addEventListener("click", () => { selectFile(hot.i, null); scrollToDetail(); });
-    } else {
-      hotCard.dataset.sev = "none";
-      hotCard.append(el("div", { class: "k-lab" }, "Primary hotspot"));
-      hotCard.append(el("span", { class: "k-val" }, "—"));
-      hotCard.append(el("div", { class: "k-sub" }, "no files"));
-    }
-    strip.append(hotCard);
-
-    const cleanFiles = (s.total_files ?? files.length) - (s.files_with_violations ?? 0);
-    const cleanPct = files.length ? Math.round((cleanFiles / (s.total_files ?? files.length)) * 100) : 0;
-    strip.append(kpiCard("Clean files", `${cleanPct}%`, `${cleanFiles} of ${s.total_files ?? files.length} without violations`,
-      cleanPct >= 90 ? "good" : cleanPct >= 70 ? "warn" : "bad"));
+    strip.append(filesKpiCard());
+    strip.append(violationsKpiCard());
+    strip.append(hotspotKpiCard());
+    strip.append(cleanFilesKpiCard());
   }
 
   // ===== fix these first ===================================================
@@ -543,81 +592,88 @@
   }
 
   // ===== category grid =====================================================
+  // Returns the up-to-4 headline numbers for a category panel.
+  function complexityFileCounters(f, cycT, cogT, acc) {
+    for (const fn of f.functions || []) {
+      const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
+      if (cyc != null && cyc > cycT) acc.overCyc++;
+      if (cog != null) { acc.maxCog = Math.max(acc.maxCog, cog); if (cog > cogT) acc.overCog++; }
+    }
+    if (f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50) acc.miLow++;
+  }
+  function catMetricsComplexity() {
+    const cycT = thresholdOr("cyclomatic_complexity", 10), cogT = thresholdOr("cognitive_complexity", 15);
+    const acc = { overCyc: 0, overCog: 0, maxCog: 0, miLow: 0 };
+    for (const f of files) complexityFileCounters(f, cycT, cogT, acc);
+    return [
+      { v: acc.overCyc, l: "fns over cyclomatic", over: acc.overCyc > 0 },
+      { v: acc.overCog, l: "fns over cognitive", over: acc.overCog > 0 },
+      { v: fmt(acc.maxCog), l: "max cognitive", over: acc.maxCog > cogT },
+      { v: acc.miLow, l: "files MI < 50", over: acc.miLow > 0 },
+    ];
+  }
+  function catMetricsSize() {
+    const slocs = files.map((f) => f.metrics.source_lines_of_code).filter((v) => v != null);
+    const total = slocs.reduce((a, b) => a + b, 0);
+    const largest = slocs.length ? Math.max(...slocs) : 0;
+    const big = slocs.filter((v) => v > 400).length;
+    return [
+      { v: fmt(total), l: "total SLOC", over: false },
+      { v: slocs.length ? fmt(Math.round(total / slocs.length)) : "—", l: "avg / file", over: false },
+      { v: fmt(largest), l: "largest file", over: largest > SOFT.source_lines_of_code },
+      { v: big, l: "files > 400 SLOC", over: big > 0 },
+    ];
+  }
+  function catMetricsArchitecture() {
+    const b = buckets.architecture;
+    const dist = valuesOf(b, "distance_from_main_sequence");
+    const off = dist.filter((v) => v > SOFT.distance_tolerance).length;
+    const ca = valuesOf(b, "afferent_coupling");
+    const inst = valuesOf(b, "instability");
+    const sdv = valuesOf(b, "stable_dependencies_violations").filter((v) => v > 0).length;
+    return [
+      { v: off, l: "modules off main-seq", over: off > 0 },
+      { v: ca.length ? fmt(Math.max(...ca)) : "—", l: "max afferent (Ca)", over: false },
+      { v: inst.length ? (inst.reduce((a, x) => a + x, 0) / inst.length).toFixed(2) : "—", l: "mean instability", over: false },
+      { v: sdv, l: "SDV breaches", over: sdv > 0 },
+    ];
+  }
+  function catMetricsOO() {
+    const b = buckets.oo;
+    const classes = new Set(b.map((u) => u.subject)).size;
+    const dit = valuesOf(b, "depth_of_inheritance_tree");
+    const sri = valuesOf(b, "single_responsibility_index");
+    const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
+    const noc = valuesOf(b, "number_of_children");
+    return [
+      { v: classes, l: "classes scanned", over: false },
+      { v: dit.length ? fmt(Math.max(...dit)) : "—", l: "max inheritance depth", over: false },
+      { v: sriOut, l: "SRI outliers (>5)", over: sriOut > 0 },
+      { v: noc.length ? fmt(Math.max(...noc)) : "—", l: "max children", over: false },
+    ];
+  }
+  function catMetricsNaming() {
+    const b = buckets.naming;
+    const clar = valuesOf(b, "name_clarity");
+    const anti = valuesOf(b, "naming_antipatterns").filter((v) => v > 0).length;
+    const budgets = valuesOf(b, "narrator_budget_exceeded").filter((v) => v > 0).length
+      + valuesOf(b, "computer_budget_exceeded").filter((v) => v > 0).length;
+    const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
+    const low = clar.length ? Math.min(...clar) : null;
+    return [
+      { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: false },
+      { v: low == null ? "—" : low.toFixed(2), l: "lowest clarity", over: low != null && low < SOFT.name_clarity_floor },
+      { v: anti, l: "antipattern hits", over: anti > 0 },
+      { v: budgets, l: "budget watches", over: false },
+    ];
+  }
+  const CAT_METRICS_FN = {
+    complexity: catMetricsComplexity, size: catMetricsSize,
+    architecture: catMetricsArchitecture, oo: catMetricsOO, naming: catMetricsNaming,
+  };
   function catMetrics(catId) {
-    // Returns the up-to-4 headline numbers for a category panel.
-    if (catId === "complexity") {
-      let overCyc = 0, overCog = 0, maxCog = 0, miLow = 0;
-      for (const f of files) {
-        for (const fn of f.functions || []) {
-          const cyc = fn.metrics.cyclomatic_complexity, cog = fn.metrics.cognitive_complexity;
-          if (cyc != null && cyc > (thresholds.cyclomatic_complexity || { threshold: 10 }).threshold) overCyc++;
-          if (cog != null) { maxCog = Math.max(maxCog, cog); if (cog > (thresholds.cognitive_complexity || { threshold: 15 }).threshold) overCog++; }
-        }
-        if (f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50) miLow++;
-      }
-      return [
-        { v: overCyc, l: "fns over cyclomatic", over: overCyc > 0 },
-        { v: overCog, l: "fns over cognitive", over: overCog > 0 },
-        { v: fmt(maxCog), l: "max cognitive", over: maxCog > (thresholds.cognitive_complexity || { threshold: 15 }).threshold },
-        { v: miLow, l: "files MI < 50", over: miLow > 0 },
-      ];
-    }
-    if (catId === "size") {
-      const slocs = files.map((f) => f.metrics.source_lines_of_code).filter((v) => v != null);
-      const total = slocs.reduce((a, b) => a + b, 0);
-      const largest = slocs.length ? Math.max(...slocs) : 0;
-      const big = slocs.filter((v) => v > 400).length;
-      return [
-        { v: fmt(total), l: "total SLOC", over: false },
-        { v: slocs.length ? fmt(Math.round(total / slocs.length)) : "—", l: "avg / file", over: false },
-        { v: fmt(largest), l: "largest file", over: largest > SOFT.source_lines_of_code },
-        { v: big, l: "files > 400 SLOC", over: big > 0 },
-      ];
-    }
-    if (catId === "architecture") {
-      const b = buckets.architecture;
-      const dist = valuesOf(b, "distance_from_main_sequence");
-      const off = dist.filter((v) => v > SOFT.distance_tolerance).length;
-      const ca = valuesOf(b, "afferent_coupling");
-      const inst = valuesOf(b, "instability");
-      const sdv = valuesOf(b, "stable_dependencies_violations").filter((v) => v > 0).length;
-      return [
-        { v: off, l: "modules off main-seq", over: off > 0 },
-        { v: ca.length ? fmt(Math.max(...ca)) : "—", l: "max afferent (Ca)", over: false },
-        { v: inst.length ? (inst.reduce((a, x) => a + x, 0) / inst.length).toFixed(2) : "—", l: "mean instability", over: false },
-        { v: sdv, l: "SDV breaches", over: sdv > 0 },
-      ];
-    }
-    if (catId === "oo") {
-      const b = buckets.oo;
-      const classes = new Set(b.map((u) => u.subject)).size;
-      const dit = valuesOf(b, "depth_of_inheritance_tree");
-      const sri = valuesOf(b, "single_responsibility_index");
-      const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
-      const noc = valuesOf(b, "number_of_children");
-      return [
-        { v: classes, l: "classes scanned", over: false },
-        { v: dit.length ? fmt(Math.max(...dit)) : "—", l: "max inheritance depth", over: false },
-        { v: sriOut, l: "SRI outliers (>5)", over: sriOut > 0 },
-        { v: noc.length ? fmt(Math.max(...noc)) : "—", l: "max children", over: false },
-      ];
-    }
-    if (catId === "naming") {
-      const b = buckets.naming;
-      const clar = valuesOf(b, "name_clarity");
-      const anti = valuesOf(b, "naming_antipatterns").filter((v) => v > 0).length;
-      const budgets = valuesOf(b, "narrator_budget_exceeded").filter((v) => v > 0).length
-        + valuesOf(b, "computer_budget_exceeded").filter((v) => v > 0).length;
-      const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
-      const low = clar.length ? Math.min(...clar) : null;
-      return [
-        { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: false },
-        { v: low == null ? "—" : low.toFixed(2), l: "lowest clarity", over: low != null && low < SOFT.name_clarity_floor },
-        { v: anti, l: "antipattern hits", over: anti > 0 },
-        { v: budgets, l: "budget watches", over: false },
-      ];
-    }
-    return [];
+    const fn = CAT_METRICS_FN[catId];
+    return fn ? fn() : [];
   }
   function renderCategoryGrid() {
     const grid = byId("cat-grid");
@@ -1007,29 +1063,25 @@
   // ===== detail panel ======================================================
   let currentSelectedIndex = null;
   function scrollToDetail() { byId("detail-panel").scrollIntoView({ behavior: "smooth", block: "nearest" }); }
-  function selectFile(fileIndex, tileNode) {
-    currentSelectedIndex = fileIndex;
+  function markSelectedTile(fileIndex, tileNode) {
     if (selectedTile) selectedTile.classList.remove("selected");
     selectedTile = null;
     if (tileNode) { selectedTile = tileNode; selectedTile.classList.add("selected"); }
     else if (leafSelection) {
       leafSelection.filter((d) => d.data.file_index === fileIndex).each(function () { selectedTile = this; this.classList.add("selected"); });
     }
-    const fileEntry = files[fileIndex];
-    byId("detail-section").hidden = false;
-    byId("detail-placeholder").hidden = true;
-    byId("detail-body").hidden = false;
-    byId("detail-path").textContent = `${fileEntry.path} (${fileEntry.language})`;
-
+  }
+  function renderDetailMeta(fileEntry) {
     const meta = byId("detail-meta"); clear(meta);
     for (const key of CANONICAL_METRICS) {
-      if (key in fileEntry.metrics) {
-        meta.append(el("span", { class: "k" }, metricLabel(key)));
-        const v = el("span", { class: "v" }, fmt(fileEntry.metrics[key]));
-        if (isOverThreshold(key, fileEntry.metrics[key])) v.classList.add("cell-over");
-        meta.append(v);
-      }
+      if (!(key in fileEntry.metrics)) continue;
+      meta.append(el("span", { class: "k" }, metricLabel(key)));
+      const v = el("span", { class: "v" }, fmt(fileEntry.metrics[key]));
+      if (isOverThreshold(key, fileEntry.metrics[key])) v.classList.add("cell-over");
+      meta.append(v);
     }
+  }
+  function renderDetailViolations(fileEntry) {
     const violationsBox = byId("detail-violations"); clear(violationsBox);
     if ((fileEntry.violations || []).length) {
       const ul = el("ul", { class: "violation-list" });
@@ -1037,7 +1089,8 @@
       violationsBox.append(ul);
     }
     if (fileEntry.error) violationsBox.append(el("p", { class: "violation-list" }, `Analysis error: ${fileEntry.error}`));
-
+  }
+  function renderDetailFunctions(fileEntry) {
     const rows = (fileEntry.functions || []).map((fn) => ({
       name: fn.name, line: fn.line,
       cyclomatic_complexity: fn.metrics.cyclomatic_complexity ?? null,
@@ -1053,6 +1106,18 @@
       { key: "halstead_volume", label: "Volume", numeric: true },
       { key: "halstead_difficulty", label: "Difficulty", numeric: true },
     ], rows);
+  }
+  function selectFile(fileIndex, tileNode) {
+    currentSelectedIndex = fileIndex;
+    markSelectedTile(fileIndex, tileNode);
+    const fileEntry = files[fileIndex];
+    byId("detail-section").hidden = false;
+    byId("detail-placeholder").hidden = true;
+    byId("detail-body").hidden = false;
+    byId("detail-path").textContent = `${fileEntry.path} (${fileEntry.language})`;
+    renderDetailMeta(fileEntry);
+    renderDetailViolations(fileEntry);
+    renderDetailFunctions(fileEntry);
   }
 
   // ===== hotspots + arch watchlist + risk breakdown ========================
