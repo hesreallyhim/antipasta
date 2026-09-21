@@ -78,6 +78,31 @@ class TestMining:
 
         assert history.commit_count == 4  # all commits are from "now"
 
+    def test_include_filter_limits_mining_to_accepted_paths(self, repo: Path) -> None:
+        (repo / "README.md").write_text("docs\n" * 50)
+        _git(repo, "add", "-A")
+        _git(repo, "commit", "-q", "-m", "docs")
+
+        history = mine_history(repo, window_days=30, include=lambda p: p.endswith(".py"))
+
+        assert "README.md" not in history.added
+        assert history.commit_count == 4  # the docs-only commit is skipped entirely
+        assert all(".py" in path for pair in history.co_changes for path in pair)
+
+    def test_bulk_commits_add_churn_but_not_coupling(self, repo: Path) -> None:
+        for index in range(6):
+            (repo / f"bulk_{index}.py").write_text("z = 1\n")
+        _git(repo, "add", "-A")
+        _git(repo, "commit", "-q", "-m", "bulk")
+
+        history = mine_history(repo, window_days=30, max_commit_files=5)
+
+        assert history.bulk_commit_count == 1
+        assert history.churn("bulk_0.py") == 1
+        assert not [pair for pair in history.co_changes if "bulk_0.py" in pair]
+        uncapped = mine_history(repo, window_days=30, max_commit_files=None)
+        assert [pair for pair in uncapped.co_changes if "bulk_0.py" in pair]
+
 
 class TestHotspotJoin:
     def test_join_against_snapshot(self, repo: Path) -> None:

@@ -13,6 +13,13 @@ Opt-in by design — this never runs on the default analysis path. One
   source-touching commit) — the owner's "a hundred tests break" pain,
   measured from history.
 
+Two filters keep the numbers about the code: an ``include`` predicate limits
+mining to the analyzed source files (a generated snapshot or a README
+otherwise dominates churn), and commits touching more than
+``max_commit_files`` paths are left out of change coupling (a bulk rename or
+reformat co-changes everything with everything and says nothing about
+design; this is the standard practice in change-coupling analysis).
+
 Deviation recorded: keyed caching (HEAD + window) deferred until mining is
 measured slow — a 90-day log on a repo this size costs tens of milliseconds.
 """
@@ -20,6 +27,7 @@ measured slow — a 90-day log on a repo this size costs tens of milliseconds.
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 import operator
 from pathlib import Path
@@ -36,6 +44,9 @@ MIN_COUPLING_SUPPORT = 3
 #: At most this many rows per section (the long tail is noise).
 _TOP_LIMIT = 20
 
+#: Commits touching more files than this are excluded from change coupling.
+DEFAULT_MAX_COMMIT_FILES = 20
+
 
 @dataclass
 class MinedHistory:
@@ -43,6 +54,8 @@ class MinedHistory:
 
     window_days: int
     commit_count: int = 0
+    #: Commits too large for change coupling (still counted for churn).
+    bulk_commit_count: int = 0
     added: Counter[str] = field(default_factory=Counter)
     deleted: Counter[str] = field(default_factory=Counter)
     commits_touching: Counter[str] = field(default_factory=Counter)
@@ -53,12 +66,28 @@ class MinedHistory:
         return self.added[path] + self.deleted[path]
 
 
-def mine_history(repo_root: Path, window_days: int = 90) -> MinedHistory:
-    """Run the numstat pass and fold it into a MinedHistory."""
+def mine_history(
+    repo_root: Path,
+    window_days: int = 90,
+    *,
+    include: Callable[[str], bool] | None = None,
+    max_commit_files: int | None = DEFAULT_MAX_COMMIT_FILES,
+) -> MinedHistory:
+    """Run the numstat pass and fold it into a MinedHistory.
+
+    Args:
+        include: Keep only repo-relative paths this predicate accepts
+            (None keeps everything). Commits with no kept paths are skipped.
+        max_commit_files: Commits touching more kept paths than this add
+            to churn but not to change coupling (None = no cap).
+    """
     output = _git_numstat(repo_root, window_days)
     history = MinedHistory(window_days=window_days)
     for commit_files in _split_commits(output):
-        _fold_commit(history, commit_files)
+        if include is not None:
+            commit_files = [row for row in commit_files if include(row[2])]
+        if commit_files:
+            _fold_commit(history, commit_files, max_commit_files)
     return history
 
 
@@ -99,11 +128,16 @@ def _split_commits(output: str) -> list[list[tuple[int, int, str]]]:
     return commits
 
 
-def _fold_commit(history: MinedHistory, files: list[tuple[int, int, str]]) -> None:
+def _fold_commit(
+    history: MinedHistory, files: list[tuple[int, int, str]], max_commit_files: int | None
+) -> None:
     history.commit_count += 1
     paths = sorted({path for _, _, path in files})
     _fold_line_counts(history, files, paths)
-    _fold_co_changes(history, paths)
+    if max_commit_files is not None and len(paths) > max_commit_files:
+        history.bulk_commit_count += 1
+    else:
+        _fold_co_changes(history, paths)
     _fold_suite_split(history, paths)
 
 

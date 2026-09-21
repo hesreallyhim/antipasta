@@ -134,8 +134,8 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 - `assertions_per_test`: in test-looking files, counts `assert` statements and mock-style assertion calls per test function.
 - `mock_call_assertions`: in test-looking files, counts mock assertion calls such as `assert_called*`, `assert_awaited*`, and `assert_has_calls`.
 - `big_literal_assertions`: in test-looking files, counts assertions whose expression contains dict/list/set/tuple literals of at least eight entries.
-- `code_churn`: mines `git log --numstat --no-merges` for the selected window and sums added plus deleted lines per file.
-- `change_coupling`: counts co-commit pairs and reports pairs meeting the fixed support floor of three commits.
+- `code_churn`: mines `git log --numstat --no-merges` for the selected window and sums added plus deleted lines per file. Only files the configuration would analyze count (source extensions minus ignore patterns and gitignore), so documentation and generated artifacts do not dominate.
+- `change_coupling`: counts co-commit pairs and reports pairs meeting the fixed support floor of three commits. Commits touching more than `--max-commit-files` source files (default 20) add to churn but not to coupling, since a bulk rename or reformat co-changes everything with everything.
 - `hotspot`: joins mined churn to worst per-file cyclomatic complexity from a saved report snapshot and multiplies them.
 - `test_churn_ratio`: divides mined test-file churn by mined source-file churn for the selected history window.
 - `co_churn_multiplicity`: records test files touched in each source-touching commit and reports their median.
