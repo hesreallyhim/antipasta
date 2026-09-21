@@ -167,6 +167,13 @@ def _class_facts(module: ast.Module) -> list[FactRow]:
                             for member in node.body
                             if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef))
                         ],
+                        # Every name the class body reads; the class registry
+                        # resolves these to analyzed classes for coupling.
+                        "referenced_names": sorted({
+                            child.id
+                            for child in ast.walk(node)
+                            if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load)
+                        }),
                     },
                 )
             )
@@ -178,12 +185,12 @@ def _method_payload(method: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str,
     fields_written: set[str] = set()
     calls_local: set[str] = set()
     for node in ast.walk(method):
-        if _is_self_attribute(node):
+        if _is_receiver_attribute(node):
             if isinstance(node.ctx, ast.Store):
                 fields_written.add(node.attr)
             else:
                 fields_read.add(node.attr)
-        if isinstance(node, ast.Call) and _is_self_attribute(node.func):
+        if isinstance(node, ast.Call) and _is_receiver_attribute(node.func):
             calls_local.add(node.func.attr)
     # Local calls are not field reads; keep the sets disjoint.
     fields_read -= calls_local
@@ -193,12 +200,54 @@ def _method_payload(method: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str,
         "fields_read": sorted(fields_read),
         "fields_written": sorted(fields_written),
         "calls_local": sorted(calls_local),
+        "stub": stub_kind(method),
     }
 
 
-def _is_self_attribute(node: ast.AST) -> TypeGuard[ast.Attribute]:
+def _is_receiver_attribute(node: ast.AST) -> TypeGuard[ast.Attribute]:
+    """``self.x`` or ``cls.x``: state reached through the method receiver."""
     return (
         isinstance(node, ast.Attribute)
         and isinstance(node.value, ast.Name)
-        and node.value.id == "self"
+        and node.value.id in ("self", "cls")
     )
+
+
+def stub_kind(function: ast.FunctionDef | ast.AsyncFunctionDef) -> str | None:
+    """Classify a body that carries no behavior.
+
+    ``not_implemented`` (``raise NotImplementedError``) and ``ellipsis`` are
+    the conventions for abstract methods outside ``abc``; ``pass`` and
+    ``empty`` (docstring only) are no-op hooks. ``None`` means the body does
+    something.
+    """
+    body = own_statements(function)
+    if body and _is_docstring(body[0]):
+        body = body[1:]
+    if not body:
+        return "empty"
+    if len(body) != 1:
+        return None
+    statement = body[0]
+    if isinstance(statement, ast.Pass):
+        return "pass"
+    if isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Constant):
+        return "ellipsis" if statement.value.value is Ellipsis else None
+    if isinstance(statement, ast.Raise) and _raises_not_implemented(statement):
+        return "not_implemented"
+    return None
+
+
+def _is_docstring(statement: ast.stmt) -> bool:
+    return (
+        isinstance(statement, ast.Expr)
+        and isinstance(statement.value, ast.Constant)
+        and isinstance(statement.value.value, str)
+    )
+
+
+def _raises_not_implemented(statement: ast.Raise) -> bool:
+    target = statement.exc
+    if isinstance(target, ast.Call):
+        target = target.func
+    return isinstance(target, ast.Name) and target.id == "NotImplementedError"

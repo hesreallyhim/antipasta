@@ -83,23 +83,38 @@ class TestLackOfCohesion:
         assert _value(result, MetricType.LACK_OF_COHESION, "A") == 1.0
 
 
-class TestCouplingBetweenObjects:
-    def test_counts_distinct_imported_references(self) -> None:
+class TestStubAwareCohesion:
+    def test_interface_has_no_cohesion_row(self) -> None:
         source = (
-            "from pkg import Alpha, Beta\n"
-            "import gamma\n"
-            "class Uses:\n"
-            "    def go(self):\n"
-            "        return Alpha(), Beta(), gamma.run()\n"
+            "class Port:\n"
+            "    def read(self):\n        raise NotImplementedError\n"
+            "    def write(self, data):\n        ...\n"
+            "    def close(self):\n        pass\n"
         )
         result = _analyze(source)
-        row_value = _value(result, MetricType.COUPLING_BETWEEN_OBJECTS, "Uses")
-        assert row_value == 3.0
+        assert not [m for m in result.metrics if m.metric_type == MetricType.LACK_OF_COHESION]
 
-    def test_unreferenced_imports_do_not_count(self) -> None:
-        source = "from pkg import Alpha\nclass Quiet:\n    def go(self):\n        return 1\n"
+    def test_stub_methods_do_not_split_a_concrete_class(self) -> None:
+        source = (
+            "class Base:\n"
+            "    def __init__(self):\n        self.state = 0\n"
+            "    def step(self):\n        self.state += 1\n"
+            "    def on_done(self):\n        pass\n"
+            "    def render(self):\n        raise NotImplementedError\n"
+        )
         result = _analyze(source)
-        assert _value(result, MetricType.COUPLING_BETWEEN_OBJECTS, "Quiet") == 0.0
+        assert _value(result, MetricType.LACK_OF_COHESION, "Base") == 1.0
+
+    def test_cls_attribute_access_connects_classmethods(self) -> None:
+        source = (
+            "class Registry:\n"
+            "    @classmethod\n"
+            "    def register(cls, item):\n        cls.items.append(item)\n"
+            "    @classmethod\n"
+            "    def count(cls):\n        return len(cls.items)\n"
+        )
+        result = _analyze(source)
+        assert _value(result, MetricType.LACK_OF_COHESION, "Registry") == 1.0
 
 
 class TestWeightedMethodsPerClass:
@@ -188,3 +203,92 @@ class TestClassRegistry:
             tmp_path, {"weird.py": "class A(B):\n    pass\nclass B(A):\n    pass\n"}
         )
         assert set(by_class) == {"weird::A", "weird::B"}  # no crash, rows emitted
+
+
+class TestCouplingBetweenObjects:
+    def _rows(self, root: Path, sources: dict[str, str]) -> dict[str, tuple[float, list[str]]]:
+        runner = HouseStyleRunner()
+        facts_by_file = {}
+        for rel, source in sources.items():
+            path = root / rel
+            facts_by_file[path] = runner.analyze(path, content=source).facts
+        derivation_input = DerivationInput(
+            file_reports=[], facts_by_file=facts_by_file, root=root, config=AntipastaConfig()
+        )
+        out = {}
+        for report in derive_class_registry(derivation_input):
+            row = next(
+                m for m in report.metrics if m.metric_type == MetricType.COUPLING_BETWEEN_OBJECTS
+            )
+            out[report.subject] = (row.value, (row.details or {})["classes"])
+        return out
+
+    def test_counts_analyzed_classes_same_module_and_imported(self, tmp_path: Path) -> None:
+        rows = self._rows(
+            tmp_path,
+            {
+                "shapes.py": "class Point:\n    pass\nclass Size:\n    pass\n",
+                "ui.py": (
+                    "from shapes import Point\n"
+                    "import json\n"
+                    "class Theme:\n    pass\n"
+                    "class Widget:\n"
+                    "    def draw(self, theme: Theme):\n"
+                    "        return Point(), json.dumps(theme)\n"
+                ),
+            },
+        )
+        assert rows["ui::Widget"] == (2.0, ["shapes::Point", "ui::Theme"])
+
+    def test_external_names_and_self_reference_do_not_count(self, tmp_path: Path) -> None:
+        rows = self._rows(
+            tmp_path,
+            {
+                "solo.py": (
+                    "from django import Model\n"
+                    "class Node:\n"
+                    "    def clone(self):\n"
+                    "        return Node(), Model()\n"
+                ),
+            },
+        )
+        assert rows["solo::Node"] == (0.0, [])
+
+
+class TestSingleResponsibilityIndex:
+    def _sri(self, root: Path, source: str) -> dict[str, tuple[float, dict[str, object]]]:
+        runner = HouseStyleRunner()
+        path = root / "m.py"
+        facts = runner.analyze(path, content=source).facts
+        derivation_input = DerivationInput(
+            file_reports=[], facts_by_file={path: facts}, root=root, config=AntipastaConfig()
+        )
+        out = {}
+        for report in derive_class_registry(derivation_input):
+            row = next(
+                m for m in report.metrics if m.metric_type == MetricType.SINGLE_RESPONSIBILITY_INDEX
+            )
+            out[report.subject] = (row.value, row.details or {})
+        return out
+
+    def test_cohesive_class_scores_zero_regardless_of_size(self, tmp_path: Path) -> None:
+        value, details = self._sri(tmp_path, COHESIVE_CLASS)["m::Account"]
+        assert value == 0.0
+        assert details["cohesion_components"] == 1
+
+    def test_interface_scores_zero(self, tmp_path: Path) -> None:
+        source = (
+            "class Port:\n"
+            "    def read(self):\n        raise NotImplementedError\n"
+            "    def write(self):\n        raise NotImplementedError\n"
+        )
+        value, details = self._sri(tmp_path, source)["m::Port"]
+        assert value == 0.0
+        assert details["cohesion_components"] == 0
+
+    def test_excess_components_scale_with_size(self, tmp_path: Path) -> None:
+        value, details = self._sri(tmp_path, GOD_CLASS)["m::Kitchen"]
+        # three components -> two in excess; five one-statement methods.
+        assert details["cohesion_components"] == 3
+        assert details["statements"] == 5
+        assert value == round(2 * (1 + 0 / 30) * (1 + 5 / 60), 2)

@@ -484,6 +484,7 @@ _ABSTRACT_BASE_MARKERS = ("ABC", "Protocol")
 _ABSTRACT_METACLASS_MARKER = "ABCMeta"
 _ABSTRACT_METHOD_MARKER = "abstractmethod"
 _ABSTRACT_CLASS_DECORATORS = ("abstract",)
+_ABSTRACT_STUB_KINDS = frozenset({"not_implemented", "ellipsis"})
 
 
 def module_abstractness(facts: list[FactRow]) -> float | None:
@@ -505,11 +506,20 @@ def _is_abstract(payload: dict[str, Any]) -> bool:
         return True
     if any(_ABSTRACT_METACLASS_MARKER in keyword for keyword in payload.get("keywords", [])):
         return True
-    return any(
+    methods = payload["methods"]
+    if any(
         _ABSTRACT_METHOD_MARKER in decorator
-        for method in payload["methods"]
+        for method in methods
         for decorator in method.get("decorators", [])
-    )
+    ):
+        return True
+    # Python's other conventions: a method that only raises NotImplementedError
+    # (or is ``...``) declares an abstract slot; a class whose every method is
+    # a no-op stub is an interface (asyncio's BaseProtocol).
+    stubs = [method.get("stub") for method in methods]
+    if any(stub in _ABSTRACT_STUB_KINDS for stub in stubs):
+        return True
+    return bool(methods) and all(stub is not None for stub in stubs)
 
 
 def _base_is_abstract(base: str) -> bool:

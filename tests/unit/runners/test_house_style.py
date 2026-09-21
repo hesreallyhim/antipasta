@@ -198,6 +198,33 @@ class TestFactExtraction:
         audit = next(m for m in klass["methods"] if m["name"] == "audit")
         assert audit["fields_read"] == ["log"]
 
+    def test_class_facts_classify_stubs_and_collect_names(self, runner: HouseStyleRunner) -> None:
+        source = (
+            "from x import Helper\n"
+            "class A:\n"
+            "    def a(self):\n        'doc only'\n"
+            "    def b(self):\n        pass\n"
+            "    def c(self):\n        ...\n"
+            "    def d(self):\n        raise NotImplementedError('later')\n"
+            "    def e(self):\n        return Helper()\n"
+            "    @classmethod\n"
+            "    def f(cls):\n        return cls.registry\n"
+        )
+        result = analyze(runner, source)
+        klass = next(f.payload for f in result.facts if f.kind == "class")
+        stubs = {m["name"]: m["stub"] for m in klass["methods"]}
+        assert stubs == {
+            "a": "empty",
+            "b": "pass",
+            "c": "ellipsis",
+            "d": "not_implemented",
+            "e": None,
+            "f": None,
+        }
+        assert "Helper" in klass["referenced_names"]
+        f = next(m for m in klass["methods"] if m["name"] == "f")
+        assert f["fields_read"] == ["registry"]
+
     def test_callable_facts_mark_methods(self, runner: HouseStyleRunner) -> None:
         source = "class A:\n    def m(self):\n        return 1\n\ndef f():\n    return 2\n"
         result = analyze(runner, source)

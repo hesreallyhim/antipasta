@@ -48,7 +48,6 @@ class HouseStyleRunner(BaseRunner):
             MetricType.MARKER_DENSITY.value,
             MetricType.COMMENT_DENSITY.value,
             MetricType.LACK_OF_COHESION.value,
-            MetricType.COUPLING_BETWEEN_OBJECTS.value,
             MetricType.ASSERTIONS_PER_TEST.value,
             MetricType.MOCK_CALL_ASSERTIONS.value,
             MetricType.BIG_LITERAL_ASSERTIONS.value,
@@ -80,7 +79,7 @@ class HouseStyleRunner(BaseRunner):
         facts = extract_facts(module)
         rows = [
             *self._function_rows(file_path, module),
-            *self._class_rows(file_path, module, facts),
+            *self._class_rows(file_path, facts),
             *self._file_rows(file_path, content),
             *self._test_smell_rows(file_path, module),
         ]
@@ -101,19 +100,18 @@ class HouseStyleRunner(BaseRunner):
                 rows.extend(_rows_for_function(file_path, node, is_method, mutable_names))
         return rows
 
-    def _class_rows(
-        self, file_path: Path, module: ast.Module, facts: list[FactRow]
-    ) -> list[MetricResult]:
-        """Per-class cohesion and coupling rows (Phase 2)."""
-        imported = cohesion.imported_name_set(module)
-        class_nodes = {
-            node.name: node for node in ast.walk(module) if isinstance(node, ast.ClassDef)
-        }
+    def _class_rows(self, file_path: Path, facts: list[FactRow]) -> list[MetricResult]:
+        """Per-class cohesion rows: only for classes with concrete methods
+        (an interface or a data carrier has no cohesion to measure).
+        Coupling between objects is derived cross-file by the class registry."""
         rows: list[MetricResult] = []
         for fact in facts:
             if fact.kind != "class":
                 continue
             payload = fact.payload
+            concrete = cohesion.concrete_methods(payload["methods"])
+            if not concrete:
+                continue
             rows.append(
                 MetricResult(
                     file_path=file_path,
@@ -121,21 +119,9 @@ class HouseStyleRunner(BaseRunner):
                     value=float(cohesion.lack_of_cohesion(payload["methods"])),
                     line_number=payload["lineno"],
                     function_name=payload["name"],
-                    details={"methods": len(payload["methods"])},
+                    details={"methods": len(payload["methods"]), "concrete_methods": len(concrete)},
                 )
             )
-            class_node = class_nodes.get(payload["name"])
-            if class_node is not None:
-                rows.append(
-                    MetricResult(
-                        file_path=file_path,
-                        metric_type=MetricType.COUPLING_BETWEEN_OBJECTS,
-                        value=float(cohesion.coupling_between_objects(class_node, imported)),
-                        line_number=payload["lineno"],
-                        function_name=payload["name"],
-                        details={"approximate": True},
-                    )
-                )
         return rows
 
     def _test_smell_rows(self, file_path: Path, module: ast.Module) -> list[MetricResult]:

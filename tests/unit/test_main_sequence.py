@@ -60,6 +60,36 @@ class TestAbstractnessClassification:
     def test_concrete_class_is_zero(self) -> None:
         assert module_abstractness(_facts("class Plain:\n    pass\n")) == 0.0
 
+    def test_not_implemented_stub_marks_class(self) -> None:
+        # asyncio's AbstractEventLoop convention: no abc, bodies raise.
+        source = (
+            "class Loop:\n"
+            "    def run(self):\n        raise NotImplementedError\n"
+            "    def stop(self):\n        self.running = False\n"
+        )
+        assert module_abstractness(_facts(source)) == 1.0
+
+    def test_ellipsis_stub_marks_class(self) -> None:
+        source = "class Reader:\n    def read(self) -> bytes:\n        ...\n"
+        assert module_abstractness(_facts(source)) == 1.0
+
+    def test_all_pass_bodies_is_an_interface(self) -> None:
+        # asyncio's BaseProtocol: every method is a no-op hook.
+        source = (
+            "class BaseProtocol:\n"
+            "    def connection_made(self, transport):\n        pass\n"
+            "    def connection_lost(self, exc):\n        pass\n"
+        )
+        assert module_abstractness(_facts(source)) == 1.0
+
+    def test_one_pass_hook_does_not_make_a_concrete_class_abstract(self) -> None:
+        source = (
+            "class Case:\n"
+            "    def setUp(self):\n        pass\n"
+            "    def run(self):\n        return self.setUp()\n"
+        )
+        assert module_abstractness(_facts(source)) == 0.0
+
     def test_classless_module_is_none(self) -> None:
         assert module_abstractness(_facts("def free():\n    return 1\n")) is None
 

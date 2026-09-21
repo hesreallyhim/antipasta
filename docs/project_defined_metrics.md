@@ -205,31 +205,27 @@ The metric names handlers that catch an error and then erase it without a narrow
 
 ## Lack Of Cohesion
 
-`lack_of_cohesion` counts disconnected groups of methods inside a class, using shared fields and local method calls as connecting evidence. A value above one means the class graph split into more than one method group.
+`lack_of_cohesion` counts disconnected groups of concrete methods inside a class, using shared fields (through `self` or `cls`) and local method calls as connecting evidence. A value above one means the class graph split into more than one method group. Stub methods such as abstract declarations and no-op hooks touch no state, so they are left out, and a class with no concrete methods (an interface, a data carrier) gets no row rather than a misleading count.
 
 For example, a class whose persistence methods share `self.connection` while its rendering methods share `self.template` forms two structural groups under one class name. The metric is approximate because field sharing is only a proxy for conceptual unity.
 
 ## Coupling Between Objects
 
-`coupling_between_objects` approximates class-level coupling by counting distinct imported names referenced inside the class body. It asks how many external collaborators the class knows about.
+`coupling_between_objects` counts the distinct classes in the analyzed project that a class body names, whether defined in the same module or imported from another analyzed module. It asks how many other classes this class knows about.
 
-The metric names classes whose bodies mention many imported collaborators.
+The metric names classes whose bodies mention many project collaborators. It is approximate because no type inference is performed: a collaborator reached only through an attribute chain or a return value is not seen.
 
 ## Single Responsibility Index
 
-`single_responsibility_index` is a composite pressure score for classes. It combines:
-
-- cohesion components: disconnected method groups
-- weighted methods: accumulated method complexity
-- class statements: method body volume
+`single_responsibility_index` scores a class by how many extra reasons to change it carries. The direct evidence for a responsibility split is the number of disconnected method groups, so that is the primary term; method complexity and class size only scale it, so that a split between two heavy halves outranks a split between two accessors.
 
 The formula is intentionally transparent:
 
 ```text
-cohesion_components * (1 + weighted_methods / 30) * (1 + statements / 60)
+(cohesion_components - 1) * (1 + weighted_methods / 30) * (1 + statements / 60)
 ```
 
-The score rises when a class is structurally disconnected, method-heavy, and large.
+A class with a single method group scores zero however large it is. A very large cohesive class is a size finding, reported separately by weighted methods and statement counts, not a responsibility finding. Interfaces have no concrete methods and score zero as well.
 
 ## Test-Smell Metrics
 

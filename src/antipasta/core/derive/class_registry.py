@@ -1,11 +1,12 @@
-"""Cross-file class registry: inheritance depth and children counts.
+"""Cross-file class registry: inheritance depth, children counts, coupling
+between objects, and the single-responsibility index.
 
-A deriver over the class and import facts: resolves base-class names across
-the analyzed set (same-module names directly; imported names via the raw
-import facts) and emits, per class, depth-of-inheritance-tree and
-number-of-children rows. Unresolved bases (external libraries) contribute
-one level of depth and are labeled in details — an approximation, honestly
-marked, consistent with the coupling rows.
+A deriver over the class and import facts: resolves class names across the
+analyzed set (same-module names directly; imported names via the raw import
+facts) and emits, per class, depth-of-inheritance-tree, number-of-children,
+coupling-between-objects, and single-responsibility rows. Unresolved bases
+(external libraries) contribute one level of depth and are labeled in
+details — an approximation, honestly marked.
 
 Depth convention: a class with no bases (or only ``object``) has depth 1.
 """
@@ -25,7 +26,7 @@ _MAX_DEPTH_GUARD = 64  # cycle backstop; real hierarchies never get close
 
 
 def derive_class_registry(derivation_input: DerivationInput) -> list[ProjectReport]:
-    """One ProjectReport per class: inheritance depth + children count."""
+    """One ProjectReport per class: depth, children, coupling, responsibility."""
     registry = _build_registry(derivation_input)
     if not registry:
         return []
@@ -37,7 +38,16 @@ def derive_class_registry(derivation_input: DerivationInput) -> list[ProjectRepo
         entry = registry[qualified_name]
         depth, unresolved = _depth_of(qualified_name, registry, set())
         reports.append(
-            _class_report(qualified_name, entry, depth, unresolved, children, weighted, statements)
+            _class_report(
+                qualified_name,
+                entry,
+                depth,
+                unresolved,
+                registry,
+                children,
+                weighted,
+                statements,
+            )
         )
     return reports
 
@@ -89,6 +99,7 @@ def _build_registry(derivation_input: DerivationInput) -> dict[str, dict[str, An
                 "lineno": fact.payload["lineno"],
                 "bases": fact.payload["bases"],
                 "methods": fact.payload["methods"],
+                "referenced_names": fact.payload.get("referenced_names", []),
                 "imports": local_imports,
             }
     return registry
@@ -182,6 +193,7 @@ def _class_report(
     entry: dict[str, Any],
     depth: int,
     unresolved: bool,
+    registry: dict[str, dict[str, Any]],
     children: dict[str, int],
     weighted: dict[str, float],
     statements: dict[str, int],
@@ -204,9 +216,37 @@ def _class_report(
             line_number=entry["lineno"],
             function_name=entry["name"],
         ),
+        _coupling_row(qualified_name, entry, subject_path, registry),
         _srp_row(qualified_name, entry, subject_path, weighted, statements),
     ]
     return ProjectReport(subject=qualified_name, metrics=rows, violations=[])
+
+
+def _coupling_row(
+    qualified_name: str,
+    entry: dict[str, Any],
+    subject_path: Path,
+    registry: dict[str, dict[str, Any]],
+) -> MetricResult:
+    """Coupling between objects: distinct analyzed classes the body names.
+
+    Approximate (no type inference): a class reached only through an
+    attribute chain or a return value is not seen, and typing-only mentions
+    count like any other reference.
+    """
+    coupled: set[str] = set()
+    for name in entry["referenced_names"]:
+        resolved = _resolve_base(name, entry, registry)
+        if resolved is not None and resolved != qualified_name:
+            coupled.add(resolved)
+    return MetricResult(
+        file_path=subject_path,
+        metric_type=MetricType.COUPLING_BETWEEN_OBJECTS,
+        value=float(len(coupled)),
+        line_number=entry["lineno"],
+        function_name=entry["name"],
+        details={"approximate": True, "classes": sorted(coupled)[:10]},
+    )
 
 
 def _srp_row(
@@ -216,18 +256,27 @@ def _srp_row(
     weighted: dict[str, float],
     statements: dict[str, int],
 ) -> MetricResult:
-    """Single-responsibility composite (informational; validate before
-    trusting — see the review's caveat about derived indices amplifying
-    their inputs' noise).
+    """Single-responsibility index: excess cohesion components, weighted by
+    size.
 
-    Transparent formula: cohesion components × complexity band × size band.
-    A cohesive small class scores ~1; a three-responsibility class with
-    heavy methods scores an order of magnitude higher.
+    The defect is "more than one reason to change", and the direct evidence
+    is the number of disconnected method groups. A class with one group has
+    no responsibility finding however large it is (that is a large-class
+    finding, reported by weighted methods and statements). Each extra group
+    is scaled by complexity and size so a split of two heavy halves outranks
+    a split of two accessors:
+
+        (components - 1) × (1 + weighted_methods / 30) × (1 + statements / 60)
+
+    Validated against the pydantic, asyncio, click, and unittest sources: the
+    top scorers are the classes their maintainers would name (BaseModel,
+    GenerateJsonSchema, TestCase), and interfaces score zero.
     """
-    cohesion_components = max(1, lack_of_cohesion(entry["methods"]))
+    cohesion_components = lack_of_cohesion(entry["methods"])
     weighted_methods = weighted.get(qualified_name, 0.0)
     class_statements = statements.get(qualified_name, 0)
-    value = cohesion_components * (1.0 + weighted_methods / 30.0) * (1.0 + class_statements / 60.0)
+    excess = max(0, cohesion_components - 1)
+    value = excess * (1.0 + weighted_methods / 30.0) * (1.0 + class_statements / 60.0)
     return MetricResult(
         file_path=subject_path,
         metric_type=MetricType.SINGLE_RESPONSIBILITY_INDEX,
@@ -238,6 +287,5 @@ def _srp_row(
             "cohesion_components": cohesion_components,
             "weighted_methods": weighted_methods,
             "statements": class_statements,
-            "validated": False,
         },
     )

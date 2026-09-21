@@ -59,9 +59,9 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `step_down_ordering` | Readability | Module | `0..1` | None | Python, JS/TS | None | Custom | Share of intra-module calls whose callee is defined below the caller. |
 | `name_clarity` | Readability | Module | `0..1` | None; if `narrative.name_clarity_floor` is set, `>=` that configured value | Python, JS/TS | None | Custom | Mean lexical clarity of callable names against the layered vocabulary. |
 | `naming_antipatterns` | Readability | Module | `>= 0` | None unless `narrative` config exists; then `<= 0` offenders | Python, JS/TS | None | Custom | Count of naming/behavior contradictions such as lying predicates or two-job names. |
-| `lack_of_cohesion` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Number of disconnected method/field/call components in a class. |
+| `lack_of_cohesion` | SOLID | Class | `>= 1` | None | Python, JS/TS | None | Custom | Number of disconnected method/field/call components among a class's concrete methods; no row for classes with none (interfaces, data carriers). |
 | `weighted_methods_per_class` | SOLID | Class | `>= 0` | None | Python | None | Custom, Radon-derived | Sum of member method cyclomatic complexity for a class. |
-| `coupling_between_objects` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Distinct imported names referenced from a class body. |
+| `coupling_between_objects` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Distinct analyzed classes a class body references (Python: resolved through the class registry; JS/TS: imported names, lexical approximation). |
 | `depth_of_inheritance_tree` | SOLID | Class | `>= 1` | None | Python, JS/TS | None | Custom | Inheritance depth after resolving known project bases. |
 | `number_of_children` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Number of known immediate subclasses. |
 | `directory_children` | SOLID | Directory | `>= 0` | None unless `tree_shape` config exists; then non-root `>= 2` and all dirs `<= 7` | Python, JS/TS | None | Custom | Immediate module/subdirectory fan-out for analyzed directories. |
@@ -71,7 +71,7 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `dependency_cycles` | SOLID | Cycle | `>= 2` | None unless `import_graph` config exists; then `forbid_cycles` defaults true and requires zero cycles | Python, JS/TS | None | Custom | Strongly connected import-cycle member count. |
 | `stable_dependencies_violations` | SOLID | Module | `>= 0` | None unless `import_graph` config exists; then `<= 0` | Python, JS/TS | None | Custom | Imports pointing toward materially less stable modules. |
 | `deferred_imports` | SOLID | Module | `>= 0` | None | Python, JS/TS | None | Custom | Analyzed modules imported only inside function bodies or `TYPE_CHECKING` blocks. |
-| `abstractness` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Ratio of abstract classes to total classes in a module. |
+| `abstractness` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Ratio of abstract classes (abc, Protocol, abstractmethod, or stub-bodied methods) to total classes in a module. |
 | `distance_from_main_sequence` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Absolute distance from Martin's main sequence, `abs(A + I - 1)`. |
 | `dependency_inversion` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Mean abstractness of imported project targets. |
 | `layering_violations` | SOLID | Module | `>= 0` | None because no layer order exists by default; if `tree_shape.layers` is configured, `<= 0` upward imports | Python, JS/TS | `tree_shape.layers` config | Custom | Imports from a configured lower layer back upward into an earlier layer. |
@@ -87,7 +87,7 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `code_churn` | VCS | File | `>= 0` | None | Any | Git history | git plus custom | Lines added plus deleted over the mined history window. |
 | `change_coupling` | VCS | File pair | `>= 3` | None | Any | Git history | git plus custom | Number of commits in which a file pair changed together. |
 | `maintainability_index` | Mixed | File | `0..100` | `>= 50` in generated Python config | Python | None | Radon | Composite maintainability score from complexity, size, and Halstead data. |
-| `single_responsibility_index` | Mixed | Class | `>= 1` | None | Python, JS/TS | None | Custom | Composite responsibility pressure from cohesion, method weight, and class statement count. |
+| `single_responsibility_index` | Mixed | Class | `>= 0` | None | Python, JS/TS | None | Custom | Excess cohesion components (beyond one) weighted by method complexity and class size; zero for cohesive classes and interfaces. |
 | `hotspot` | Mixed | File | `>= 0` | None | Any | Git history and report snapshot with complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
 
 ## Custom Metric Computation Notes
@@ -106,12 +106,12 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 - `function_statements`: counts statements owned by a function while descending into control-flow blocks but excluding nested function/class scopes.
 - `expression_flatness`: scores each owned statement by operation weight and reports the fraction at or below the one-idea budget.
 - `pipeline_linearity`: counts local names assigned exactly once and loaded exactly once, divided by all assigned local names.
-- `lack_of_cohesion`: builds connected components over methods, connecting methods that share fields or call one another; the component count is the value.
+- `lack_of_cohesion`: builds connected components over a class's concrete methods, connecting methods that share fields (reached through `self` or `cls`) or call one another; the component count is the value. Dunder methods other than `__init__`, methods declared with `abstractmethod`, and stub bodies (`pass`, `...`, `raise NotImplementedError`, docstring only) are excluded, and a class with no concrete methods gets no row.
 - `weighted_methods_per_class`: sums Radon per-method cyclomatic complexity rows by owning class.
-- `coupling_between_objects`: counts distinct imported names referenced inside a class body; rows are approximate.
+- `coupling_between_objects`: for Python, counts the distinct analyzed classes named inside a class body, resolved through the same registry as inheritance (same-module names and imported names); the class itself and external names do not count, and `details.classes` lists the resolved targets. Rows are approximate because no type inference is performed. JS/TS rows keep the lexical imported-name approximation.
 - `depth_of_inheritance_tree`: resolves project-local base classes from extracted class/import facts and reports maximum depth, treating unresolved external parents as one extra level.
 - `number_of_children`: reverses the resolved inheritance edges and counts immediate project-local subclasses.
-- `single_responsibility_index`: computes `cohesion_components * (1 + weighted_methods / 30) * (1 + statements / 60)` and rounds to two decimals.
+- `single_responsibility_index`: computes `(cohesion_components - 1) * (1 + weighted_methods / 30) * (1 + statements / 60)` and rounds to two decimals. A class with one component scores zero however large it is (size is a separate finding under weighted methods and statements); interfaces have zero components and score zero.
 - `directory_children`: counts immediate analyzed module files plus immediate subdirectories for each analyzed directory, excluding plumbing files such as `__init__.py`.
 - `efferent_coupling`: counts resolved outgoing import edges from a module or collapsed package.
 - `afferent_coupling`: counts incoming resolved import edges to a module or collapsed package.
@@ -119,7 +119,7 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 - Import edges: only imports that execute at import time count (top level, class bodies, conditional blocks). Imports inside function bodies or `if TYPE_CHECKING:` blocks are excluded from every graph metric and reported as `deferred_imports`, with the resolved targets in `details.targets`. When the analyzed root is a package, an absolute import resolves only through the package's own name, so `import json` inside a package that has a `json.py` stays external; a non-package root matches absolute imports as written.
 - `dependency_cycles`: runs Tarjan strongly connected components over the resolved import graph and emits components with at least two modules.
 - `stable_dependencies_violations`: counts outgoing edges where target instability exceeds source instability by more than the fixed `0.2` tolerance; the offending modules are listed in `details.targets`.
-- `abstractness`: counts abstract classes detected from ABC/Protocol bases, ABCMeta metaclasses, or abstractmethod decorators divided by total classes in the module.
+- `abstractness`: counts abstract classes divided by total classes in the module. A class is abstract when it has an ABC/Protocol base, an ABCMeta metaclass, an `abstractmethod` decorator, any method whose body is only `raise NotImplementedError` or `...`, or when every method is a stub (an interface written with `pass` bodies).
 - `distance_from_main_sequence`: computes `abs(abstractness + instability - 1)` for modules that have abstractness rows.
 - `dependency_inversion`: averages the abstractness of imported target modules, treating classless targets as concrete.
 - `narrative_mixed_functions`: classifies callable facts and counts functions with both project-level narrative calls and raw computation beyond the profile tolerance.

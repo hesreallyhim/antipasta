@@ -1,4 +1,4 @@
-"""Class-cohesion analyzers: lack of cohesion, coupling between objects.
+"""Class-cohesion analyzer: lack of cohesion.
 
 Lack of cohesion uses the connected-components formulation (LCOM4 in the
 literature): methods are nodes, connected when they share a field or one
@@ -6,22 +6,21 @@ calls the other; the value is the number of components — directly readable
 as "this class is N classes wearing one name." Dunder methods other than
 ``__init__`` are excluded (protocol plumbing, not responsibilities);
 ``__init__`` is included because field initialization is what connects
-responsibilities to their state.
-
-Coupling between objects is a labeled approximation (rows carry
-``approximate: true``): the distinct imported names a class body references.
-Full precision needs type resolution Python does not offer statically.
+responsibilities to their state. Stub methods (abstract declarations and
+no-op hooks) are excluded too: they touch no state by definition, so an
+interface with fifty declared methods is not fifty responsibilities.
 """
 
 from __future__ import annotations
 
-import ast
 from typing import Any
+
+_ABSTRACT_METHOD_MARKER = "abstractmethod"
 
 
 def lack_of_cohesion(methods: list[dict[str, Any]]) -> int:
-    """Connected components over a class's methods (0 for method-less classes)."""
-    considered = [m for m in methods if _is_considered(m["name"])]
+    """Connected components over a class's concrete methods (0 when none)."""
+    considered = concrete_methods(methods)
     if not considered:
         return 0
     names = [method["name"] for method in considered]
@@ -41,9 +40,20 @@ def lack_of_cohesion(methods: list[dict[str, Any]]) -> int:
     return len({find(name) for name in names})
 
 
-def _is_considered(method_name: str) -> bool:
-    is_dunder = method_name.startswith("__") and method_name.endswith("__")
-    return not is_dunder or method_name == "__init__"
+def concrete_methods(methods: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The methods that can carry a responsibility: non-dunder (``__init__``
+    aside), non-stub, not declared abstract."""
+    return [method for method in methods if _is_considered(method)]
+
+
+def _is_considered(method: dict[str, Any]) -> bool:
+    name = method["name"]
+    is_dunder = name.startswith("__") and name.endswith("__")
+    if is_dunder and name != "__init__":
+        return False
+    if method.get("stub") is not None:
+        return False
+    return not any(_ABSTRACT_METHOD_MARKER in d for d in method.get("decorators", []))
 
 
 def _connect_shared_fields(methods: list[dict[str, Any]], union: Any) -> None:
@@ -62,23 +72,3 @@ def _connect_local_calls(methods: list[dict[str, Any]], names: list[str], union:
         for callee in method["calls_local"]:
             if callee in name_set:
                 union(method["name"], callee)
-
-
-def coupling_between_objects(class_node: ast.ClassDef, imported_names: frozenset[str]) -> int:
-    """Distinct imported names the class body references (approximation)."""
-    referenced: set[str] = set()
-    for node in ast.walk(class_node):
-        if isinstance(node, ast.Name) and node.id in imported_names:
-            referenced.add(node.id)
-    return len(referenced)
-
-
-def imported_name_set(module: ast.Module) -> frozenset[str]:
-    """Top-level names bound by imports (the coupling vocabulary)."""
-    names: set[str] = set()
-    for node in ast.walk(module):
-        if isinstance(node, ast.Import):
-            names.update(alias.asname or alias.name.split(".")[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            names.update(alias.asname or alias.name for alias in node.names)
-    return frozenset(names)
