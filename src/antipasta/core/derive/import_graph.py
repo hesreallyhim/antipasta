@@ -111,28 +111,42 @@ def _build_graphs(
 ) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     """(import-time graph, deferred-import graph); self-edges dropped."""
     root = derivation_input.root
-    module_of: dict[Path, str] = {}
-    for file_path in derivation_input.facts_by_file:
-        module = _module_name(file_path, root)
-        if module is not None:
-            module_of[file_path] = module
-
+    module_of = _module_table(derivation_input)
     known = set(module_of.values())
     resolver = _Resolver(known, root.name, root_is_package=(root / "__init__.py").exists())
     graph: dict[str, set[str]] = {module: set() for module in known}
     deferred: dict[str, set[str]] = {module: set() for module in known}
     for file_path, facts in derivation_input.facts_by_file.items():
         source = module_of.get(file_path)
-        if source is None:
-            continue
-        for fact in facts:
-            if fact.kind != "import":
-                continue
-            bucket = graph if fact.payload.get("scope", "module") == "module" else deferred
-            for target in resolver.targets(fact.payload, source):
-                if target != source and not _is_ancestor_edge(source, target):
-                    bucket[source].add(target)
+        if source is not None:
+            _add_import_edges(source, facts, resolver, graph, deferred)
     return graph, deferred
+
+
+def _module_table(derivation_input: DerivationInput) -> dict[Path, str]:
+    root = derivation_input.root
+    module_of: dict[Path, str] = {}
+    for file_path in derivation_input.facts_by_file:
+        module = _module_name(file_path, root)
+        if module is not None:
+            module_of[file_path] = module
+    return module_of
+
+
+def _add_import_edges(
+    source: str,
+    facts: list[FactRow],
+    resolver: _Resolver,
+    graph: dict[str, set[str]],
+    deferred: dict[str, set[str]],
+) -> None:
+    for fact in facts:
+        if fact.kind != "import":
+            continue
+        bucket = graph if fact.payload.get("scope", "module") == "module" else deferred
+        for target in resolver.targets(fact.payload, source):
+            if target != source and not _is_ancestor_edge(source, target):
+                bucket[source].add(target)
 
 
 def _is_ancestor_edge(source: str, target: str) -> bool:
@@ -497,6 +511,11 @@ def module_abstractness(facts: list[FactRow]) -> float | None:
 
 
 def _is_abstract(payload: dict[str, Any]) -> bool:
+    return _declared_abstract(payload) or _has_abstract_methods(payload["methods"])
+
+
+def _declared_abstract(payload: dict[str, Any]) -> bool:
+    """abc/Protocol bases, an abstract class decorator, or an ABCMeta keyword."""
     if any(_base_is_abstract(base) for base in payload["bases"]):
         return True
     if any(
@@ -504,18 +523,20 @@ def _is_abstract(payload: dict[str, Any]) -> bool:
         for decorator in payload.get("decorators", [])
     ):
         return True
-    if any(_ABSTRACT_METACLASS_MARKER in keyword for keyword in payload.get("keywords", [])):
-        return True
-    methods = payload["methods"]
+    return any(_ABSTRACT_METACLASS_MARKER in keyword for keyword in payload.get("keywords", []))
+
+
+def _has_abstract_methods(methods: list[dict[str, Any]]) -> bool:
+    """An abstractmethod, or Python's other conventions: a method that only
+    raises NotImplementedError (or is ``...``) declares an abstract slot, and
+    a class whose every method is a no-op stub is an interface (asyncio's
+    BaseProtocol)."""
     if any(
         _ABSTRACT_METHOD_MARKER in decorator
         for method in methods
         for decorator in method.get("decorators", [])
     ):
         return True
-    # Python's other conventions: a method that only raises NotImplementedError
-    # (or is ``...``) declares an abstract slot; a class whose every method is
-    # a no-op stub is an interface (asyncio's BaseProtocol).
     stubs = [method.get("stub") for method in methods]
     if any(stub in _ABSTRACT_STUB_KINDS for stub in stubs):
         return True

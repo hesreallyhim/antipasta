@@ -148,36 +148,37 @@ def _method_name_ids(module: ast.Module) -> dict[int, str]:
 
 
 def _class_facts(module: ast.Module) -> list[FactRow]:
-    facts: list[FactRow] = []
-    for node in ast.walk(module):
-        if isinstance(node, ast.ClassDef):
-            facts.append(
-                FactRow(
-                    kind="class",
-                    payload={
-                        "name": node.name,
-                        "lineno": node.lineno,
-                        "bases": [ast.unparse(base) for base in node.bases],
-                        "decorators": [ast.unparse(d) for d in node.decorator_list],
-                        "keywords": [
-                            f"{kw.arg}={ast.unparse(kw.value)}" for kw in node.keywords if kw.arg
-                        ],
-                        "methods": [
-                            _method_payload(member)
-                            for member in node.body
-                            if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef))
-                        ],
-                        # Every name the class body reads; the class registry
-                        # resolves these to analyzed classes for coupling.
-                        "referenced_names": sorted({
-                            child.id
-                            for child in ast.walk(node)
-                            if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load)
-                        }),
-                    },
-                )
-            )
-    return facts
+    return [
+        FactRow(kind="class", payload=_class_payload(node))
+        for node in ast.walk(module)
+        if isinstance(node, ast.ClassDef)
+    ]
+
+
+def _class_payload(node: ast.ClassDef) -> dict[str, Any]:
+    return {
+        "name": node.name,
+        "lineno": node.lineno,
+        "bases": [ast.unparse(base) for base in node.bases],
+        "decorators": [ast.unparse(d) for d in node.decorator_list],
+        "keywords": [f"{kw.arg}={ast.unparse(kw.value)}" for kw in node.keywords if kw.arg],
+        "methods": [
+            _method_payload(member)
+            for member in node.body
+            if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef))
+        ],
+        # Every name the class body reads; the class registry resolves these
+        # to analyzed classes for coupling.
+        "referenced_names": _referenced_names(node),
+    }
+
+
+def _referenced_names(node: ast.ClassDef) -> list[str]:
+    return sorted({
+        child.id
+        for child in ast.walk(node)
+        if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load)
+    })
 
 
 def _method_payload(method: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, Any]:
@@ -226,9 +227,10 @@ def stub_kind(function: ast.FunctionDef | ast.AsyncFunctionDef) -> str | None:
         body = body[1:]
     if not body:
         return "empty"
-    if len(body) != 1:
-        return None
-    statement = body[0]
+    return _single_statement_stub(body[0]) if len(body) == 1 else None
+
+
+def _single_statement_stub(statement: ast.stmt) -> str | None:
     if isinstance(statement, ast.Pass):
         return "pass"
     if isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Constant):
