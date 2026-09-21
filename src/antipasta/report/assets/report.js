@@ -86,7 +86,7 @@
     depth_of_inheritance_tree: "solid", number_of_children: "solid", directory_children: "solid",
     efferent_coupling: "solid", afferent_coupling: "solid", instability: "solid", dependency_cycles: "solid",
     stable_dependencies_violations: "solid", abstractness: "solid", distance_from_main_sequence: "solid",
-    dependency_inversion: "solid", layering_violations: "solid",
+    dependency_inversion: "solid", layering_violations: "solid", deferred_imports: "solid",
     duplication_ratio: "dryness", clone_occurrences: "dryness",
     assertions_per_test: "test", mock_call_assertions: "test", big_literal_assertions: "test",
     test_churn_ratio: "test", co_churn_multiplicity: "test", suite_redundancy_index: "test", blast_radius: "test",

@@ -181,3 +181,87 @@ class TestGraphHygiene:
 
         user = _module_rows(reports, "user")
         assert user["efferent_coupling"] == 0.0
+
+
+class TestResolutionScope:
+    def test_stdlib_name_does_not_collide_inside_a_package_root(self, tmp_path: Path) -> None:
+        # asyncio has subprocess.py and events.py does ``import subprocess``
+        # (the standard library one). Inside a package root, a bare absolute
+        # import is never the sibling module.
+        root = tmp_path / "pkg"
+        root.mkdir()
+        sources = {
+            "__init__.py": "",
+            "subprocess.py": "def run():\n    return 1\n",
+            "events.py": "import subprocess\nfrom pkg import subprocess as own\n",
+        }
+        reports = _derive(root, sources)
+
+        events = _module_rows(reports, "events")
+        assert events["efferent_coupling"] == 1.0  # only the ``from pkg`` form
+        assert _module_rows(reports, "subprocess")["afferent_coupling"] == 1.0
+
+    def test_bare_absolute_import_resolves_outside_a_package_root(self, tmp_path: Path) -> None:
+        # A plain directory root (src layout, or a loose collection of modules)
+        # addresses its modules by their bare names.
+        sources = {"a.py": "import b\n", "b.py": "x = 1\n"}
+        reports = _derive(tmp_path, sources)
+
+        assert _module_rows(reports, "a")["efferent_coupling"] == 1.0
+
+    def test_deferred_imports_are_not_edges(self, tmp_path: Path) -> None:
+        sources = {
+            "a.py": (
+                "from typing import TYPE_CHECKING\n"
+                "if TYPE_CHECKING:\n    import b\n\n"
+                "def go():\n    import c\n    return c.run()\n"
+            ),
+            "b.py": "import a\n",
+            "c.py": "def run():\n    return 1\n",
+        }
+        reports = _derive(tmp_path, sources)
+
+        a = _module_rows(reports, "a")
+        assert a["efferent_coupling"] == 0.0
+        assert a["deferred_imports"] == 2.0
+        assert not [r for r in reports if r.subject.startswith("cycle:")]
+        row = next(
+            m
+            for r in reports
+            if r.subject == "a"
+            for m in r.metrics
+            if m.metric_type.value == "deferred_imports"
+        )
+        assert row.details == {"targets": ["b", "c"]}
+
+    def test_conditional_module_level_imports_are_edges(self, tmp_path: Path) -> None:
+        sources = {
+            "a.py": "try:\n    import b\nexcept ImportError:\n    b = None\n",
+            "b.py": "x = 1\n",
+        }
+        reports = _derive(tmp_path, sources)
+
+        assert _module_rows(reports, "a")["efferent_coupling"] == 1.0
+
+    def test_stable_dependencies_row_names_offending_targets(self, tmp_path: Path) -> None:
+        # core (stable: imported by two) depends on leaf (unstable: imports two,
+        # imported by core only).
+        sources = {
+            "x.py": "import core\n",
+            "y.py": "import core\n",
+            "core.py": "import leaf\n",
+            "leaf.py": "import p\nimport q\n",
+            "p.py": "",
+            "q.py": "",
+        }
+        reports = _derive(tmp_path, sources)
+
+        row = next(
+            m
+            for r in reports
+            if r.subject == "core"
+            for m in r.metrics
+            if m.metric_type.value == "stable_dependencies_violations"
+        )
+        assert row.value == 1.0
+        assert row.details == {"tolerance": 0.2, "targets": ["leaf"]}

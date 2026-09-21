@@ -159,8 +159,28 @@ class TestFactExtraction:
         source = "from . import sibling\nimport pkg.mod\n\ndef go():\n    return 1\n"
         result = analyze(runner, source)
         imports = [f.payload for f in result.facts if f.kind == "import"]
-        assert {"module": "", "names": ["sibling"], "level": 1} in imports
-        assert {"module": "pkg.mod", "names": [], "level": 0} in imports
+        assert {"module": "", "names": ["sibling"], "level": 1, "scope": "module"} in imports
+        assert {"module": "pkg.mod", "names": [], "level": 0, "scope": "module"} in imports
+
+    def test_import_facts_record_deferred_scopes(self, runner: HouseStyleRunner) -> None:
+        source = (
+            "from typing import TYPE_CHECKING\n"
+            "if TYPE_CHECKING:\n    import typed\n"
+            "try:\n    import optional\nexcept ImportError:\n    optional = None\n"
+            "class C:\n    import in_class\n"
+            "    def m(self):\n        import lazy\n"
+        )
+        result = analyze(runner, source)
+        scopes = {
+            f.payload["module"]: f.payload["scope"] for f in result.facts if f.kind == "import"
+        }
+        assert scopes == {
+            "typing": "module",
+            "typed": "type_checking",
+            "optional": "module",
+            "in_class": "module",
+            "lazy": "function",
+        }
 
     def test_class_facts_carry_method_field_access(self, runner: HouseStyleRunner) -> None:
         source = (

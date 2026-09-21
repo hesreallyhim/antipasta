@@ -70,6 +70,7 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `instability` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Efferent coupling divided by total afferent plus efferent coupling. |
 | `dependency_cycles` | SOLID | Cycle | `>= 2` | None unless `import_graph` config exists; then `forbid_cycles` defaults true and requires zero cycles | Python, JS/TS | None | Custom | Strongly connected import-cycle member count. |
 | `stable_dependencies_violations` | SOLID | Module | `>= 0` | None unless `import_graph` config exists; then `<= 0` | Python, JS/TS | None | Custom | Imports pointing toward materially less stable modules. |
+| `deferred_imports` | SOLID | Module | `>= 0` | None | Python, JS/TS | None | Custom | Analyzed modules imported only inside function bodies or `TYPE_CHECKING` blocks. |
 | `abstractness` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Ratio of abstract classes to total classes in a module. |
 | `distance_from_main_sequence` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Absolute distance from Martin's main sequence, `abs(A + I - 1)`. |
 | `dependency_inversion` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Mean abstractness of imported project targets. |
@@ -115,8 +116,9 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 - `efferent_coupling`: counts resolved outgoing import edges from a module or collapsed package.
 - `afferent_coupling`: counts incoming resolved import edges to a module or collapsed package.
 - `instability`: computes `Ce / (Ca + Ce)`, or `0` when both coupling counts are zero.
+- Import edges: only imports that execute at import time count (top level, class bodies, conditional blocks). Imports inside function bodies or `if TYPE_CHECKING:` blocks are excluded from every graph metric and reported as `deferred_imports`, with the resolved targets in `details.targets`. When the analyzed root is a package, an absolute import resolves only through the package's own name, so `import json` inside a package that has a `json.py` stays external; a non-package root matches absolute imports as written.
 - `dependency_cycles`: runs Tarjan strongly connected components over the resolved import graph and emits components with at least two modules.
-- `stable_dependencies_violations`: counts outgoing edges where target instability exceeds source instability by more than the fixed `0.2` tolerance.
+- `stable_dependencies_violations`: counts outgoing edges where target instability exceeds source instability by more than the fixed `0.2` tolerance; the offending modules are listed in `details.targets`.
 - `abstractness`: counts abstract classes detected from ABC/Protocol bases, ABCMeta metaclasses, or abstractmethod decorators divided by total classes in the module.
 - `distance_from_main_sequence`: computes `abs(abstractness + instability - 1)` for modules that have abstractness rows.
 - `dependency_inversion`: averages the abstractness of imported target modules, treating classless targets as concrete.

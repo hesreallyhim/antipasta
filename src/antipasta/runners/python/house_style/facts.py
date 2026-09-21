@@ -32,28 +32,73 @@ def extract_facts(module: ast.Module) -> list[FactRow]:
 
 
 def _import_facts(module: ast.Module) -> list[FactRow]:
+    """Import rows with the scope they execute in.
+
+    ``scope`` is ``module`` for imports that run at import time (top level,
+    class bodies, conditional blocks), ``function`` for imports deferred into
+    a function body, and ``type_checking`` for imports guarded by an
+    ``if TYPE_CHECKING:`` block. Only module-scope imports are dependency
+    edges; the others are recorded so derivers can count them separately.
+    """
     facts: list[FactRow] = []
-    for node in ast.walk(module):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                facts.append(
-                    FactRow(
-                        kind="import",
-                        payload={"module": alias.name, "names": [], "level": 0},
-                    )
-                )
-        elif isinstance(node, ast.ImportFrom):
-            facts.append(
-                FactRow(
-                    kind="import",
-                    payload={
-                        "module": node.module or "",
-                        "names": [alias.name for alias in node.names],
-                        "level": node.level,
-                    },
-                )
-            )
+    _collect_imports(module.body, "module", facts)
     return facts
+
+
+def _collect_imports(statements: list[ast.stmt], scope: str, facts: list[FactRow]) -> None:
+    for node in statements:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            facts.extend(_import_rows(node, scope))
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            _collect_imports(node.body, "function", facts)
+        elif isinstance(node, ast.If) and _is_type_checking_guard(node.test):
+            _collect_imports(node.body, "type_checking", facts)
+            _collect_imports(node.orelse, scope, facts)
+        else:
+            for block in _child_blocks(node):
+                _collect_imports(block, scope, facts)
+
+
+def _import_rows(node: ast.Import | ast.ImportFrom, scope: str) -> list[FactRow]:
+    if isinstance(node, ast.Import):
+        return [
+            FactRow(
+                kind="import",
+                payload={"module": alias.name, "names": [], "level": 0, "scope": scope},
+            )
+            for alias in node.names
+        ]
+    return [
+        FactRow(
+            kind="import",
+            payload={
+                "module": node.module or "",
+                "names": [alias.name for alias in node.names],
+                "level": node.level,
+                "scope": scope,
+            },
+        )
+    ]
+
+
+def _is_type_checking_guard(test: ast.expr) -> bool:
+    if isinstance(test, ast.Name):
+        return test.id == "TYPE_CHECKING"
+    return isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
+
+
+def _child_blocks(node: ast.stmt) -> list[list[ast.stmt]]:
+    """Statement lists nested directly under a compound statement."""
+    blocks: list[list[ast.stmt]] = []
+    for name in ("body", "orelse", "finalbody"):
+        block = getattr(node, name, None)
+        if isinstance(block, list) and block and isinstance(block[0], ast.stmt):
+            blocks.append(block)
+    for handler in getattr(node, "handlers", []) or []:
+        blocks.append(handler.body)
+    for case in getattr(node, "cases", []) or []:
+        blocks.append(case.body)
+    return blocks
 
 
 def _callable_facts(module: ast.Module) -> list[FactRow]:

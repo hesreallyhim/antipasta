@@ -159,9 +159,7 @@ class TestBuildSnapshot:
         """A provided import_graph payload is embedded verbatim for the SOLID view."""
         config = AntipastaConfig.generate_default()
         payload = {"modules": {"a": {"sloc": 10.0, "files": 1}}, "edges": [["a", "b"]]}
-        snap = build_snapshot(
-            [_synthetic_report()], config, root=Path.cwd(), import_graph=payload
-        )
+        snap = build_snapshot([_synthetic_report()], config, root=Path.cwd(), import_graph=payload)
         assert snap["import_graph"] == payload
 
 

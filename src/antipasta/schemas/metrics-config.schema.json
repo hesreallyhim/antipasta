@@ -217,6 +217,7 @@
         "instability",
         "dependency_cycles",
         "stable_dependencies_violations",
+        "deferred_imports",
         "abstractness",
         "distance_from_main_sequence",
         "dependency_inversion",

@@ -8,11 +8,18 @@ strongly-connected-components pass, stable-dependencies violations, and
 package-level rollups.
 
 Resolution is a documented approximation (labeled where it matters): targets
-are matched longest-prefix-first against the analyzed module set, with
-leading-package stripping so a src-layout analysis root (``-d src/pkg``)
-still matches absolute imports (``pkg.core.x`` → ``core.x``). Imports that
-resolve outside the analyzed set are external: they count toward nothing
-here (external coupling is a Phase 4 concern).
+are matched longest-prefix-first against the analyzed module set. Relative
+imports resolve directly. Absolute imports resolve only through the analyzed
+package's own name when the root is a package (``-d src/pkg`` makes
+``pkg.core.x`` → ``core.x``, while ``import subprocess`` inside ``pkg`` stays
+external even if ``pkg/subprocess.py`` exists); a non-package root (``-d
+src``) matches absolute imports as written. Imports that resolve outside the
+analyzed set are external: they count toward nothing here.
+
+Only imports that execute at module import time are dependency edges.
+Imports deferred into function bodies or guarded by ``TYPE_CHECKING`` are
+how Python code breaks cycles on purpose, so counting them as edges reports
+cycles that never occur; they are surfaced separately as ``deferred_imports``.
 
 Gating is opt-in like everything else: rows are informational until an
 ``import_graph`` config block exists; with one, cycles violate (the Acyclic
@@ -36,13 +43,13 @@ _SDP_TOLERANCE = 0.2
 
 def derive_import_graph(derivation_input: DerivationInput) -> list[ProjectReport]:
     """Module coupling rows, cycle reports, and package rollups."""
-    graph = _build_graph(derivation_input)
+    graph, deferred = _build_graphs(derivation_input)
     if not graph:
         return []
     config = derivation_input.config.import_graph
     abstractness_by_module = _abstractness_by_module(derivation_input)
     return [
-        *_module_reports(graph, config, abstractness_by_module),
+        *_module_reports(graph, deferred, config, abstractness_by_module),
         *_cycle_reports(graph, config),
         *_package_reports(graph),
     ]
@@ -95,7 +102,14 @@ def _report_sloc(report: Any) -> float:
 
 
 def _build_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
-    """module → set of analyzed modules it imports (self-edges dropped)."""
+    """module → set of analyzed modules it imports at import time."""
+    return _build_graphs(derivation_input)[0]
+
+
+def _build_graphs(
+    derivation_input: DerivationInput,
+) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    """(import-time graph, deferred-import graph); self-edges dropped."""
     root = derivation_input.root
     module_of: dict[Path, str] = {}
     for file_path in derivation_input.facts_by_file:
@@ -104,15 +118,21 @@ def _build_graph(derivation_input: DerivationInput) -> dict[str, set[str]]:
             module_of[file_path] = module
 
     known = set(module_of.values())
+    resolver = _Resolver(known, root.name, root_is_package=(root / "__init__.py").exists())
     graph: dict[str, set[str]] = {module: set() for module in known}
+    deferred: dict[str, set[str]] = {module: set() for module in known}
     for file_path, facts in derivation_input.facts_by_file.items():
         source = module_of.get(file_path)
         if source is None:
             continue
-        for target in _resolved_targets(facts, source, known, root.name):
-            if target != source and not _is_ancestor_edge(source, target):
-                graph[source].add(target)
-    return graph
+        for fact in facts:
+            if fact.kind != "import":
+                continue
+            bucket = graph if fact.payload.get("scope", "module") == "module" else deferred
+            for target in resolver.targets(fact.payload, source):
+                if target != source and not _is_ancestor_edge(source, target):
+                    bucket[source].add(target)
+    return graph, deferred
 
 
 def _is_ancestor_edge(source: str, target: str) -> bool:
@@ -139,17 +159,61 @@ def _module_name(file_path: Path, root: Path) -> str | None:
     return ".".join(parts) if parts else None
 
 
-def _resolved_targets(
-    facts: list[FactRow], source: str, known: set[str], root_package: str
-) -> set[str]:
-    targets: set[str] = set()
-    for fact in facts:
-        if fact.kind != "import":
-            continue
-        payload = fact.payload
-        prefix = _import_prefix(payload["module"], payload["level"], source)
-        targets.update(_resolve_statement(prefix, payload["names"], known, root_package))
-    return targets
+class _Resolver:
+    """Resolve raw import payloads against the analyzed module set."""
+
+    def __init__(self, known: set[str], root_package: str, *, root_is_package: bool) -> None:
+        self.known = known
+        self.root_package = root_package
+        self.root_is_package = root_is_package
+
+    def targets(self, payload: dict[str, Any], source: str) -> set[str]:
+        level = payload["level"]
+        prefix = _import_prefix(payload["module"], level, source)
+        return self._resolve_statement(prefix, payload["names"], absolute=level == 0)
+
+    def _resolve_statement(self, prefix: str, names: list[str], *, absolute: bool) -> set[str]:
+        """`from X import name`: name may be a submodule (X.name) or a symbol
+        defined in X — the specific submodule wins; the package is only the
+        fallback when the submodule doesn't exist."""
+        if not names:
+            resolved = self._match(prefix, absolute) if prefix else None
+            return {resolved} if resolved else set()
+        targets: set[str] = set()
+        for name in names:
+            candidate = f"{prefix}.{name}" if prefix else name
+            resolved = self._match(candidate, absolute)
+            if resolved is None and prefix:
+                resolved = self._match(prefix, absolute)
+            if resolved is not None:
+                targets.add(resolved)
+        return targets
+
+    def _match(self, candidate: str, absolute: bool) -> str | None:
+        parts = candidate.split(".")
+        if absolute and self.root_is_package:
+            # Inside a package root, an absolute import is internal only when
+            # it names the package itself; ``import json`` never means
+            # ``pkg/json.py``.
+            if parts[0] != self.root_package:
+                return None
+            return _longest_known_prefix(parts[1:], self.known)
+        if absolute and parts[0] == self.root_package:
+            # src-layout root: ``pkg.core.x`` and ``core.x`` both address the
+            # analyzed set. The stripped form wins only when the unstripped
+            # one is unknown, so an analyzed module literally named like the
+            # root still resolves.
+            direct = _longest_known_prefix(parts, self.known)
+            return direct if direct is not None else _longest_known_prefix(parts[1:], self.known)
+        return _longest_known_prefix(parts, self.known)
+
+
+def _longest_known_prefix(parts: list[str], known: set[str]) -> str | None:
+    for end in range(len(parts), 0, -1):
+        name = ".".join(parts[:end])
+        if name in known:
+            return name
+    return None
 
 
 def _import_prefix(module: str, level: int, source: str) -> str:
@@ -160,51 +224,12 @@ def _import_prefix(module: str, level: int, source: str) -> str:
     return ".".join([*base_parts, module]) if module else ".".join(base_parts)
 
 
-def _resolve_statement(
-    prefix: str, names: list[str], known: set[str], root_package: str
-) -> set[str]:
-    """Resolve one import statement against the analyzed module set.
-
-    `from X import name`: name may be a submodule (X.name) or a symbol
-    defined in X — the specific submodule wins; the package is only the
-    fallback when the submodule doesn't exist.
-    """
-    if not names:
-        resolved = _match_known(prefix, known, root_package) if prefix else None
-        return {resolved} if resolved else set()
-    targets: set[str] = set()
-    for name in names:
-        candidate = f"{prefix}.{name}" if prefix else name
-        resolved = _match_known(candidate, known, root_package)
-        if resolved is None and prefix:
-            resolved = _match_known(prefix, known, root_package)
-        if resolved is not None:
-            targets.add(resolved)
-    return targets
-
-
-def _match_known(candidate: str, known: set[str], root_package: str) -> str | None:
-    """Longest-prefix match; leading segments strip ONLY when they name the
-    analyzed root package (src-layout absolute imports). Stripping arbitrary
-    heads once resolved ``pydry.engine`` to this project's ``engine`` module —
-    a false edge the layering check caught after the core split."""
-    parts = candidate.split(".")
-    for strip in range(len(parts)):
-        if strip > 0 and parts[strip - 1] != root_package:
-            break
-        remaining = parts[strip:]
-        for end in range(len(remaining), 0, -1):
-            name = ".".join(remaining[:end])
-            if name in known:
-                return name
-    return None
-
-
 # ── module metrics ──────────────────────────────────────────────────────────
 
 
 def _module_reports(
     graph: dict[str, set[str]],
+    deferred: dict[str, set[str]],
     config: ImportGraphConfig | None,
     abstractness_by_module: dict[str, float | None],
 ) -> list[ProjectReport]:
@@ -215,6 +240,7 @@ def _module_reports(
         rows = _coupling_rows(module, graph, afferent, instability)
         sdp_row = rows[-1]
         rows.extend(_main_sequence_rows(module, graph, instability, abstractness_by_module))
+        rows.append(_deferred_row(module, deferred[module]))
         violations = _sdp_violations(sdp_row, config)
         reports.append(ProjectReport(subject=module, metrics=rows, violations=violations))
     return reports
@@ -282,23 +308,36 @@ def _coupling_rows(
     instability: dict[str, float],
 ) -> list[MetricResult]:
     subject_path = Path(module.replace(".", "/") + ".py")
-    sdp_count = sum(
-        1 for target in graph[module] if instability[target] - instability[module] > _SDP_TOLERANCE
+    less_stable = sorted(
+        target
+        for target in graph[module]
+        if instability[target] - instability[module] > _SDP_TOLERANCE
     )
+    sdp_details: dict[str, Any] = {"tolerance": _SDP_TOLERANCE}
+    if less_stable:
+        sdp_details["targets"] = less_stable
     values = [
         (MetricType.EFFERENT_COUPLING, float(len(graph[module])), None),
         (MetricType.AFFERENT_COUPLING, float(afferent[module]), None),
         (MetricType.INSTABILITY, round(instability[module], 4), None),
-        (
-            MetricType.STABLE_DEPENDENCIES_VIOLATIONS,
-            float(sdp_count),
-            {"tolerance": _SDP_TOLERANCE},
-        ),
+        (MetricType.STABLE_DEPENDENCIES_VIOLATIONS, float(len(less_stable)), sdp_details),
     ]
     return [
         MetricResult(file_path=subject_path, metric_type=metric_type, value=value, details=details)
         for metric_type, value, details in values
     ]
+
+
+def _deferred_row(module: str, targets: set[str]) -> MetricResult:
+    """Analyzed modules imported only inside functions or ``TYPE_CHECKING``
+    blocks: not dependency edges, but each one is usually a cycle someone
+    broke by hand."""
+    return MetricResult(
+        file_path=Path(module.replace(".", "/") + ".py"),
+        metric_type=MetricType.DEFERRED_IMPORTS,
+        value=float(len(targets)),
+        details={"targets": sorted(targets)[:10]} if targets else None,
+    )
 
 
 def _sdp_violations(sdp_row: MetricResult, config: ImportGraphConfig | None) -> list[Violation]:
