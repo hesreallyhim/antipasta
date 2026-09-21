@@ -247,12 +247,8 @@ PRESET_DEFINITIONS: Final[dict[PresetName, dict[str, Any]]] = {
         },
     },
     PresetName.ARCHITECTURE: {
-        "description": "Project-structure gates for fan-out and imports.",
+        "description": "Project-structure gates for imports.",
         "ignore_patterns": _DEFAULT_IGNORE_PATTERNS,
-        "tree_shape": {
-            "fan_out_min": {"extreme": 2, "standard": 2, "relaxed": 1},
-            "fan_out_max": {"extreme": 5, "standard": 7, "relaxed": 10},
-        },
         "import_graph": {
             "forbid_cycles": True,
             "max_stable_dependencies_violations": {"extreme": 0, "standard": 0, "relaxed": 2},

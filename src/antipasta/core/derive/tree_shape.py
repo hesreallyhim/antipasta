@@ -1,12 +1,10 @@
-"""Module Tree Shape, tree half: bounded fan-out over the analyzed tree.
+"""Module Tree Shape: directory fan-out facts and the layering check.
 
-The owner's architectural house style at directory scale: every package has
-roughly 5–7 children (modules or subpackages) — too many means a missing
-layer, too few means a pointless one. This deriver is the pilot for
-project-scoped reporting: it consumes only the analyzed file list (no
-parsing, no per-file facts), emits one ``directory_children`` row per
-directory, and raises violations only when a ``tree_shape`` config block is
-present — informational-first, per the dogfooding policy.
+The tree half consumes only the analyzed file list (no parsing, no per-file
+facts) and emits one ``directory_children`` row per directory. It is a size
+fact for the report, never a gate: benchmarking against the standard library
+and common packages showed flat packages of thirty modules to be ordinary,
+and a child count cannot distinguish a missing layer from a wide one.
 
 Language-agnostic by construction: children are counted from paths, so this
 works for any analyzed language. The layering half (imports must flow
@@ -19,10 +17,9 @@ from collections import defaultdict
 from fnmatch import fnmatch
 from pathlib import Path, PurePosixPath
 
-from antipasta.core.model.config import TreeShapeConfig
 from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.metrics import MetricResult, MetricType
-from antipasta.core.model.violations import ProjectReport, Violation, check_metric_violation
+from antipasta.core.model.violations import ProjectReport, check_metric_violation
 
 #: Subject label for the analysis root directory.
 ROOT_SUBJECT = "."
@@ -93,7 +90,7 @@ def derive_tree_shape(derivation_input: DerivationInput) -> list[ProjectReport]:
         child_count = children_by_directory[directory]
         if config is not None and _is_excluded(directory, config.exclude):
             continue
-        reports.append(_directory_report(directory, child_count, config))
+        reports.append(_directory_report(directory, child_count))
     return reports
 
 
@@ -146,30 +143,10 @@ def _is_excluded(subject: str, patterns: list[str]) -> bool:
     return any(fnmatch(subject, pattern) for pattern in patterns)
 
 
-def _directory_report(
-    subject: str, child_count: int, config: TreeShapeConfig | None
-) -> ProjectReport:
+def _directory_report(subject: str, child_count: int) -> ProjectReport:
     row = MetricResult(
         file_path=Path(subject),
         metric_type=MetricType.DIRECTORY_CHILDREN,
         value=float(child_count),
     )
-    violations: list[Violation] = []
-    if config is not None:
-        violations.extend(_band_violations(row, subject, config))
-    return ProjectReport(subject=subject, metrics=[row], violations=violations)
-
-
-def _band_violations(row: MetricResult, subject: str, config: TreeShapeConfig) -> list[Violation]:
-    """Fan-out band checks: too many children (missing layer) always applies;
-    too few (pointless layer) exempts the root, which legitimately fans wide
-    or narrow depending on project size."""
-    checks = [config.max_children_config()]
-    if subject != ROOT_SUBJECT:
-        checks.append(config.min_children_config())
-    violations = []
-    for metric_config in checks:
-        violation = check_metric_violation(row, metric_config)
-        if violation:
-            violations.append(violation)
-    return violations
+    return ProjectReport(subject=subject, metrics=[row], violations=[])

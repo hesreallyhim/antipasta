@@ -118,27 +118,10 @@ class TestGating:
 
         wide = next(r for r in reports if r.subject == "wide")
         assert wide.metrics[0].value == 12.0
-        assert wide.violations == []  # rows without config are observation-only
-
-    def test_too_many_children_violates_with_config(self, tmp_path: Path) -> None:
-        config = AntipastaConfig(tree_shape=TreeShapeConfig(fan_out_max=7))
-        files = [f"wide/mod_{i}.py" for i in range(12)]
-        reports = derive_tree_shape(_derivation_input(tmp_path, files, config))
-
-        wide = next(r for r in reports if r.subject == "wide")
-        assert wide.has_violations
-
-    def test_too_few_children_violates_but_root_exempt(self, tmp_path: Path) -> None:
-        config = AntipastaConfig(tree_shape=TreeShapeConfig(fan_out_min=2))
-        files = ["lonely/only.py"]
-        reports = derive_tree_shape(_derivation_input(tmp_path, files, config))
-
-        by_subject = {r.subject: r for r in reports}
-        assert by_subject["lonely"].has_violations  # pointless layer
-        assert not by_subject["."].has_violations  # root exempt from the minimum
+        assert wide.violations == []  # fan-out is a fact, never a gate
 
     def test_exclusion_patterns(self, tmp_path: Path) -> None:
-        config = AntipastaConfig(tree_shape=TreeShapeConfig(fan_out_max=3, exclude=["tests*"]))
+        config = AntipastaConfig(tree_shape=TreeShapeConfig(exclude=["tests*"]))
         files = [f"tests_fixtures/mod_{i}.py" for i in range(9)]
         reports = derive_tree_shape(_derivation_input(tmp_path, files, config))
 

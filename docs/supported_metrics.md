@@ -64,7 +64,7 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `coupling_between_objects` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Distinct analyzed classes a class body references (Python: resolved through the class registry; JS/TS: imported names, lexical approximation). |
 | `depth_of_inheritance_tree` | SOLID | Class | `>= 1` | None | Python, JS/TS | None | Custom | Inheritance depth after resolving known project bases. |
 | `number_of_children` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Number of known immediate subclasses. |
-| `directory_children` | SOLID | Directory | `>= 0` | None unless `tree_shape` config exists; then non-root `>= 2` and all dirs `<= 7` | Python, JS/TS | None | Custom | Immediate module/subdirectory fan-out for analyzed directories. |
+| `directory_children` | SOLID | Directory | `>= 0` | None (never gated) | Python, JS/TS | None | Custom | Immediate module/subdirectory fan-out for analyzed directories. |
 | `efferent_coupling` | SOLID | Module/package | `>= 0` | None | Python, JS/TS | None | Custom | Number of analyzed modules/packages this module/package imports. |
 | `afferent_coupling` | SOLID | Module/package | `>= 0` | None | Python, JS/TS | None | Custom | Number of analyzed modules/packages importing this module/package. |
 | `instability` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Efferent coupling divided by total afferent plus efferent coupling. |

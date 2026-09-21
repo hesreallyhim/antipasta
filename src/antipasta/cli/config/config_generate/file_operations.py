@@ -168,7 +168,7 @@ def _append_ignore_patterns_block(yaml_lines: list[str], patterns: list[str]) ->
 def _append_project_blocks(yaml_lines: list[str], data: dict[str, Any]) -> None:
     """Append optional project-scoped preset/config blocks."""
     blocks = [
-        ("tree_shape", "# Directory fan-out and optional layer-order gates"),
+        ("tree_shape", "# Directory exclusions and optional layer-order gates"),
         ("import_graph", "# Import-cycle and stable-dependencies gates"),
         ("narrative", "# Narrative/readability gates"),
         ("duplication", "# Duplication gates"),

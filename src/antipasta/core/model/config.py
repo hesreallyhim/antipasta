@@ -95,12 +95,11 @@ class DefaultsConfig(BaseModel):
 
 
 class TreeShapeConfig(BaseModel):
-    """Module Tree Shape gating (fan-out band). Presence of this block turns
-    the tree-shape deriver's rows into enforceable violations; without it the
-    deriver stays informational."""
+    """Module Tree Shape: directory exclusions and the optional layer order.
+    Directory fan-out is reported but never gated; flat packages of thirty
+    modules are ordinary and a child count cannot tell a missing layer from
+    a wide one."""
 
-    fan_out_min: int = Field(default=2, ge=1)
-    fan_out_max: int = Field(default=7, ge=1)
     exclude: list[str] = Field(default_factory=list)
     #: Layer order, top to bottom (e.g. [cli, report, runners, core]): a
     #: module in an earlier layer may import later layers; the reverse is an
@@ -113,22 +112,6 @@ class TreeShapeConfig(BaseModel):
             type=MetricType.LAYERING_VIOLATIONS,
             threshold=0.0,
             comparison=ComparisonOperator.LE,
-        )
-
-    def max_children_config(self) -> MetricConfig:
-        """Threshold check for 'too many children' (missing layer)."""
-        return MetricConfig(
-            type=MetricType.DIRECTORY_CHILDREN,
-            threshold=float(self.fan_out_max),
-            comparison=ComparisonOperator.LE,
-        )
-
-    def min_children_config(self) -> MetricConfig:
-        """Threshold check for 'too few children' (pointless layer)."""
-        return MetricConfig(
-            type=MetricType.DIRECTORY_CHILDREN,
-            threshold=float(self.fan_out_min),
-            comparison=ComparisonOperator.GE,
         )
 
 

@@ -316,20 +316,8 @@
       "type": "string"
     },
     "TreeShapeConfig": {
-      "description": "Module Tree Shape gating (fan-out band). Presence of this block turns\nthe tree-shape deriver's rows into enforceable violations; without it the\nderiver stays informational.",
+      "description": "Module Tree Shape: directory exclusions and the optional layer order.\nDirectory fan-out is reported but never gated; flat packages of thirty\nmodules are ordinary and a child count cannot tell a missing layer from\na wide one.",
       "properties": {
-        "fan_out_min": {
-          "default": 2,
-          "minimum": 1,
-          "title": "Fan Out Min",
-          "type": "integer"
-        },
-        "fan_out_max": {
-          "default": 7,
-          "minimum": 1,
-          "title": "Fan Out Max",
-          "type": "integer"
-        },
         "exclude": {
           "items": {
             "type": "string"
