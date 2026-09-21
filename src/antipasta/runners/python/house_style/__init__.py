@@ -112,14 +112,20 @@ class HouseStyleRunner(BaseRunner):
             concrete = cohesion.concrete_methods(payload["methods"])
             if not concrete:
                 continue
+            clusters = cohesion.cohesion_clusters(payload["methods"])
             rows.append(
                 MetricResult(
                     file_path=file_path,
                     metric_type=MetricType.LACK_OF_COHESION,
-                    value=float(cohesion.lack_of_cohesion(payload["methods"])),
+                    value=float(len(clusters)),
                     line_number=payload["lineno"],
                     function_name=payload["name"],
-                    details={"methods": len(payload["methods"]), "concrete_methods": len(concrete)},
+                    details={
+                        "methods": len(payload["methods"]),
+                        "concrete_methods": len(concrete),
+                        "clusters": [cluster[:4] for cluster in clusters[:5]],
+                        "stateless_methods": len(cohesion.stateless_methods(payload["methods"])),
+                    },
                 )
             )
         return rows

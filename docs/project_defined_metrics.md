@@ -205,7 +205,11 @@ The metric names handlers that catch an error and then erase it without a narrow
 
 ## Lack Of Cohesion
 
-`lack_of_cohesion` counts disconnected groups of concrete methods inside a class, using shared fields (through `self` or `cls`) and local method calls as connecting evidence. A value above one means the class graph split into more than one method group. Stub methods such as abstract declarations and no-op hooks touch no state, so they are left out, and a class with no concrete methods (an interface, a data carrier) gets no row rather than a misleading count.
+`lack_of_cohesion` counts the responsibility clusters inside a class. Methods join a cluster when they touch the same field (through `self` or `cls`), when one calls the other or reads a property the other defines, or when both call the same inherited method. A value above one means the class holds more than one group of methods that share nothing with each other.
+
+Three kinds of method are deliberately left out of the count. Stub methods such as abstract declarations and no-op hooks touch no state, so an interface with fifty declared methods is not fifty responsibilities. A stateless helper that touches no field and shares nothing with a sibling is a method parked on the class, not a reason for the class to change; these are counted separately in the row's details. And a group consisting only of `__init__` is setup, not a responsibility. A class with no concrete methods gets no row rather than a misleading count.
+
+These rules were calibrated against twelve libraries. Before them, 187 of 1,022 classes had more than one component, most of them interfaces and classes with a few stateless helpers; after, 37 do, and they are the splits a maintainer would recognize, such as `unittest.TestCase` dividing into instance lifecycle and class-level cleanup, or pydantic's `BaseModel` into construction, dumping, and schema groups.
 
 For example, a class whose persistence methods share `self.connection` while its rendering methods share `self.template` forms two structural groups under one class name. The metric is approximate because field sharing is only a proxy for conceptual unity.
 

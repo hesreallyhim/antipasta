@@ -26,7 +26,10 @@ def _facts(source: str) -> list[FactRow]:
 
 class TestAbstractnessClassification:
     def test_abstract_base_class_counts(self) -> None:
-        source = "from abc import ABC\nclass Port(ABC):\n    pass\nclass Impl:\n    pass\n"
+        source = (
+            "from abc import ABC\nclass Port(ABC):\n    pass\n"
+            "class Impl:\n    def go(self):\n        return 1\n"
+        )
         assert module_abstractness(_facts(source)) == 0.5
 
     def test_protocol_counts(self) -> None:
@@ -58,7 +61,28 @@ class TestAbstractnessClassification:
         assert module_abstractness(_facts(source)) == 1.0
 
     def test_concrete_class_is_zero(self) -> None:
-        assert module_abstractness(_facts("class Plain:\n    pass\n")) == 0.0
+        source = "class Plain:\n    def go(self):\n        return 1\n"
+        assert module_abstractness(_facts(source)) == 0.0
+
+    def test_data_carriers_do_not_count(self) -> None:
+        # An exceptions module, an enum, a named tuple: neither abstraction nor
+        # implementation, so the module has no abstractness at all.
+        source = (
+            "import enum\nfrom typing import NamedTuple\n"
+            "class AppError(Exception):\n    pass\n"
+            "class Mode(enum.Enum):\n    A = 1\n"
+            "class Pair(NamedTuple):\n    x: int\n"
+            "class Row:\n    def __repr__(self):\n        return 'Row'\n"
+        )
+        assert module_abstractness(_facts(source)) is None
+
+    def test_data_carriers_are_excluded_from_the_ratio(self) -> None:
+        source = (
+            "from abc import ABC\nclass Port(ABC):\n    pass\n"
+            "class PortError(Exception):\n    pass\n"
+            "class Impl:\n    def go(self):\n        return 1\n"
+        )
+        assert module_abstractness(_facts(source)) == 0.5
 
     def test_not_implemented_stub_marks_class(self) -> None:
         # asyncio's AbstractEventLoop convention: no abc, bodies raise.

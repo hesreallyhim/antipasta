@@ -83,6 +83,55 @@ class TestLackOfCohesion:
         assert _value(result, MetricType.LACK_OF_COHESION, "A") == 1.0
 
 
+class TestClusterRules:
+    def test_property_read_links_to_its_getter(self) -> None:
+        # packaging.version.Version: ``major`` reads ``self.release``, a
+        # property whose getter reads ``self._version``.
+        source = (
+            "class Version:\n"
+            "    def __init__(self, v):\n        self._version = v\n"
+            "    @property\n"
+            "    def release(self):\n        return self._version.release\n"
+            "    @property\n"
+            "    def major(self):\n        return self.release[0]\n"
+        )
+        assert _value(_analyze(source), MetricType.LACK_OF_COHESION, "Version") == 1.0
+
+    def test_shared_inherited_callee_links_methods(self) -> None:
+        # email.message.MIMEPart reaches its state only through Message methods.
+        source = (
+            "class Part(Message):\n"
+            "    def is_attachment(self):\n        return self.get('cd') == 'a'\n"
+            "    def iter_parts(self):\n        return list(self.get_payload())\n"
+            "    def body(self):\n        return self.get_payload()\n"
+        )
+        result = _analyze(source)
+        assert _value(result, MetricType.LACK_OF_COHESION, "Part") == 1.0
+
+    def test_stateless_helpers_are_not_clusters(self) -> None:
+        source = (
+            "class Loop:\n"
+            "    def __init__(self):\n        self.readers = {}\n"
+            "    def add_reader(self, fd):\n        self.readers[fd] = 1\n"
+            "    def _sock_recv(self, fut, sock, n):\n        fut.set_result(sock.recv(n))\n"
+            "    def _sock_send(self, fut, sock, data):\n        fut.set_result(sock.send(data))\n"
+        )
+        result = _analyze(source)
+        row = next(m for m in result.metrics if m.metric_type == MetricType.LACK_OF_COHESION)
+        assert row.value == 1.0
+        assert (row.details or {})["stateless_methods"] == 2
+        assert (row.details or {})["clusters"] == [["__init__", "add_reader"]]
+
+    def test_init_only_cluster_is_setup_not_a_responsibility(self) -> None:
+        source = (
+            "class Decoder:\n"
+            "    def __init__(self):\n        self.hook = None\n"
+            "    def decode(self, s):\n        return self.scan(s)\n"
+            "    def scan(self, s):\n        return self.raw(s)\n"
+        )
+        assert _value(_analyze(source), MetricType.LACK_OF_COHESION, "Decoder") == 1.0
+
+
 class TestStubAwareCohesion:
     def test_interface_has_no_cohesion_row(self) -> None:
         source = (

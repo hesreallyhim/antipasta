@@ -41,7 +41,8 @@
   const SEV_W = { viol: 0.55, prox: 0.30, worst: 0.15 };
   const PROX_LO = 0.70, PROX_HI = 1.00;
   const SOFT = {
-    source_lines_of_code: 1000, single_responsibility_index: 5,
+    // SRI is zero for cohesive classes; above the cap means a heavy split.
+    source_lines_of_code: 1000, single_responsibility_index: 3,
     depth_of_inheritance_tree: 5, name_clarity_floor: 0.60,
     distance_tolerance: 0.50,
   };
@@ -716,7 +717,7 @@
     return [
       { v: low, l: "files MI < 50", over: low > 0 },
       { v: mi.min == null ? "—" : fmt(mi.min), l: "lowest MI", over: mi.min != null && mi.min < 50 },
-      { v: sriOut, l: "SRI outliers (>5)", over: sriOut > 0 },
+      { v: sriOut, l: `SRI outliers (>${SOFT.single_responsibility_index})`, over: sriOut > 0 },
       { v: sri.length ? fmt(Math.max(...sri)) : "—", l: "max SRI", over: false },
     ];
   }

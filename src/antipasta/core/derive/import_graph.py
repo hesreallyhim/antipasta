@@ -502,12 +502,32 @@ _ABSTRACT_STUB_KINDS = frozenset({"not_implemented", "ellipsis"})
 
 
 def module_abstractness(facts: list[FactRow]) -> float | None:
-    """Abstract-class ratio for one module; None when it has no classes."""
-    class_payloads = [fact.payload for fact in facts if fact.kind == "class"]
-    if not class_payloads:
+    """Abstract-class ratio over a module's behavioral classes; None when it
+    has none.
+
+    Data carriers (exception hierarchies, enums, named tuples, dataclasses:
+    classes with no concrete non-dunder method) are neither abstractions nor
+    implementations in Martin's sense, so they do not count. Without this
+    rule every ``exceptions`` module lands in the pain corner.
+    """
+    behavioral = [
+        fact.payload
+        for fact in facts
+        if fact.kind == "class" and (_is_abstract(fact.payload) or _has_behavior(fact.payload))
+    ]
+    if not behavioral:
         return None
-    abstract = sum(1 for payload in class_payloads if _is_abstract(payload))
-    return abstract / len(class_payloads)
+    abstract = sum(1 for payload in behavioral if _is_abstract(payload))
+    return abstract / len(behavioral)
+
+
+def _has_behavior(payload: dict[str, Any]) -> bool:
+    """At least one concrete method that is not protocol plumbing."""
+    return any(
+        method.get("stub") is None
+        and not (method["name"].startswith("__") and method["name"].endswith("__"))
+        for method in payload["methods"]
+    )
 
 
 def _is_abstract(payload: dict[str, Any]) -> bool:
