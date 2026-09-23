@@ -12,6 +12,7 @@ from typing import Any
 import yaml
 
 from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_defaults import bind_default_gates
 from antipasta.core.model.config_merge import leaf_sources, merge_layer
 from antipasta.core.model.config_paths import (
     ConfigPaths,
@@ -45,10 +46,16 @@ def read_layer(path: Path) -> dict[str, Any]:
     return data
 
 
-def unknown_keys(data: dict[str, Any], label: str) -> list[str]:
+def unknown_keys(data: dict[str, Any], label: str, *, allow_projects: bool = False) -> list[str]:
     """Keep obsolete config keys visible without breaking otherwise valid input."""
     allowed = set(AntipastaConfig.model_fields) | {"projects"}
     warnings = [f"{label}: unknown top-level key '{key}'" for key in data if key not in allowed]
+    if not allow_projects:
+        if "projects" in data:
+            warnings.append(
+                f"{label}: 'projects' is only supported in the user configuration; ignored"
+            )
+        return warnings
     for root, layer in project_layers(data):
         warnings.extend(unknown_keys(layer, f"{label}:projects[{root}]"))
     return warnings
@@ -89,7 +96,9 @@ def validate_config_file(path: Path) -> list[str]:
     """Validate a file and every project entry; return non-fatal key warnings."""
     data = read_layer(path)
     validate_partial(data)
-    return unknown_keys(data, str(path))
+    return unknown_keys(
+        data, str(path), allow_projects=path.resolve() == user_config_path().resolve()
+    )
 
 
 def file_layers(paths: ConfigPaths, root: Path) -> list[tuple[str, dict[str, Any]]]:
@@ -135,9 +144,10 @@ def resolve_config(root: Path | None = None, config_path: Path | None = None) ->
         label = layer_label(label, config_path)
         validate_partial(layer, data)
         if not label.startswith("user projects["):
-            warnings.extend(unknown_keys(layer, label))
+            warnings.extend(unknown_keys(layer, label, allow_projects=label.startswith("user (")))
         merge_layer(data, expanded_layer(layer), label, sources)
     config = AntipastaConfig.model_validate(data, context={"presets_expanded": True})
+    bind_default_gates(config, sources)
     effective = config.model_dump(exclude_none=True, mode="json")
     return ResolvedConfig(config, leaf_sources(effective, sources), warnings, paths)
 

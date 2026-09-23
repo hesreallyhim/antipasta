@@ -74,8 +74,8 @@ check-ci: install-dev  ## Run CI parity checks in isolated tox environments
 metrics: install  ## Report source metrics and fail on threshold violations
 	$(ANTIPASTA) report src/ --format table --fail-on
 
-metrics-quiet: install  ## Gate source metrics with progress and table output suppressed
-	@$(ANTIPASTA) report src/ --format table --fail-on --quiet > /dev/null
+metrics-quiet: install  ## Gate source metrics without progress output, retaining diagnostics
+	@$(ANTIPASTA) report src/ --format table --fail-on --quiet
 
 metrics-json: install  ## Emit a JSON snapshot and fail on threshold violations
 	@$(ANTIPASTA) report src/ --format json --fail-on

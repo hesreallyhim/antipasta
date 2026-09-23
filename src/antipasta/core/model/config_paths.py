@@ -46,8 +46,10 @@ def repository_root(root: Path) -> Path:
 
 
 def snapshot_path(root: Path) -> Path:
-    """Use a stable checkout-path key without changing the snapshot schema."""
-    key = hashlib.sha256(os.fsencode(repository_root(root))).hexdigest()
+    """Give each canonical analysis root its own previous-run slot per checkout."""
+    target = analysis_root(root)
+    identity = os.fsencode(repository_root(target)) + b"\0" + os.fsencode(target)
+    key = hashlib.sha256(identity).hexdigest()
     return _default_cache_dir() / "snapshots" / f"{key}.json"
 
 

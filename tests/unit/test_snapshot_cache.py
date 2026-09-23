@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from antipasta.core.model.config_paths import snapshot_path
+from antipasta.core.model.config_paths import resolve_paths, snapshot_path
 from antipasta.core.store.snapshot_cache import SnapshotCache
 
 
@@ -71,7 +71,7 @@ def test_failed_atomic_replace_cleans_up_temporary_file(tmp_path: Path) -> None:
     assert list(cache.path.parent.iterdir()) == []
 
 
-def test_nested_root_uses_checkout_key_but_worktrees_stay_separate(tmp_path: Path) -> None:
+def test_nested_roots_and_worktrees_have_separate_snapshot_slots(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     nested = repo / "src"
     nested.mkdir(parents=True)
@@ -79,5 +79,28 @@ def test_nested_root_uses_checkout_key_but_worktrees_stay_separate(tmp_path: Pat
     worktree = tmp_path / "worktree"
     worktree.mkdir()
     (worktree / ".git").write_text("gitdir: somewhere")
-    assert snapshot_path(nested) == snapshot_path(repo)
+    assert snapshot_path(nested) != snapshot_path(repo)
     assert snapshot_path(worktree) != snapshot_path(repo)
+
+
+def test_snapshot_slot_canonicalizes_symlinks_and_relative_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / ".git").mkdir()
+    nested = root / "src"
+    nested.mkdir()
+    alias = tmp_path / "alias"
+    alias.symlink_to(nested, target_is_directory=True)
+    monkeypatch.chdir(root)
+    assert snapshot_path(Path("src")) == snapshot_path(nested) == snapshot_path(alias)
+
+
+def test_resolved_config_paths_use_the_analysis_root_snapshot(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    nested = tmp_path / "src"
+    nested.mkdir()
+    paths = resolve_paths(nested)
+    assert paths.snapshot == snapshot_path(nested)
+    assert paths.snapshot != snapshot_path(tmp_path)

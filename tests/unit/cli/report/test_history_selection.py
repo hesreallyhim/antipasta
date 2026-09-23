@@ -41,3 +41,31 @@ def test_default_and_explicit_directory_collection_share_history(
     explicit = runner.invoke(report, [str(tmp_path)])
     assert explicit.exit_code == 0, explicit.output
     assert " | Delta" in explicit.stdout
+
+
+def test_alternating_repository_subdirectories_preserves_each_history(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".antipasta.yaml").write_text("ignore_patterns: []\n")
+    src = tmp_path / "src"
+    tests = tmp_path / "tests"
+    src.mkdir()
+    tests.mkdir()
+    source = src / "sample.py"
+    source.write_text("def work(value):\n    return value\n")
+    (tests / "sample.py").write_text("value = 1\n")
+    runner = CliRunner()
+    first = runner.invoke(report, [str(src)])
+    assert first.exit_code == 0, first.output
+    other = runner.invoke(report, [str(tests)])
+    assert other.exit_code == 0, other.output
+    source.write_text("def work(value):\n    if value:\n        return 1\n    return 0\n")
+    changed = runner.invoke(report, [str(src)])
+    assert changed.exit_code == 0, changed.output
+    assert " | Delta" in changed.stdout
+    assert "worst=+1" in changed.stdout
+    other_again = runner.invoke(report, [str(tests)])
+    assert other_again.exit_code == 0, other_again.output
+    assert " | Delta" in other_again.stdout

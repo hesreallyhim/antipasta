@@ -167,7 +167,7 @@ antipasta report src/ --format html --output report.html --baseline report.basel
 
 The HTML report is a single file with no network dependencies (d3 is embedded), so it can be opened from any `file://` URL or attached to a CI run. Tile area is source lines of code; tile color is the selected metric against its configured threshold. Metrics unavailable for a language render neutral.
 
-Terminal tables compare their displayed aggregates with the previous cached run for the same repository and compatible analysis scope. A first run has no delta column. `--baseline PATH` pins an explicit JSON snapshot instead. The cache is disposable: deleting it removes the previous-run comparison until another snapshot is stored. Use `--save-baseline` or `--format json --output PATH` for history you want to keep.
+Terminal tables compare their displayed aggregates with the previous cached run for the same repository and compatible analysis scope. Each analysis root has its own previous-run slot, so alternating subdirectories preserves their histories. A first run has no delta column. `--baseline PATH` pins an explicit JSON snapshot instead. The cache is disposable: deleting it removes the previous-run comparison until another snapshot is stored. Use `--save-baseline` or `--format json --output PATH` for history you want to keep.
 
 ### Validate Configuration
 
@@ -252,6 +252,8 @@ The `report` and `config` commands resolve YAML configuration from these layers,
 5. Command-line flags and threshold overrides.
 
 Each layer expands its own preset before merging. Scalars and nested blocks merge by key. Lists replace inherited lists; `languages` merges by language name, but each supplied language's `metrics` list replaces its inherited gates. Omitting a metric from that list removes its gate. `config view --sources` attributes replaced lists as a whole, and both `view` and `validate` warn about unknown top-level keys.
+
+If no layer supplies a Python metric list, its inherited gate thresholds follow the merged `defaults` values; the shipped enabled flags stay unchanged. Explicit metric lists and preset gates remain authoritative. A `projects:` map is supported only in the resolved user configuration file; `view` and `validate` warn when it appears in a project file.
 
 For example, a user configuration can keep repository-specific tuning outside version control:
 
@@ -443,13 +445,13 @@ antipasta report src/ --fail-on
 # Check configuration before analysis
 antipasta config validate && antipasta report src/ --fail-on
 
-# Suppress progress and discard the table when only exit status is needed
-antipasta report src/ --fail-on --quiet > /dev/null
+# Suppress progress while preserving the table and failure diagnostics
+antipasta report src/ --fail-on --quiet
 ```
 
 ## Terminal Output
 
-The default table groups metrics into Lines of code, Complexity, SOLID, Maintainability, Test quality, VCS, and Experimental sections. Empty optional sections are omitted. Metrics at different scopes occupy separate lines. Rows show unit counts, threshold breaches, extreme values, and up to three offenders where a worse direction is defined; metrics without a defined worse direction show minimum, median, and maximum values. Compatible prior snapshots add aggregate deltas. The footer reports the violation count and, with `--fail-on`, the gate's exit status.
+The default table groups metrics into Lines of code, Complexity, SOLID, Maintainability, Test quality, VCS, and Experimental sections. Empty optional sections are omitted. Metrics missing from the category policy appear under Other. Metrics at different scopes occupy separate lines. Rows show unit counts, threshold breaches, extreme values, and up to three offenders where a worse direction is defined; metrics without a defined worse direction show minimum, median, and maximum values. Compatible prior snapshots add aggregate deltas. The footer reports the violation count and, with `--fail-on`, the gate's exit status.
 
 Report data goes to stdout, or the file selected by `--output`; diagnostics go to stderr. `--quiet` suppresses progress and supplementary summaries while preserving the requested report data. JSON snapshots and HTML documents remain clean when piped.
 

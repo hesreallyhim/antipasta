@@ -8,6 +8,7 @@ import pytest
 import yaml
 
 from antipasta.cli.main import cli
+from antipasta.core.model.config_paths import user_config_path
 
 
 def test_view_effective_layers_and_sources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -37,7 +38,8 @@ def test_view_effective_layers_and_sources(tmp_path: Path, monkeypatch: pytest.M
 
 
 def test_validate_unknown_keys_and_unused_project_entries(tmp_path: Path) -> None:
-    file = tmp_path / "user.yaml"
+    file = user_config_path()
+    file.parent.mkdir(parents=True)
     file.write_text(
         yaml.safe_dump({"narrative": {}, "projects": {str(tmp_path): {"narrative": {}}}})
     )

@@ -243,3 +243,16 @@ def test_analysis_errors_take_priority_over_threshold_exit_status() -> None:
         snapshot = {"files": [failed], "summary": {"total_violations": count}}
         output = format_snapshot_table(snapshot, _config(), fail_on=True)
         assert output.endswith(f"Violations: {count} | Exit status: 1")
+
+
+def test_unknown_metrics_have_their_own_section_after_known_categories() -> None:
+    snapshot = {
+        "files": [_file(metrics={"future_metric": 3, "maintainability_index": 60})],
+        "project": [_project("a.py", "code_churn", 4)],
+    }
+    output = format_snapshot_table(snapshot, _config())
+    known, other = output.split("\n\nOther\n")
+    assert "future_metric" not in known
+    assert "future_metric [file] | units=1, worst=3" in other
+    assert known.index("Maintainability\n") < known.index("VCS\n")
+    assert "Other\n" not in format_snapshot_table({}, _config())

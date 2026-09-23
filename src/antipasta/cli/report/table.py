@@ -49,7 +49,7 @@ def _aggregate_rows(
 
 
 def _category(key: tuple[str, str]) -> str:
-    return METRIC_CATEGORIES.get(key[0], "Maintainability")
+    return METRIC_CATEGORIES.get(key[0], "Other")
 
 
 def _footer(snapshot: dict[str, Any], fail_on: bool) -> str:
@@ -83,7 +83,7 @@ def format_snapshot_table(
     previous = _aggregate_rows(collect_rows(baseline or {}), config)
     keys = sorted(current.keys() | previous.keys())
     sections = []
-    for category in CATEGORIES:
+    for category in (*CATEGORIES, "Other"):
         if category == "Experimental" and not config.experimental_enabled("narrative"):
             continue
         selected = [key for key in keys if _category(key) == category]
