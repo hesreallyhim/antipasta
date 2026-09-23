@@ -28,9 +28,8 @@ if TYPE_CHECKING:
     from antipasta.core.model.config_override import ConfigOverride
 
 # Strictness profiles scale threshold defaults for style-sensitive metrics
-# (prose-grade expressions, narrator budgets — consumers land from Phase 1 of
-# docs/design/metrics-adoption-plan.md). Precedence: explicit per-metric
-# config > profile default.
+# (the experimental narrative budgets, preset thresholds). Precedence:
+# explicit per-metric config > profile default.
 ProfileName = Literal["extreme", "standard", "relaxed"]
 
 

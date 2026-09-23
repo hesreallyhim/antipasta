@@ -1,6 +1,6 @@
 """The layered lexicon: context-aware vocabulary for name-clarity scoring.
 
-Four layers, per docs/design/narrative-index.md:
+Four layers (see docs/experimental_metrics.md):
 
 1. A vendored English wordlist (``wordlist.txt.gz`` beside this module, ~200k lowercase
    words derived from the public-domain web2 list shipped with macOS/BSD;

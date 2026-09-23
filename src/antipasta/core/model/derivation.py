@@ -1,15 +1,15 @@
 """The derivation stage: whole-program metrics over per-file facts.
 
-Derivers are the derive half of the extract/derive split (see
-docs/design/structural-metrics-caching.md): pure functions that receive every
+Derivers are the derive half of the extract/derive split: pure functions
+that receive every
 file's cached facts plus the live directory tree and produce project- or
 directory-scoped reports (dependency cycles, module tree shape, ...). They
 run on every analysis, uncached — measured at roughly three orders of
 magnitude cheaper than extraction, and recomputation is what keeps
 structure-only changes (renames, moves) always visible.
 
-Phase 0 ships the stage with no built-in derivers; phases 1+ register them
-(see docs/design/metrics-adoption-plan.md).
+The engine registers the built-in derivers; experimental ones join only when
+their feature is enabled (see docs/experimental_metrics.md).
 """
 
 from __future__ import annotations

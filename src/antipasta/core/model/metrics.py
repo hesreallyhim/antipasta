@@ -152,8 +152,7 @@ class FactRow:
     """A path-independent, judgment-free fact extracted from one file.
 
     Facts are the extraction half of the extract/derive split for
-    whole-program metrics (see docs/design/structural-metrics-caching.md):
-    raw material like unresolved import statements or class declarations,
+    whole-program metrics: raw material like unresolved import statements or class declarations,
     cached content-addressed alongside metric rows and consumed by derivers.
     Two hard rules keep them cacheable: the payload must be reproducible from
     the file's bytes alone (no location-derived data), and it carries no

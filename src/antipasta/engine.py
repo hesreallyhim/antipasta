@@ -173,8 +173,8 @@ class MetricAggregator:
             cache: Metric cache (default: a content-addressed store under the
                 user cache dir; see core.cache for locations and kill switches)
             derivers: Whole-program derivation functions run after per-file
-                collection (default: none registered in Phase 0; see
-                docs/design/metrics-adoption-plan.md)
+                collection (default: the built-in derivers, with experimental
+                ones joining only when their feature is enabled)
         """
         self.config = config
         self.cache = cache if cache is not None else MetricsCache()

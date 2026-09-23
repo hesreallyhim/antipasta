@@ -1,7 +1,7 @@
 """Fact extraction: raw imports, callables, classes.
 
-Facts are path-independent and judgment-free (the two cache-safety rules from
-docs/design/structural-metrics-caching.md). Imports are deliberately stored
+Facts are path-independent and judgment-free (the two cache-safety rules:
+see ``FactRow`` in ``core.model.metrics``). Imports are deliberately stored
 UNRESOLVED — resolving ``from . import x`` depends on the file's location,
 which belongs to the derivation layer. Class facts carry the per-method field
 access and local calls the Phase 2 cohesion metrics need, so the file is

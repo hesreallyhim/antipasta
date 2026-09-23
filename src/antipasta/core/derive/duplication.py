@@ -1,14 +1,12 @@
 """Duplication deriver: WET-code detection via the pydry engine.
 
-Track A of the adoption plan (docs/design/test-suite-health.md names the
-test-tree application too). pydry — the owner's own clone-detection engine —
-finds exact structural duplicates after syntax-tree normalization (Type-2
+pydry — the project's companion clone-detection engine — finds exact
+structural duplicates after syntax-tree normalization (Type-2
 clones: local names and constants normalizable). This deriver is
 **config-gated on presence** of a ``duplication`` block, unlike the
 informational-first derivers: pydry re-parses the tree on every run, so the
-default command path must not pay for it. Merkle-tree memoization (see
-structural-metrics-caching.md) is the recorded follow-up if the cost ever
-matters at scale.
+default command path must not pay for it. Merkle-tree memoization is the
+recorded follow-up if the cost ever matters at scale.
 
 The PyPI package is named pydry-cli; the import module is pydry. The runtime
 dependency is still probed defensively so a broken environment yields a

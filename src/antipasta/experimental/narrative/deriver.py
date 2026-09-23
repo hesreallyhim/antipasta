@@ -1,6 +1,6 @@
 """Narrative Index deriver: altitude classification, budgets, step-down.
 
-The owner's prose discipline, enforced per docs/design/narrative-index.md:
+The prose discipline described in docs/experimental_metrics.md:
 every function classifies as narrator (advances the story via named project
 calls), computer (a leaf: raw computation, no project calls), MIXED (both in
 one body — the violation), or trivial (under 3 statements). Narrators carry
