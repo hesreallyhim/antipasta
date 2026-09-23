@@ -250,7 +250,10 @@ languages:
     def test_explicit_project_block_values_win_over_preset(self) -> None:
         """Preset expansion fills missing project-block fields only."""
         # The YAML path: a partial block, as a user would write it.
-        config = AntipastaConfig(preset="compact", duplication={"max_ratio": 0.5})
+        config = AntipastaConfig.model_validate({
+            "preset": "compact",
+            "duplication": {"max_ratio": 0.5},
+        })
 
         assert config.duplication is not None
         assert config.duplication.max_ratio == 0.5  # explicit value wins
