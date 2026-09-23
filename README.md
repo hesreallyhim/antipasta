@@ -213,7 +213,7 @@ antipasta report src/ --by module
 antipasta report src/ --by module --output modules.txt
 ```
 
-`--by` applies only to `--format table` (the default). Combining it with HTML or JSON is a usage error. These grouped views reuse the existing statistics aggregation; JSON output remains the analysis snapshot, rather than a grouped statistics object.
+`--by` applies only to `--format table` (the default). Combining it with HTML or JSON is a usage error. These grouped views reuse the existing statistics aggregation. An explicit `--baseline` adds a separate baseline diff summary; aggregate delta columns belong to the ungrouped overview. JSON output remains the analysis snapshot.
 
 ### Version-Control Mining
 
@@ -243,7 +243,7 @@ antipasta test-health --coverage-file .coverage --format json
 
 ## Configuration
 
-antipasta resolves YAML configuration from these layers, with later values taking precedence:
+The `report` and `config` commands resolve YAML configuration from these layers, with later values taking precedence:
 
 1. Built-in defaults.
 2. User configuration at `$XDG_CONFIG_HOME/antipasta/config.yaml`, or `~/.config/antipasta/config.yaml` when unset. On Windows it uses `%APPDATA%\antipasta\config.yaml`.
@@ -449,7 +449,7 @@ antipasta report src/ --fail-on --quiet > /dev/null
 
 ## Terminal Output
 
-The default table groups metrics into Lines of code, Complexity, SOLID, Maintainability, Test quality, VCS, and Experimental sections. Empty optional sections are omitted. Metrics at different scopes occupy separate lines. Rows show unit counts, threshold breaches, extreme values, and up to three offenders where a worse direction is defined; informational measures instead show minimum, median, and maximum values. Compatible prior snapshots add aggregate deltas. The footer reports the violation count and, with `--fail-on`, the gate's exit status.
+The default table groups metrics into Lines of code, Complexity, SOLID, Maintainability, Test quality, VCS, and Experimental sections. Empty optional sections are omitted. Metrics at different scopes occupy separate lines. Rows show unit counts, threshold breaches, extreme values, and up to three offenders where a worse direction is defined; metrics without a defined worse direction show minimum, median, and maximum values. Compatible prior snapshots add aggregate deltas. The footer reports the violation count and, with `--fail-on`, the gate's exit status.
 
 Report data goes to stdout, or the file selected by `--output`; diagnostics go to stderr. `--quiet` suppresses progress and supplementary summaries while preserving the requested report data. JSON snapshots and HTML documents remain clean when piped.
 

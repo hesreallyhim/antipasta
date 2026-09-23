@@ -1,8 +1,8 @@
 """The ``antipasta report`` command.
 
 Composes the existing metrics pipeline (file collection + aggregation) into a
-single snapshot and renders it either as JSON or as a fully offline HTML
-report.
+single snapshot and renders a terminal overview, JSON, or an offline HTML
+report. Terminal deltas use the previous compatible run unless explicitly pinned.
 
 Output discipline: stdout carries data (the JSON snapshot or HTML document
 when no ``--output`` is given), everything diagnostic goes to stderr.  The
@@ -31,6 +31,8 @@ from antipasta.cli.metrics import (
     execute_analysis,
 )
 from antipasta.cli.report.diff_summary import format_diff_summary
+from antipasta.cli.report.history import snapshot_cache_for
+from antipasta.cli.report.table import format_snapshot_table
 from antipasta.core.model.config import EXPERIMENTAL_FEATURES, AntipastaConfig
 from antipasta.core.model.config_layers import resolve_config
 from antipasta.core.model.config_override import ConfigOverride
@@ -71,7 +73,7 @@ from antipasta.report.baseline import build_baseline_payload
     "--format",
     "output_format",
     type=click.Choice(["table", "html", "json"], case_sensitive=False),
-    default="html",
+    default="table",
     help="Report format (terminal table, offline HTML page or JSON snapshot)",
 )
 @click.option("--fail-on", is_flag=True, help="Exit 2 when metric thresholds are breached")
@@ -190,16 +192,37 @@ def report(
         project_reports=results.get("project_reports"),
         import_graph=results.get("import_graph"),
     )
-    render_snapshot, baseline_diff = _apply_baseline(snapshot, baseline, output_format)
-    payload = _report_payload(render_snapshot, results, output_format, by, root)
+    cache = snapshot_cache_for(root, files, final_config, override, directory)
+    previous = _load_baseline_snapshot(baseline) if baseline is not None else cache.load()
+    render_snapshot, baseline_diff = _apply_baseline(
+        snapshot, baseline, previous, output_format, by
+    )
+    payload = _report_payload(
+        render_snapshot, results, output_format, by, root, final_config, previous, fail_on
+    )
     _emit(payload, output, output_format, open_browser)
+    if not any(report.error for report in results["reports"]):
+        cache.save(snapshot)
 
     if save_baseline:
         # The pristine snapshot, never the one carrying an embedded diff.
         _save_baseline_snapshot(snapshot, output)
 
-    # Keep stdout data-clean: the delta summary and --top table share stdout
-    # only when the data itself went to a file.
+    _emit_supplementary(snapshot, baseline, baseline_diff, output, quiet, top)
+    _exit_after_report(results, fail_on)
+
+
+def _emit_supplementary(
+    snapshot: dict[str, Any],
+    baseline: Path | None,
+    baseline_diff: SnapshotDiff | None,
+    output: Path | None,
+    quiet: bool,
+    top: int,
+) -> None:
+    """Print supplementary tables without mixing them into stdout report data."""
+    # The delta summary and --top table share stdout only when report data
+    # itself went to a file.
     if not quiet and baseline is not None and baseline_diff is not None:
         summary = format_diff_summary(baseline_diff, baseline_label=str(baseline))
         click.echo(summary, err=output is None)
@@ -207,8 +230,6 @@ def report(
     if not quiet and top > 0:
         table = format_worst_functions_table(snapshot, top)
         click.echo(table, err=output is None)
-
-    _exit_after_report(results, fail_on)
 
 
 def _validate_grouping(by: str | None, output_format: str) -> None:
@@ -253,10 +274,20 @@ def _report_payload(
     output_format: str,
     by: str | None,
     root: Path,
+    config: AntipastaConfig,
+    previous: dict[str, Any] | None,
+    fail_on: bool,
 ) -> str:
     """Reuse collected reports for table aggregation, without another analysis."""
     if output_format != "table":
         return _render_payload(snapshot, output_format)
+    if by is None:
+        return format_snapshot_table(snapshot, config, baseline=previous, fail_on=fail_on)
+    return _grouped_table(results, by, root, fail_on)
+
+
+def _grouped_table(results: dict[str, Any], by: str, root: Path, fail_on: bool) -> str:
+    """Preserve the existing directory/module statistics display."""
     from antipasta.cli.stats.collection.file_collection import get_metrics_to_include
     from antipasta.cli.stats.output import collect_statistics_based_on_grouping
     from antipasta.cli.stats.output.display import display_table
@@ -273,7 +304,20 @@ def _report_payload(
     buffer = io.StringIO()
     with redirect_stdout(buffer):
         display_table(statistics)
-    return buffer.getvalue().rstrip()
+    count = results["summary"]["total_violations"]
+    footer = f"Violations: {count}"
+    if fail_on:
+        footer += f" | Exit status: {_report_exit_status(results, fail_on)}"
+    return buffer.getvalue().rstrip() + "\n\n" + footer
+
+
+def _report_exit_status(results: dict[str, Any], fail_on: bool) -> int:
+    """Give analysis failures precedence over threshold violations."""
+    if any(report.error for report in results["reports"]):
+        return 1
+    if fail_on and results["summary"]["total_violations"]:
+        return 2
+    return 0
 
 
 def _exit_after_report(results: dict[str, Any], fail_on: bool) -> None:
@@ -281,8 +325,9 @@ def _exit_after_report(results: dict[str, Any], fail_on: bool) -> None:
     errors = [report.error for report in results["reports"] if report.error]
     if errors:
         raise click.ClickException("Analysis failed: " + "; ".join(errors))
-    if fail_on and results["summary"]["total_violations"]:
-        raise click.exceptions.Exit(2)
+    status = _report_exit_status(results, fail_on)
+    if status:
+        raise click.exceptions.Exit(status)
 
 
 def _load_baseline_snapshot(path: Path) -> dict[str, Any]:
@@ -297,7 +342,11 @@ def _load_baseline_snapshot(path: Path) -> dict[str, Any]:
 
 
 def _apply_baseline(
-    snapshot: dict[str, Any], baseline: Path | None, output_format: str
+    snapshot: dict[str, Any],
+    baseline: Path | None,
+    old: dict[str, Any] | None,
+    output_format: str,
+    by: str | None = None,
 ) -> tuple[dict[str, Any], SnapshotDiff | None]:
     """Diff the snapshot against the baseline file, when one was given.
 
@@ -305,9 +354,10 @@ def _apply_baseline(
     ``baseline`` payload for "vs baseline" mode) and the diff result.  Schema
     drift warnings go to stderr.
     """
-    if baseline is None:
+    if baseline is None or old is None:
         return snapshot, None
-    old = _load_baseline_snapshot(baseline)
+    if output_format == "table" and by is None:
+        return snapshot, None
     baseline_diff = diff(old, snapshot)
     for warning in baseline_diff.warnings:
         click.echo(f"Warning: {warning}", err=True)
