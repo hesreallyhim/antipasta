@@ -13,6 +13,17 @@ def generate_config_schema(output_path: Path | None = None) -> dict[str, Any]:
     """Generate JSON schema for the configuration."""
     schema = AntipastaConfig.model_json_schema()
 
+    # A file can inherit the remaining language fields from lower config layers.
+    schema["$defs"]["LanguageConfig"]["required"] = ["name"]
+    schema["properties"]["projects"] = {
+        "type": "object",
+        "description": "User-only partial configurations keyed by absolute repository path",
+        "additionalProperties": {
+            "type": "object",
+            "properties": dict(schema["properties"]),
+        },
+    }
+
     # Add some additional metadata
     schema["$schema"] = "http://json-schema.org/draft-07/schema#"
     schema["title"] = "Antipasta Configuration Schema"

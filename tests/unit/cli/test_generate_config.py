@@ -57,8 +57,8 @@ class TestGenerateConfigCommand:
             assert "profile: standard" in content
             assert "experimental:" not in content
 
-    def test_non_interactive_overwrites_existing_file(self) -> None:
-        """Test that non-interactive mode overwrites existing files without prompting."""
+    def test_non_interactive_preserves_existing_file(self) -> None:
+        """Non-interactive generation must not discard existing settings."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = Path(tmpdir) / "existing-config.yaml"
@@ -66,13 +66,9 @@ class TestGenerateConfigCommand:
 
             result = runner.invoke(generate, ["--non-interactive", "--output", str(output_file)])
 
-            assert result.exit_code == 0
-            assert "✅ Configuration saved to" in result.output
-
-            # Verify file was overwritten
-            content = output_file.read_text()
-            assert "existing content" not in content
-            assert "# antipasta configuration file" in content
+            assert result.exit_code == 1
+            assert "Configuration already exists" in result.output
+            assert output_file.read_text() == "existing content\n"
 
     def test_interactive_mode_with_defaults(self) -> None:
         """Test interactive mode accepting all defaults."""
@@ -213,14 +209,17 @@ class TestGenerateConfigCommand:
             assert "# antipasta configuration file" in content
 
     def test_default_output_path(self) -> None:
-        """Test that default output path is .antipasta.yaml."""
+        """Generate in the user config directory without creating project config."""
         runner = CliRunner()
         with runner.isolated_filesystem():
-            result = runner.invoke(generate, ["--non-interactive"])
+            user_dir = Path.cwd() / "user-config"
+            result = runner.invoke(
+                generate, ["--non-interactive"], env={"XDG_CONFIG_HOME": str(user_dir)}
+            )
 
             assert result.exit_code == 0
-            assert Path(".antipasta.yaml").exists()
-            assert "✅ Configuration saved to .antipasta.yaml" in result.output
+            assert (user_dir / "antipasta" / "config.yaml").exists()
+            assert not Path(".antipasta.yaml").exists()
 
     def test_generated_config_has_helpful_comments(self) -> None:
         """Test that generated config includes helpful comments."""

@@ -81,7 +81,7 @@ languages:
             assert "Validation errors:" in result.output
 
     def test_validate_default_file(self) -> None:
-        """Test that validate defaults to .antipasta.yaml."""
+        """Validate discovers the current project layer when no path is supplied."""
         runner = CliRunner()
         with runner.isolated_filesystem():
             # Create .antipasta.yaml in the current directory
@@ -108,17 +108,19 @@ use_gitignore: true
             result = runner.invoke(validate)
 
             assert result.exit_code == 0
-            assert "✅ Configuration file is valid: .antipasta.yaml" in result.output
+            assert "✅ Configuration layers are valid" in result.output
+            assert ".antipasta.yaml: loaded" in result.output
 
     def test_validate_nonexistent_default_file(self) -> None:
-        """Test error when default .antipasta.yaml doesn't exist."""
+        """Missing optional configuration files still leave valid built-in defaults."""
         runner = CliRunner()
         with runner.isolated_filesystem():
             # Don't create .antipasta.yaml
             result = runner.invoke(validate)
 
-            assert result.exit_code == 2
-            assert "Path '.antipasta.yaml' does not exist" in result.output
+            assert result.exit_code == 0
+            assert "Configuration layers are valid" in result.output
+            assert "absent (optional)" in result.output
 
     def test_validate_malformed_yaml(self) -> None:
         """Test validating a malformed YAML file."""

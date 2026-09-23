@@ -6,6 +6,7 @@ from typing import Any
 import click
 
 from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config_layers import user_config_path
 from antipasta.core.model.presets import preset_choices
 
 from .file_operations import (
@@ -29,9 +30,10 @@ from .project_config import collect_project_settings
     "--output",
     "-o",
     type=click.Path(path_type=Path),
-    default=".antipasta.yaml",
-    help="Output file path",
+    default=None,
+    help="Output file path (defaults to the user configuration)",
 )
+@click.option("--project", is_flag=True, help="Write .antipasta.yaml in the current directory")
 @click.option(
     "--non-interactive",
     is_flag=True,
@@ -43,13 +45,21 @@ from .project_config import collect_project_settings
     default=None,
     help="Apply a metric preset",
 )
-def generate(output: Path, non_interactive: bool, preset: str | None) -> None:
+def generate(
+    output: Path | None, non_interactive: bool, preset: str | None, project: bool = False
+) -> None:
     """Generate an antipasta configuration file.
 
     Creates a configuration file with sensible defaults. In interactive mode,
     prompts for customization of thresholds and settings.
     """
+    output = _output_path(output, project)
     if non_interactive:
+        if output.exists():
+            raise click.ClickException(
+                f"Configuration already exists: {output}. "
+                "Use interactive mode to confirm overwrite."
+            )
         # Generate with defaults
         config = AntipastaConfig.generate_default(preset=preset)
         save_config(config, output)
@@ -113,3 +123,12 @@ def finalize_and_save_config(config_dict: dict[str, Any], output: Path) -> None:
 
     # Save the configuration
     save_config(config, output)
+
+
+def _output_path(output: Path | None, project: bool) -> Path:
+    """Choose the requested configuration destination."""
+    if output is not None and project:
+        raise click.UsageError("--output and --project cannot be combined")
+    if output is not None:
+        return output
+    return Path(".antipasta.yaml") if project else user_config_path()

@@ -59,7 +59,7 @@ def save_config(config: AntipastaConfig, output: Path) -> None:
 
         click.echo(f"✅ Configuration saved to {output}")
         click.echo(f"\nRun 'antipasta config validate {output}' to verify.")
-        click.echo("Run 'antipasta metrics' to start analyzing your code!")
+        click.echo("Run 'antipasta report' to start analyzing your code!")
 
     except Exception as e:
         click.echo(f"❌ Error saving configuration: {e}", err=True)

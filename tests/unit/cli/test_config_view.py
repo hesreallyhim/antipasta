@@ -41,7 +41,7 @@ use_gitignore: true
 """
             )
 
-            result = runner.invoke(view, ["--path", str(config_file)])
+            result = runner.invoke(view, ["--path", str(config_file), "--format", "summary"])
 
             assert result.exit_code == 0
             assert f"Configuration: {config_file}" in result.output
@@ -62,7 +62,7 @@ use_gitignore: true
             config_file = Path(tmpdir) / "preset.yaml"
             config_file.write_text("preset: readable\n")
 
-            result = runner.invoke(view, ["--path", str(config_file)])
+            result = runner.invoke(view, ["--path", str(config_file), "--format", "summary"])
 
             assert result.exit_code == 0
             assert "PRESET" in result.output
@@ -99,10 +99,11 @@ languages:
 """
             )
 
-            result = runner.invoke(view, ["--path", str(config_file)])
+            result = runner.invoke(view, ["--path", str(config_file), "--format", "summary"])
 
-            assert result.exit_code == 0  # Still shows output
-            assert "Status: ❌ Invalid" in result.output
+            assert result.exit_code == 1
+            assert result.stdout == ""
+            assert "Effective configuration is invalid" in result.stderr
             assert "Configuration has validation errors" in result.output
 
     def test_view_raw_format(self) -> None:
@@ -237,7 +238,7 @@ use_gitignore: true
             assert "╚" in result.output
 
     def test_view_no_languages_config(self) -> None:
-        """Test viewing configuration with no languages configured."""
+        """An empty higher-layer language list inherits unmentioned default languages."""
         runner = CliRunner()
         with tempfile.TemporaryDirectory() as tmpdir:
             config_file = Path(tmpdir) / "minimal.yaml"
@@ -252,10 +253,10 @@ use_gitignore: false
 """
             )
 
-            result = runner.invoke(view, ["--path", str(config_file)])
+            result = runner.invoke(view, ["--path", str(config_file), "--format", "summary"])
 
             assert result.exit_code == 0
-            assert "No languages configured" in result.output
+            assert "Python (.py)" in result.output
             assert "Using .gitignore: No" in result.output
 
     def test_view_many_ignore_patterns(self) -> None:
@@ -304,15 +305,18 @@ languages: []
 """
             )
 
-            result = runner.invoke(view, ["--path", str(config_file), "--no-validate"])
+            result = runner.invoke(
+                view, ["--path", str(config_file), "--format", "summary", "--no-validate"]
+            )
 
-            assert result.exit_code == 0
-            assert "Status: ❌ Invalid" in result.output
-            # But no validation errors shown with --no-validate
+            assert result.exit_code == 1
+            assert result.stdout == ""
+            assert "Effective configuration is invalid" in result.stderr
+            # But no detailed validation errors shown with --no-validate
             assert "Configuration has validation errors" not in result.output
 
     def test_view_default_config_file(self) -> None:
-        """Test that view defaults to .antipasta.yaml."""
+        """Default YAML output reflects the current project configuration."""
         runner = CliRunner()
         with runner.isolated_filesystem():
             # Create .antipasta.yaml in the current directory
@@ -340,6 +344,5 @@ use_gitignore: true
             result = runner.invoke(view)
 
             assert result.exit_code == 0
-            assert "Configuration: .antipasta.yaml" in result.output
-            assert "Status: ✅ Valid" in result.output
-            assert "≤ 15" in result.output
+            data = yaml.safe_load(result.stdout)
+            assert data["defaults"]["max_cyclomatic_complexity"] == 15
