@@ -10,7 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 import yaml
 
 from antipasta.core.model.metric_models import (
@@ -251,8 +251,10 @@ class AntipastaConfig(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def expand_preset(cls, data: Any) -> Any:
+    def expand_preset(cls, data: Any, info: ValidationInfo) -> Any:
         """Materialize preset defaults before normal validation."""
+        if info.context and info.context.get("presets_expanded"):
+            return data
         if isinstance(data, dict):
             return expand_preset_config(data)
         return data
@@ -310,7 +312,7 @@ class AntipastaConfig(BaseModel):
         # Convert to dict, apply overrides, and create new instance
         config_dict = self.model_dump(exclude_none=True, mode="json")
         modified_dict = overrides.merge_with_config_dict(config_dict)
-        return AntipastaConfig(**modified_dict)
+        return AntipastaConfig.model_validate(modified_dict, context={"presets_expanded": True})
 
     def with_overrides(
         self,

@@ -17,10 +17,10 @@ from antipasta.cli.test_health import test_health as test_health_cmd
 from antipasta.cli.vcs import vcs as vcs_cmd
 
 
-@click.group()
+@click.group(no_args_is_help=True)
 @click.version_option(version=__version__, prog_name="antipasta")
 def cli() -> None:
-    """antipasta: A code quality enforcement tool that analyzes code complexity metrics."""
+    """antipasta: Analyze code quality metrics and optionally enforce thresholds."""
 
 
 # Add main commands

@@ -63,6 +63,18 @@ class TestGenerateConfigSchema:
         assert "max_halstead_difficulty" in default_props
         assert "max_halstead_effort" in default_props
 
+    def test_schema_documents_user_project_overrides(self) -> None:
+        """Project override values expose partial config fields without nesting projects."""
+        schema = generate_config_schema()
+        projects = schema["properties"]["projects"]
+        assert projects["type"] == "object"
+        overrides = projects["additionalProperties"]
+        assert "required" not in overrides
+        assert "defaults" in overrides["properties"]
+        assert "languages" in overrides["properties"]
+        assert "projects" not in overrides["properties"]
+        assert schema["$defs"]["LanguageConfig"]["required"] == ["name"]
+
     def test_schema_includes_preset_enum(self) -> None:
         """Test that the generated schema exposes preset names."""
         schema = generate_config_schema()

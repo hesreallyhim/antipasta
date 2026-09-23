@@ -2,11 +2,11 @@
 
 # antipasta
 
-A code quality static analysis library that helps you maintain code that is well-architected according to SOLID principles, readable and well-factored, 
+A code quality static analysis library that helps you maintain code that is well-architected according to SOLID principles, readable and well-factored.
 
 ## What is antipasta?
 
-antipasta analyzes your source code files and measures various complexity metrics, comparing them against configurable thresholds. If any metrics exceed their thresholds, antipasta reports violations and exits with a non-zero status code, making it suitable for CI/CD pipelines.
+antipasta analyzes source code and presents a terminal overview of complexity, maintainability, and structural metrics. Run `antipasta report .` with no configuration to get started. Add `--fail-on` to enforce configured thresholds in CI: violations then produce exit status 2.
 
 antipasta has full Python analysis and lightweight JavaScript/TypeScript support in the metrics and report pipeline through lizard for cyclomatic complexity and line-count metrics.
 
@@ -35,19 +35,30 @@ make install-dev
 
 ## Quick Start
 
+```bash
+# Analyze the current directory with built-in defaults
+antipasta report .
+
+# Enforce thresholds when a gate is wanted
+antipasta report src/ --fail-on
+```
+
 ### Generate Configuration
 
-If you don't have a configuration file yet, generate one with sensible defaults:
+Configuration is optional. To customize the defaults, generate a user configuration:
 
 ```bash
-# Interactive mode - prompts for your preferences
+# Interactive mode - writes your user configuration
 antipasta config generate
 
-# Non-interactive mode - uses defaults
+# Non-interactive mode - writes shipped defaults
 antipasta config generate --non-interactive
 
 # Start from a preset
 antipasta config generate --preset readable --non-interactive
+
+# Keep configuration in this repository instead
+antipasta config generate --project --non-interactive
 
 # Generate to a custom location
 antipasta config generate --output my-config.yaml
@@ -103,69 +114,65 @@ Pattern (or press Enter to continue):
 
 antipasta provides the following commands:
 
-| Command | Description | Default Behavior |
+| Command | Description | Default behavior |
 |---------|-------------|------------------|
-| `config` | Manage configuration files (subcommands: generate, validate, view) | Group command for configuration management |
-| `config generate` | Generate a configuration file interactively or with defaults | Creates `.antipasta.yaml` in current directory |
-| `config validate` | Validate a configuration file | Validates `.antipasta.yaml` if no file specified |
-| `config view` | View configuration in various formats | Shows configuration summary |
-| `metrics` | Analyze code metrics for specified files | Uses `.antipasta.yaml` config, shows helpful message if missing |
-| `stats` | Collect and display code metrics statistics | Analyzes files matching the specified pattern |
-| `report` | Generate a visual complexity report (offline HTML or JSON) | Writes a single self-contained HTML file |
-| `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Uses the current repository; hotspot join is skipped unless a snapshot is supplied |
-| `test-health` | Analyze coverage contexts for test redundancy and blast radius | Reads coverage.py data recorded with `--cov-context=test` |
+| `report [PATH]` | Analyze a file or directory; optionally enforce thresholds | Print a terminal table; exit 0 regardless of violations unless `--fail-on` is set |
+| `config generate` | Generate a configuration interactively or with defaults | Write the user configuration; `--project` writes `.antipasta.yaml` in cwd |
+| `config validate [PATH]` | Validate configuration files | Validate available user and project layers and the effective configuration |
+| `config view` | Print effective merged configuration | YAML; `--sources` explains which layer supplied each key |
+| `config path` | Show configuration, cache, and snapshot locations | Resolve paths for the current directory |
+| `vcs` | Mine git history for churn, coupling, hotspots, and suite-health ratios | Use the current repository; hotspot join requires a snapshot |
+| `test-health` | Analyze coverage contexts for test redundancy and blast radius | Read coverage.py data recorded with `--cov-context=test` |
+
+Running `antipasta` without a command displays help. The hidden, deprecated `metrics` and `stats` commands retain their existing options and behavior, including default gating for `metrics` and CSV/multiple-format exports for `stats`. Each emits a deprecation notice on stderr.
 
 ## Basic Usage
 
 ### Analyze Files
 
 ```bash
-# Analyze specific files (uses .antipasta.yaml by default)
-antipasta metrics --files src/main.py src/utils.py
-
 # Analyze all supported files in a directory
-antipasta metrics --directory src/
+antipasta report src/
 
-# Use a custom configuration file
-antipasta metrics --config my-config.yaml --directory .
+# Analyze one file, or select multiple files explicitly
+antipasta report src/main.py
+antipasta report --files src/main.py --files src/utils.py
 
-# Quiet mode (only show violations)
-antipasta metrics --quiet --directory src/
+# Use a custom configuration and a threshold override
+antipasta report . --config my-config.yaml --threshold cyc=15
 
-# Output results in JSON format
-antipasta metrics --format json --directory src/
+# Gate a CI run; quiet suppresses progress, while report data is still emitted
+antipasta report src/ --fail-on --quiet
+
+# Output the unchanged JSON snapshot format
+antipasta report src/ --format json
 ```
 
-**Note**: If `.antipasta.yaml` doesn't exist, antipasta will:
-1. Show a helpful message: "Configuration file '.antipasta.yaml' not found. Run 'antipasta config generate' to create a configuration file."
-2. Continue with default settings for the analysis
+The existing `--directory`/`-d` and repeatable `--files`/`-f` options remain available. A positional PATH cannot be combined with those selectors. Missing optional configuration layers use inherited defaults; an explicitly selected missing configuration is an error.
 
 ### Visual Report
 
 ```bash
 # Generate a self-contained offline HTML report (treemap, per-function tables)
-antipasta report --directory src/ --output report.html --open
+antipasta report src/ --format html --output report.html --open
 
 # Emit the raw JSON snapshot instead, plus the 10 worst functions on the terminal
-antipasta report --directory src/ --format json --output snapshot.json --top 10
+antipasta report src/ --format json --output snapshot.json --top 10
 
 # Trend workflow: snapshot, refactor, then diff — delta-colored tiles, a regressions
 # table in the HTML, and a terminal summary of what your change did to complexity
-antipasta report --directory src/ --output report.html --save-baseline   # writes report.baseline.json
-antipasta report --directory src/ --output report.html --baseline report.baseline.json
+antipasta report src/ --format html --output report.html --save-baseline   # writes report.baseline.json
+antipasta report src/ --format html --output report.html --baseline report.baseline.json
 ```
 
-The HTML report is a single file with no network dependencies (d3 is embedded),
-so it can be opened from any `file://` URL or attached to a CI run. Tile area is
-source lines of code; tile color is the selected metric against its configured
-threshold. JavaScript/TypeScript files are analyzed via lizard (cyclomatic
-complexity and line counts); metrics a language lacks render neutral, never
-"good".
+The HTML report is a single file with no network dependencies (d3 is embedded), so it can be opened from any `file://` URL or attached to a CI run. Tile area is source lines of code; tile color is the selected metric against its configured threshold. Metrics unavailable for a language render neutral.
+
+Terminal tables compare their displayed aggregates with the previous cached run for the same repository and compatible analysis scope. Each analysis root has its own previous-run slot, so alternating subdirectories preserves their histories. A first run has no delta column. `--baseline PATH` pins an explicit JSON snapshot instead. The cache is disposable: deleting it removes the previous-run comparison until another snapshot is stored. Use `--save-baseline` or `--format json --output PATH` for history you want to keep.
 
 ### Validate Configuration
 
 ```bash
-# Check if your configuration file is valid (defaults to .antipasta.yaml)
+# Validate the available user and project configuration layers
 antipasta config validate
 
 # Validate a specific configuration file
@@ -175,49 +182,38 @@ antipasta config validate my-config.yaml
 ### View Configuration
 
 ```bash
-# View configuration summary (default)
+# Print the effective merged YAML configuration
 antipasta config view
 
-# View raw YAML content
-antipasta config view --format raw
+# Show source attribution on stderr alongside effective configuration
+antipasta config view --sources
 
-# View as JSON
+# Inspect configuration for a different analysis directory
+antipasta config view --directory src/
+
+# View effective configuration as JSON or a table
 antipasta config view --format json
-
-# View as a formatted table
 antipasta config view --format table
 
-# View specific config file
-antipasta config view --path custom-config.yaml
+# View a file verbatim, without merging
+antipasta config view --path custom-config.yaml --format raw
+
+# Show resolved configuration, cache, and snapshot paths
+antipasta config path
 ```
 
-### Collect Statistics
+### Group Statistics
 
 ```bash
-# Get overall statistics for Python files
-antipasta stats --pattern "**/*.py"
+# Group terminal statistics by directory or Python package
+antipasta report src/ --by directory
+antipasta report src/ --by module
 
-# Statistics grouped by directory
-antipasta stats --pattern "**/*.py" --by-directory
-
-# Statistics grouped by module (Python packages)
-antipasta stats --pattern "**/*.py" --by-module
-
-# Include additional metrics in statistics
-antipasta stats --pattern "**/*.py" --metric cyclomatic_complexity --metric cognitive_complexity
-
-# Save results to a file
-antipasta stats --pattern "**/*.py" --output report.txt
-antipasta stats --pattern "**/*.py" --format json --output report.json
-antipasta stats --pattern "**/*.py" --format csv --output report.csv
-
-# Generate ALL report formats at once (9 files from 1 analysis!)
-antipasta stats --pattern "**/*.py" --format all --output ./reports/
-# This creates:
-#   - stats_overall.{json,csv,txt}
-#   - stats_by_directory.{json,csv,txt}
-#   - stats_by_module.{json,csv,txt}
+# Write the grouped table to a file
+antipasta report src/ --by module --output modules.txt
 ```
+
+`--by` applies only to `--format table` (the default). Combining it with HTML or JSON is a usage error. These grouped views reuse the existing statistics aggregation. An explicit `--baseline` adds a separate baseline diff summary; aggregate delta columns belong to the ungrouped overview. JSON output remains the analysis snapshot.
 
 ### Version-Control Mining
 
@@ -226,7 +222,8 @@ antipasta stats --pattern "**/*.py" --format all --output ./reports/
 antipasta vcs
 
 # Join hotspots to a previously generated report snapshot
-antipasta report --directory src/antipasta --format json --output .cache/antipasta-snapshot.json
+mkdir -p .cache
+antipasta report src/antipasta --format json --output .cache/antipasta-snapshot.json
 antipasta vcs --snapshot .cache/antipasta-snapshot.json
 
 # Use a different history window or emit JSON
@@ -246,7 +243,32 @@ antipasta test-health --coverage-file .coverage --format json
 
 ## Configuration
 
-antipasta uses YAML configuration files. By default, it looks for `.antipasta.yaml` in the current directory.
+The `report` and `config` commands resolve YAML configuration from these layers, with later values taking precedence:
+
+1. Built-in defaults.
+2. User configuration at `$XDG_CONFIG_HOME/antipasta/config.yaml`, or `~/.config/antipasta/config.yaml` when unset. On Windows it uses `%APPDATA%\antipasta\config.yaml`.
+3. Matching entries in the user configuration's `projects:` map, keyed by absolute repository paths. Entries apply to that path and nested analysis roots, with more specific paths winning.
+4. `.antipasta.yaml` in the analysis root, falling back to the current directory. `ANTIPASTA_CONFIG` selects a replacement project layer; an explicit `--config` takes precedence over it.
+5. Command-line flags and threshold overrides.
+
+Each layer expands its own preset before merging. Scalars and nested blocks merge by key. Lists replace inherited lists; `languages` merges by language name, but each supplied language's `metrics` list replaces its inherited gates. Omitting a metric from that list removes its gate. `config view --sources` attributes replaced lists as a whole, and both `view` and `validate` warn about unknown top-level keys.
+
+If no layer supplies a Python metric list, its inherited gate thresholds follow the merged `defaults` values; the shipped enabled flags stay unchanged. Explicit metric lists and preset gates remain authoritative. A `projects:` map is supported only in the resolved user configuration file; `view` and `validate` warn when it appears in a project file.
+
+For example, a user configuration can keep repository-specific tuning outside version control:
+
+```yaml
+projects:
+  /absolute/path/to/repository:
+    languages:
+      - name: python
+        metrics:
+          - type: cyclomatic_complexity
+            threshold: 12
+            comparison: "<="
+```
+
+Run `antipasta config path` to inspect the locations used on your system.
 
 ### Example Configuration
 
@@ -323,7 +345,9 @@ profile: standard
 -   **use_gitignore**: Whether to automatically use patterns from `.gitignore` (default: true)
 -   **preset**: Optional coarse metric bundle (`balanced`, `readable`, `compact`, `architecture`, or `testing`)
 -   **profile**: Strictness profile for profile-aware derived metrics (`standard`, `relaxed`, or `extreme`)
--   **tree_shape**, **import_graph**, **narrative**, **duplication**: Optional blocks that turn project-scoped informational metrics into configured gates
+-   **tree_shape**, **import_graph**, **duplication**: Optional blocks that turn project-scoped informational metrics into configured gates
+-   **experimental**: Opt-in metric families, such as `experimental: {narrative: {}}`
+-   **projects**: User-configuration map of absolute repository paths to partial overrides
 
 ### Comparison Operators
 
@@ -408,66 +432,28 @@ Key differences from cyclomatic complexity:
 
 ## Exit Codes
 
--   **0**: Success - all metrics pass their thresholds (for `metrics`), or configuration is valid (for `validate-config`)
--   **1**: Error - invalid configuration, processing errors, or validation failures
--   **2**: Violations found (for `metrics` command) or invalid command arguments (for all commands)
+- **0**: Successful reporting, including violations when `--fail-on` is absent; or valid configuration.
+- **1**: Invalid configuration, processing errors, or validation failures.
+- **2**: Threshold violations with `report --fail-on` (or legacy `metrics`), or invalid command arguments.
 
-This makes antipasta suitable for CI/CD pipelines:
+For CI, opt into gating explicitly:
 
 ```bash
-# Basic CI pipeline usage
-antipasta metrics --directory src/ --quiet || exit 1
+# Use the effective configuration and preserve the gate's exit status
+antipasta report src/ --fail-on
 
-# First-time setup in CI
-if [ ! -f .antipasta.yaml ]; then
-    antipasta config generate --non-interactive
-fi
-antipasta metrics --directory src/
+# Check configuration before analysis
+antipasta config validate && antipasta report src/ --fail-on
 
-# Validate configuration before running metrics
-antipasta config validate && antipasta metrics --directory src/
+# Suppress progress while preserving the table and failure diagnostics
+antipasta report src/ --fail-on --quiet
 ```
 
-## Example Output
+## Terminal Output
 
-### Standard Output
+The default table groups metrics into Lines of code, Complexity, SOLID, Maintainability, Test quality, VCS, and Experimental sections. Empty optional sections are omitted. Metrics missing from the category policy appear under Other. Metrics at different scopes occupy separate lines. Rows show unit counts, threshold breaches, extreme values, and up to three offenders where a worse direction is defined; metrics without a defined worse direction show minimum, median, and maximum values. Compatible prior snapshots add aggregate deltas. The footer reports the violation count and, with `--fail-on`, the gate's exit status.
 
-```
-Using configuration: .antipasta.yaml
-Analyzing 3 files...
-
-======================================================================
-METRICS ANALYSIS SUMMARY
-======================================================================
-Total files analyzed: 3
-Files with violations: 1
-Total violations: 2
-
-Violations by type:
-  - cyclomatic_complexity: 1
-  - maintainability_index: 1
-
-----------------------------------------------------------------------
-VIOLATIONS FOUND:
-----------------------------------------------------------------------
-❌ src/complex.py:15 (process_data): Cyclomatic Complexity is 12.00 (threshold: <= 10.0)
-❌ src/complex.py: Maintainability Index is 45.23 (threshold: >= 50.0)
-
-✗ Code quality check FAILED
-```
-
-### Quiet Mode Output
-
-```
-----------------------------------------------------------------------
-VIOLATIONS FOUND:
-----------------------------------------------------------------------
-❌ src/complex.py:15 (process_data): Cyclomatic Complexity is 12.00 (threshold: <= 10.0)
-❌ src/complex.py: Maintainability Index is 45.23 (threshold: >= 50.0)
-
-✗ Code quality check FAILED
-```
-
+Report data goes to stdout, or the file selected by `--output`; diagnostics go to stderr. `--quiet` suppresses progress and supplementary summaries while preserving the requested report data. JSON snapshots and HTML documents remain clean when piped.
 
 ## Learning Resources
 
@@ -494,71 +480,9 @@ Perfect for developers who want to write more maintainable code or teams establi
 
 ## Statistics Collection
 
-The `antipasta stats` command provides comprehensive statistical analysis of your codebase:
+Use `antipasta report PATH --by directory` to compare folders or `--by module` to compare Python packages. These views expose file and function counts and line-count aggregates from the same analysis run. Use the default ungrouped table for metric categories, separate scopes, threshold breaches, offenders, and prior-run deltas.
 
-### Features
-
-- **File-level statistics**: Average, min, max lines of code per file
-- **Directory grouping**: See metrics broken down by folder
-- **Module grouping**: Group by Python packages
-- **Multiple metrics**: Include any supported metric in the analysis
-- **Export formats**: Table (human-readable), JSON, CSV
-
-### Examples
-
-```bash
-# Basic statistics for all Python files
-antipasta stats --pattern "**/*.py"
-
-# Group by directory to find large folders
-antipasta stats --pattern "**/*.py" --by-directory
-
-# Group by Python module
-antipasta stats --pattern "**/*.py" --by-module
-
-# Include complexity metrics
-antipasta stats --pattern "**/*.py" \
-    --metric cyclomatic_complexity \
-    --metric cognitive_complexity \
-    --metric maintainability_index
-
-# Multiple file patterns
-antipasta stats --pattern "src/**/*.py" --pattern "tests/**/*.py"
-
-# Export for further analysis
-antipasta stats --pattern "**/*.py" --format csv > metrics.csv
-antipasta stats --pattern "**/*.py" --format json | jq '.files.avg_loc'
-```
-
-### Output Example
-
-```
-============================================================
-CODE METRICS STATISTICS
-============================================================
-
-FILE STATISTICS:
-  Total files: 23
-  Total LOC: 1,947
-  Average LOC per file: 114.5
-  Min LOC: 4
-  Max LOC: 456
-  Standard deviation: 123.3
-
-CYCLOMATIC COMPLEXITY STATISTICS:
-  Count: 81
-  Average: 4.21
-  Min: 1.00
-  Max: 22.00
-```
-
-### Use Cases
-
-1. **Track codebase growth**: Monitor total LOC over time
-2. **Identify large files**: Find files that exceed size thresholds
-3. **Compare modules**: See which parts of your code are most complex
-4. **Team metrics**: Compare complexity across different team areas
-5. **Refactoring targets**: Find directories with high average complexity
+The deprecated `stats` command remains available for existing workflows that need its metric selection, CSV export, or multiple-format output options.
 
 ### Project Structure
 

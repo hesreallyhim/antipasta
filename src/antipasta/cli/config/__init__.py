@@ -3,6 +3,7 @@
 import click
 
 from antipasta.cli.config.config_generate import generate
+from antipasta.cli.config.config_path import path_command
 from antipasta.cli.config.config_validate import validate
 from antipasta.cli.config.config_view import view
 
@@ -19,3 +20,5 @@ def config() -> None:
 config.add_command(generate)
 config.add_command(validate)
 config.add_command(view)
+
+config.add_command(path_command)

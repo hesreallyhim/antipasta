@@ -4,8 +4,9 @@ PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 TOX := $(VENV_DIR)/bin/tox
 PRE_COMMIT := $(VENV_DIR)/bin/pre-commit
+ANTIPASTA := $(VENV_DIR)/bin/antipasta
 
-.PHONY: install-hooks help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check release-dry-run treemap
+.PHONY: install-hooks help venv install install-dev install-prod format lint type-check test test-fast test-fast-clean test-cov check check-ci check-all clean clean-venv clean-cov clean-tox build build-check release-dry-run treemap metrics metrics-quiet metrics-json metrics-report self-check
 
 help:  ## Show this help message
 	@echo "Usage: make [target]"
@@ -68,47 +69,26 @@ check: lint type-check test  ## Run all quality checks (lint, type-check, test)
 check-ci: install-dev  ## Run CI parity checks in isolated tox environments
 	$(TOX) run
 
-# Antipasta metrics analysis targets
+# Antipasta report and threshold-gate targets
 
-metrics: install  ## Run antipasta metrics analysis on src/ (verbose)
-	@echo "Running complexity analysis on src/..."
-	@$(VENV_DIR)/bin/antipasta metrics -d src/ || (echo ""; echo "❌ Code complexity check FAILED"; exit 2)
-	@echo ""
-	@echo "✅ Code complexity check PASSED"
+metrics: install  ## Report source metrics and fail on threshold violations
+	$(ANTIPASTA) report src/ --format table --fail-on
 
-metrics-quiet: install  ## Run antipasta metrics analysis on src/ (quiet mode - violations only)
-	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q || exit 2
+metrics-quiet: install  ## Gate source metrics without progress output, retaining diagnostics
+	@$(ANTIPASTA) report src/ --format table --fail-on --quiet
 
-metrics-json: install  ## Run antipasta metrics analysis and output JSON
-	@$(VENV_DIR)/bin/antipasta metrics -d src/ --format json
+metrics-json: install  ## Emit a JSON snapshot and fail on threshold violations
+	@$(ANTIPASTA) report src/ --format json --fail-on
 
 install-hooks: install-dev  ## Install pre-commit hooks
 	$(PRE_COMMIT) install
 
-metrics-report: install  ## Generate detailed metrics report with statistics
-	@echo "═══════════════════════════════════════════════════════"
-	@echo "         ANTIPASTA METRICS REPORT"
-	@echo "═══════════════════════════════════════════════════════"
-	@echo ""
-	@echo "📊 Overall Statistics:"
-	@$(VENV_DIR)/bin/antipasta stats -p "src/**/*.py" -m cyc -m cog -m mai | head -20
-	@echo ""
-	@echo "📁 Metrics by Module:"
-	@$(VENV_DIR)/bin/antipasta stats -p "src/**/*.py" --by-module -m cyc -m cog -m mai
-	@echo ""
-	@echo "⚠️  Violations:"
-	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q 2>&1 | grep -E "^❌" | head -10 || echo "No violations found"
-	@echo ""
-	@$(VENV_DIR)/bin/antipasta metrics -d src/ -q > /dev/null 2>&1 && echo "✅ PASS: All metrics within thresholds" || echo "❌ FAIL: $(shell $(VENV_DIR)/bin/antipasta metrics -d src/ -q 2>&1 | grep -c '^❌') violations found"
+metrics-report: install  ## Show source overview and module statistics, then enforce thresholds
+	$(ANTIPASTA) report src/ --format table
+	$(ANTIPASTA) report src/ --format table --by module --fail-on
 
-self-check: install  ## Run antipasta on its own source code
-	@echo "════════════════════════════════════════════════════════"
-	@echo "       ANTIPASTA SELF-CHECK"
-	@echo "════════════════════════════════════════════════════════"
-	@echo ""
-	@$(VENV_DIR)/bin/antipasta metrics -d src/antipasta || (echo ""; echo "⚠️  Some violations detected. Consider refactoring complex code."; exit 1)
-	@echo ""
-	@echo "✅ All complexity checks passed!"
+self-check: install  ## Enforce configured thresholds on antipasta's own source code
+	$(ANTIPASTA) report src/antipasta --format table --fail-on
 
 TREEMAP_METRIC ?= sloc
 TREEMAP_OUTPUT ?= INTERNAL/treemap_loc.html

@@ -32,9 +32,9 @@ BRANCHY_SOURCE = (
 
 
 def _run(args: list[str], cwd: Path) -> Result:
-    """Invoke the report command against a missing config (defaults)."""
+    """Invoke with explicit HTML unless the test requests another format."""
     runner = CliRunner()
-    return runner.invoke(report, [*args, "-c", str(cwd / "missing.yaml")])
+    return runner.invoke(report, ["--format", "html", *args])
 
 
 def _write_baseline(directory: Path, baseline_path: Path, source: str = SIMPLE_SOURCE) -> None:
@@ -232,8 +232,6 @@ class TestSaveBaseline:
                     "--format",
                     "json",
                     "--save-baseline",
-                    "-c",
-                    str(tmp_path / "missing.yaml"),
                 ],
             )
 

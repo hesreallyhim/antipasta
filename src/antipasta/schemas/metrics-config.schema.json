@@ -164,8 +164,7 @@
         }
       },
       "required": [
-        "name",
-        "metrics"
+        "name"
       ],
       "title": "LanguageConfig",
       "type": "object"
@@ -442,6 +441,102 @@
         }
       ],
       "default": null
+    },
+    "projects": {
+      "type": "object",
+      "description": "User-only partial configurations keyed by absolute repository path",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "preset": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PresetName"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "defaults": {
+            "$ref": "#/$defs/DefaultsConfig"
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/$defs/LanguageConfig"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
+          "ignore_patterns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Ignore Patterns",
+            "type": "array"
+          },
+          "use_gitignore": {
+            "default": true,
+            "title": "Use Gitignore",
+            "type": "boolean"
+          },
+          "profile": {
+            "default": "standard",
+            "enum": [
+              "extreme",
+              "standard",
+              "relaxed"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "tree_shape": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TreeShapeConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "import_graph": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ImportGraphConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "duplication": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DuplicationConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "experimental": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ExperimentalConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        }
+      }
     }
   },
   "title": "Antipasta Configuration Schema",

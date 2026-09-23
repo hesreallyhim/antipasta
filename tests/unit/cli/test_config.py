@@ -92,7 +92,9 @@ use_gitignore: true
 """
             )
 
-            result = runner.invoke(cli, ["config", "view", "--path", str(config_file)])
+            result = runner.invoke(
+                cli, ["config", "view", "--path", str(config_file), "--format", "summary"]
+            )
 
             assert result.exit_code == 0
             assert f"Configuration: {config_file}" in result.output
