@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from antipasta.core.model.metrics import FileMetrics, MetricType
-from antipasta.runners.python.house_style import HouseStyleRunner
+from antipasta.runners.python.structural import StructuralRunner
 
 
 def _analyze_as_test_file(source: str) -> FileMetrics:
-    return HouseStyleRunner().analyze(Path("tests/unit/test_sample.py"), content=source)
+    return StructuralRunner().analyze(Path("tests/unit/test_sample.py"), content=source)
 
 
 def _value(result: FileMetrics, metric_type: MetricType, name: str) -> float:
@@ -54,6 +54,6 @@ class TestSmellRows:
 
     def test_source_files_get_no_smell_rows(self) -> None:
         source = "def test_looking_name():\n    assert True\n"
-        result = HouseStyleRunner().analyze(Path("src/pkg/engine.py"), content=source)
+        result = StructuralRunner().analyze(Path("src/pkg/engine.py"), content=source)
         smells = [m for m in result.metrics if m.metric_type is MetricType.ASSERTIONS_PER_TEST]
         assert smells == []

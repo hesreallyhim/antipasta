@@ -14,7 +14,7 @@ import ast
 from typing import Any, TypeGuard
 
 from antipasta.core.model.metrics import FactRow
-from antipasta.runners.python.house_style.expressions import (
+from antipasta.runners.python.structural.expressions import (
     call_names,
     max_nesting,
     own_statements,

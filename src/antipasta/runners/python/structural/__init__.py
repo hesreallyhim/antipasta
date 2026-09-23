@@ -1,4 +1,4 @@
-"""House-style runner: one syntax-tree walk for the owner's prose metrics.
+"""Structural runner: one syntax-tree walk for the per-function structure metrics.
 
 Emits per-function rows (message chain depth, arity, boolean flags,
 global-state reach, statement count, expression
@@ -7,7 +7,7 @@ density), and the fact rows (imports, callables, classes) that later phases'
 derivers consume — one parse, everything extracted.
 
 Python-only: these analyzers read Python's syntax tree. JavaScript/TypeScript
-uses its own lexical house-style runner with the same metric/fact contracts.
+uses its own lexical structural runner with the same metric/fact contracts.
 All rules are fixed and config-free so results stay pure functions of file
 content (cache-safe); strictness profiles act at the threshold layer.
 """
@@ -21,17 +21,17 @@ from antipasta.core.derive import cohesion
 from antipasta.core.model.detector import Language, is_test_path
 from antipasta.core.model.metrics import FactRow, FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
-from antipasta.runners.python.house_style import (
+from antipasta.runners.python.structural import (
     comments,
     expressions,
     structure,
     test_smells,
 )
-from antipasta.runners.python.house_style.facts import extract_facts
+from antipasta.runners.python.structural.facts import extract_facts
 
 
-class HouseStyleRunner(BaseRunner):
-    """Runner for house-style (prose/newspaper) metrics."""
+class StructuralRunner(BaseRunner):
+    """Runner for per-function structural metrics, class facts, and test smells."""
 
     @property
     def supported_metrics(self) -> list[str]:
@@ -194,7 +194,7 @@ def _rows_for_function(
     is_method: bool,
     mutable_names: frozenset[str],
 ) -> list[MetricResult]:
-    """The eight per-function house-style rows."""
+    """The per-function structural rows."""
     values: list[tuple[MetricType, float]] = [
         (MetricType.MESSAGE_CHAIN_DEPTH, float(expressions.max_chain_depth(function))),
         (MetricType.FUNCTION_ARITY, float(structure.function_arity(function, is_method))),

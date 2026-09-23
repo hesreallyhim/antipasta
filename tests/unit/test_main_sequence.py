@@ -17,11 +17,11 @@ from antipasta.core.model.config import AntipastaConfig
 from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.metrics import FactRow
 from antipasta.core.model.violations import ProjectReport
-from antipasta.runners.python.house_style import HouseStyleRunner
+from antipasta.runners.python.structural import StructuralRunner
 
 
 def _facts(source: str) -> list[FactRow]:
-    return HouseStyleRunner().analyze(Path("m.py"), content=source).facts
+    return StructuralRunner().analyze(Path("m.py"), content=source).facts
 
 
 class TestAbstractnessClassification:
@@ -134,7 +134,7 @@ class TestComposites:
 
 class TestDeriverIntegration:
     def _derive(self, root: Path, sources: dict[str, str]) -> list[ProjectReport]:
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
         facts_by_file = {
             root / rel: runner.analyze(root / rel, content=src).facts
             for rel, src in sources.items()

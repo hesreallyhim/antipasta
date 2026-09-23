@@ -8,7 +8,7 @@ from antipasta.core.model.config import AntipastaConfig, ExperimentalConfig, Nar
 from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.violations import ProjectReport
 from antipasta.experimental.narrative.deriver import _ambient_names, classify, derive_narrative
-from antipasta.runners.python.house_style import HouseStyleRunner
+from antipasta.runners.python.structural import StructuralRunner
 
 PROSE_MODULE = """\
 def publish(directory):
@@ -46,7 +46,7 @@ def fetch_users(directory):
 def _derive(
     root: Path, sources: dict[str, str], config: AntipastaConfig | None = None
 ) -> list[ProjectReport]:
-    runner = HouseStyleRunner()
+    runner = StructuralRunner()
     facts_by_file = {
         root / rel: runner.analyze(root / rel, content=src).facts for rel, src in sources.items()
     }

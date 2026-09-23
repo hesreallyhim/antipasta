@@ -93,7 +93,7 @@ Rows in the `Experimental` category are computed only when the feature is enable
 
 ## Custom Metric Computation Notes
 
-- JavaScript/TypeScript house-style rows come from a dependency-light lexical
+- JavaScript/TypeScript structural rows come from a dependency-light lexical
   analyzer. Metrics that require source-shape recovery carry
   `details.approximate=true`; lizard remains the source for JS/TS cyclomatic
   complexity, LOC, and SLOC.

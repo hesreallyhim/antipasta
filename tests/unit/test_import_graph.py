@@ -8,13 +8,13 @@ from antipasta.core.derive.import_graph import derive_import_graph
 from antipasta.core.model.config import AntipastaConfig, ImportGraphConfig
 from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.violations import ProjectReport
-from antipasta.runners.python.house_style import HouseStyleRunner
+from antipasta.runners.python.structural import StructuralRunner
 
 
 def _derive(
     root: Path, sources: dict[str, str], config: AntipastaConfig | None = None
 ) -> list[ProjectReport]:
-    runner = HouseStyleRunner()
+    runner = StructuralRunner()
     facts_by_file = {}
     for rel, source in sources.items():
         path = root / rel

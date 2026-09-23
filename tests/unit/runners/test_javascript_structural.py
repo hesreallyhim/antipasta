@@ -1,11 +1,11 @@
-"""Unit tests for JavaScript/TypeScript house-style metrics."""
+"""Unit tests for JavaScript/TypeScript structural metrics."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from antipasta.core.model.metrics import MetricResult, MetricType
-from antipasta.runners.javascript.house_style import HouseStyleRunner
+from antipasta.runners.javascript.structural import StructuralRunner
 
 TS_SOURCE = """\
 import { Helper } from "./helper";
@@ -38,16 +38,16 @@ test("renders", () => {
 """
 
 
-class TestJavaScriptHouseStyleRunner:
+class TestJavaScriptStructuralRunner:
     def test_supported_metrics_include_ported_rows(self) -> None:
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
 
         assert MetricType.FUNCTION_ARITY.value in runner.supported_metrics
         assert MetricType.COMMENT_LINES.value in runner.supported_metrics
         assert MetricType.LACK_OF_COHESION.value in runner.supported_metrics
 
     def test_typescript_functions_classes_and_facts(self) -> None:
-        result = HouseStyleRunner().analyze(Path("account.ts"), content=TS_SOURCE)
+        result = StructuralRunner().analyze(Path("account.ts"), content=TS_SOURCE)
 
         assert result.error is None
         assert result.language == "typescript"
@@ -68,7 +68,7 @@ class TestJavaScriptHouseStyleRunner:
         cohesion = _row_for(rows[MetricType.LACK_OF_COHESION], "Account")
         assert cohesion.value >= 1
         coupling = _row_for(rows[MetricType.COUPLING_BETWEEN_OBJECTS], "Account")
-        assert coupling.details == {"approximate": True, "analyzer": "javascript-house-style"}
+        assert coupling.details == {"approximate": True, "analyzer": "javascript-structural"}
 
         import_fact = next(fact for fact in result.facts if fact.kind == "import")
         assert import_fact.payload == {"module": "helper", "names": ["Helper"], "level": 1}
@@ -90,7 +90,7 @@ class TestJavaScriptHouseStyleRunner:
         )
 
     def test_javascript_test_smell_rows(self) -> None:
-        result = HouseStyleRunner().analyze(Path("widget.test.js"), content=TEST_SOURCE)
+        result = StructuralRunner().analyze(Path("widget.test.js"), content=TEST_SOURCE)
 
         rows = _rows_by_type(result.metrics)
         assert _row_for(rows[MetricType.ASSERTIONS_PER_TEST], "test").value == 2

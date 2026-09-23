@@ -1,8 +1,8 @@
-"""JavaScript/TypeScript house-style metrics and fact extraction.
+"""JavaScript/TypeScript structural metrics and fact extraction.
 
 This runner deliberately stays dependency-light.  It is a lexical extractor,
 not a full ECMAScript type checker, so rows that depend on syntax recovery are
-labeled approximate.  The fixed rules mirror the Python house-style runner and
+labeled approximate.  The fixed rules mirror the Python structural runner and
 remain config-free so cached rows are pure functions of file content.
 """
 
@@ -17,7 +17,7 @@ from antipasta.core.derive import cohesion
 from antipasta.core.model.detector import EXTENSION_MAP, Language, is_test_path
 from antipasta.core.model.metrics import FactRow, FileMetrics, MetricResult, MetricType
 from antipasta.runners.base import BaseRunner
-from antipasta.runners.python.house_style.comments import (
+from antipasta.runners.python.structural.comments import (
     comment_density,
     marker_density,
     total_lines,
@@ -158,7 +158,7 @@ _MOCK_ASSERT_NAMES = (
 )
 _TEST_CALL_NAMES = frozenset({"it", "test"})
 _BIG_LITERAL_FLOOR = 8
-_ANALYZER = "javascript-house-style"
+_ANALYZER = "javascript-structural"
 
 
 @dataclass(frozen=True)
@@ -216,8 +216,8 @@ class ClassSpan:
     abstract: bool = False
 
 
-class HouseStyleRunner(BaseRunner):
-    """Runner for JavaScript/TypeScript house-style metrics."""
+class StructuralRunner(BaseRunner):
+    """Runner for JavaScript/TypeScript structural metrics."""
 
     @property
     def supported_metrics(self) -> list[str]:

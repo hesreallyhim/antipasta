@@ -573,7 +573,7 @@ antipasta/
 ├── report/           # Offline HTML report rendering and assets
 ├── runners/          # Language-specific analyzers
 │   ├── javascript/   # JS/TS analysis via lizard
-│   └── python/       # Python analysis via Radon, Complexipy, and house style
+│   └── python/       # Python analysis via Radon, Complexipy, and the structural runner
 └── schemas/          # Packaged JSON schema
 ```
 

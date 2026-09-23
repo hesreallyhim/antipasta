@@ -9,8 +9,8 @@ from antipasta.core.derive.class_registry import derive_class_registry
 from antipasta.core.model.config import AntipastaConfig
 from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.metrics import FileMetrics, MetricType
-from antipasta.runners.python.house_style import HouseStyleRunner
 from antipasta.runners.python.radon import RadonRunner
+from antipasta.runners.python.structural import StructuralRunner
 
 COHESIVE_CLASS = """\
 class Account:
@@ -40,7 +40,7 @@ class Kitchen:
 
 
 def _analyze(source: str) -> FileMetrics:
-    return HouseStyleRunner().analyze(Path("sample.py"), content=source)
+    return StructuralRunner().analyze(Path("sample.py"), content=source)
 
 
 def _value(result: FileMetrics, metric_type: MetricType, name: str) -> float:
@@ -199,7 +199,7 @@ class TestWeightedMethodsPerClass:
 
 class TestClassRegistry:
     def _derive(self, root: Path, sources: dict[str, str]) -> dict[str, dict[str, float]]:
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
         facts_by_file = {}
         for rel, source in sources.items():
             path = root / rel
@@ -231,7 +231,7 @@ class TestClassRegistry:
         assert by_class["base::Root"]["number_of_children"] == 1.0
 
     def test_external_base_is_shallow_and_flagged(self, tmp_path: Path) -> None:
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
         path = tmp_path / "ext.py"
         facts = runner.analyze(
             path, content="from django import Model\nclass Thing(Model):\n    pass\n"
@@ -256,7 +256,7 @@ class TestClassRegistry:
 
 class TestCouplingBetweenObjects:
     def _rows(self, root: Path, sources: dict[str, str]) -> dict[str, tuple[float, list[str]]]:
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
         facts_by_file = {}
         for rel, source in sources.items():
             path = root / rel
@@ -306,7 +306,7 @@ class TestCouplingBetweenObjects:
 
 class TestSingleResponsibilityIndex:
     def _sri(self, root: Path, source: str) -> dict[str, tuple[float, dict[str, object]]]:
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
         path = root / "m.py"
         facts = runner.analyze(path, content=source).facts
         derivation_input = DerivationInput(

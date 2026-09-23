@@ -37,11 +37,11 @@ from antipasta.core.model.violations import (
 )
 from antipasta.core.store.cache import MetricsCache
 from antipasta.runners.base import BaseRunner
-from antipasta.runners.javascript.house_style import HouseStyleRunner as JavaScriptHouseStyleRunner
 from antipasta.runners.javascript.lizard_runner import LizardRunner
+from antipasta.runners.javascript.structural import StructuralRunner as JavaScriptStructuralRunner
 from antipasta.runners.python.complexipy_runner import ComplexipyRunner
-from antipasta.runners.python.house_style import HouseStyleRunner
 from antipasta.runners.python.radon import RadonRunner
+from antipasta.runners.python.structural import StructuralRunner
 
 # Below this many files a process pool costs more in spawn overhead (~0.5s on
 # macOS spawn semantics) than it saves; stay sequential.
@@ -52,11 +52,11 @@ def _build_runners() -> dict[Language, list[BaseRunner]]:
     """Construct the language → runners table (JS and TS share one lizard
     instance; its availability check is cached)."""
     lizard_runner = LizardRunner()
-    javascript_house_style = JavaScriptHouseStyleRunner()
+    javascript_structural = JavaScriptStructuralRunner()
     return {
-        Language.PYTHON: [RadonRunner(), ComplexipyRunner(), HouseStyleRunner()],
-        Language.JAVASCRIPT: [lizard_runner, javascript_house_style],
-        Language.TYPESCRIPT: [lizard_runner, javascript_house_style],
+        Language.PYTHON: [RadonRunner(), ComplexipyRunner(), StructuralRunner()],
+        Language.JAVASCRIPT: [lizard_runner, javascript_structural],
+        Language.TYPESCRIPT: [lizard_runner, javascript_structural],
     }
 
 

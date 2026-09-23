@@ -28,7 +28,7 @@ class MetricType(StrEnum):
     SOURCE_LINES_OF_CODE = "source_lines_of_code"
     COMMENT_LINES = "comment_lines"
     BLANK_LINES = "blank_lines"
-    # House-style metrics (adoption plan, Phase 1). Informational-first:
+    # Structural per-function metrics (adoption plan, Phase 1). Informational-first:
     # none carries a default threshold; gates are opt-in per config.
     MESSAGE_CHAIN_DEPTH = "message_chain_depth"
     FUNCTION_ARITY = "function_arity"

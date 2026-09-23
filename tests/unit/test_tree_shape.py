@@ -63,9 +63,9 @@ class TestLayering:
         self, root: Path, sources: dict[str, str], layers: list[str]
     ) -> list[ProjectReport]:
         from antipasta.core.derive.tree_shape import derive_layering
-        from antipasta.runners.python.house_style import HouseStyleRunner
+        from antipasta.runners.python.structural import StructuralRunner
 
-        runner = HouseStyleRunner()
+        runner = StructuralRunner()
         facts_by_file = {
             root / rel: runner.analyze(root / rel, content=src).facts
             for rel, src in sources.items()

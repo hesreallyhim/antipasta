@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import ast
 
-from antipasta.runners.python.house_style.expressions import own_statements
+from antipasta.runners.python.structural.expressions import own_statements
 
 _MOCK_ASSERT_PREFIXES = ("assert_called", "assert_awaited", "assert_not_called", "assert_has_calls")
 _BIG_LITERAL_FLOOR = 8

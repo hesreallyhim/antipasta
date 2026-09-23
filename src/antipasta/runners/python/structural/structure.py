@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 
-from antipasta.runners.python.house_style.expressions import own_statements
+from antipasta.runners.python.structural.expressions import own_statements
 
 _SELF_NAMES = frozenset({"self", "cls"})
 
