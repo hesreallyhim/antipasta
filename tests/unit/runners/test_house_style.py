@@ -88,31 +88,6 @@ class TestArityAndFlags:
         assert value_of(result, MetricType.BOOLEAN_FLAG_PARAMETERS, "go") == 1.0
 
 
-class TestExceptionDiscipline:
-    def test_bare_except_counts(self, runner: HouseStyleRunner) -> None:
-        source = "def go():\n    try:\n        work()\n    except:\n        recover()\n"
-        result = analyze(runner, source)
-        assert value_of(result, MetricType.EXCEPTION_DISCIPLINE, "go") == 1.0
-
-    def test_broad_with_reraise_is_fine(self, runner: HouseStyleRunner) -> None:
-        source = (
-            "def go():\n    try:\n        work()\n"
-            "    except Exception:\n        log()\n        raise\n"
-        )
-        result = analyze(runner, source)
-        assert value_of(result, MetricType.EXCEPTION_DISCIPLINE, "go") == 0.0
-
-    def test_silent_pass_handler_counts(self, runner: HouseStyleRunner) -> None:
-        source = "def go():\n    try:\n        work()\n    except ValueError:\n        pass\n"
-        result = analyze(runner, source)
-        assert value_of(result, MetricType.EXCEPTION_DISCIPLINE, "go") == 1.0
-
-    def test_narrow_handled_is_fine(self, runner: HouseStyleRunner) -> None:
-        source = "def go():\n    try:\n        work()\n    except ValueError:\n        recover()\n"
-        result = analyze(runner, source)
-        assert value_of(result, MetricType.EXCEPTION_DISCIPLINE, "go") == 0.0
-
-
 class TestGlobalStateReach:
     def test_touching_module_state_counts(self, runner: HouseStyleRunner) -> None:
         source = "registry = {}\n\ndef go(key):\n    return registry[key]\n"

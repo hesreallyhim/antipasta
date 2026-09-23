@@ -78,7 +78,7 @@
     halstead_effort: "complexity", halstead_time: "complexity", halstead_bugs: "complexity",
     function_statements: "complexity",
     cognitive_complexity: "readability", message_chain_depth: "readability", function_arity: "readability",
-    boolean_flag_parameters: "readability", exception_discipline: "readability", global_state_reach: "readability",
+    boolean_flag_parameters: "readability", global_state_reach: "readability",
     marker_density: "readability", comment_density: "readability", expression_flatness: "readability",
     pipeline_linearity: "readability", narrative_mixed_functions: "readability", narrator_budget_exceeded: "readability",
     computer_budget_exceeded: "readability", step_down_ordering: "readability", name_clarity: "readability",

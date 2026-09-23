@@ -1,4 +1,4 @@
-"""Structural analyzers: arity, flag parameters, exceptions, global reach."""
+"""Structural analyzers: arity, flag parameters, global reach."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import ast
 from antipasta.runners.python.house_style.expressions import own_statements
 
 _SELF_NAMES = frozenset({"self", "cls"})
-_BROAD_EXCEPTION_NAMES = frozenset({"Exception", "BaseException"})
 
 
 def function_arity(function: ast.FunctionDef | ast.AsyncFunctionDef, is_method: bool) -> int:
@@ -92,52 +91,6 @@ def _is_bool_annotation(annotation: ast.expr | None) -> bool:
 
 def _is_bool_constant(node: ast.expr | None) -> bool:
     return isinstance(node, ast.Constant) and isinstance(node.value, bool)
-
-
-def exception_discipline(handlers: list[ast.ExceptHandler]) -> int:
-    """Count of undisciplined handlers: bare, broad-without-reraise, silent."""
-    return sum(1 for handler in handlers if _is_undisciplined(handler))
-
-
-def _is_undisciplined(handler: ast.ExceptHandler) -> bool:
-    if handler.type is None:
-        return True  # bare except
-    if _is_silent(handler.body):
-        return True
-    return _is_broad(handler.type) and not _reraises(handler.body)
-
-
-def _is_broad(exception_type: ast.expr) -> bool:
-    candidates = exception_type.elts if isinstance(exception_type, ast.Tuple) else [exception_type]
-    return any(
-        isinstance(candidate, ast.Name) and candidate.id in _BROAD_EXCEPTION_NAMES
-        for candidate in candidates
-    )
-
-
-def _reraises(body: list[ast.stmt]) -> bool:
-    return any(isinstance(node, ast.Raise) for statement in body for node in ast.walk(statement))
-
-
-def _is_silent(body: list[ast.stmt]) -> bool:
-    return all(
-        isinstance(statement, ast.Pass)
-        or (
-            isinstance(statement, ast.Expr)
-            and isinstance(statement.value, ast.Constant)
-            and statement.value.value is Ellipsis
-        )
-        for statement in body
-    )
-
-
-def handlers_in(function: ast.FunctionDef | ast.AsyncFunctionDef) -> list[ast.ExceptHandler]:
-    """Exception handlers belonging to this function's own statements."""
-    handlers: list[ast.ExceptHandler] = []
-    for statement in own_statements(function):
-        # Any statement carrying a `handlers` block is a try form (Try/TryStar).
-        handlers.extend(getattr(statement, "handlers", []))
-    return handlers
 
 
 _MUTATING_METHODS = frozenset({

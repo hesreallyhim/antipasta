@@ -229,7 +229,6 @@ class HouseStyleRunner(BaseRunner):
             MetricType.MESSAGE_CHAIN_DEPTH.value,
             MetricType.FUNCTION_ARITY.value,
             MetricType.BOOLEAN_FLAG_PARAMETERS.value,
-            MetricType.EXCEPTION_DISCIPLINE.value,
             MetricType.GLOBAL_STATE_REACH.value,
             MetricType.FUNCTION_STATEMENTS.value,
             MetricType.EXPRESSION_FLATNESS.value,
@@ -349,10 +348,6 @@ class HouseStyleRunner(BaseRunner):
                 (MetricType.MESSAGE_CHAIN_DEPTH, float(_max_chain_depth(own_tokens))),
                 (MetricType.FUNCTION_ARITY, float(_function_arity(function))),
                 (MetricType.BOOLEAN_FLAG_PARAMETERS, float(_boolean_flag_parameters(function))),
-                (
-                    MetricType.EXCEPTION_DISCIPLINE,
-                    float(_exception_discipline(source, own_tokens)),
-                ),
                 (
                     MetricType.GLOBAL_STATE_REACH,
                     float(_global_state_reach(own_tokens, mutable_names)),
@@ -1163,23 +1158,6 @@ def _param_name(param: list[Token]) -> str | None:
         if _is_name(token) and token.value not in {"readonly", "public", "private", "protected"}:
             return token.value
     return None
-
-
-def _exception_discipline(source: SourceTokens, tokens: list[Token]) -> int:
-    count = 0
-    token_indexes = {token.index for token in tokens}
-    for token in tokens:
-        if token.value != "catch":
-            continue
-        body_start = _next_value(source.tokens, "{", token.index + 1, token.index + 12)
-        if body_start is None or body_start not in source.braces:
-            count += 1
-            continue
-        body_end = source.braces[body_start]
-        body = [t for t in source.tokens[body_start + 1 : body_end] if t.index in token_indexes]
-        if not body or not any(t.value == "throw" for t in body):
-            count += 1
-    return count
 
 
 def _global_state_reach(tokens: list[Token], mutable_names: frozenset[str]) -> int:

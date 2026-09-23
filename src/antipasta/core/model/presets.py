@@ -111,11 +111,6 @@ PRESET_DEFINITIONS: Final[dict[PresetName, dict[str, Any]]] = {
                     "comparison": "<=",
                 },
                 {
-                    "type": "exception_discipline",
-                    "threshold": {"extreme": 0, "standard": 0, "relaxed": 1},
-                    "comparison": "<=",
-                },
-                {
                     "type": "global_state_reach",
                     "threshold": {"extreme": 0, "standard": 1, "relaxed": 1},
                     "comparison": "<=",
@@ -143,11 +138,6 @@ PRESET_DEFINITIONS: Final[dict[PresetName, dict[str, Any]]] = {
                     "comparison": "<=",
                 },
                 {
-                    "type": "exception_discipline",
-                    "threshold": {"extreme": 0, "standard": 0, "relaxed": 1},
-                    "comparison": "<=",
-                },
-                {
                     "type": "global_state_reach",
                     "threshold": {"extreme": 0, "standard": 1, "relaxed": 1},
                     "comparison": "<=",
@@ -171,11 +161,6 @@ PRESET_DEFINITIONS: Final[dict[PresetName, dict[str, Any]]] = {
                 },
                 {
                     "type": "boolean_flag_parameters",
-                    "threshold": {"extreme": 0, "standard": 0, "relaxed": 1},
-                    "comparison": "<=",
-                },
-                {
-                    "type": "exception_discipline",
                     "threshold": {"extreme": 0, "standard": 0, "relaxed": 1},
                     "comparison": "<=",
                 },

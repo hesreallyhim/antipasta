@@ -198,7 +198,6 @@
         "message_chain_depth",
         "function_arity",
         "boolean_flag_parameters",
-        "exception_discipline",
         "global_state_reach",
         "marker_density",
         "comment_density",

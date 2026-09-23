@@ -178,31 +178,6 @@ The metric names code that reaches through a sequence of collaborators instead o
 
 A module-level name is mutable state by evidence, not by spelling: some function in the module writes to it, it is rebound more than once at module level, or it is bound to a mutable container waiting to be filled. Caches, registries, feature flags, and plugin tables qualify. A compiled regex, a type alias, or a sentinel assigned once and only read is a constant even when written in lowercase.
 
-## Exception Discipline
-
-`exception_discipline` counts bare, silent, or overly broad exception handlers that do not re-raise. It names handlers that discard failure information or hide error-handling intent.
-
-Risky:
-
-```python
-try:
-    publish(event)
-except Exception:
-    pass
-```
-
-Clearer:
-
-```python
-try:
-    publish(event)
-except PublishError as error:
-    logger.warning("publish failed", exc_info=error)
-    raise
-```
-
-The metric names handlers that catch an error and then erase it without a narrow exception type, a visible recovery action, or a reraised exception.
-
 ## Lack Of Cohesion
 
 `lack_of_cohesion` counts the responsibility clusters inside a class. Methods join a cluster when they touch the same field (through `self` or `cls`), when one calls the other or reads a property the other defines, or when both call the same inherited method. A value above one means the class holds more than one group of methods that share nothing with each other.

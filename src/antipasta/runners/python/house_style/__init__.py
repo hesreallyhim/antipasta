@@ -1,7 +1,7 @@
 """House-style runner: one syntax-tree walk for the owner's prose metrics.
 
 Emits per-function rows (message chain depth, arity, boolean flags,
-exception discipline, global-state reach, statement count, expression
+global-state reach, statement count, expression
 flatness, pipeline linearity), per-file rows (marker density, comment
 density), and the fact rows (imports, callables, classes) that later phases'
 derivers consume — one parse, everything extracted.
@@ -40,7 +40,6 @@ class HouseStyleRunner(BaseRunner):
             MetricType.MESSAGE_CHAIN_DEPTH.value,
             MetricType.FUNCTION_ARITY.value,
             MetricType.BOOLEAN_FLAG_PARAMETERS.value,
-            MetricType.EXCEPTION_DISCIPLINE.value,
             MetricType.GLOBAL_STATE_REACH.value,
             MetricType.FUNCTION_STATEMENTS.value,
             MetricType.EXPRESSION_FLATNESS.value,
@@ -202,10 +201,6 @@ def _rows_for_function(
         (
             MetricType.BOOLEAN_FLAG_PARAMETERS,
             float(structure.boolean_flag_parameters(function, is_method)),
-        ),
-        (
-            MetricType.EXCEPTION_DISCIPLINE,
-            float(structure.exception_discipline(structure.handlers_in(function))),
         ),
         (
             MetricType.GLOBAL_STATE_REACH,

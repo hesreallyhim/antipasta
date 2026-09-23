@@ -22,7 +22,7 @@ Explicit config wins over preset values. If a language metric is already configu
 | Preset | Focus | Typical gates |
 |---|---|---|
 | `balanced` | Default-ish adoption path | Cyclomatic complexity, cognitive complexity, maintainability index, file-level Halstead metrics |
-| `readable` | Compose-method and local readability | Cognitive complexity, function statements, message chains, boolean flags, exception discipline, global state reach, narrative budgets, name clarity |
+| `readable` | Compose-method and local readability | Cognitive complexity, function statements, message chains, boolean flags, global state reach, narrative budgets, name clarity |
 | `compact` | Counterweight against ceremony and repetition | Source/logical lines of code, duplication ratio with normalized local names and constants |
 | `architecture` | Package and import structure | Dependency cycles, stable-dependencies violations |
 | `testing` | Test-suite maintainability | Assertions per test, mock call assertions, big literal assertions |

@@ -33,7 +33,6 @@ class MetricType(StrEnum):
     MESSAGE_CHAIN_DEPTH = "message_chain_depth"
     FUNCTION_ARITY = "function_arity"
     BOOLEAN_FLAG_PARAMETERS = "boolean_flag_parameters"
-    EXCEPTION_DISCIPLINE = "exception_discipline"
     GLOBAL_STATE_REACH = "global_state_reach"
     MARKER_DENSITY = "marker_density"
     COMMENT_DENSITY = "comment_density"
