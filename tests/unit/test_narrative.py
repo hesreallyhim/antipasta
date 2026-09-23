@@ -252,6 +252,23 @@ class TestNamingAntipatterns:
 
         assert _rows(reports, "m")["naming_antipatterns"] == 0.0
 
+    def test_abstract_getter_is_not_a_contradiction(self, tmp_path: Path) -> None:
+        # asyncio's AbstractEventLoop.get_loop: a declaration, not a getter that
+        # returns nothing.
+        source = "class Loop:\n    def get_loop(self):\n        raise NotImplementedError\n"
+        reports = _derive(tmp_path, {"m.py": source})
+
+        assert _rows(reports, "m")["naming_antipatterns"] == 0.0
+
+    def test_narrowing_predicates_are_boolean(self, tmp_path: Path) -> None:
+        source = (
+            "from typing import TypeGuard\n"
+            "def is_model(x) -> TypeGuard[int]:\n    a = x\n    b = a\n    return bool(b)\n"
+        )
+        reports = _derive(tmp_path, {"m.py": source})
+
+        assert _rows(reports, "m")["naming_antipatterns"] == 0.0
+
 
 class TestLexiconUnits:
     def test_split_identifier(self) -> None:

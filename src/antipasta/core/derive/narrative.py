@@ -231,6 +231,8 @@ def _is_dunder(name: str) -> bool:
 
 #: Predicate prefixes whose functions should annotate bool.
 _PREDICATE_HEADS = ("is_", "has_", "should_", "can_")
+#: Return annotations that are boolean in effect (narrowing predicates).
+_BOOLEAN_ANNOTATION_MARKERS = ("bool", "TypeGuard", "TypeIs")
 
 
 def _antipatterns(payloads: list[dict[str, Any]]) -> list[str]:
@@ -241,12 +243,14 @@ def _antipatterns(payloads: list[dict[str, Any]]) -> list[str]:
     """
     offenders = []
     for payload in payloads:
+        if payload.get("stub") is not None:
+            continue  # an abstract declaration has no behavior to contradict
         name = payload["name"]
         annotation = payload.get("return_annotation")
         predicate_lying = (
             name.startswith(_PREDICATE_HEADS)
             and annotation is not None
-            and "bool" not in annotation
+            and not any(marker in annotation for marker in _BOOLEAN_ANNOTATION_MARKERS)
         )
         getter_returns_nothing = name.startswith(("get_", "fetch_")) and not payload.get(
             "returns_value"

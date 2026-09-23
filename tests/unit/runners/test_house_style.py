@@ -52,21 +52,39 @@ class TestChainDepth:
 
 
 class TestArityAndFlags:
-    def test_arity_excludes_self(self, runner: HouseStyleRunner) -> None:
-        source = "class A:\n    def go(self, a, b, *args, **kw):\n        return a\n"
+    def test_arity_counts_required_positionals_excluding_self(
+        self, runner: HouseStyleRunner
+    ) -> None:
+        source = "class A:\n    def go(self, a, b, c=1, *args, d, **kw):\n        return a\n"
         result = analyze(runner, source)
-        assert value_of(result, MetricType.FUNCTION_ARITY, "go") == 4.0
+        row = next(m for m in result.metrics if m.metric_type == MetricType.FUNCTION_ARITY)
+        assert row.value == 2.0
+        assert row.details == {"defaulted": 1, "keyword_only": 1, "variadic": True}
 
-    def test_positional_bool_flag_counts(self, runner: HouseStyleRunner) -> None:
-        result = analyze(runner, "def go(a, strict=True):\n    return a\n")
+    def test_keyword_only_api_is_not_a_long_parameter_list(self, runner: HouseStyleRunner) -> None:
+        # pydantic's Field: one positional, thirty-odd keyword-only options.
+        source = "def field(default, *, alias=None, title=None, gt=None, lt=None):\n    return 1\n"
+        result = analyze(runner, source)
+        assert value_of(result, MetricType.FUNCTION_ARITY, "field") == 1.0
+
+    def test_flag_the_body_branches_on_counts(self, runner: HouseStyleRunner) -> None:
+        source = "def go(a, strict=True):\n    if strict:\n        return a\n    return None\n"
+        result = analyze(runner, source)
         assert value_of(result, MetricType.BOOLEAN_FLAG_PARAMETERS, "go") == 1.0
 
-    def test_keyword_only_bool_is_exempt(self, runner: HouseStyleRunner) -> None:
-        result = analyze(runner, "def go(a, *, strict=True):\n    return a\n")
+    def test_passed_through_flag_is_configuration(self, runner: HouseStyleRunner) -> None:
+        source = "def go(a, strict=True):\n    return build(a, strict)\n"
+        result = analyze(runner, source)
         assert value_of(result, MetricType.BOOLEAN_FLAG_PARAMETERS, "go") == 0.0
 
-    def test_bool_annotation_counts(self, runner: HouseStyleRunner) -> None:
-        result = analyze(runner, "def go(a, strict: bool):\n    return a\n")
+    def test_keyword_only_bool_is_exempt(self, runner: HouseStyleRunner) -> None:
+        source = "def go(a, *, strict=True):\n    if strict:\n        return a\n    return None\n"
+        result = analyze(runner, source)
+        assert value_of(result, MetricType.BOOLEAN_FLAG_PARAMETERS, "go") == 0.0
+
+    def test_bool_annotation_counts_when_branched_on(self, runner: HouseStyleRunner) -> None:
+        source = "def go(a, strict: bool):\n    return a if strict else None\n"
+        result = analyze(runner, source)
         assert value_of(result, MetricType.BOOLEAN_FLAG_PARAMETERS, "go") == 1.0
 
 
@@ -105,6 +123,35 @@ class TestGlobalStateReach:
         source = "LIMIT = 10\n\ndef go(n):\n    return n < LIMIT\n"
         result = analyze(runner, source)
         assert value_of(result, MetricType.GLOBAL_STATE_REACH, "go") == 0.0
+
+    def test_lowercase_read_only_bindings_are_constants(self, runner: HouseStyleRunner) -> None:
+        # Compiled regexes, type aliases, and sentinels: assigned once, only read.
+        source = (
+            "import re\nr_hex = re.compile('x')\nColorTuple = tuple\n_missing = object()\n"
+            "def go(s):\n    return r_hex.match(s), ColorTuple, _missing\n"
+        )
+        result = analyze(runner, source)
+        assert value_of(result, MetricType.GLOBAL_STATE_REACH, "go") == 0.0
+
+    def test_name_written_by_a_function_is_state(self, runner: HouseStyleRunner) -> None:
+        source = (
+            "_cache = None\n"
+            "def load():\n    global _cache\n    _cache = 1\n    return _cache\n"
+            "def peek():\n    return _cache\n"
+        )
+        result = analyze(runner, source)
+        assert value_of(result, MetricType.GLOBAL_STATE_REACH, "load") == 1.0
+        assert value_of(result, MetricType.GLOBAL_STATE_REACH, "peek") == 1.0
+
+    def test_in_place_mutation_marks_state(self, runner: HouseStyleRunner) -> None:
+        source = (
+            "handlers = ()\nseen = frozenset()\n"
+            "def register(h):\n    handlers.append(h)\n"
+            "def check(x):\n    return x in seen\n"
+        )
+        result = analyze(runner, source)
+        assert value_of(result, MetricType.GLOBAL_STATE_REACH, "register") == 1.0
+        assert value_of(result, MetricType.GLOBAL_STATE_REACH, "check") == 0.0
 
 
 class TestNarrativeComponents:

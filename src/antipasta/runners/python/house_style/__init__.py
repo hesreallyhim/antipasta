@@ -218,6 +218,9 @@ def _rows_for_function(
         (MetricType.EXPRESSION_FLATNESS, expressions.expression_flatness(function)),
         (MetricType.PIPELINE_LINEARITY, expressions.pipeline_linearity(function)),
     ]
+    details_by_type = {
+        MetricType.FUNCTION_ARITY: structure.arity_details(function, is_method),
+    }
     return [
         MetricResult(
             file_path=file_path,
@@ -225,6 +228,7 @@ def _rows_for_function(
             value=value,
             line_number=function.lineno,
             function_name=function.name,
+            details=details_by_type.get(metric_type),
         )
         for metric_type, value in values
     ]

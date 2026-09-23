@@ -45,10 +45,10 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `function_statements` | Complexity | Function | `>= 0` | None | Python, JS/TS | None | Custom | Count of statements owned by the function, excluding nested scopes. |
 | `cognitive_complexity` | Readability | Function and file | `>= 0` | `<= 15`; generated Python default metric row is disabled | Python | None | Complexipy | Human-comprehension complexity, especially nesting and flow disruption. |
 | `message_chain_depth` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Deepest attribute/call chain in the function. |
-| `function_arity` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Number of function parameters after excluding `self` or `cls` for methods. |
-| `boolean_flag_parameters` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Positional parameters that look like boolean mode flags. |
+| `function_arity` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Required positional parameters after excluding `self` or `cls`; defaulted, keyword-only, and variadic counts ride in details. |
+| `boolean_flag_parameters` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Positional boolean parameters the function body branches on. |
 | `exception_discipline` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Bare, broad-without-reraise, or silent exception handlers. |
-| `global_state_reach` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Distinct mutable module-level names touched by a function. |
+| `global_state_reach` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Distinct module-level names a function touches that the module treats as mutable state. |
 | `marker_density` | Readability | File | `>= 0` per 1000 lines | None | Python, JS/TS | None | Custom | TODO/FIXME/HACK/XXX marker density. |
 | `comment_density` | Readability | File | `0..100` percent | None | Python, JS/TS | None | Custom | Percentage of physical lines that are comments. |
 | `expression_flatness` | Readability | Function | `0..1` | None | Python, JS/TS | None | Custom | Share of statements that stay within the one-idea operation budget. |
@@ -97,10 +97,10 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
   `details.approximate=true`; lizard remains the source for JS/TS cyclomatic
   complexity, LOC, and SLOC.
 - `message_chain_depth`: walks each function representation and reports the deepest attribute/call chain, with the first local receiver hop (`self`, `cls`, `this`, or `super`) discounted.
-- `function_arity`: counts parameters, excluding leading `self` or `cls` on Python methods.
-- `boolean_flag_parameters`: counts positional parameters annotated as boolean or defaulted to a boolean value; Python keyword-only booleans are exempt.
+- `function_arity`: counts required positional parameters, excluding leading `self` or `cls` on Python methods. Parameters with defaults, keyword-only parameters, and `*args`/`**kwargs` do not count toward the value (a keyword-only configuration surface is not a missing parameter object); their counts are recorded in `details` as `defaulted`, `keyword_only`, and `variadic`.
+- `boolean_flag_parameters`: counts positional parameters annotated as boolean or defaulted to a boolean value that also appear in the test of an `if`, `while`, or conditional expression in the function's own body. A flag that is only stored or passed along is configuration, not a hidden second function. Python keyword-only booleans are exempt.
 - `exception_discipline`: counts bare handlers, silent handlers, and broad `Exception`/`BaseException` handlers that do not reraise.
-- `global_state_reach`: finds module-level mutable-style names and counts how many distinct such names a function reads or declares global.
+- `global_state_reach`: decides which module-level names are mutable state by evidence rather than spelling: a name counts when some function in the module writes to it (a `global` declaration plus assignment, an item or attribute store, or a mutating method call such as `append` or `update`), when it is rebound more than once at module level, or when it is bound to a mutable container literal or constructor. The value is how many distinct such names a function reads or declares global. Compiled regexes, type aliases, and sentinels that are assigned once and only read are constants whatever their case.
 - `marker_density`: tokenizes comments, counts TODO/FIXME/HACK/XXX markers, and normalizes by physical lines per thousand.
 - `comment_density`: tokenizes comments and reports comment lines divided by total physical lines as a percentage.
 - `function_statements`: counts statements owned by a function while descending into control-flow blocks but excluding nested function/class scopes.
@@ -128,7 +128,7 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 - `step_down_ordering`: counts intra-module calls and reports the fraction where the callee appears later in the same module.
 - `layering_violations`: compares resolved import edges to configured layer order and counts imports from lower layers back into earlier layers.
 - `name_clarity`: splits callable names into words, scores them against the built-in/project/user vocabulary, and averages non-dunder callable scores per module.
-- `naming_antipatterns`: counts callable names with positive-evidence contradictions such as `is_*` returning non-bool, `get_*` returning no value, or `_and_` two-job names.
+- `naming_antipatterns`: skips stub bodies (an abstract declaration has no behavior to contradict) and treats `TypeGuard` and `TypeIs` return annotations as boolean; otherwise counts callable names with positive-evidence contradictions such as `is_*` returning non-bool, `get_*` returning no value, or `_and_` two-job names.
 - `duplication_ratio`: asks pydry for exact structural clone groups, sums duplicated spans per file, divides by that file's SLOC, and caps at `1.0`.
 - `clone_occurrences`: reports pydry exact clone group occurrence counts.
 - `assertions_per_test`: in test-looking files, counts `assert` statements and mock-style assertion calls per test function.

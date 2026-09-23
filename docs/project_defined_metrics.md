@@ -152,7 +152,7 @@ def fetch_and_save_user(id):
     return save_user(user)
 ```
 
-The metric treats names as contracts. A predicate-shaped name is treated as a yes/no contract. A fetcher-shaped name is treated as a returned-value contract. An `_and_` name is treated as a multi-responsibility contract.
+The metric treats names as contracts. A predicate-shaped name is treated as a yes/no contract, and narrowing annotations such as `TypeGuard` satisfy it. A fetcher-shaped name is treated as a returned-value contract. An `_and_` name is treated as a multi-responsibility contract. Stub bodies (`pass`, `...`, `raise NotImplementedError`) are declarations rather than behavior and are never flagged.
 
 ## Message Chain Depth
 
@@ -176,7 +176,7 @@ The metric names code that reaches through a sequence of collaborators instead o
 
 `global_state_reach` counts mutable module-level names a function touches. It is a hidden-dependency signal: the function's behavior depends on state that is not visible in its parameters.
 
-The named state includes caches, registries, feature flags, plugin tables, framework integration points, and other mutable names stored at module scope.
+A module-level name is mutable state by evidence, not by spelling: some function in the module writes to it, it is rebound more than once at module level, or it is bound to a mutable container waiting to be filled. Caches, registries, feature flags, and plugin tables qualify. A compiled regex, a type alias, or a sentinel assigned once and only read is a constant even when written in lowercase.
 
 ## Exception Discipline
 

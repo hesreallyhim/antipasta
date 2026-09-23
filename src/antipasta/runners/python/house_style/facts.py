@@ -123,6 +123,7 @@ def _callable_facts(module: ast.Module) -> list[FactRow]:
                         "nesting": max_nesting(node),
                         "returns_value": _returns_value(node),
                         "return_annotation": (ast.unparse(node.returns) if node.returns else None),
+                        "stub": stub_kind(node),
                     },
                 )
             )
