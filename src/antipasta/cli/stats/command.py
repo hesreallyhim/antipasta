@@ -10,7 +10,7 @@ from .config import setup_analysis_environment
 from .output import generate_output
 
 
-@click.command()
+@click.command(hidden=True)
 @click.option(
     "--pattern",
     "-p",
@@ -131,6 +131,11 @@ def stats(
         # Generate ALL formats at once (9 files from 1 analysis!)
         antipasta stats -p "**/*.py" --format all --output ./reports/
     """
+    click.echo(
+        "Warning: stats is deprecated; use antipasta report --format table "
+        "(--by directory or --by module) instead.",
+        err=True,
+    )
     # Phase 1: File collection and validation
     files = collect_and_validate_files(pattern, directory)
     if not files:

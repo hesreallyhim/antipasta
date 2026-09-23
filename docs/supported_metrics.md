@@ -1,7 +1,6 @@
 # Supported Metrics Reference
 
-This reference is based on the current implementation for the upcoming v2
-release. The authoritative code paths are:
+This reference is based on the current implementation for the upcoming v2 release. Run `antipasta report PATH` for a terminal overview, or add `--format html` or `--format json` for an offline report or snapshot. Configuration is optional; `--fail-on` opts into threshold enforcement (exit 2 on violations). `--by directory|module` groups table output only. The authoritative code paths are:
 
 - `src/antipasta/core/model/metrics.py` for the complete `MetricType` enum.
 - `src/antipasta/runners/` for per-file runner output.
@@ -9,21 +8,9 @@ release. The authoritative code paths are:
 - `src/antipasta/core/mining/` for VCS and coverage-artifact analytics.
 - `src/antipasta/core/model/config.py` and `src/antipasta/schemas/metrics-config.schema.json` for defaults and schema coverage.
 
-The table below treats "supported" as "the current library code has a producer
-for this metric row." Producers include language runners, project-level
-derivers, the VCS miner, the coverage-matrix loader, and snapshot-based joins.
-Some producers need context beyond source files: duplication needs a
-`duplication` config block, layering needs a configured layer order, VCS metrics
-need git history, coverage metrics need a coverage.py dynamic-context artifact,
-and hotspots need a prior report snapshot.
+The table below treats "supported" as "the current library code has a producer for this metric row." Producers include language runners, project-level derivers, the VCS miner, the coverage-matrix loader, and snapshot-based joins. Some producers need context beyond source files: duplication needs a `duplication` config block, layering needs a configured layer order, VCS metrics need git history, coverage metrics need a coverage.py dynamic-context artifact, and hotspots need a prior report snapshot.
 
-The "What it measures" column is the metric definition. The "Supported
-languages" column is only about the languages the library can report on;
-`Any` means the metric is language-agnostic. The "Default" column is only about
-configured comparison values; `None` does not mean the metric is unsupported.
-Runtime inputs or producer context, such as git history, report snapshots,
-configured layers, or coverage.py artifacts, are listed separately in
-"Additional inputs / context."
+The "What it measures" column is the metric definition. The "Supported languages" column is only about the languages the library can report on; `Any` means the metric is language-agnostic. The "Default" column is only about configured comparison values; `None` does not mean the metric is unsupported. Runtime inputs or producer context, such as git history, report snapshots, configured layers, or coverage.py artifacts, are listed separately in "Additional inputs / context."
 
 For expanded descriptions of the project-defined metrics, see [`project_defined_metrics.md`](project_defined_metrics.md).
 

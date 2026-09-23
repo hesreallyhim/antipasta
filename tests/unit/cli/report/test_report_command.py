@@ -324,7 +324,7 @@ class TestReportCommand:
         runner = CliRunner()
         result = runner.invoke(
             report,
-            ["-d", str(tmp_path), "--format", "json", "-c", str(tmp_path / "missing.yaml")],
+            ["-d", str(tmp_path), "--format", "json"],
         )
 
         assert result.exit_code == 0, result.output
@@ -341,7 +341,14 @@ class TestReportCommand:
         runner = CliRunner()
         result = runner.invoke(
             report,
-            ["-d", str(tmp_path), "-o", str(out), "-c", str(tmp_path / "missing.yaml")],
+            [
+                "-d",
+                str(tmp_path),
+                "--format",
+                "html",
+                "-o",
+                str(out),
+            ],
         )
 
         assert result.exit_code == 0, result.output
@@ -374,8 +381,6 @@ class TestReportCommand:
                 str(out),
                 "--top",
                 "5",
-                "-c",
-                str(tmp_path / "missing.yaml"),
             ],
         )
 
@@ -394,7 +399,7 @@ class TestReportCommand:
         runner = CliRunner()
         result = runner.invoke(
             report,
-            ["-d", str(tmp_path), "--format", "json", "-c", str(tmp_path / "missing.yaml")],
+            ["-d", str(tmp_path), "--format", "json"],
         )
 
         assert result.exit_code == 0, result.output

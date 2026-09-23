@@ -19,7 +19,7 @@ from .metrics_utils_override import (
 )
 
 
-@click.command()
+@click.command(hidden=True)
 @click.option(
     "--config",
     "-c",
@@ -114,6 +114,7 @@ def metrics(
 
     For a visual report, use 'antipasta report'.
     """
+    click.echo("Warning: metrics is deprecated; use antipasta report --fail-on instead.", err=True)
     configuration = prepare_configuration(config, threshold, quiet)
     override = create_and_configure_override(
         include_pattern, exclude_pattern, threshold, no_gitignore, force_analyze

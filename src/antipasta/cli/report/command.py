@@ -13,7 +13,10 @@ clean.
 
 from __future__ import annotations
 
+from contextlib import redirect_stdout
+import io
 import json
+import os
 from pathlib import Path
 import tempfile
 from typing import Any
@@ -22,15 +25,14 @@ import webbrowser
 import click
 
 from antipasta.cli.metrics import (
-    apply_overrides_to_configuration,
     create_and_configure_override,
     determine_files_to_analyze,
     enable_experimental_features,
     execute_analysis,
-    load_configuration,
 )
 from antipasta.cli.report.diff_summary import format_diff_summary
 from antipasta.core.model.config import EXPERIMENTAL_FEATURES, AntipastaConfig
+from antipasta.core.model.config_layers import resolve_config
 from antipasta.core.model.config_override import ConfigOverride
 from antipasta.core.store.snapshot import build_snapshot, format_worst_functions_table
 from antipasta.core.store.snapshot_diff import SnapshotDiff, diff
@@ -38,11 +40,12 @@ from antipasta.report.baseline import build_baseline_payload
 
 
 @click.command()
+@click.argument("path", required=False, type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--config",
     "-c",
     type=click.Path(path_type=Path),
-    default=".antipasta.yaml",
+    default=None,
     help="Path to configuration file",
 )
 @click.option(
@@ -67,10 +70,14 @@ from antipasta.report.baseline import build_baseline_payload
 @click.option(
     "--format",
     "output_format",
-    type=click.Choice(["html", "json"], case_sensitive=False),
+    type=click.Choice(["table", "html", "json"], case_sensitive=False),
     default="html",
-    help="Report format (offline HTML page or JSON snapshot)",
+    help="Report format (terminal table, offline HTML page or JSON snapshot)",
 )
+@click.option("--fail-on", is_flag=True, help="Exit 2 when metric thresholds are breached")
+@click.option("--by", type=click.Choice(["directory", "module"]), help="Group table output")
+@click.option("--quiet", "-q", is_flag=True, help="Suppress progress and supplementary output")
+@click.option("--threshold", "-t", multiple=True, help="Override a threshold: metric=value")
 @click.option(
     "--top",
     type=int,
@@ -132,11 +139,16 @@ from antipasta.report.baseline import build_baseline_payload
     help="Enable an experimental metric family for this run (repeatable)",
 )
 def report(
-    config: Path,
+    path: Path | None,
+    config: Path | None,
     files: tuple[Path, ...],
     directory: Path | None,
     output: Path | None,
     output_format: str,
+    fail_on: bool,
+    by: str | None,
+    quiet: bool,
+    threshold: tuple[str, ...],
     top: int,
     open_browser: bool,
     baseline: Path | None,
@@ -147,7 +159,7 @@ def report(
     force_analyze: bool,
     experimental: tuple[str, ...],
 ) -> None:
-    """Generate a visual complexity report (offline HTML or JSON snapshot).
+    """Analyze PATH and report metrics; use --fail-on to enforce thresholds.
 
     The HTML report is a single self-contained file with no network
     references; open it from any file:// URL.  With --format json the raw
@@ -158,27 +170,28 @@ def report(
     (see --save-baseline): a delta summary is printed and the HTML report
     renders in "vs baseline" mode.
     """
+    _validate_grouping(by, output_format)
+    files, directory, root = _resolve_target(path, files, directory)
     override = create_and_configure_override(
-        include_pattern, exclude_pattern, (), no_gitignore, force_analyze
+        include_pattern, exclude_pattern, threshold, no_gitignore, force_analyze
     )
-    final_config = _prepare_config(
-        config, override, include_pattern, exclude_pattern, no_gitignore, force_analyze
-    )
+    final_config = _prepare_config(config, root, override)
     enable_experimental_features(final_config, experimental)
     target_files = determine_files_to_analyze(files, directory, final_config, override, True)
-    click.echo(f"Analyzing {len(target_files)} files...", err=True)
-    results = execute_analysis(target_files, final_config, True, root=directory)
+    if not quiet:
+        click.echo(f"Analyzing {len(target_files)} files...", err=True)
+    results = execute_analysis(target_files, final_config, True, root=root)
 
     snapshot = build_snapshot(
         results["reports"],
         final_config,
-        root=directory or Path.cwd(),
+        root=root,
         summary=results["summary"],
         project_reports=results.get("project_reports"),
         import_graph=results.get("import_graph"),
     )
     render_snapshot, baseline_diff = _apply_baseline(snapshot, baseline, output_format)
-    payload = _render_payload(render_snapshot, output_format)
+    payload = _report_payload(render_snapshot, results, output_format, by, root)
     _emit(payload, output, output_format, open_browser)
 
     if save_baseline:
@@ -187,39 +200,89 @@ def report(
 
     # Keep stdout data-clean: the delta summary and --top table share stdout
     # only when the data itself went to a file.
-    if baseline is not None and baseline_diff is not None:
+    if not quiet and baseline is not None and baseline_diff is not None:
         summary = format_diff_summary(baseline_diff, baseline_label=str(baseline))
         click.echo(summary, err=output is None)
 
-    if top > 0:
+    if not quiet and top > 0:
         table = format_worst_functions_table(snapshot, top)
         click.echo(table, err=output is None)
 
+    _exit_after_report(results, fail_on)
 
-def _prepare_config(
-    config: Path,
-    override: ConfigOverride,
-    include_pattern: tuple[str, ...],
-    exclude_pattern: tuple[str, ...],
-    no_gitignore: bool,
-    force_analyze: bool,
-) -> AntipastaConfig:
-    """Load configuration and apply pattern overrides (diagnostics to stderr)."""
-    configuration = load_configuration(config, quiet=True)
-    if config.exists():
-        click.echo(f"Using configuration: {config}", err=True)
-    else:
-        click.echo(f"Configuration file '{config}' not found; using defaults.", err=True)
-    return apply_overrides_to_configuration(
-        configuration,
-        override,
-        True,  # quiet: status messages would go to stdout, keep it data-clean
-        force_analyze,
-        include_pattern,
-        exclude_pattern,
-        (),
-        no_gitignore,
+
+def _validate_grouping(by: str | None, output_format: str) -> None:
+    """Keep aggregation output distinct from the stable snapshot formats."""
+    if by and output_format != "table":
+        raise click.UsageError("--by requires --format table")
+
+
+def _resolve_target(
+    path: Path | None, files: tuple[Path, ...], directory: Path | None
+) -> tuple[tuple[Path, ...], Path | None, Path]:
+    """Resolve one analysis root without silently combining positional targets."""
+    if path is not None:
+        if files or directory is not None:
+            raise click.UsageError("PATH cannot be combined with --files or --directory")
+        if path.is_dir():
+            directory = path
+        else:
+            files = (path,)
+    if directory is not None:
+        return files, directory, directory.resolve()
+    if files:
+        parents = [str(file.resolve().parent) for file in files]
+        return files, None, Path(os.path.commonpath(parents))
+    return files, None, Path.cwd()
+
+
+def _prepare_config(config: Path | None, root: Path, override: ConfigOverride) -> AntipastaConfig:
+    """Resolve layers and apply overrides without writing diagnostics to stdout."""
+    try:
+        resolved = resolve_config(root=root, config_path=config)
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    for warning in resolved.warnings:
+        click.echo(f"Warning: {warning}", err=True)
+    return resolved.config.apply_overrides(override)
+
+
+def _report_payload(
+    snapshot: dict[str, Any],
+    results: dict[str, Any],
+    output_format: str,
+    by: str | None,
+    root: Path,
+) -> str:
+    """Reuse collected reports for table aggregation, without another analysis."""
+    if output_format != "table":
+        return _render_payload(snapshot, output_format)
+    from antipasta.cli.stats.collection.file_collection import get_metrics_to_include
+    from antipasta.cli.stats.output import collect_statistics_based_on_grouping
+    from antipasta.cli.stats.output.display import display_table
+
+    statistics = collect_statistics_based_on_grouping(
+        results["reports"],
+        get_metrics_to_include(()),
+        by == "directory",
+        by == "module",
+        root,
+        1,
+        "relative",
     )
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        display_table(statistics)
+    return buffer.getvalue().rstrip()
+
+
+def _exit_after_report(results: dict[str, Any], fail_on: bool) -> None:
+    """Analysis errors remain failures even when threshold gating is disabled."""
+    errors = [report.error for report in results["reports"] if report.error]
+    if errors:
+        raise click.ClickException("Analysis failed: " + "; ".join(errors))
+    if fail_on and results["summary"]["total_violations"]:
+        raise click.exceptions.Exit(2)
 
 
 def _load_baseline_snapshot(path: Path) -> dict[str, Any]:
