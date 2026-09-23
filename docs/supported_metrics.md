@@ -43,21 +43,21 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `halstead_time` | Complexity | File and function | `>= 0` seconds | None | Python | None | Radon | Halstead implementation-time estimate. |
 | `halstead_bugs` | Complexity | File and function | `>= 0` | None | Python | None | Radon | Halstead estimated delivered defects. |
 | `function_statements` | Complexity | Function | `>= 0` | None | Python, JS/TS | None | Custom | Count of statements owned by the function, excluding nested scopes. |
-| `cognitive_complexity` | Readability | Function and file | `>= 0` | `<= 15`; generated Python default metric row is disabled | Python | None | Complexipy | Human-comprehension complexity, especially nesting and flow disruption. |
-| `message_chain_depth` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Deepest attribute/call chain in the function. |
-| `function_arity` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Required positional parameters after excluding `self` or `cls`; defaulted, keyword-only, and variadic counts ride in details. |
-| `boolean_flag_parameters` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Positional boolean parameters the function body branches on. |
-| `global_state_reach` | Readability | Function | `>= 0` | None | Python, JS/TS | None | Custom | Distinct module-level names a function touches that the module treats as mutable state. |
-| `marker_density` | Readability | File | `>= 0` per 1000 lines | None | Python, JS/TS | None | Custom | TODO/FIXME/HACK/XXX marker density. |
-| `comment_density` | Readability | File | `0..100` percent | None | Python, JS/TS | None | Custom | Percentage of physical lines that are comments. |
-| `expression_flatness` | Readability | Function | `0..1` | None | Python, JS/TS | None | Custom | Share of statements that stay within the one-idea operation budget. |
-| `pipeline_linearity` | Readability | Function | `0..1` | None | Python, JS/TS | None | Custom | Share of assigned local names written once and read once. |
-| `narrative_mixed_functions` | Readability | Module | `>= 0` | None unless `narrative` config exists; then `<= 0` offenders | Python, JS/TS | None | Custom | Count of functions that both narrate through project calls and compute raw details. |
-| `narrator_budget_exceeded` | Readability | Module | `>= 0` | None unless `narrative` config exists; computation uses narrator budget `9`, then `<= 0` offenders | Python, JS/TS | None | Custom | Count of narrator functions exceeding the step budget. |
-| `computer_budget_exceeded` | Readability | Module | `>= 0` | None unless `narrative` config exists; computation uses budgets `8` statements and nesting `1`, then `<= 0` offenders | Python, JS/TS | None | Custom | Count of leaf/computer functions exceeding statement or nesting budgets. |
-| `step_down_ordering` | Readability | Module | `0..1` | None | Python, JS/TS | None | Custom | Share of intra-module calls whose callee is defined below the caller. |
-| `name_clarity` | Readability | Module | `0..1` | None; if `narrative.name_clarity_floor` is set, `>=` that configured value | Python, JS/TS | None | Custom | Mean lexical clarity of callable names against the layered vocabulary. |
-| `naming_antipatterns` | Readability | Module | `>= 0` | None unless `narrative` config exists; then `<= 0` offenders | Python, JS/TS | None | Custom | Count of naming/behavior contradictions such as lying predicates or two-job names. |
+| `cognitive_complexity` | Complexity | Function and file | `>= 0` | `<= 15`; generated Python default metric row is disabled | Python | None | Complexipy | Human-comprehension complexity, especially nesting and flow disruption. |
+| `message_chain_depth` | SOLID | Function | `>= 0` | None | Python, JS/TS | None | Custom | Deepest attribute/call chain in the function. |
+| `function_arity` | Complexity | Function | `>= 0` | None | Python, JS/TS | None | Custom | Required positional parameters after excluding `self` or `cls`; defaulted, keyword-only, and variadic counts ride in details. |
+| `boolean_flag_parameters` | SOLID | Function | `>= 0` | None | Python, JS/TS | None | Custom | Positional boolean parameters the function body branches on. |
+| `global_state_reach` | SOLID | Function | `>= 0` | None | Python, JS/TS | None | Custom | Distinct module-level names a function touches that the module treats as mutable state. |
+| `marker_density` | Maintainability | File | `>= 0` per 1000 lines | None | Python, JS/TS | None | Custom | TODO/FIXME/HACK/XXX marker density. |
+| `comment_density` | Maintainability | File | `0..100` percent | None | Python, JS/TS | None | Custom | Percentage of physical lines that are comments. |
+| `expression_flatness` | Experimental | Function | `0..1` | None | Python, JS/TS | None | Custom | Share of statements that stay within the one-idea operation budget. |
+| `pipeline_linearity` | Experimental | Function | `0..1` | None | Python, JS/TS | None | Custom | Share of assigned local names written once and read once. |
+| `narrative_mixed_functions` | Experimental | Module | `>= 0` | None unless `narrative` config exists; then `<= 0` offenders | Python, JS/TS | None | Custom | Count of functions that both narrate through project calls and compute raw details. |
+| `narrator_budget_exceeded` | Experimental | Module | `>= 0` | None unless `narrative` config exists; computation uses narrator budget `9`, then `<= 0` offenders | Python, JS/TS | None | Custom | Count of narrator functions exceeding the step budget. |
+| `computer_budget_exceeded` | Experimental | Module | `>= 0` | None unless `narrative` config exists; computation uses budgets `8` statements and nesting `1`, then `<= 0` offenders | Python, JS/TS | None | Custom | Count of leaf/computer functions exceeding statement or nesting budgets. |
+| `step_down_ordering` | Experimental | Module | `0..1` | None | Python, JS/TS | None | Custom | Share of intra-module calls whose callee is defined below the caller. |
+| `name_clarity` | Experimental | Module | `0..1` | None; if `narrative.name_clarity_floor` is set, `>=` that configured value | Python, JS/TS | None | Custom | Mean lexical clarity of callable names against the layered vocabulary. |
+| `naming_antipatterns` | Maintainability | Module | `>= 0` | None unless `narrative` config exists; then `<= 0` offenders | Python, JS/TS | None | Custom | Count of naming/behavior contradictions such as lying predicates or two-job names. |
 | `lack_of_cohesion` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Number of responsibility clusters among a class's concrete methods (methods linked by shared state, calls, properties, or shared inherited callees); no row for classes with no concrete methods. |
 | `weighted_methods_per_class` | SOLID | Class | `>= 0` | None | Python | None | Custom, Radon-derived | Sum of member method cyclomatic complexity for a class. |
 | `coupling_between_objects` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Distinct analyzed classes a class body references (Python: resolved through the class registry; JS/TS: imported names, lexical approximation). |
@@ -74,8 +74,8 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `distance_from_main_sequence` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Absolute distance from Martin's main sequence, `abs(A + I - 1)`. |
 | `dependency_inversion` | SOLID | Module | `0..1` | None | Python, JS/TS | None | Custom | Mean abstractness of imported project targets. |
 | `layering_violations` | SOLID | Module | `>= 0` | None because no layer order exists by default; if `tree_shape.layers` is configured, `<= 0` upward imports | Python, JS/TS | `tree_shape.layers` config | Custom | Imports from a configured lower layer back upward into an earlier layer. |
-| `duplication_ratio` | DRYness | File | `0..1` | None; if `duplication.max_ratio` is set, `<=` that configured value | Python | `duplication` config block | pydry plus custom | Per-file duplicated-line ratio from pydry clone groups. |
-| `clone_occurrences` | DRYness | Clone group | `>= 0` | None | Python | `duplication` config block | pydry plus custom | Number of occurrences in an exact structural clone group. |
+| `duplication_ratio` | Maintainability | File | `0..1` | None; if `duplication.max_ratio` is set, `<=` that configured value | Python | `duplication` config block | pydry plus custom | Per-file duplicated-line ratio from pydry clone groups. |
+| `clone_occurrences` | Maintainability | Clone group | `>= 0` | None | Python | `duplication` config block | pydry plus custom | Number of occurrences in an exact structural clone group. |
 | `assertions_per_test` | Test quality | Test function | `>= 0` | None | Python, JS/TS | Test-looking file path and test function name | Custom | Plain assertions plus mock-style assertion calls per test. |
 | `mock_call_assertions` | Test quality | Test function | `>= 0` | None | Python, JS/TS | Test-looking file path and test function name | Custom | Mock call-count or call-argument assertion calls per test. |
 | `big_literal_assertions` | Test quality | Test function | `>= 0` | None | Python, JS/TS | Test-looking file path and test function name | Custom | Assertions involving large inline literal structures. |
@@ -85,9 +85,9 @@ For expanded descriptions of the project-defined metrics, see [`project_defined_
 | `blast_radius` | Test quality | Covered file | `>= 0` | None | Python coverage data | coverage.py dynamic-context artifact | coverage.py artifact plus custom | Number of distinct tests executing a file. |
 | `code_churn` | VCS | File | `>= 0` | None | Any | Git history | git plus custom | Lines added plus deleted over the mined history window. |
 | `change_coupling` | VCS | File pair | `>= 3` | None | Any | Git history | git plus custom | Number of commits in which a file pair changed together. |
-| `maintainability_index` | Mixed | File | `0..100` | `>= 50` in generated Python config | Python | None | Radon | Composite maintainability score from complexity, size, and Halstead data. |
-| `single_responsibility_index` | Mixed | Class | `>= 0` | None | Python, JS/TS | None | Custom | Excess cohesion components (beyond one) weighted by method complexity and class size; zero for cohesive classes and interfaces. |
-| `hotspot` | Mixed | File | `>= 0` | None | Any | Git history and report snapshot with complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
+| `maintainability_index` | Maintainability | File | `0..100` | `>= 50` in generated Python config | Python | None | Radon | Composite maintainability score from complexity, size, and Halstead data. |
+| `single_responsibility_index` | SOLID | Class | `>= 0` | None | Python, JS/TS | None | Custom | Excess cohesion components (beyond one) weighted by method complexity and class size; zero for cohesive classes and interfaces. |
+| `hotspot` | Maintainability | File | `>= 0` | None | Any | Git history and report snapshot with complexity for the file | git plus custom | Code churn multiplied by worst cyclomatic complexity from a snapshot. |
 
 ## Custom Metric Computation Notes
 
