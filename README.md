@@ -457,27 +457,6 @@ Report data goes to stdout, or the file selected by `--output`; diagnostics go t
 
 ## Learning Resources
 
-### Code Complexity Reduction Tutorial
-
-If you're new to code complexity metrics or want to learn how to reduce complexity in your code, check out our comprehensive tutorial:
-
-📚 **[Code Complexity Reduction Tutorial](DEMOS/TUTORIAL/README.md)**
-
-This hands-on tutorial walks you through:
-- Understanding what makes code complex
-- Step-by-step techniques to reduce complexity
-- Real examples showing a 90% reduction in cognitive complexity
-- When to stop refactoring (perfect metrics vs practical code)
-
-The tutorial includes 5 progressive versions of the same code, demonstrating techniques like:
-1. **Early returns** - The simplest and most effective technique
-2. **Function extraction** - Breaking down large functions
-3. **Data classes** - Reducing parameter lists
-4. **Configuration objects** - Eliminating magic numbers
-5. **Enterprise patterns** - When and how to use advanced patterns
-
-Perfect for developers who want to write more maintainable code or teams establishing code quality standards.
-
 ## Statistics Collection
 
 Use `antipasta report PATH --by directory` to compare folders or `--by module` to compare Python packages. These views expose file and function counts and line-count aggregates from the same analysis run. Use the default ungrouped table for metric categories, separate scopes, threshold breaches, offenders, and prior-run deltas.
@@ -503,16 +482,9 @@ antipasta/
 
 ## Current Limitations
 
-1. **Python has the broadest metric coverage**: JavaScript and TypeScript currently use lizard for cyclomatic complexity and line counts.
-2. **Some metrics are scope-specific**: Several metrics are function-level, while newer structural metrics report at class, module, project, or artifact scope.
-3. **Cognitive Complexity Requires Complexipy**: The cognitive complexity metric requires the optional `complexipy` package to be installed.
-
-## Future Enhancements
-
--   Pre-commit hook integration
--   Git hook support
--   GitHub Actions integration
--   VS Code extension
+1. **Python has the broadest metric coverage.** JavaScript and TypeScript use lizard for cyclomatic complexity and line counts plus a lexical analyzer for the structural rows; those rows are labeled approximate, and the per-function rule refinements described in the metrics reference apply to Python only.
+2. **Some metrics are scope-specific.** Several metrics are function-level, while the structural metrics report at class, module, project, or artifact scope.
+3. **Duplication depends on pydry.** Clone detection runs only when a `duplication` block is configured and uses the `pydry-cli` package, which ships with antipasta.
 
 ## Contributing
 

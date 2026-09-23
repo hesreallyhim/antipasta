@@ -1,6 +1,6 @@
 # Supported Metrics Reference
 
-This reference is based on the current implementation for the upcoming v2 release. Run `antipasta report PATH` for a terminal overview, or add `--format html` or `--format json` for an offline report or snapshot. Configuration is optional; `--fail-on` opts into threshold enforcement (exit 2 on violations). `--by directory|module` groups table output only. The authoritative code paths are:
+This reference describes the current implementation. Run `antipasta report PATH` for a terminal overview, or add `--format html` or `--format json` for an offline report or snapshot. Configuration is optional; `--fail-on` opts into threshold enforcement (exit 2 on violations). `--by directory|module` groups table output only. The authoritative code paths are:
 
 - `src/antipasta/core/model/metrics.py` for the complete `MetricType` enum.
 - `src/antipasta/runners/` for per-file runner output.
@@ -171,8 +171,3 @@ or config-generation artifacts.
 - `README.md`'s example config shows cognitive complexity as an enabled metric
   row, while `AntipastaConfig.generate_default()` creates the Python cognitive
   metric with `enabled=false`.
-- `docs/statistics_feature.md` lists only six "Available metrics"; the stats
-  parser accepts any `MetricType` name and an `all` prefix, though project-scope
-  metrics still only appear where the stats path consumes their rows.
-- `DEMOS/README.md` uses a cognitive complexity default of `10`, while the code
-  and main README use `15`.
