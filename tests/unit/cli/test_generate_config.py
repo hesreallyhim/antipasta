@@ -49,13 +49,13 @@ class TestGenerateConfigCommand:
             python = config.get_language_config("python")
             assert config.preset == "readable"
             assert python is not None
-            assert config.narrative is not None
+            assert config.experimental is None  # presets never enable experimental features
             assert any(metric.type.value == "function_statements" for metric in python.metrics)
 
             content = output_file.read_text()
             assert "preset: readable" in content
             assert "profile: standard" in content
-            assert "narrative:" in content
+            assert "experimental:" not in content
 
     def test_non_interactive_overwrites_existing_file(self) -> None:
         """Test that non-interactive mode overwrites existing files without prompting."""

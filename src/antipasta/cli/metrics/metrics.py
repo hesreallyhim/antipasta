@@ -4,12 +4,14 @@ from pathlib import Path
 
 import click
 
+from antipasta.core.model.config import EXPERIMENTAL_FEATURES
+
 from .metrics_utils_analysis import (
     determine_files_to_analyze,
     execute_analysis,
     exit_with_appropriate_code,
 )
-from .metrics_utils_config import prepare_configuration
+from .metrics_utils_config import enable_experimental_features, prepare_configuration
 from .metrics_utils_output import output_results
 from .metrics_utils_override import (
     apply_overrides_to_configuration,
@@ -86,6 +88,13 @@ from .metrics_utils_override import (
     is_flag=True,
     help="Analyze all files, ignoring all exclusions",
 )
+@click.option(
+    "--experimental",
+    "experimental",
+    multiple=True,
+    type=click.Choice(sorted(EXPERIMENTAL_FEATURES), case_sensitive=False),
+    help="Enable an experimental metric family for this run (repeatable)",
+)
 def metrics(
     config: Path,
     files: tuple[Path, ...],
@@ -97,6 +106,7 @@ def metrics(
     threshold: tuple[str, ...],
     no_gitignore: bool,
     force_analyze: bool,
+    experimental: tuple[str, ...],
 ) -> None:
     """Analyze code metrics for specified files.
 
@@ -118,6 +128,7 @@ def metrics(
         threshold,
         no_gitignore,
     )
+    enable_experimental_features(final_config, experimental)
 
     target_files = determine_files_to_analyze(files, directory, final_config, override, quiet)
     analysis_results = execute_analysis(target_files, final_config, quiet, root=directory)

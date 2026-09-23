@@ -39,3 +39,9 @@ def _load_default_config(config: Path, quiet: bool) -> AntipastaConfig:
 def prepare_configuration(config: Path, threshold: tuple[str, ...], quiet: bool) -> AntipastaConfig:
     """Load configuration and apply threshold overrides."""
     return load_configuration(config, quiet)
+
+
+def enable_experimental_features(config: AntipastaConfig, features: tuple[str, ...]) -> None:
+    """Switch on the experimental features named on the command line."""
+    for feature in features:
+        config.enable_experimental(feature)

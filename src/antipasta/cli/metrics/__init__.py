@@ -10,7 +10,11 @@ from .metrics_utils_analysis import (
     exit_with_appropriate_code,
 )
 from .metrics_utils_collection import collect_files
-from .metrics_utils_config import load_configuration, prepare_configuration
+from .metrics_utils_config import (
+    enable_experimental_features,
+    load_configuration,
+    prepare_configuration,
+)
 from .metrics_utils_output import output_results, print_results
 from .metrics_utils_override import (
     apply_overrides_to_configuration,
@@ -20,6 +24,7 @@ from .metrics_utils_override import (
 )
 
 __all__ = [
+    "enable_experimental_features",
     # Main command
     "metrics",
     # Analysis functions

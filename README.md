@@ -62,6 +62,8 @@ The interactive mode will guide you through setting up:
 
 Presets provide smaller starting points for common tradeoffs such as readability, compactness, architecture, and test-suite maintainability. See [`docs/presets.md`](docs/presets.md) for the preset list and merge rules.
 
+Some metric families are experimental: opinionated, off by default, and enabled only by an `experimental` config block or the `--experimental` flag. See [`docs/experimental_metrics.md`](docs/experimental_metrics.md).
+
 The interactive mode validates all inputs and shows valid ranges:
 - **Cyclomatic Complexity**: 1-50 (recommended: 10)
 - **Cognitive Complexity**: 1-100 (recommended: 15)

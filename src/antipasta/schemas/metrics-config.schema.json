@@ -105,6 +105,24 @@
       "title": "DuplicationConfig",
       "type": "object"
     },
+    "ExperimentalConfig": {
+      "description": "Opt-in experimental features. Each is off unless its block is present;\nsee docs/experimental_metrics.md.",
+      "properties": {
+        "narrative": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NarrativeConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "ExperimentalConfig",
+      "type": "object"
+    },
     "ImportGraphConfig": {
       "description": "Import-graph gating. Presence of this block turns cycle reports and\nstable-dependencies counts into enforceable violations; without it the\nderiver stays informational.",
       "properties": {
@@ -403,10 +421,10 @@
       ],
       "default": null
     },
-    "narrative": {
+    "duplication": {
       "anyOf": [
         {
-          "$ref": "#/$defs/NarrativeConfig"
+          "$ref": "#/$defs/DuplicationConfig"
         },
         {
           "type": "null"
@@ -414,10 +432,10 @@
       ],
       "default": null
     },
-    "duplication": {
+    "experimental": {
       "anyOf": [
         {
-          "$ref": "#/$defs/DuplicationConfig"
+          "$ref": "#/$defs/ExperimentalConfig"
         },
         {
           "type": "null"

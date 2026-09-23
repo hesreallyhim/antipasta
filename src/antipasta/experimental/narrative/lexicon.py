@@ -2,7 +2,7 @@
 
 Four layers, per docs/design/narrative-index.md:
 
-1. A vendored English wordlist (``data/wordlist.txt.gz``, ~200k lowercase
+1. A vendored English wordlist (``wordlist.txt.gz`` beside this module, ~200k lowercase
    words derived from the public-domain web2 list shipped with macOS/BSD;
    offline, same posture as the vendored d3).
 2. A curated programming-abbreviation list (``ctx``, ``cfg``, ``idx`` — the
@@ -71,7 +71,7 @@ _SPLIT_PATTERN = re.compile(r"[a-z]+|[A-Z][a-z]*|[0-9]+")
 @lru_cache(maxsize=1)
 def english_words() -> frozenset[str]:
     """The vendored wordlist (loaded once per process)."""
-    resource = importlib.resources.files("antipasta") / "data" / "wordlist.txt.gz"
+    resource = importlib.resources.files("antipasta.experimental.narrative") / "wordlist.txt.gz"
     with resource.open("rb") as handle:
         payload = gzip.decompress(handle.read()).decode()
     return frozenset(payload.split())

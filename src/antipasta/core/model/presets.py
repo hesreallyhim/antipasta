@@ -27,7 +27,6 @@ _LANGUAGE_EXTENSIONS: Final[dict[str, list[str]]] = {
 _PROJECT_BLOCKS: Final[frozenset[str]] = frozenset({
     "tree_shape",
     "import_graph",
-    "narrative",
     "duplication",
 })
 
@@ -175,12 +174,6 @@ PRESET_DEFINITIONS: Final[dict[PresetName, dict[str, Any]]] = {
                     "comparison": "<=",
                 },
             ],
-        },
-        "narrative": {
-            "narrator_step_budget": {"extreme": 7, "standard": 9, "relaxed": 11},
-            "computer_statement_budget": {"extreme": 8, "standard": 12, "relaxed": 16},
-            "computer_nesting_budget": {"extreme": 1, "standard": 1, "relaxed": 2},
-            "name_clarity_floor": {"extreme": 0.75, "standard": 0.65, "relaxed": 0.60},
         },
     },
     PresetName.COMPACT: {

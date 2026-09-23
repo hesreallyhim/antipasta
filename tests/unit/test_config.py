@@ -9,6 +9,7 @@ from antipasta.core.model.config import (
     AntipastaConfig,
     ComparisonOperator,
     DefaultsConfig,
+    ExperimentalConfig,
     LanguageConfig,
     MetricConfig,
     NarrativeConfig,
@@ -194,8 +195,9 @@ languages:
         """Preset definitions should stay data-only, with generic expansion code."""
         assert not _contains_callable(PRESET_DEFINITIONS)
 
-    def test_readable_preset_expands_language_and_narrative_gates(self) -> None:
-        """Readable preset materializes local readability and narrative gates."""
+    def test_readable_preset_expands_language_gates_only(self) -> None:
+        """Readable preset materializes local readability gates; presets never
+        enable experimental features."""
         config = AntipastaConfig(preset=PresetName.READABLE)
         python = config.get_language_config("python")
 
@@ -205,8 +207,7 @@ languages:
         assert metrics[MetricType.COGNITIVE_COMPLEXITY].threshold == 12
         assert metrics[MetricType.FUNCTION_STATEMENTS].threshold == 12
         assert metrics[MetricType.MESSAGE_CHAIN_DEPTH].threshold == 2
-        assert config.narrative is not None
-        assert config.narrative.name_clarity_floor == 0.65
+        assert config.experimental is None
 
     def test_profile_scales_preset_thresholds(self) -> None:
         """Profiles tune preset thresholds without changing the preset name."""
@@ -217,8 +218,6 @@ languages:
         metrics = {metric.type: metric for metric in python.metrics}
         assert metrics[MetricType.COGNITIVE_COMPLEXITY].threshold == 8
         assert metrics[MetricType.FUNCTION_STATEMENTS].threshold == 8
-        assert config.narrative is not None
-        assert config.narrative.name_clarity_floor == 0.75
 
     def test_explicit_language_metric_wins_over_preset(self) -> None:
         """Preset expansion fills missing metrics without replacing explicit ones."""
@@ -250,14 +249,23 @@ languages:
 
     def test_explicit_project_block_values_win_over_preset(self) -> None:
         """Preset expansion fills missing project-block fields only."""
+        # The YAML path: a partial block, as a user would write it.
+        config = AntipastaConfig(preset="compact", duplication={"max_ratio": 0.5})
+
+        assert config.duplication is not None
+        assert config.duplication.max_ratio == 0.5  # explicit value wins
+        assert config.duplication.normalize_constants is True  # preset fills the rest
+
+    def test_experimental_block_survives_preset_expansion(self) -> None:
         config = AntipastaConfig(
             preset=PresetName.READABLE,
-            narrative=NarrativeConfig(name_clarity_floor=0.9),
+            experimental=ExperimentalConfig(narrative=NarrativeConfig(name_clarity_floor=0.9)),
         )
 
-        assert config.narrative is not None
-        assert config.narrative.name_clarity_floor == 0.9
-        assert config.narrative.narrator_step_budget == 9
+        assert config.experimental_enabled("narrative")
+        narrative = config.experimental.narrative if config.experimental else None
+        assert narrative is not None
+        assert narrative.name_clarity_floor == 0.9
 
     def test_compact_preset_enables_duplication_config(self) -> None:
         """Compact preset turns on duplication with profile-aware thresholds."""

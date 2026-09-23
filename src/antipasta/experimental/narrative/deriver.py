@@ -15,8 +15,9 @@ names called from a large share of functions (logging-style cross-cutting
 utilities) — is excluded so it neither makes narrators nor breaks computers.
 
 Reports are per module, compact: counts with offender names in details, not
-one row per function. Violations fire only when a ``narrative`` config block
-exists; informational otherwise, per the dogfooding policy.
+one row per function. The deriver runs only when ``experimental.narrative``
+is configured; gates inside that block turn counts into violations, and
+every row is labeled ``experimental`` in its details.
 """
 
 from __future__ import annotations
@@ -25,11 +26,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from antipasta.core.derive.lexicon import full_vocabulary, harvest_anchors, score_identifier
-from antipasta.core.model.config import NarrativeConfig
+from antipasta.core.model.config import AntipastaConfig, NarrativeConfig
 from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.metrics import MetricResult, MetricType
 from antipasta.core.model.violations import ProjectReport, Violation, check_metric_violation
+from antipasta.experimental.narrative.lexicon import (
+    full_vocabulary,
+    harvest_anchors,
+    score_identifier,
+)
 
 #: Functions under this many statements are too small to classify.
 TRIVIAL_FLOOR = 3
@@ -50,7 +55,7 @@ def derive_narrative(derivation_input: DerivationInput) -> list[ProjectReport]:
         return []
     symbols = _project_symbols(derivation_input)
     ambient = _ambient_names(callables_by_module)
-    config = derivation_input.config.narrative
+    config = narrative_config(derivation_input.config)
     tolerance = (config or NarrativeConfig()).effective_mixing_tolerance(
         derivation_input.config.profile
     )
@@ -62,6 +67,11 @@ def derive_narrative(derivation_input: DerivationInput) -> list[ProjectReport]:
         _module_report(module, payloads, symbols, ambient, config, tolerance, vocabulary)
         for module, payloads in sorted(callables_by_module.items())
     ]
+
+
+def narrative_config(config: AntipastaConfig) -> NarrativeConfig | None:
+    """The narrative block, if the experimental feature is enabled."""
+    return config.experimental.narrative if config.experimental is not None else None
 
 
 def _anchor_vocabulary(
@@ -196,6 +206,8 @@ def _module_report(
         _clarity_row(module, payloads, vocabulary),
         _count_row(module, MetricType.NAMING_ANTIPATTERNS, _antipatterns(payloads)),
     ]
+    for row in rows:
+        row.details = {**(row.details or {}), "experimental": True}
     violations = _narrative_violations(rows, config)
     return ProjectReport(subject=module, metrics=rows, violations=violations)
 

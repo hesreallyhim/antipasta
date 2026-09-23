@@ -211,6 +211,19 @@ class NarrativeConfig(BaseModel):
         )
 
 
+#: Experimental feature name → config block constructor (for ``--experimental``).
+EXPERIMENTAL_FEATURES: dict[str, type[BaseModel]] = {"narrative": NarrativeConfig}
+
+
+class ExperimentalConfig(BaseModel):
+    """Opt-in experimental features. Each is off unless its block is present;
+    see docs/experimental_metrics.md."""
+
+    #: The Narrative Index (mixed altitude, budgets, step-down, flatness,
+    #: linearity, name clarity). ``{}`` enables it with default budgets.
+    narrative: NarrativeConfig | None = Field(default=None)
+
+
 class AntipastaConfig(BaseModel):
     """Main configuration model."""
 
@@ -222,8 +235,19 @@ class AntipastaConfig(BaseModel):
     profile: ProfileName = Field(default="standard")
     tree_shape: TreeShapeConfig | None = Field(default=None)
     import_graph: ImportGraphConfig | None = Field(default=None)
-    narrative: NarrativeConfig | None = Field(default=None)
     duplication: DuplicationConfig | None = Field(default=None)
+    experimental: ExperimentalConfig | None = Field(default=None)
+
+    def experimental_enabled(self, feature: str) -> bool:
+        """Is the named experimental feature switched on?"""
+        return self.experimental is not None and getattr(self.experimental, feature) is not None
+
+    def enable_experimental(self, feature: str) -> None:
+        """Switch a feature on with its defaults (used by ``--experimental``)."""
+        if self.experimental is None:
+            self.experimental = ExperimentalConfig()
+        if getattr(self.experimental, feature) is None:
+            setattr(self.experimental, feature, EXPERIMENTAL_FEATURES[feature]())
 
     @model_validator(mode="before")
     @classmethod

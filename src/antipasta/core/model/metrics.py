@@ -89,6 +89,21 @@ class MetricType(StrEnum):
     BLAST_RADIUS = "blast_radius"
 
 
+#: Rows the runners always compute (they are cheap and cache-safe) but the
+#: engine drops unless the matching experimental feature is enabled.
+EXPERIMENTAL_METRICS: dict[str, frozenset[MetricType]] = {
+    "narrative": frozenset({
+        MetricType.EXPRESSION_FLATNESS,
+        MetricType.PIPELINE_LINEARITY,
+        MetricType.NARRATIVE_MIXED_FUNCTIONS,
+        MetricType.NARRATOR_BUDGET_EXCEEDED,
+        MetricType.COMPUTER_BUDGET_EXCEEDED,
+        MetricType.STEP_DOWN_ORDERING,
+        MetricType.NAME_CLARITY,
+    }),
+}
+
+
 @dataclass
 class MetricResult:
     """Result of a metric calculation."""

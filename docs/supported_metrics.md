@@ -27,6 +27,8 @@ configured layers, or coverage.py artifacts, are listed separately in
 
 For expanded descriptions of the project-defined metrics, see [`project_defined_metrics.md`](project_defined_metrics.md).
 
+Rows in the `Experimental` category are computed only when the feature is enabled (`experimental: {narrative: {}}` in configuration, or `--experimental narrative` on the command line), carry `details.experimental: true`, and are never enabled by a preset. See [`experimental_metrics.md`](experimental_metrics.md) for what they measure and why they are held apart.
+
 ## Metric List
 
 | Metric | Category | Scope | Value range | Default | Supported languages | Additional inputs / context | Source | What it measures |

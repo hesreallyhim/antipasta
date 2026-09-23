@@ -21,7 +21,13 @@ from antipasta.core.model.config import (
 )
 from antipasta.core.model.derivation import AnalysisResult, DerivationInput, Deriver
 from antipasta.core.model.detector import Language, LanguageDetector
-from antipasta.core.model.metrics import FactRow, FileMetrics, MetricResult, MetricType
+from antipasta.core.model.metrics import (
+    EXPERIMENTAL_METRICS,
+    FactRow,
+    FileMetrics,
+    MetricResult,
+    MetricType,
+)
 from antipasta.core.model.violations import (
     FileReport,
     ProjectReport,
@@ -91,22 +97,39 @@ def _collect_file_metrics(
     return all_metrics, all_facts, errors
 
 
-def _default_derivers() -> list[Deriver]:
-    """Derivers registered when the caller doesn't supply an explicit list."""
+def _default_derivers(config: AntipastaConfig) -> list[Deriver]:
+    """Derivers registered when the caller doesn't supply an explicit list.
+
+    Experimental derivers join only when their feature is enabled, so the
+    default path never pays for them (the narrative lexicon alone is a
+    600 KB wordlist).
+    """
     from antipasta.core.derive.class_registry import derive_class_registry
     from antipasta.core.derive.duplication import derive_duplication
     from antipasta.core.derive.import_graph import derive_import_graph
-    from antipasta.core.derive.narrative import derive_narrative
     from antipasta.core.derive.tree_shape import derive_layering, derive_tree_shape
 
-    return [
+    derivers: list[Deriver] = [
         derive_tree_shape,
         derive_layering,
         derive_class_registry,
         derive_import_graph,
-        derive_narrative,
         derive_duplication,
     ]
+    if config.experimental_enabled("narrative"):
+        from antipasta.experimental.narrative import derive_narrative
+
+        derivers.append(derive_narrative)
+    return derivers
+
+
+def _experimental_filter(config: AntipastaConfig) -> frozenset[MetricType]:
+    """Metric types to drop from per-file rows (disabled experimental features)."""
+    dropped: set[MetricType] = set()
+    for feature, types in EXPERIMENTAL_METRICS.items():
+        if not config.experimental_enabled(feature):
+            dropped.update(types)
+    return frozenset(dropped)
 
 
 def _resolve_jobs(requested: int | None, task_count: int) -> int:
@@ -156,8 +179,9 @@ class MetricAggregator:
         self.config = config
         self.cache = cache if cache is not None else MetricsCache()
         self.derivers: list[Deriver] = (
-            list(derivers) if derivers is not None else _default_derivers()
+            list(derivers) if derivers is not None else _default_derivers(config)
         )
+        self._dropped_experimental = _experimental_filter(config)
         self.detector = LanguageDetector(ignore_patterns=config.ignore_patterns)
 
         # Load .gitignore patterns if enabled
@@ -320,6 +344,7 @@ class MetricAggregator:
         metric_configs: list[MetricConfig],
     ) -> FileReport:
         """Combine collected metrics with config-derived violations."""
+        all_metrics = self._apply_experimental_policy(all_metrics)
         # Only report errors if no metrics were collected
         error = None
         if errors and not all_metrics:
@@ -343,6 +368,22 @@ class MetricAggregator:
             violations=violations,
             error=error,
         )
+
+    def _apply_experimental_policy(self, rows: list[MetricResult]) -> list[MetricResult]:
+        """Drop rows of disabled experimental features; label the enabled ones.
+
+        Runners compute these rows unconditionally so cached entries stay a
+        pure function of file content; the policy is applied on the way out.
+        """
+        kept: list[MetricResult] = []
+        experimental_types = frozenset().union(*EXPERIMENTAL_METRICS.values())
+        for row in rows:
+            if row.metric_type in self._dropped_experimental:
+                continue
+            if row.metric_type in experimental_types:
+                row.details = {**(row.details or {}), "experimental": True}
+            kept.append(row)
+        return kept
 
     def _check_violations(
         self, file_metrics: FileMetrics, metric_configs: list[MetricConfig]

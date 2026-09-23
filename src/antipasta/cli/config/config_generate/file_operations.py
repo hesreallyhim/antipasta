@@ -170,8 +170,8 @@ def _append_project_blocks(yaml_lines: list[str], data: dict[str, Any]) -> None:
     blocks = [
         ("tree_shape", "# Directory exclusions and optional layer-order gates"),
         ("import_graph", "# Import-cycle and stable-dependencies gates"),
-        ("narrative", "# Narrative/readability gates"),
         ("duplication", "# Duplication gates"),
+        ("experimental", "# Opt-in experimental metrics (see docs/experimental_metrics.md)"),
     ]
     for key, comment in blocks:
         value = data.get(key)

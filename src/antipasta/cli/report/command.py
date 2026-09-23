@@ -25,11 +25,12 @@ from antipasta.cli.metrics import (
     apply_overrides_to_configuration,
     create_and_configure_override,
     determine_files_to_analyze,
+    enable_experimental_features,
     execute_analysis,
     load_configuration,
 )
 from antipasta.cli.report.diff_summary import format_diff_summary
-from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.config import EXPERIMENTAL_FEATURES, AntipastaConfig
 from antipasta.core.model.config_override import ConfigOverride
 from antipasta.core.store.snapshot import build_snapshot, format_worst_functions_table
 from antipasta.core.store.snapshot_diff import SnapshotDiff, diff
@@ -123,6 +124,13 @@ from antipasta.report.baseline import build_baseline_payload
     is_flag=True,
     help="Analyze all files, ignoring all exclusions",
 )
+@click.option(
+    "--experimental",
+    "experimental",
+    multiple=True,
+    type=click.Choice(sorted(EXPERIMENTAL_FEATURES), case_sensitive=False),
+    help="Enable an experimental metric family for this run (repeatable)",
+)
 def report(
     config: Path,
     files: tuple[Path, ...],
@@ -137,6 +145,7 @@ def report(
     exclude_pattern: tuple[str, ...],
     no_gitignore: bool,
     force_analyze: bool,
+    experimental: tuple[str, ...],
 ) -> None:
     """Generate a visual complexity report (offline HTML or JSON snapshot).
 
@@ -155,6 +164,7 @@ def report(
     final_config = _prepare_config(
         config, override, include_pattern, exclude_pattern, no_gitignore, force_analyze
     )
+    enable_experimental_features(final_config, experimental)
     target_files = determine_files_to_analyze(files, directory, final_config, override, True)
     click.echo(f"Analyzing {len(target_files)} files...", err=True)
     results = execute_analysis(target_files, final_config, True, root=directory)
