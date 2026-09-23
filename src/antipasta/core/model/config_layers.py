@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from itertools import starmap
 import os
@@ -59,11 +60,9 @@ def expanded_layer(data: dict[str, Any]) -> dict[str, Any]:
     return expand_preset_config(values)
 
 
-def validate_partial(data: dict[str, Any]) -> None:
-    """Check one partial layer even if a later layer overrides its bad values."""
-    merged = AntipastaConfig.generate_default().model_dump(exclude_none=True, mode="json")
-    merge_layer(merged, expanded_layer(data), "validation", {})
-    AntipastaConfig.model_validate(merged, context={"presets_expanded": True})
+def validate_partial(data: dict[str, Any], base: dict[str, Any] | None = None) -> None:
+    """Validate against inherited values before a higher layer can hide bad input."""
+    config_from_layer(data, base)
 
 
 def project_layers(data: dict[str, Any]) -> list[tuple[Path, dict[str, Any]]]:
@@ -71,7 +70,10 @@ def project_layers(data: dict[str, Any]) -> list[tuple[Path, dict[str, Any]]]:
     projects = data.get("projects", {})
     if not isinstance(projects, dict):
         raise ValueError("projects must be a mapping keyed by absolute repository path")
-    return list(starmap(project_entry, projects.items()))
+    entries = list(starmap(project_entry, projects.items()))
+    if entries:
+        validate_projects(entries, config_from_layer(data))
+    return entries
 
 
 def project_entry(key: Any, value: Any) -> tuple[Path, dict[str, Any]]:
@@ -80,7 +82,6 @@ def project_entry(key: Any, value: Any) -> tuple[Path, dict[str, Any]]:
         raise ValueError(f"Project key must be an absolute path: {key}")
     if not isinstance(value, dict) or "projects" in value:
         raise ValueError(f"Project '{key}' must be a partial config without a projects map")
-    validate_partial(value)
     return Path(key).resolve(), value
 
 
@@ -132,7 +133,7 @@ def resolve_config(root: Path | None = None, config_path: Path | None = None) ->
     merge_layer(data, defaults, "defaults", sources)
     for label, layer in file_layers(paths, root_path):
         label = layer_label(label, config_path)
-        validate_partial(layer)
+        validate_partial(layer, data)
         if not label.startswith("user projects["):
             warnings.extend(unknown_keys(layer, label))
         merge_layer(data, expanded_layer(layer), label, sources)
@@ -141,8 +142,19 @@ def resolve_config(root: Path | None = None, config_path: Path | None = None) ->
     return ResolvedConfig(config, leaf_sources(effective, sources), warnings, paths)
 
 
-def config_from_layer(data: dict[str, Any]) -> AntipastaConfig:
-    """Materialize one partial layer over built-ins without reading user configuration."""
-    merged = AntipastaConfig.generate_default().model_dump(exclude_none=True, mode="json")
+def config_from_layer(data: dict[str, Any], base: dict[str, Any] | None = None) -> AntipastaConfig:
+    """Materialize a partial layer over its inherited configuration or built-ins."""
+    if base is None:
+        base = AntipastaConfig.generate_default().model_dump(exclude_none=True, mode="json")
+    merged = deepcopy(base)
     merge_layer(merged, expanded_layer(data), "validation", {})
     return AntipastaConfig.model_validate(merged, context={"presets_expanded": True})
+
+
+def validate_projects(entries: list[tuple[Path, dict[str, Any]]], base: AntipastaConfig) -> None:
+    """Validate each branch against the user layer and its ancestor project overrides."""
+    inherited: dict[Path, AntipastaConfig] = {}
+    for root, layer in sorted(entries, key=lambda item: len(item[0].parts)):
+        parent = next((inherited[path] for path in root.parents if path in inherited), base)
+        values = parent.model_dump(exclude_none=True, mode="json")
+        inherited[root] = config_from_layer(layer, values)

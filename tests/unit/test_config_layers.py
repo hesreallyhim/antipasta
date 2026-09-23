@@ -189,3 +189,78 @@ def test_config_home_fallback(root: Path, monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.delenv("XDG_CONFIG_HOME")
     with patch("antipasta.core.model.config_paths.Path.home", return_value=root):
         assert user_config_path() == root / ".config" / "antipasta" / "config.yaml"
+
+
+def javascript_language() -> dict[str, object]:
+    return {
+        "name": "javascript",
+        "extensions": [".js"],
+        "metrics": [{"type": "cyclomatic_complexity", "threshold": 8}],
+    }
+
+
+@pytest.mark.parametrize("preset", [True, False])
+def test_partial_project_language_inherits_user_metrics(root: Path, preset: bool) -> None:
+    if preset:
+        write_config(user_config_path(), preset="readable")
+    else:
+        write_config(user_config_path(), languages=[javascript_language()])
+    write_config(
+        root / ".antipasta.yaml", languages=[{"name": "javascript", "extensions": [".jsx"]}]
+    )
+    resolved = resolve_config(root)
+    javascript = resolved.config.get_language_config("javascript")
+    assert javascript is not None
+    assert javascript.extensions == [".jsx"]
+    assert javascript.metrics[0].threshold == 8
+    assert resolved.sources["languages.javascript.metrics"].startswith("user (")
+
+
+@pytest.mark.parametrize("active", [True, False])
+def test_partial_user_projects_inherit_user_languages(root: Path, active: bool) -> None:
+    project = root if active else root / "inactive"
+    path = write_config(
+        user_config_path(),
+        languages=[javascript_language()],
+        projects={str(project): {"languages": [{"name": "javascript", "extensions": [".jsx"]}]}},
+    )
+    assert validate_config_file(path) == []
+    javascript = resolve_config(root).config.get_language_config("javascript")
+    assert javascript is not None
+    assert javascript.extensions == ([".jsx"] if active else [".js"])
+    assert javascript.metrics[0].threshold == 8
+
+
+def test_nested_project_language_inherits_parent_project(root: Path) -> None:
+    child = root / "src"
+    child.mkdir()
+    path = write_config(
+        user_config_path(),
+        projects={
+            str(root): {"languages": [javascript_language()]},
+            str(child): {"languages": [{"name": "javascript", "extensions": [".jsx"]}]},
+        },
+    )
+    assert validate_config_file(path) == []
+    javascript = resolve_config(child).config.get_language_config("javascript")
+    assert javascript is not None
+    assert javascript.extensions == [".jsx"]
+    assert javascript.metrics[0].threshold == 8
+
+
+def test_inactive_partial_project_values_are_still_validated(root: Path) -> None:
+    path = write_config(
+        user_config_path(),
+        languages=[javascript_language()],
+        projects={
+            str(root / "inactive"): {
+                "languages": [
+                    {"name": "javascript", "metrics": [{"type": "unknown", "threshold": 8}]}
+                ]
+            }
+        },
+    )
+    with pytest.raises(ValueError, match="validation error"):
+        validate_config_file(path)
+    with pytest.raises(ValueError, match="validation error"):
+        resolve_config(root)
