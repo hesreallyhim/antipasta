@@ -152,15 +152,16 @@ html[data-theme="dark"] .icon-btn .moon{display:block}
 .gauge .num small{color:var(--muted); font-size:12px; margin-top:2px}
 .hero-copy{min-width:0}
 .verdict{margin:0; font-size:15px; line-height:1.5; color:var(--ink-2)}
-.verdict code{font-family:var(--mono); font-size:12px; background:var(--accent-soft); color:var(--accent); padding:1px 5px; border-radius:5px}
+.verdict code{font-family:var(--mono); font-size:12px; background:var(--accent-soft); color:var(--accent); padding:1px 5px; border-radius:5px; overflow-wrap:anywhere}
 .trend{margin-top:10px; font-size:12px; color:var(--muted); font-family:var(--mono)}
 
-.kpis{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--gap)}
+.kpis{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:var(--gap)}
 .kpi{position:relative; overflow:hidden}
 .kpi .k-lab{font-size:11px; font-weight:650; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
 .kpi .k-val{display:block; margin-top:8px; font-size:30px; font-weight:730; line-height:1; color:var(--ink); font-variant-numeric:tabular-nums}
 .kpi .k-sub{margin-top:8px; font-size:12px; color:var(--muted)}
 .kpi[data-sev] .k-val{color:var(--c-ink)}
+.kpi.has-ring .k-lab,.kpi.has-ring .k-val,.kpi.has-ring .k-sub{padding-right:64px}
 .kpi .k-ring{position:absolute; top:14px; right:14px; width:48px; height:48px}
 .kpi .k-ringnum{position:absolute; top:14px; right:14px; width:48px; height:48px; display:grid; place-items:center; font-size:11px; font-weight:700; color:var(--c-ink); font-variant-numeric:tabular-nums}
 
@@ -394,7 +395,7 @@ td.delta-neg{color:var(--sev-good-ink); font-weight:600}
 @media (max-width:1080px){
   .hero{grid-template-columns:1fr}
   .main-grid,.two-up{grid-template-columns:1fr}
-  .kpis,.cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rail{flex-direction:row}
   .rail>*{flex:1}
 }

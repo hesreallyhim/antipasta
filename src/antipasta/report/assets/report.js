@@ -630,8 +630,11 @@
     const p = hot.p || 0;
     const frac = clamp((p - 0.7) / 0.8, 0, 1);
     const st = hotspotSeverity(hot, p);
-    const mi = hot.file.metrics.maintainability_index;
-    const card = el("div", { class: "card kpi" });
+    // The ring reads maintainability index only where that gate is in force;
+    // otherwise it shows composite pressure, like the tiles.
+    const miGated = Boolean(gateFor("maintainability_index", hot.file.language));
+    const mi = miGated ? hot.file.metrics.maintainability_index : null;
+    const card = el("div", { class: "card kpi has-ring" });
     card.dataset.sev = st;
     card.append(el("div", { class: "k-lab" }, "Primary hotspot"));
     card.append(el("span", { class: "k-val", style: "font-size:16px;line-height:1.3;white-space:normal;word-break:break-all" }, baseName(hot.file.path)));
@@ -640,7 +643,7 @@
     const ring = svgEl("svg", { class: "k-ring", viewBox: "0 0 48 48" });
     card.append(ring);
     drawRing(ring, mi != null ? clamp(1 - mi / 100, 0, 1) : frac, st);
-    card.append(el("div", { class: "k-ringnum" }, mi != null ? String(Math.round(mi)) : ""));
+    card.append(el("div", { class: "k-ringnum" }, mi != null ? String(Math.round(mi)) : `${Math.round(frac * 100)}%`));
     card.style.cursor = "pointer";
     card.addEventListener("click", () => { selectFile(hot.i, null); scrollToDetail(); });
     return card;
@@ -667,16 +670,20 @@
     for (const v of f.violations || []) { const c = categoryOf(v.type); if (c) s.add(c); }
     return s;
   }
+  function gatedMi(f) {
+    const mi = f.metrics.maintainability_index;
+    return mi != null && gateFor("maintainability_index", f.language) ? mi : null;
+  }
   function fileFixItem(f, i) {
     const vc = (f.violations || []).length;
     const p = filePressure(f) || 0;
+    const mi = gatedMi(f);
     return {
       kind: "file", index: i, cats: fileViolationCats(f),
       score: vc * 10 + p,
       sev: vc > 3 || p > 1.3 ? "bad" : "warn",
       title: f.path,
-      why: plural(vc, "threshold violation")
-        + (f.metrics.maintainability_index != null ? ` · MI ${fmt(f.metrics.maintainability_index)}` : ""),
+      why: plural(vc, "threshold violation") + (mi != null ? ` · MI ${fmt(mi)}` : ""),
     };
   }
   function topUnits(bucket, type, cap, limit) {
