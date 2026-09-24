@@ -2,8 +2,9 @@
  *
  * Reads window.ANTIPASTA_DATA (injected by antipasta.report.html) and renders a
  * self-contained dashboard: hero health score, KPI strip, "fix these first"
- * list, 5 category panels (Complexity, Size, Architecture, Object Orientation,
- * Naming — the last three from the project[] block), an elevated d3 treemap,
+ * list, one panel per metric category from docs/supported_metrics.md (Lines
+ * of code, Complexity, SOLID, Maintainability, Test quality, VCS,
+ * Experimental), an elevated d3 treemap,
  * top-hotspots + architecture watchlist rails, drill-down file detail with a
  * sortable function table, a worst-functions table, a violations-by-type
  * breakdown, a light/dark toggle, and — when DATA.baseline exists — full
@@ -77,7 +78,7 @@
   const PRESSURE_METRIC = "pressure";
 
   // ===== HEALTH ENGINE (tunables) ==========================================
-  const HEALTH_WEIGHTS = { complexity: .30, readability: .24, solid: .20, mixed: .14, loc: .12 };
+  const HEALTH_WEIGHTS = { complexity: .34, solid: .24, maintainability: .18, loc: .12, experimental: .12 };
   const SEV_W = { viol: 0.55, prox: 0.30, worst: 0.15 };
   const PROX_LO = 0.70, PROX_HI = 1.00;
   const SOFT = {
@@ -94,20 +95,20 @@
   ]);
 
   // ===== metric categories =================================================
-  // Canonical buckets from docs/supported_metrics.md's "Category" column. Every
-  // metric belongs to exactly one; the dashboard groups and focuses by these.
-  // `needs` (empty buckets) explains why a category has no data in this run;
-  // DRYness is flagged custom because it has a dedicated view planned.
+  // The buckets are the Category column of docs/supported_metrics.md, which
+  // the terminal table mirrors in cli/report/table_policy.py; a Python test
+  // keeps this copy in step with both. Every metric belongs to exactly one
+  // bucket; the dashboard groups, scores and focuses by these. `needs`
+  // explains why an empty bucket has no data in this run.
   const CATS = [
     { id: "loc", name: "Lines of code", src: "files" },
     { id: "complexity", name: "Complexity", src: "files · gates" },
-    { id: "readability", name: "Readability", src: "files · project" },
-    { id: "solid", name: "SOLID", src: "project" },
-    { id: "mixed", name: "Mixed", src: "files · project" },
-    { id: "dryness", name: "DRYness", src: "custom", custom: true,
-      needs: "a duplication config block", note: "Custom duplication analysis — dedicated view planned." },
+    { id: "solid", name: "SOLID", src: "files · project" },
+    { id: "maintainability", name: "Maintainability", src: "files · project" },
     { id: "test", name: "Test quality", src: "coverage · git", needs: "a coverage.py artifact or git history" },
     { id: "vcs", name: "VCS", src: "git history", needs: "mined git history" },
+    { id: "experimental", name: "Experimental", src: "project",
+      needs: "an experimental config block or --experimental" },
   ];
   const CAT_BY_ID = Object.fromEntries(CATS.map((c) => [c.id, c]));
 
@@ -116,23 +117,23 @@
     comment_lines: "loc", blank_lines: "loc",
     cyclomatic_complexity: "complexity", halstead_volume: "complexity", halstead_difficulty: "complexity",
     halstead_effort: "complexity", halstead_time: "complexity", halstead_bugs: "complexity",
-    function_statements: "complexity",
-    cognitive_complexity: "readability", message_chain_depth: "readability", function_arity: "readability",
-    boolean_flag_parameters: "readability", global_state_reach: "readability",
-    marker_density: "readability", comment_density: "readability", expression_flatness: "readability",
-    pipeline_linearity: "readability", narrative_mixed_functions: "readability", narrator_budget_exceeded: "readability",
-    computer_budget_exceeded: "readability", step_down_ordering: "readability", name_clarity: "readability",
-    naming_antipatterns: "readability",
+    function_statements: "complexity", cognitive_complexity: "complexity", function_arity: "complexity",
+    message_chain_depth: "solid", boolean_flag_parameters: "solid", global_state_reach: "solid",
     lack_of_cohesion: "solid", weighted_methods_per_class: "solid", coupling_between_objects: "solid",
     depth_of_inheritance_tree: "solid", number_of_children: "solid", directory_children: "solid",
     efferent_coupling: "solid", afferent_coupling: "solid", instability: "solid", dependency_cycles: "solid",
-    stable_dependencies_violations: "solid", abstractness: "solid", distance_from_main_sequence: "solid",
-    dependency_inversion: "solid", layering_violations: "solid", deferred_imports: "solid",
-    duplication_ratio: "dryness", clone_occurrences: "dryness",
+    stable_dependencies_violations: "solid", deferred_imports: "solid", abstractness: "solid",
+    distance_from_main_sequence: "solid", dependency_inversion: "solid", layering_violations: "solid",
+    single_responsibility_index: "solid",
+    marker_density: "maintainability", comment_density: "maintainability", naming_antipatterns: "maintainability",
+    duplication_ratio: "maintainability", clone_occurrences: "maintainability",
+    maintainability_index: "maintainability", hotspot: "maintainability",
     assertions_per_test: "test", mock_call_assertions: "test", big_literal_assertions: "test",
     test_churn_ratio: "test", co_churn_multiplicity: "test", suite_redundancy_index: "test", blast_radius: "test",
     code_churn: "vcs", change_coupling: "vcs",
-    maintainability_index: "mixed", single_responsibility_index: "mixed", hotspot: "mixed",
+    expression_flatness: "experimental", pipeline_linearity: "experimental",
+    narrative_mixed_functions: "experimental", narrator_budget_exceeded: "experimental",
+    computer_budget_exceeded: "experimental", step_down_ordering: "experimental", name_clarity: "experimental",
   };
   function categoryOf(metricKey) { return METRIC_CAT[metricKey] || null; }
   let focusedCat = null; // null = "All"; otherwise a CATS id with data
@@ -328,33 +329,31 @@
       return pressure(f.metrics.source_lines_of_code, SOFT.source_lines_of_code, "max");
     });
   }
-  function complexityUnits() { // cyclomatic (function) + file-level Halstead
-    const P = fnMetricUnits("cyclomatic_complexity");
+  function complexityUnits() { // cyclomatic + cognitive (function) + file-level Halstead
+    const P = fnMetricUnits("cyclomatic_complexity").concat(fnMetricUnits("cognitive_complexity"));
     for (const f of files) P.push(...fileComplexityUnits(f));
     return P;
   }
-  function readabilityUnits() { // cognitive (function) + naming/narrative offenders
-    const b = buckets.readability;
-    const P = fnMetricUnits("cognitive_complexity");
-    for (const v of valuesOf(b, "name_clarity")) P.push(v > 0 ? SOFT.name_clarity_floor / v : 2.0);
-    return P.concat(offenderUnits(b,
-      ["naming_antipatterns", "narrative_mixed_functions", "narrator_budget_exceeded", "computer_budget_exceeded"]));
-  }
-  function solidUnits() { // distance-from-main-sequence + inheritance depth + SDV
+  function solidUnits() { // main-sequence distance + inheritance depth + SDV + SRI
     const b = buckets.solid, P = [];
     for (const v of valuesOf(b, "distance_from_main_sequence")) P.push(pressure(v, SOFT.distance_tolerance, "max"));
     for (const v of valuesOf(b, "depth_of_inheritance_tree")) P.push(pressure(v, SOFT.depth_of_inheritance_tree, "max"));
+    for (const v of valuesOf(b, "single_responsibility_index")) P.push(pressure(v, SOFT.single_responsibility_index, "max"));
     return P.concat(offenderUnits(b, ["stable_dependencies_violations"]));
   }
-  function mixedUnits() { // maintainability index (file) + single-responsibility index
+  function maintainabilityUnits() { // gated maintainability index (file) + naming offenders
     const P = files.map((f) => {
       const g = gateFor("maintainability_index", f.language);
       const v = f.metrics.maintainability_index;
       return g && v != null ? pressure(v, g.threshold, g.direction) : null;
     });
-    for (const v of valuesOf(buckets.mixed, "single_responsibility_index"))
-      P.push(pressure(v, SOFT.single_responsibility_index, "max"));
-    return P;
+    return P.concat(offenderUnits(buckets.maintainability, ["naming_antipatterns"]));
+  }
+  function experimentalUnits() { // name clarity floor + narrative offenders
+    const b = buckets.experimental, P = [];
+    for (const v of valuesOf(b, "name_clarity")) P.push(v > 0 ? SOFT.name_clarity_floor / v : 2.0);
+    return P.concat(offenderUnits(b,
+      ["narrative_mixed_functions", "narrator_budget_exceeded", "computer_budget_exceeded"]));
   }
   function categoryHealth(P) {
     const units = P.filter((p) => p !== null && p !== undefined);
@@ -368,9 +367,24 @@
   }
 
   const UNIT_FN = {
-    loc: locUnits, complexity: complexityUnits, readability: readabilityUnits,
-    solid: solidUnits, mixed: mixedUnits,
+    loc: locUnits, complexity: complexityUnits, solid: solidUnits,
+    maintainability: maintainabilityUnits, experimental: experimentalUnits,
   };
+  // Categories with measurements of any kind (file, function or project rows),
+  // scored or not: a bucket whose only scorable metric is ungated still has
+  // numbers to show and can be focused.
+  function measuredCategories() {
+    const seen = new Set();
+    const note = (k) => { const c = categoryOf(k); if (c) seen.add(c); };
+    for (const f of files) {
+      for (const k of Object.keys(f.metrics)) note(k);
+      for (const fn of f.functions || []) for (const k of Object.keys(fn.metrics)) note(k);
+    }
+    for (const [cat, bucket] of Object.entries(buckets)) if (bucket.length) seen.add(cat);
+    return seen;
+  }
+  const MEASURED = measuredCategories();
+  function hasData(catId) { return MEASURED.has(catId); }
   function computeHealth() {
     const out = {};
     for (const c of CATS) out[c.id] = categoryHealth(UNIT_FN[c.id] ? UNIT_FN[c.id]() : []);
@@ -668,8 +682,8 @@
         score: 5 + u.value * 3, sev: u.value >= 0.9 ? "bad" : "warn", title: u.subject,
         why: `distance from main sequence ${fmt(u.value)} — in the zone of pain` });
     }
-    for (const u of topUnits(buckets.mixed, "single_responsibility_index", SOFT.single_responsibility_index, 1)) {
-      items.push({ kind: "cat", cat: "mixed", cats: new Set(["mixed"]),
+    for (const u of topUnits(buckets.solid, "single_responsibility_index", SOFT.single_responsibility_index, 1)) {
+      items.push({ kind: "cat", cat: "solid", cats: new Set(["solid"]),
         score: 4 + u.value / 5, sev: u.value > 10 ? "bad" : "warn", title: u.subject,
         why: `single-responsibility index ${fmt(u.value)} (soft cap ${SOFT.single_responsibility_index})` });
     }
@@ -752,58 +766,61 @@
       { v: big, l: "files > 400 SLOC", over: big > 0 },
     ];
   }
+  function mean(values) { return values.length ? values.reduce((a, x) => a + x, 0) / values.length : null; }
   function catMetricsComplexity() {
     const cyc = fnStat("cyclomatic_complexity");
-    const hv = fileStat("halstead_volume");
+    const cog = fnStat("cognitive_complexity");
     const hd = fileStat("halstead_difficulty");
     return [
       { v: cyc.over, l: gatedLabel(cyc, "fns over cyclomatic"), over: cyc.over > 0 },
       { v: fmt(cyc.max), l: "max cyclomatic", over: cyc.maxOver },
-      { v: hd.over, l: gatedLabel(hd, "files over difficulty"), over: hd.over > 0 },
-      { v: fmt(hv.max), l: "max halstead vol", over: hv.over > 0 },
-    ];
-  }
-  function catMetricsReadability() {
-    const cog = fnStat("cognitive_complexity");
-    const clar = valuesOf(buckets.readability, "name_clarity");
-    const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
-    const anti = valuesOf(buckets.readability, "naming_antipatterns").filter((v) => v > 0).length;
-    return [
       { v: cog.over, l: gatedLabel(cog, "fns over cognitive"), over: cog.over > 0 },
-      { v: fmt(cog.max), l: "max cognitive", over: cog.maxOver },
-      { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: avg != null && avg < SOFT.name_clarity_floor },
-      { v: anti, l: "naming antipatterns", over: anti > 0 },
+      { v: hd.over, l: gatedLabel(hd, "files over difficulty"), over: hd.over > 0 },
     ];
   }
   function catMetricsSolid() {
     const b = buckets.solid;
     const off = valuesOf(b, "distance_from_main_sequence").filter((v) => v > SOFT.distance_tolerance).length;
-    const ca = valuesOf(b, "afferent_coupling");
-    const inst = valuesOf(b, "instability");
+    const sriOut = valuesOf(b, "single_responsibility_index").filter((v) => v > SOFT.single_responsibility_index).length;
+    const inst = mean(valuesOf(b, "instability"));
     const dit = valuesOf(b, "depth_of_inheritance_tree");
     return [
       { v: off, l: "modules off main-seq", over: off > 0 },
-      { v: ca.length ? fmt(Math.max(...ca)) : "—", l: "max afferent (Ca)", over: false },
-      { v: inst.length ? (inst.reduce((a, x) => a + x, 0) / inst.length).toFixed(2) : "—", l: "mean instability", over: false },
+      { v: sriOut, l: `SRI outliers (>${SOFT.single_responsibility_index})`, over: sriOut > 0 },
+      { v: inst == null ? "—" : inst.toFixed(2), l: "mean instability", over: false },
       { v: dit.length ? fmt(Math.max(...dit)) : "—", l: "max inheritance depth", over: false },
     ];
   }
-  function catMetricsMixed() {
+  function catMetricsMaintainability() {
     const mi = fileStat("maintainability_index");
     const low = mi.gated ? mi.over
       : files.filter((f) => f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50).length;
-    const sri = valuesOf(buckets.mixed, "single_responsibility_index");
-    const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
+    const anti = valuesOf(buckets.maintainability, "naming_antipatterns").filter((v) => v > 0).length;
+    const marked = files.filter((f) => f.metrics.marker_density > 0).length;
     return [
       { v: low, l: mi.gated ? "files under MI gate" : "files MI < 50 (not gated)", over: mi.gated && low > 0 },
       { v: mi.min == null ? "—" : fmt(mi.min), l: "lowest MI", over: mi.minOver },
-      { v: sriOut, l: `SRI outliers (>${SOFT.single_responsibility_index})`, over: sriOut > 0 },
-      { v: sri.length ? fmt(Math.max(...sri)) : "—", l: "max SRI", over: false },
+      { v: anti, l: "naming antipatterns", over: anti > 0 },
+      { v: marked, l: "files with TODO markers", over: false },
+    ];
+  }
+  function catMetricsExperimental() {
+    const b = buckets.experimental;
+    const clarity = mean(valuesOf(b, "name_clarity"));
+    const mixedFns = valuesOf(b, "narrative_mixed_functions").filter((v) => v > 0).length;
+    const budget = valuesOf(b, "narrator_budget_exceeded").concat(valuesOf(b, "computer_budget_exceeded"))
+      .filter((v) => v > 0).length;
+    const stepDown = mean(valuesOf(b, "step_down_ordering"));
+    return [
+      { v: clarity == null ? "—" : clarity.toFixed(2), l: "avg name clarity", over: clarity != null && clarity < SOFT.name_clarity_floor },
+      { v: mixedFns, l: "mixed-narrative fns", over: mixedFns > 0 },
+      { v: budget, l: "budget breaches", over: budget > 0 },
+      { v: stepDown == null ? "—" : stepDown.toFixed(2), l: "avg step-down ordering", over: false },
     ];
   }
   const CAT_METRICS_FN = {
-    loc: catMetricsLoc, complexity: catMetricsComplexity, readability: catMetricsReadability,
-    solid: catMetricsSolid, mixed: catMetricsMixed,
+    loc: catMetricsLoc, complexity: catMetricsComplexity, solid: catMetricsSolid,
+    maintainability: catMetricsMaintainability, experimental: catMetricsExperimental,
   };
   function catMetrics(catId) {
     const fn = CAT_METRICS_FN[catId];
@@ -813,7 +830,8 @@
     const top = el("div", { class: "c-top" });
     const left = el("div");
     left.append(el("div", { class: "c-name" }, c.name));
-    left.append(el("div", { class: "c-src" }, n ? `${c.src} · n=${n}` : (c.custom ? "custom analysis" : "unmeasured")));
+    const src = n ? `${c.src} · n=${n}` : (hasData(c.id) ? `${c.src} · not gated` : "unmeasured");
+    left.append(el("div", { class: "c-src" }, src));
     top.append(left);
     const st = el("span", { class: "status" });
     st.append(el("span", { class: "shape" }, SEV[t].glyph));
@@ -829,7 +847,7 @@
     dial.append(svg);
     const score = el("div", { class: "c-score" });
     score.append(el("b", null, h === null ? "n/a" : String(h)));
-    score.append(el("span", null, h === null ? "unmeasured" : "/ 100"));
+    score.append(el("span", null, h !== null ? "/ 100" : (hasData(c.id) ? "not gated" : "unmeasured")));
     dialWrap.append(dial); dialWrap.append(score);
     row.append(dialWrap);
     const gb = el("span", { class: "grade-badge" });
@@ -866,7 +884,7 @@
   }
   function catCard(c) {
     const h = HEALTH[c.id].health, n = HEALTH[c.id].n, t = tier(h);
-    const focusable = n > 0;
+    const focusable = hasData(c.id);
     const card = el("div", { class: "card cat" });
     card.dataset.cat = c.id; card.dataset.sev = t;
     if (focusedCat === c.id) card.classList.add("focused");
@@ -1787,12 +1805,12 @@
     clear(bar);
     bar.append(focusPill("All", null, focusedCat === null, false, "Show every metric bucket"));
     for (const c of CATS) {
-      const has = HEALTH[c.id].health !== null;
+      const has = hasData(c.id);
       bar.append(focusPill(c.name, c.id, focusedCat === c.id, !has, has ? `Focus on ${c.name}` : `${c.name} — no data this run`));
     }
   }
   const FOCUS_SECTIONS = [
-    { id: "hotspots-panel", cats: ["complexity", "readability"] },
+    { id: "hotspots-panel", cats: ["complexity"] },
     { id: "arch-watchlist-panel", cats: ["solid"] },
   ];
   function applySectionFocus() {
@@ -1829,7 +1847,7 @@
   function initFocusFromHash() {
     const m = /(?:^#|[#&])focus=([a-z]+)/.exec(location.hash || "");
     const id = m ? m[1] : null;
-    if (id && CAT_BY_ID[id] && HEALTH[id] && HEALTH[id].health !== null) setFocus(id);
+    if (id && CAT_BY_ID[id] && hasData(id)) setFocus(id);
   }
 
   function boot() {
