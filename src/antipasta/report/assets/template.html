@@ -33,7 +33,7 @@
   </label>
   <label class="pill-toggle" id="baseline-toggle-wrap" hidden
          title="Color tiles by change vs the baseline snapshot">
-    <input type="checkbox" id="baseline-toggle" checked> vs baseline
+    <input type="checkbox" id="baseline-toggle" checked> <span id="baseline-toggle-label">vs baseline</span>
   </label>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle light / dark theme">
     <svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -142,7 +142,7 @@
 
   <!-- ===== REGRESSIONS / IMPROVEMENTS (baseline mode only) ===== -->
   <section class="sec regressions-section" id="regressions-section" hidden>
-    <div class="sec-head"><h2>Regressions vs baseline <span class="muted" id="regressions-count"></span></h2>
+    <div class="sec-head"><h2><span id="regressions-heading">Regressions vs baseline </span><span class="muted" id="regressions-count"></span></h2>
       <span class="sec-note">functions whose complexity worsened; &#9888; marks new violations &middot; click a row to inspect</span></div>
     <div class="table-scroll">
       <table id="regressions-table"><thead></thead><tbody></tbody></table>

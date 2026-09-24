@@ -19,13 +19,53 @@
 
   const DATA = window.ANTIPASTA_DATA || {};
   const files = DATA.files || [];
-  const thresholds = DATA.thresholds || {};
+  const fileByPath = new Map(files.map((f) => [f.path, f]));
+
+  // ===== gates =============================================================
+  // The snapshot's "gates" block carries the per-language gates actually in
+  // force (disabled gates omitted, project-specific gates included). Older
+  // snapshots only have the global "thresholds" defaults; those apply to
+  // every language. Every threshold lookup goes through gateFor().
+  const legacyThresholds = DATA.thresholds || {};
+  function gateFromComparison(entry) {
+    const c = entry.comparison;
+    const direction = c === "<=" || c === "<" ? "max" : c === ">=" || c === ">" ? "min" : null;
+    return direction && entry.threshold > 0 ? { threshold: entry.threshold, direction } : null;
+  }
+  function normalizeGates(raw) {
+    if (!raw || !raw.languages) return null;
+    const out = {};
+    for (const [lang, gates] of Object.entries(raw.languages)) {
+      out[lang] = {};
+      for (const [metric, entry] of Object.entries(gates)) {
+        const g = gateFromComparison(entry);
+        if (g) out[lang][metric] = g;
+      }
+    }
+    return out;
+  }
+  const GATES = normalizeGates(DATA.gates);
+  function gateFor(metricKey, language) {
+    if (GATES) { const byLang = GATES[language]; return (byLang && byLang[metricKey]) || null; }
+    const th = legacyThresholds[metricKey];
+    return th && th.threshold > 0 ? th : null;
+  }
+  function languageOfPath(p) { const f = fileByPath.get(p); return f ? f.language : ""; }
   const coverage = DATA.language_coverage || {};
   const project = DATA.project || [];
   const summary = DATA.summary || {};
   const baseline = DATA.baseline || null;
   const baselineAddedFiles = new Set(baseline ? baseline.files_added : []);
-  let baselineMode = Boolean(baseline);
+  // A pinned --baseline opens in delta view; the cached previous run is
+  // offered as a toggle so the primary view stays the current state.
+  function pinnedBaseline() { return Boolean(baseline) && !baseline.implicit; }
+  let baselineMode = pinnedBaseline();
+  // "the previous run" for the cached comparison, "baseline <file>" when pinned.
+  function describeBaseline() {
+    if (!baseline) return "";
+    return baseline.implicit ? "the previous run" : `baseline ${baseline.label}`;
+  }
+  const baselineName = describeBaseline();
 
   const CANONICAL_METRICS = [
     "cyclomatic_complexity", "cognitive_complexity", "maintainability_index",
@@ -46,12 +86,12 @@
     depth_of_inheritance_tree: 5, name_clarity_floor: 0.60,
     distance_tolerance: 0.50,
   };
-  // File-level metrics scored against a fixed threshold (falls back to DATA.thresholds).
-  const COMPLEXITY_FILE_UNITS = {
-    halstead_volume: { T: 1000, dir: "max" },
-    halstead_difficulty: { T: 10, dir: "max" },
-    halstead_effort: { T: 10000, dir: "max" },
-  };
+  // File-level Halstead metrics contribute to Complexity only where a gate is in force.
+  const HALSTEAD_FILE_METRICS = ["halstead_volume", "halstead_difficulty", "halstead_effort"];
+  // Metrics where a higher value is better (mirrors table_policy.DIRECTIONS).
+  const HIGHER_IS_BETTER = new Set([
+    "maintainability_index", "name_clarity", "step_down_ordering", "expression_flatness", "pipeline_linearity",
+  ]);
 
   // ===== metric categories =================================================
   // Canonical buckets from docs/supported_metrics.md's "Category" column. Every
@@ -60,7 +100,7 @@
   // DRYness is flagged custom because it has a dedicated view planned.
   const CATS = [
     { id: "loc", name: "Lines of code", src: "files" },
-    { id: "complexity", name: "Complexity", src: "files · thresholds" },
+    { id: "complexity", name: "Complexity", src: "files · gates" },
     { id: "readability", name: "Readability", src: "files · project" },
     { id: "solid", name: "SOLID", src: "project" },
     { id: "mixed", name: "Mixed", src: "files · project" },
@@ -144,10 +184,20 @@
     for (const [lo, g] of GRADE_BANDS) if (h >= lo) return g;
     return "F";
   }
-  // Threshold value for a metric, falling back to a default (0/undefined -> default).
-  function thresholdOr(key, dflt) {
-    const th = thresholds[key];
-    return (th && th.threshold) || dflt;
+  // Direction for a metric on a file: its gate if one is in force, else the static policy.
+  function metricDirection(metricKey, language) {
+    const g = gateFor(metricKey, language);
+    if (g) return g.direction;
+    return HIGHER_IS_BETTER.has(metricKey) ? "min" : "max";
+  }
+  // The one gate a legend can quote: null when languages disagree or nothing is gated.
+  function sharedGate(metricKey) {
+    const seen = new Map();
+    for (const lang of Object.keys(coverage)) {
+      const g = gateFor(metricKey, lang);
+      if (g) seen.set(`${g.direction}:${g.threshold}`, g);
+    }
+    return { gate: seen.size === 1 ? [...seen.values()][0] : null, mixed: seen.size > 1 };
   }
 
   // ===== pressure / badness ================================================
@@ -157,29 +207,36 @@
     return T > 0 ? value / T : null;
   }
   const relativeScale = {};
-  function relScale(metricKey) {
-    if (!(metricKey in relativeScale)) {
+  function relScale(metricKey, quantile = 0.9) {
+    const cacheKey = `${metricKey}@${quantile}`;
+    if (!(cacheKey in relativeScale)) {
       const values = files.map((f) => f.metrics[metricKey])
         .filter((v) => v !== undefined && v !== null).sort((a, b) => a - b);
-      relativeScale[metricKey] = values.length
-        ? values[Math.min(values.length - 1, Math.floor(values.length * 0.9))] : 0;
+      relativeScale[cacheKey] = values.length
+        ? values[Math.min(values.length - 1, Math.floor(values.length * quantile))] : 0;
     }
-    return relativeScale[metricKey];
+    return relativeScale[cacheKey];
   }
-  function badness(metricKey, value) {
-    const th = thresholds[metricKey];
-    if (th && th.threshold > 0) {
-      if (th.direction === "min") return value <= 0 ? 1.5 : th.threshold / value;
-      return value / th.threshold;
+  // Pressure against the file's gate; ungated metrics fall back to a relative
+  // scale (90th percentile, or the 10th for higher-is-better metrics).
+  function badness(metricKey, value, language) {
+    const g = gateFor(metricKey, language);
+    if (g) {
+      if (g.direction === "min") return value <= 0 ? 1.5 : g.threshold / value;
+      return value / g.threshold;
+    }
+    if (HIGHER_IS_BETTER.has(metricKey)) {
+      const floor = relScale(metricKey, 0.1);
+      return value <= 0 ? 1.5 : floor > 0 ? Math.min(1.5, floor / value) : 0;
     }
     const scale = relScale(metricKey);
     return scale > 0 ? value / scale : 0;
   }
-  function isOverThreshold(metricKey, value) {
+  function isOverThreshold(metricKey, value, language) {
     if (value === undefined || value === null) return false;
-    const th = thresholds[metricKey];
-    if (!th || th.threshold <= 0) return false;
-    return th.direction === "min" ? value < th.threshold : value > th.threshold;
+    const g = gateFor(metricKey, language);
+    if (!g) return false;
+    return g.direction === "min" ? value < g.threshold : value > g.threshold;
   }
   // Composite per-file pressure across canonical file + function metrics.
   function filePressure(fileEntry) {
@@ -187,13 +244,13 @@
     for (const k of CANONICAL_METRICS) {
       const v = fileEntry.metrics[k];
       if (v === undefined || v === null) continue;
-      seen = true; mx = Math.max(mx, badness(k, v));
+      seen = true; mx = Math.max(mx, badness(k, v, fileEntry.language));
     }
     for (const fn of fileEntry.functions || []) {
       for (const k of ["cyclomatic_complexity", "cognitive_complexity"]) {
         const v = fn.metrics[k];
         if (v === undefined || v === null) continue;
-        seen = true; mx = Math.max(mx, badness(k, v));
+        seen = true; mx = Math.max(mx, badness(k, v, fileEntry.language));
       }
     }
     return seen ? mx : null;
@@ -206,7 +263,7 @@
     let mx = 0, seen = false;
     const consider = (k, v) => {
       if (v == null || categoryOf(k) !== catId) return;
-      seen = true; mx = Math.max(mx, badness(k, v));
+      seen = true; mx = Math.max(mx, badness(k, v, fileEntry.language));
     };
     for (const [k, v] of Object.entries(fileEntry.metrics)) consider(k, v);
     for (const fn of fileEntry.functions || []) for (const [k, v] of Object.entries(fn.metrics)) consider(k, v);
@@ -241,33 +298,44 @@
   }
   function fileComplexityUnits(f) {
     const P = [];
-    for (const [k, u] of Object.entries(COMPLEXITY_FILE_UNITS)) {
-      if (f.metrics[k] == null) continue;
-      const th = thresholds[k];
-      P.push(pressure(f.metrics[k], th ? th.threshold : u.T, th ? th.direction : u.dir));
+    for (const k of HALSTEAD_FILE_METRICS) {
+      const g = gateFor(k, f.language);
+      if (f.metrics[k] == null || !g) continue;
+      P.push(pressure(f.metrics[k], g.threshold, g.direction));
     }
     return P;
   }
-  function fnMetricUnits(metricKey, T) {
+  // Per-function pressure against the gate of the function's language; an
+  // ungated language contributes no signal rather than a made-up threshold.
+  function fnMetricUnits(metricKey) {
     const P = [];
-    for (const f of files) for (const fn of f.functions || []) {
-      const v = fn.metrics[metricKey];
-      if (v != null) P.push(pressure(v, T, "max"));
+    for (const f of files) {
+      const g = gateFor(metricKey, f.language);
+      if (!g) continue;
+      for (const fn of f.functions || []) {
+        const v = fn.metrics[metricKey];
+        if (v != null) P.push(pressure(v, g.threshold, g.direction));
+      }
     }
     return P;
   }
-  function locUnits() { // Lines of code: source-lines-of-code soft-cap pressure
-    return files.filter((f) => f.metrics.source_lines_of_code != null)
-      .map((f) => pressure(f.metrics.source_lines_of_code, SOFT.source_lines_of_code, "max"));
+  // Lines of code: a configured lines_of_code gate wins; otherwise the SLOC soft cap.
+  function locUnits() {
+    return files.map((f) => {
+      const g = gateFor("lines_of_code", f.language);
+      if (g && f.metrics.lines_of_code != null) return pressure(f.metrics.lines_of_code, g.threshold, g.direction);
+      if (f.metrics.source_lines_of_code == null) return null;
+      return pressure(f.metrics.source_lines_of_code, SOFT.source_lines_of_code, "max");
+    });
   }
   function complexityUnits() { // cyclomatic (function) + file-level Halstead
-    const P = fnMetricUnits("cyclomatic_complexity", thresholdOr("cyclomatic_complexity", 10));
+    const P = fnMetricUnits("cyclomatic_complexity");
     for (const f of files) P.push(...fileComplexityUnits(f));
     return P;
   }
   function readabilityUnits() { // cognitive (function) + naming/narrative offenders
     const b = buckets.readability;
-    const P = fnMetricUnits("cognitive_complexity", thresholdOr("cognitive_complexity", 15));
+    const P = fnMetricUnits("cognitive_complexity");
     for (const v of valuesOf(b, "name_clarity")) P.push(v > 0 ? SOFT.name_clarity_floor / v : 2.0);
     return P.concat(offenderUnits(b,
       ["naming_antipatterns", "narrative_mixed_functions", "narrator_budget_exceeded", "computer_budget_exceeded"]));
@@ -279,8 +347,11 @@
     return P.concat(offenderUnits(b, ["stable_dependencies_violations"]));
   }
   function mixedUnits() { // maintainability index (file) + single-responsibility index
-    const P = files.filter((f) => f.metrics.maintainability_index != null)
-      .map((f) => pressure(f.metrics.maintainability_index, thresholdOr("maintainability_index", 50), "min"));
+    const P = files.map((f) => {
+      const g = gateFor("maintainability_index", f.language);
+      const v = f.metrics.maintainability_index;
+      return g && v != null ? pressure(v, g.threshold, g.direction) : null;
+    });
     for (const v of valuesOf(buckets.mixed, "single_responsibility_index"))
       P.push(pressure(v, SOFT.single_responsibility_index, "max"));
     return P;
@@ -374,7 +445,7 @@
     const meta = byId("meta-line");
     meta.textContent = `${DATA.root} · ${files.length} files · antipasta v${DATA.tool_version}`
       + ` · schema v${DATA.schema_version} · ${DATA.generated_at}`
-      + (baseline ? ` · vs baseline ${baseline.label}` + (baseline.generated_at ? ` (${baseline.generated_at})` : "") : "");
+      + (baseline ? ` · vs ${baselineName}` + (baseline.generated_at ? ` (${baseline.generated_at})` : "") : "");
 
     const leg = byId("sev-legend");
     clear(leg);
@@ -432,9 +503,9 @@
     const reg = baseline.regressions.length, imp = baseline.improvements.length;
     verdict.append(document.createTextNode(
       reg > 0
-        ? `Compared to baseline ${baseline.label}: ${reg} function${reg === 1 ? "" : "s"} regressed`
+        ? `Compared to ${baselineName}: ${reg} function${reg === 1 ? "" : "s"} regressed`
           + (imp ? `, ${imp} improved` : "") + `. `
-        : `No regressions vs baseline ${baseline.label}` + (imp ? ` — ${imp} improved.` : ".")));
+        : `No regressions vs ${baselineName}` + (imp ? ` — ${imp} improved.` : ".")));
     if (baseline.violations_added > 0)
       verdict.append(document.createTextNode(`${baseline.violations_added} new violation${baseline.violations_added === 1 ? "" : "s"} introduced.`));
   }
@@ -639,26 +710,36 @@
 
   // ===== category grid =====================================================
   // Returns the up-to-4 headline numbers for a category panel.
-  function fnStat(metricKey, threshold) {
-    let over = 0, max = 0;
-    for (const f of files) for (const fn of f.functions || []) {
-      const v = fn.metrics[metricKey];
-      if (v == null) continue;
-      max = Math.max(max, v);
-      if (threshold != null && v > threshold) over++;
-    }
-    return { over, max };
-  }
-  function fileStat(metricKey, threshold) {
-    let over = 0, max = 0, min = Infinity, n = 0;
+  // Headline numbers for a metric, counted against each file's own gate.
+  // `gated` says whether any analyzed language gates the metric at all.
+  function fnStat(metricKey) {
+    let over = 0, max = 0, maxOver = false, gated = false;
     for (const f of files) {
+      gated = gated || Boolean(gateFor(metricKey, f.language));
+      for (const fn of f.functions || []) {
+        const v = fn.metrics[metricKey];
+        if (v == null) continue;
+        const isOver = isOverThreshold(metricKey, v, f.language);
+        if (v >= max) { max = v; maxOver = isOver; }
+        if (isOver) over++;
+      }
+    }
+    return { over, max, maxOver, gated };
+  }
+  function fileStat(metricKey) {
+    let over = 0, max = 0, min = Infinity, minOver = false, n = 0, gated = false;
+    for (const f of files) {
+      gated = gated || Boolean(gateFor(metricKey, f.language));
       const v = f.metrics[metricKey];
       if (v == null) continue;
-      n++; max = Math.max(max, v); min = Math.min(min, v);
-      if (threshold != null && v > threshold) over++;
+      n++; max = Math.max(max, v);
+      const isOver = isOverThreshold(metricKey, v, f.language);
+      if (v <= min) { min = v; minOver = isOver; }
+      if (isOver) over++;
     }
-    return { over, max, min: n ? min : null, n };
+    return { over, max, min: n ? min : null, minOver, n, gated };
   }
+  function gatedLabel(stat, label) { return stat.gated ? label : `${label} (not gated)`; }
   function catMetricsLoc() {
     const slocs = files.map((f) => f.metrics.source_lines_of_code).filter((v) => v != null);
     const total = slocs.reduce((a, b) => a + b, 0);
@@ -672,26 +753,24 @@
     ];
   }
   function catMetricsComplexity() {
-    const cycT = thresholdOr("cyclomatic_complexity", 10);
-    const cyc = fnStat("cyclomatic_complexity", cycT);
-    const hv = fileStat("halstead_volume", thresholdOr("halstead_volume", 1000));
-    const hd = fileStat("halstead_difficulty", thresholdOr("halstead_difficulty", 10));
+    const cyc = fnStat("cyclomatic_complexity");
+    const hv = fileStat("halstead_volume");
+    const hd = fileStat("halstead_difficulty");
     return [
-      { v: cyc.over, l: "fns over cyclomatic", over: cyc.over > 0 },
-      { v: fmt(cyc.max), l: "max cyclomatic", over: cyc.max > cycT },
-      { v: hd.over, l: "files over difficulty", over: hd.over > 0 },
+      { v: cyc.over, l: gatedLabel(cyc, "fns over cyclomatic"), over: cyc.over > 0 },
+      { v: fmt(cyc.max), l: "max cyclomatic", over: cyc.maxOver },
+      { v: hd.over, l: gatedLabel(hd, "files over difficulty"), over: hd.over > 0 },
       { v: fmt(hv.max), l: "max halstead vol", over: hv.over > 0 },
     ];
   }
   function catMetricsReadability() {
-    const cogT = thresholdOr("cognitive_complexity", 15);
-    const cog = fnStat("cognitive_complexity", cogT);
+    const cog = fnStat("cognitive_complexity");
     const clar = valuesOf(buckets.readability, "name_clarity");
     const avg = clar.length ? clar.reduce((a, x) => a + x, 0) / clar.length : null;
     const anti = valuesOf(buckets.readability, "naming_antipatterns").filter((v) => v > 0).length;
     return [
-      { v: cog.over, l: "fns over cognitive", over: cog.over > 0 },
-      { v: fmt(cog.max), l: "max cognitive", over: cog.max > cogT },
+      { v: cog.over, l: gatedLabel(cog, "fns over cognitive"), over: cog.over > 0 },
+      { v: fmt(cog.max), l: "max cognitive", over: cog.maxOver },
       { v: avg == null ? "—" : avg.toFixed(2), l: "avg name clarity", over: avg != null && avg < SOFT.name_clarity_floor },
       { v: anti, l: "naming antipatterns", over: anti > 0 },
     ];
@@ -710,13 +789,14 @@
     ];
   }
   function catMetricsMixed() {
-    const mi = fileStat("maintainability_index", null);
-    const low = files.filter((f) => f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50).length;
+    const mi = fileStat("maintainability_index");
+    const low = mi.gated ? mi.over
+      : files.filter((f) => f.metrics.maintainability_index != null && f.metrics.maintainability_index < 50).length;
     const sri = valuesOf(buckets.mixed, "single_responsibility_index");
     const sriOut = sri.filter((v) => v > SOFT.single_responsibility_index).length;
     return [
-      { v: low, l: "files MI < 50", over: low > 0 },
-      { v: mi.min == null ? "—" : fmt(mi.min), l: "lowest MI", over: mi.min != null && mi.min < 50 },
+      { v: low, l: mi.gated ? "files under MI gate" : "files MI < 50 (not gated)", over: mi.gated && low > 0 },
+      { v: mi.min == null ? "—" : fmt(mi.min), l: "lowest MI", over: mi.minOver },
       { v: sriOut, l: `SRI outliers (>${SOFT.single_responsibility_index})`, over: sriOut > 0 },
       { v: sri.length ? fmt(Math.max(...sri)) : "—", l: "max SRI", over: false },
     ];
@@ -906,8 +986,7 @@
     const dm = metricKey === PRESSURE_METRIC ? "cyclomatic_complexity" : metricKey;
     const delta = baselineDelta(fileEntry, dm);
     if (delta === undefined || delta === null || delta === 0) return UNCHANGED_FILL;
-    const th = thresholds[dm];
-    const worse = th && th.direction === "min" ? -delta : delta;
+    const worse = metricDirection(dm, fileEntry.language) === "min" ? -delta : delta;
     const scale = deltaScale(dm);
     const intensity = scale > 0 ? Math.abs(worse) / scale : 0;
     return worse > 0 ? REGRESS(intensity) : IMPROVE(intensity);
@@ -919,7 +998,7 @@
     }
     const value = fileEntry ? fileEntry.metrics[metricKey] : undefined;
     if (value === undefined || value === null) return NEUTRAL_FILL;
-    return RAMP(badness(metricKey, value));
+    return RAMP(badness(metricKey, value, fileEntry.language));
   }
   function currentTileFill(fileEntry, metricKey) {
     if (baselineMode && baseline) return deltaFill(fileEntry, metricKey);
@@ -1302,16 +1381,18 @@
     }
   }
   function renderLegend(selectedMetric) {
-    const th = thresholds[selectedMetric];
+    const { gate, mixed } = sharedGate(selectedMetric);
     const low = byId("legend-low"), high = byId("legend-high"), bar = byId("legend-bar");
     bar.classList.toggle("delta", baselineMode && Boolean(baseline));
     byId("tm-metric-name").textContent = metricLabel(selectedMetric).toLowerCase();
     if (baselineMode && baseline) { low.textContent = "improved"; high.textContent = "regressed vs baseline"; return; }
     if (selectedMetric === PRESSURE_METRIC) { low.textContent = "safe"; high.textContent = "over threshold"; return; }
-    if (th && th.threshold > 0) {
-      low.textContent = th.direction === "min" ? "high (good)" : "low (good)";
-      high.textContent = `${th.direction === "min" ? "below" : "over"} threshold (${fmt(th.threshold)})`;
-    } else { low.textContent = "low"; high.textContent = "high (relative scale, no threshold)"; }
+    if (gate) {
+      low.textContent = gate.direction === "min" ? "high (good)" : "low (good)";
+      high.textContent = `${gate.direction === "min" ? "below" : "over"} gate (${fmt(gate.threshold)})`;
+    } else if (mixed) {
+      low.textContent = "within gate"; high.textContent = "over gate (per-language thresholds)";
+    } else { low.textContent = "low"; high.textContent = "high (relative scale, not gated)"; }
   }
 
   // ===== tooltip ===========================================================
@@ -1326,7 +1407,7 @@
     };
     addRow("Language", fileEntry.language);
     for (const key of CANONICAL_METRICS) {
-      if (key in fileEntry.metrics) addRow(metricLabel(key), fmt(fileEntry.metrics[key]), isOverThreshold(key, fileEntry.metrics[key]));
+      if (key in fileEntry.metrics) addRow(metricLabel(key), fmt(fileEntry.metrics[key]), isOverThreshold(key, fileEntry.metrics[key], fileEntry.language));
     }
     return table;
   }
@@ -1362,7 +1443,7 @@
     if (agg.violations > 0) addRow("Violations", String(agg.violations));
     const worstKey = selectedMetric === PRESSURE_METRIC ? "cyclomatic_complexity" : selectedMetric;
     const worst = agg.metrics_max ? agg.metrics_max[worstKey] : undefined;
-    if (worst) addRow(`Worst ${metricLabel(worstKey).toLowerCase()}`, `${fmt(worst.value)} — ${baseName(worst.path)}`, isOverThreshold(worstKey, worst.value));
+    if (worst) addRow(`Worst ${metricLabel(worstKey).toLowerCase()}`, `${fmt(worst.value)} — ${baseName(worst.path)}`, isOverThreshold(worstKey, worst.value, languageOfPath(worst.path)));
     tooltip.append(table);
     if (agg.violations > 0) tooltip.append(el("div", { class: "tt-alert" }, `${agg.violations} threshold violation(s) in this directory`));
     tooltip.hidden = false; positionTooltip(event);
@@ -1411,15 +1492,15 @@
       return String(av).localeCompare(String(bv)) * dir;
     };
     const cellText = (col, value) => col.delta ? fmtDelta(value) : (col.numeric ? fmt(value) : (value ?? "—"));
-    const buildCell = (col, value) => {
+    const buildCell = (col, value, row) => {
       const td = el("td", { class: col.numeric ? "num" : "" }, cellText(col, value));
-      if (col.metric && isOverThreshold(col.metric, value)) td.classList.add("cell-over");
+      if (col.metric && isOverThreshold(col.metric, value, row.language)) td.classList.add("cell-over");
       if (col.delta && typeof value === "number" && value !== 0) td.classList.add(value > 0 ? "delta-pos" : "delta-neg");
       return td;
     };
     const buildRow = (row) => {
       const tr = el("tr");
-      for (const col of columns) tr.append(buildCell(col, row[col.key]));
+      for (const col of columns) tr.append(buildCell(col, row[col.key], row));
       if (onRowClick) tr.addEventListener("click", () => onRowClick(row));
       return tr;
     };
@@ -1449,7 +1530,7 @@
       if (!(key in fileEntry.metrics)) continue;
       meta.append(el("span", { class: "k" }, metricLabel(key)));
       const v = el("span", { class: "v" }, fmt(fileEntry.metrics[key]));
-      if (isOverThreshold(key, fileEntry.metrics[key])) v.classList.add("cell-over");
+      if (isOverThreshold(key, fileEntry.metrics[key], fileEntry.language)) v.classList.add("cell-over");
       meta.append(v);
     }
   }
@@ -1464,7 +1545,7 @@
   }
   function renderDetailFunctions(fileEntry) {
     const rows = (fileEntry.functions || []).map((fn) => ({
-      name: fn.name, line: fn.line,
+      name: fn.name, line: fn.line, language: fileEntry.language,
       cyclomatic_complexity: fn.metrics.cyclomatic_complexity ?? null,
       cognitive_complexity: fn.metrics.cognitive_complexity ?? null,
       halstead_volume: fn.metrics.halstead_volume ?? null,
@@ -1502,6 +1583,7 @@
         if (!candidates.length) continue;
         rows.push({
           score: Math.max(...candidates), name: fn.name, path: fileEntry.path, line: fn.line,
+          language: fileEntry.language,
           cyclomatic_complexity: cyc ?? null, cognitive_complexity: cog ?? null,
           halstead_volume: fn.metrics.halstead_volume ?? null, fileIndex: index,
         });
@@ -1615,7 +1697,12 @@
   }
   function renderBaselineTables() {
     if (!baseline) return;
+    // The cached comparison rides along on every run; two empty tables would
+    // only add noise when nothing moved.
+    const quiet = baseline.implicit && !baseline.regressions.length && !baseline.improvements.length;
+    if (quiet) return;
     byId("regressions-section").hidden = false;
+    byId("regressions-heading").textContent = `Regressions vs ${baselineName} `;
     const pathIndex = new Map(files.map((entry, index) => [entry.path, index]));
     renderBaselineFunctionTable("regressions-table", "regressions-count", baseline.regressions, pathIndex);
     renderBaselineFunctionTable("improvements-table", "improvements-count", baseline.improvements, pathIndex);
@@ -1765,6 +1852,8 @@
     if (baseline) {
       const wrap = byId("baseline-toggle-wrap"), toggle = byId("baseline-toggle");
       wrap.hidden = false; toggle.checked = baselineMode;
+      byId("baseline-toggle-label").textContent = baseline.implicit ? "vs previous run" : "vs baseline";
+      wrap.title = `Color tiles by change vs ${baselineName}`;
       toggle.addEventListener("change", () => {
         baselineMode = toggle.checked;
         recolorTreemap(selectedMetricNow()); renderLegend(selectedMetricNow());

@@ -102,27 +102,50 @@ def language_gates(config: AntipastaConfig, language: str) -> dict[str, MetricCo
     return {gate.type.value: gate for gate in entry.metrics if gate.enabled}
 
 
+def _graph_gates(config: AntipastaConfig) -> dict[str, MetricConfig]:
+    graph = config.import_graph
+    if graph is None:
+        return {}
+    gates = {"stable_dependencies_violations": graph.stable_dependencies_config()}
+    if graph.forbid_cycles:
+        gates["dependency_cycles"] = graph.cycles_config()
+    return gates
+
+
+def _narrative_gates(config: AntipastaConfig) -> dict[str, MetricConfig]:
+    narrative = config.experimental.narrative if config.experimental is not None else None
+    if narrative is None:
+        return {}
+    gates = {
+        metric: narrative.count_gate(MetricType(metric)) for metric in sorted(NARRATIVE_COUNT_GATES)
+    }
+    if narrative.name_clarity_floor is not None:
+        gates["name_clarity"] = narrative.clarity_gate()
+    return gates
+
+
+def _duplication_gates(config: AntipastaConfig) -> dict[str, MetricConfig]:
+    duplication = config.duplication
+    if duplication is None or duplication.max_ratio is None:
+        return {}
+    return {"duplication_ratio": duplication.ratio_gate()}
+
+
+def _layering_gates(config: AntipastaConfig) -> dict[str, MetricConfig]:
+    tree = config.tree_shape
+    if tree is None or not tree.layers:
+        return {}
+    return {"layering_violations": tree.layering_config()}
+
+
 def project_gates(config: AntipastaConfig) -> dict[str, MetricConfig]:
     """Gates for project-scope metrics: import graph, narrative, duplication, layering."""
-    gates: dict[str, MetricConfig] = {}
-    graph = config.import_graph
-    if graph is not None:
-        gates["stable_dependencies_violations"] = graph.stable_dependencies_config()
-        if graph.forbid_cycles:
-            gates["dependency_cycles"] = graph.cycles_config()
-    narrative = config.experimental.narrative if config.experimental is not None else None
-    if narrative is not None:
-        for metric in sorted(NARRATIVE_COUNT_GATES):
-            gates[metric] = narrative.count_gate(MetricType(metric))
-        if narrative.name_clarity_floor is not None:
-            gates["name_clarity"] = narrative.clarity_gate()
-    duplication = config.duplication
-    if duplication is not None and duplication.max_ratio is not None:
-        gates["duplication_ratio"] = duplication.ratio_gate()
-    tree = config.tree_shape
-    if tree is not None and tree.layers:
-        gates["layering_violations"] = tree.layering_config()
-    return gates
+    return {
+        **_graph_gates(config),
+        **_narrative_gates(config),
+        **_duplication_gates(config),
+        **_layering_gates(config),
+    }
 
 
 def _serialize(gate: MetricConfig) -> dict[str, Any]:

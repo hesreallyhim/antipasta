@@ -170,7 +170,8 @@ def report(
 
     With --baseline, the report is diffed against a previous JSON snapshot
     (see --save-baseline): a delta summary is printed and the HTML report
-    renders in "vs baseline" mode.
+    renders in "vs baseline" mode.  Without it, the HTML report still carries
+    a comparison with the previous cached run for the same selection.
     """
     _validate_grouping(by, output_format)
     files, directory, root = _resolve_target(path, files, directory)
@@ -348,21 +349,31 @@ def _apply_baseline(
     output_format: str,
     by: str | None = None,
 ) -> tuple[dict[str, Any], SnapshotDiff | None]:
-    """Diff the snapshot against the baseline file, when one was given.
+    """Diff the snapshot against the baseline file or the cached previous run.
 
     Returns the snapshot to render (for HTML, a copy carrying the embedded
-    ``baseline`` payload for "vs baseline" mode) and the diff result.  Schema
-    drift warnings go to stderr.
+    ``baseline`` payload for "vs baseline" mode) and the diff result.  An
+    explicit ``--baseline`` drives every format; the cached previous run only
+    feeds the HTML report, where it is marked implicit so the dashboard opens
+    in its current-state view.  Schema drift warnings go to stderr.
     """
-    if baseline is None or old is None:
+    if old is None:
+        return snapshot, None
+    is_html = output_format.lower() == "html"
+    if baseline is None and not is_html:
         return snapshot, None
     if output_format == "table" and by is None:
         return snapshot, None
     baseline_diff = diff(old, snapshot)
     for warning in baseline_diff.warnings:
         click.echo(f"Warning: {warning}", err=True)
-    if output_format.lower() == "html":
-        payload = build_baseline_payload(baseline_diff, old, label=baseline.name)
+    if is_html:
+        if baseline is not None:
+            payload = build_baseline_payload(baseline_diff, old, label=baseline.name)
+        else:
+            payload = build_baseline_payload(
+                baseline_diff, old, label="previous run", implicit=True
+            )
         snapshot = {**snapshot, "baseline": payload}
     return snapshot, baseline_diff
 

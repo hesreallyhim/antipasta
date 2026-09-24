@@ -14,7 +14,7 @@ from antipasta.core.store.snapshot_diff import FunctionDelta, SnapshotDiff
 
 
 def build_baseline_payload(
-    snapshot_diff: SnapshotDiff, old: dict[str, Any], *, label: str
+    snapshot_diff: SnapshotDiff, old: dict[str, Any], *, label: str, implicit: bool = False
 ) -> dict[str, Any]:
     """Build the ``baseline`` object embedded in the HTML report data.
 
@@ -22,9 +22,13 @@ def build_baseline_payload(
         snapshot_diff: Diff of the baseline against the current snapshot.
         old: The baseline snapshot (for its generation metadata).
         label: Display name for the baseline (typically the file name).
+        implicit: True when the baseline is the cached previous run rather
+            than one the user pinned; the dashboard then keeps its
+            current-state view and offers the comparison as a toggle.
     """
     return {
         "label": label,
+        "implicit": implicit,
         "generated_at": old.get("generated_at"),
         "tool_version": old.get("tool_version"),
         "files_added": list(snapshot_diff.files_added),

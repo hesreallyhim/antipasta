@@ -177,3 +177,18 @@ def test_grouped_explicit_baseline_summary_stream(source: Path, write_output: bo
     summary_stream = result.stdout if write_output else result.stderr
     assert "Baseline diff vs" in summary_stream
     assert "Regressed functions" in summary_stream
+
+
+def test_html_carries_previous_run_as_implicit_baseline(source: Path) -> None:
+    runner = CliRunner()
+    first = runner.invoke(report, [str(source), "--format", "html"])
+    assert first.exit_code == 0, first.output
+    assert '"baseline":' not in first.stdout
+    source.write_text(BRANCH)
+    second = runner.invoke(report, [str(source), "--format", "html"])
+    assert second.exit_code == 0, second.output
+    assert '"label":"previous run"' in second.stdout
+    assert '"implicit":true' in second.stdout
+    # The cached comparison never leaks into the JSON snapshot.
+    third = runner.invoke(report, [str(source), "--format", "json"])
+    assert "baseline" not in third.stdout
