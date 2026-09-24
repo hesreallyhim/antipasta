@@ -456,12 +456,14 @@
   }
 
   // ===== top bar ===========================================================
-  function renderTopbar() {
-    const meta = byId("meta-line");
-    meta.textContent = `${DATA.root} · ${files.length} files · antipasta v${DATA.tool_version}`
-      + ` · schema v${DATA.schema_version} · ${DATA.generated_at}`
-      + (baseline ? ` · vs ${baselineName}` + (baseline.generated_at ? ` (${baseline.generated_at})` : "") : "");
-
+  function metaLine() {
+    let text = `${DATA.root} · ${plural(files.length, "file")} · antipasta v${DATA.tool_version}`
+      + ` · schema v${DATA.schema_version} · ${DATA.generated_at}`;
+    if (baseline) text += ` · vs ${baselineName}`;
+    if (baseline && baseline.generated_at) text += ` (${baseline.generated_at})`;
+    return text;
+  }
+  function renderSeverityLegend() {
     const leg = byId("sev-legend");
     clear(leg);
     for (const key of ["good", "warn", "bad", "none"]) {
@@ -471,15 +473,21 @@
       s.style.color = "var(--c)";
       leg.append(s);
     }
-
+  }
+  function violationChip(violations) {
+    if (!(violations > 0)) return el("span", { class: "chip ok" }, "no violations");
+    const text = `${plural(violations, "violation")} · ${plural(summary.files_with_violations, "file")}`;
+    return el("span", { class: "chip alert" }, text);
+  }
+  function renderTopbar() {
+    byId("meta-line").textContent = metaLine();
+    renderSeverityLegend();
     const chips = byId("summary-chips");
     clear(chips);
     chips.append(el("span", { class: "chip" }, plural(summary.total_files ?? files.length, "file")));
     for (const [lang, count] of Object.entries(summary.files_by_language || {}))
       chips.append(el("span", { class: "chip" }, `${lang}: ${count}`));
-    const violations = summary.total_violations ?? 0;
-    chips.append(el("span", { class: `chip ${violations > 0 ? "alert" : "ok"}` },
-      violations > 0 ? `${plural(violations, "violation")} · ${plural(summary.files_with_violations, "file")}` : "no violations"));
+    chips.append(violationChip(summary.total_violations ?? 0));
     if (baseline) renderBaselineChips(chips);
   }
   function renderBaselineChips(chips) {
