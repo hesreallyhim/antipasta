@@ -70,6 +70,8 @@ def _exact_groups(root: Path, config: DuplicationConfig) -> list[Any]:
         min_count=config.min_count,
         normalize_local_names=config.normalize_local_names,
         normalize_constants=config.normalize_constants,
+        min_statements=config.min_statements,
+        ignore_trivial=config.ignore_trivial,
     )
     return groups
 

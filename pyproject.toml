@@ -38,7 +38,7 @@ dependencies = [
     "pyyaml>=6.0",
     "pathspec>=1.1.1",
     # PyPI package is pydry-cli; import module is pydry.
-    "pydry-cli",
+    "pydry-cli>=0.1.0",
     "click>=8.1.0",
 ]
 

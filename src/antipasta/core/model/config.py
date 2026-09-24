@@ -159,6 +159,10 @@ class DuplicationConfig(BaseModel):
     normalize_local_names: bool = Field(default=True)
     normalize_constants: bool = Field(default=False)
     min_count: int = Field(default=2, ge=2)
+    #: Bodies with fewer statements than this never form a clone group.
+    min_statements: int = Field(default=2, ge=1)
+    #: Skip stubs, accessors and call-free boilerplate (pydry's trivial rule).
+    ignore_trivial: bool = Field(default=True)
     #: Gate: per-file duplicated-lines ratio must stay at or below this.
     max_ratio: float | None = Field(default=None, ge=0.0, le=1.0)
 

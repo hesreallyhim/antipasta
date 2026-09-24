@@ -12,8 +12,10 @@ from antipasta.core.model.derivation import DerivationInput
 from antipasta.core.model.metrics import MetricResult, MetricType
 from antipasta.core.model.violations import FileReport, ProjectReport
 
-TWIN_A = "def alpha(x):\n    y = x + 1\n    z = y * 2\n    return z\n"
-TWIN_B = "def beta(q):\n    w = q + 1\n    v = w * 2\n    return v\n"
+# The twins call a builtin so pydry's trivial-body rule (call-free bodies of
+# three statements or fewer) does not filter them out.
+TWIN_A = "def alpha(x):\n    y = abs(x) + 1\n    z = y * 2\n    return z\n"
+TWIN_B = "def beta(q):\n    w = abs(q) + 1\n    v = w * 2\n    return v\n"
 LONER = "def gamma(n):\n    return n - 1\n"
 
 

@@ -23,13 +23,13 @@ def analyzed_snapshot(
     first = tmp_path / "a.py"
     first.write_text(
         "import b\n\n"
-        "def alpha(x):\n    y = x + 1\n    z = y * 2\n    return z\n\n"
+        "def alpha(x):\n    y = abs(x) + 1\n    z = y * 2\n    return z\n\n"
         "class Example:\n"
         "    def run(self, x):\n"
         "        if x:\n            return self.value\n        return 0\n"
     )
     second = tmp_path / "b.py"
-    second.write_text("import a\n\ndef beta(q):\n    w = q + 1\n    v = w * 2\n    return v\n")
+    second.write_text("import a\n\ndef beta(q):\n    w = abs(q) + 1\n    v = w * 2\n    return v\n")
     config = AntipastaConfig.model_validate({"duplication": {}, "import_graph": {}})
     results = execute_analysis([first, second], config, quiet=True, root=tmp_path)
     snapshot = build_snapshot(

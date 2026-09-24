@@ -87,6 +87,17 @@
           "title": "Min Count",
           "type": "integer"
         },
+        "min_statements": {
+          "default": 2,
+          "minimum": 1,
+          "title": "Min Statements",
+          "type": "integer"
+        },
+        "ignore_trivial": {
+          "default": true,
+          "title": "Ignore Trivial",
+          "type": "boolean"
+        },
         "max_ratio": {
           "anyOf": [
             {
