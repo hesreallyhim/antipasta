@@ -18,12 +18,16 @@ from typing import Any
 
 from antipasta import __version__
 from antipasta.core.model.config import AntipastaConfig
+from antipasta.core.model.gates import resolve_gates
 from antipasta.core.model.metrics import MetricResult
 from antipasta.core.model.violations import FileReport, ProjectReport, summarize_reports
 from antipasta.core.store.treemap import build_treemap_nodes
 
 # v2 (2026-07-04): adds the top-level "project" block (project-/directory-
 # scoped reports from the derivation stage; empty until derivers register).
+# v2 (2026-09-24, additive): adds the top-level "gates" block, the resolved
+# per-language and project-scope gates in force for the run. "thresholds"
+# keeps the global defaults for readers of older snapshots.
 SCHEMA_VERSION = 2
 
 
@@ -80,6 +84,7 @@ def build_snapshot(
         "summary": summary,
         "thresholds": _build_thresholds(config),
         "language_coverage": _build_language_coverage(files),
+        "gates": resolve_gates(config, (entry["language"] for entry in files)),
         "files": files,
         "project": [report.to_dict() for report in (project_reports or [])],
         "treemap": build_treemap_nodes(files, root_label=root_path.name or str(root_path)),
@@ -198,8 +203,10 @@ def _group_functions(metrics: list[MetricResult]) -> list[dict[str, Any]]:
 
 
 def _build_thresholds(config: AntipastaConfig) -> dict[str, dict[str, Any]]:
-    """Map metric types to their configured default threshold and direction.
+    """Map metric types to the global default threshold and direction.
 
+    These are the ``defaults`` block only; the per-language gates actually in
+    force are in the ``gates`` block. Kept so older readers keep working.
     ``direction`` is ``"max"`` when values at or below the threshold are good
     and ``"min"`` when values at or above the threshold are good.
     """

@@ -15,12 +15,12 @@ from typing import Any, cast
 
 from antipasta.core.model.config import (
     AntipastaConfig,
-    ComparisonOperator,
     LanguageConfig,
     MetricConfig,
 )
 from antipasta.core.model.derivation import AnalysisResult, DerivationInput, Deriver
 from antipasta.core.model.detector import Language, LanguageDetector
+from antipasta.core.model.gates import default_language_config
 from antipasta.core.model.metrics import (
     EXPERIMENTAL_METRICS,
     FactRow,
@@ -425,67 +425,8 @@ class MetricAggregator:
         return violations
 
     def _create_default_language_config(self, language: Language) -> LanguageConfig:
-        """Create default language configuration using defaults.
-
-        Args:
-            language: Language to create config for
-
-        Returns:
-            Language configuration with default metrics
-        """
-        from antipasta.core.model.config import LanguageConfig
-
-        # Map default values to metric configs
-        default_metrics = []
-
-        if language == Language.PYTHON:
-            default_metrics = [
-                MetricConfig(
-                    type=MetricType.CYCLOMATIC_COMPLEXITY,
-                    threshold=self.config.defaults.max_cyclomatic_complexity,
-                    comparison=ComparisonOperator.LE,
-                ),
-                MetricConfig(
-                    type=MetricType.MAINTAINABILITY_INDEX,
-                    threshold=self.config.defaults.min_maintainability_index,
-                    comparison=ComparisonOperator.GE,
-                ),
-                MetricConfig(
-                    type=MetricType.HALSTEAD_VOLUME,
-                    threshold=self.config.defaults.max_halstead_volume,
-                    comparison=ComparisonOperator.LE,
-                ),
-                MetricConfig(
-                    type=MetricType.HALSTEAD_DIFFICULTY,
-                    threshold=self.config.defaults.max_halstead_difficulty,
-                    comparison=ComparisonOperator.LE,
-                ),
-                MetricConfig(
-                    type=MetricType.HALSTEAD_EFFORT,
-                    threshold=self.config.defaults.max_halstead_effort,
-                    comparison=ComparisonOperator.LE,
-                ),
-                MetricConfig(
-                    type=MetricType.COGNITIVE_COMPLEXITY,
-                    threshold=self.config.defaults.max_cognitive_complexity,
-                    comparison=ComparisonOperator.LE,
-                ),
-            ]
-        elif language in (Language.JAVASCRIPT, Language.TYPESCRIPT):
-            # lizard produces cyclomatic complexity only; enabling other
-            # metric thresholds here would silently never fire.
-            default_metrics = [
-                MetricConfig(
-                    type=MetricType.CYCLOMATIC_COMPLEXITY,
-                    threshold=self.config.defaults.max_cyclomatic_complexity,
-                    comparison=ComparisonOperator.LE,
-                ),
-            ]
-
-        return LanguageConfig(
-            name=language.value,
-            metrics=default_metrics,
-        )
+        """Built-in gates for a language with no configured entry."""
+        return default_language_config(self.config, language)
 
     def generate_summary(self, reports: list[FileReport]) -> dict[str, Any]:
         """Generate a summary of all reports (delegates to the pure model fn)."""
