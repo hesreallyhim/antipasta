@@ -165,7 +165,9 @@ antipasta report src/ --format html --output report.html --save-baseline   # wri
 antipasta report src/ --format html --output report.html --baseline report.baseline.json
 ```
 
-The HTML report is a single file with no network dependencies (d3 is embedded), so it can be opened from any `file://` URL or attached to a CI run. Tile area is source lines of code; tile color is the selected metric against its configured threshold. Metrics unavailable for a language render neutral.
+The HTML report is a single file with no network dependencies (d3 is embedded), so it can be opened from any `file://` URL or attached to a CI run. Tile area is source lines of code; tile color is the selected metric against the gate in force for that file's language, so a disabled or project-specific gate is honored rather than the shipped default. Metrics with no gate color on a relative scale and are labeled "not gated"; metrics unavailable for a language render neutral. The health score and category panels use the same categories as `docs/supported_metrics.md`.
+
+Without `--baseline`, the HTML report still compares against the previous cached run for the same selection (see below): the top bar names it, a "vs previous run" toggle recolors tiles by change, and a regressions table appears when any function got worse. The report opens in its current-state view; a pinned `--baseline` opens in delta view.
 
 Terminal tables compare their displayed aggregates with the previous cached run for the same repository and compatible analysis scope. Each analysis root has its own previous-run slot, so alternating subdirectories preserves their histories. A first run has no delta column. `--baseline PATH` pins an explicit JSON snapshot instead. The cache is disposable: deleting it removes the previous-run comparison until another snapshot is stored. Use `--save-baseline` or `--format json --output PATH` for history you want to keep.
 

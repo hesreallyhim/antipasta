@@ -5,6 +5,39 @@ All notable changes to antipasta will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Breaking
+
+* `antipasta report PATH` is the primary command. `metrics` and `stats` remain as hidden legacy commands that warn on stderr. Gating is opt-in with `--fail-on`; violations exit 2 only when it is set.
+* Configuration resolves in layers: shipped defaults, the user configuration directory, then a project `.antipasta.yaml`. `config generate` writes the user layer unless `--project` is given.
+* The narrative index is an opt-in experimental family (`experimental: {narrative: {}}` or `--experimental narrative`); the top-level `narrative` config key no longer exists.
+* The house-style runners are renamed to structural. `exception_discipline` and the tree-shape `fan_out_min`/`fan_out_max` keys are removed; directory fan-out is reported, not gated.
+* pydry-cli 0.1.0 or newer is required. Clone detection now skips trivial bodies by default (`duplication.ignore_trivial`, `duplication.min_statements`).
+* plotly and pandas moved to the `dev` extras; the DEMOS tree is gone.
+
+### Added
+
+* Terminal tables scoped by category and scope, with deltas against the previous cached run for the same selection.
+* The HTML report compares with the previous cached run without `--baseline`, as a "vs previous run" toggle, and opens in its current-state view.
+* The JSON snapshot carries a `gates` block with the resolved per-language and project gates in force for the run.
+* Metric configuration presets (`config generate --preset`).
+* Module dependency graph in the snapshot and in the dashboard's SOLID focus.
+* JavaScript and TypeScript coverage for line counts and cyclomatic complexity through lizard.
+* A headless Chromium smoke test for the dashboard (skipped when no browser is available).
+
+### Changed
+
+* The dashboard honors the gates actually configured: disabled gates, per-language entries, and project gates such as a `lines_of_code` cap. Ungated metrics no longer feed the health score and are labeled "not gated".
+* The dashboard's category panels follow the documented taxonomy (Lines of code, Complexity, SOLID, Maintainability, Test quality, VCS, Experimental); a test keeps the JavaScript copy in step with the terminal taxonomy and the docs.
+* Structural metrics (arity, flags, global state, naming antipatterns) measure what reviewers flag; cohesion and abstractness are calibrated against the benchmark corpora.
+
+### Fixed
+
+* Inherited thresholds are honored when a project configures only some languages.
+* Import graph resolution of absolute imports through the package name; deferred imports no longer form edges.
+* Pluralization in dashboard chips and verdicts.
+
 ## [1.2.0](https://github.com/hesreallyhim/antipasta/compare/v1.1.2...v1.2.0) (2026-07-07)
 
 

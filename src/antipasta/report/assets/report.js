@@ -162,6 +162,7 @@
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
   function baseName(p) { return String(p).split("/").pop(); }
+  function plural(n, word) { return `${n} ${word}${n === 1 ? "" : "s"}`; }
 
   // ===== severity ==========================================================
   const SEV = {
@@ -473,12 +474,12 @@
 
     const chips = byId("summary-chips");
     clear(chips);
-    chips.append(el("span", { class: "chip" }, `${summary.total_files ?? files.length} files`));
+    chips.append(el("span", { class: "chip" }, plural(summary.total_files ?? files.length, "file")));
     for (const [lang, count] of Object.entries(summary.files_by_language || {}))
       chips.append(el("span", { class: "chip" }, `${lang}: ${count}`));
     const violations = summary.total_violations ?? 0;
     chips.append(el("span", { class: `chip ${violations > 0 ? "alert" : "ok"}` },
-      violations > 0 ? `${violations} violations · ${summary.files_with_violations} files` : "no violations"));
+      violations > 0 ? `${plural(violations, "violation")} · ${plural(summary.files_with_violations, "file")}` : "no violations"));
     if (baseline) renderBaselineChips(chips);
   }
   function renderBaselineChips(chips) {
@@ -488,7 +489,7 @@
     chips.append(el("span", { class: `chip ${regressed > 0 ? "delta-reg" : "ok"}` }, `${regressed} regressed`));
     if (improved) chips.append(el("span", { class: "chip delta-imp" }, `${improved} improved`));
     if (baseline.violations_added > 0)
-      chips.append(el("span", { class: "chip alert" }, `+${baseline.violations_added} new violations`));
+      chips.append(el("span", { class: "chip alert" }, `+${plural(baseline.violations_added, "new violation")}`));
   }
 
   // ===== hero ==============================================================
@@ -521,7 +522,7 @@
           + (imp ? `, ${imp} improved` : "") + `. `
         : `No regressions vs ${baselineName}` + (imp ? ` — ${imp} improved.` : ".")));
     if (baseline.violations_added > 0)
-      verdict.append(document.createTextNode(`${baseline.violations_added} new violation${baseline.violations_added === 1 ? "" : "s"} introduced.`));
+      verdict.append(document.createTextNode(`${plural(baseline.violations_added, "new violation")} introduced.`));
   }
   function allViolationsInHotspot(totalV, hot) {
     return totalV > 0 && hot && hot.vc === totalV && hot.vc > 0;
@@ -534,10 +535,10 @@
     const band = t === "good" ? "A healthy codebase" : t === "warn" ? "A codebase worth watching" : "A codebase under real pressure";
     verdict.append(document.createTextNode(`${band} — ${clean} of ${s.total_files ?? files.length} files are clean`));
     if (allViolationsInHotspot(totalV, hot)) {
-      verdict.append(document.createTextNode(`; all ${totalV} violations live in `));
+      verdict.append(document.createTextNode(`; all ${plural(totalV, "violation")} live in `));
       verdict.append(el("code", null, hot.file.path)); verdict.append(document.createTextNode("."));
     } else if (totalV > 0) {
-      verdict.append(document.createTextNode(`; ${totalV} threshold violation${totalV === 1 ? "" : "s"} across ${s.files_with_violations} file${s.files_with_violations === 1 ? "" : "s"}.`));
+      verdict.append(document.createTextNode(`; ${plural(totalV, "threshold violation")} across ${plural(s.files_with_violations, "file")}.`));
     } else {
       verdict.append(document.createTextNode(" with no threshold violations."));
     }
@@ -627,7 +628,7 @@
     card.append(el("div", { class: "k-lab" }, "Primary hotspot"));
     card.append(el("span", { class: "k-val", style: "font-size:16px;line-height:1.3;white-space:normal;word-break:break-all" }, baseName(hot.file.path)));
     card.append(el("div", { class: "k-sub" },
-      `${hot.vc} violation${hot.vc === 1 ? "" : "s"}` + (mi != null ? ` · MI ${fmt(mi)}` : "")));
+      plural(hot.vc, "violation") + (mi != null ? ` · MI ${fmt(mi)}` : "")));
     const ring = svgEl("svg", { class: "k-ring", viewBox: "0 0 48 48" });
     card.append(ring);
     drawRing(ring, mi != null ? clamp(1 - mi / 100, 0, 1) : frac, st);
@@ -666,7 +667,7 @@
       score: vc * 10 + p,
       sev: vc > 3 || p > 1.3 ? "bad" : "warn",
       title: f.path,
-      why: `${vc} threshold violation${vc === 1 ? "" : "s"}`
+      why: plural(vc, "threshold violation")
         + (f.metrics.maintainability_index != null ? ` · MI ${fmt(f.metrics.maintainability_index)}` : ""),
     };
   }
@@ -1463,7 +1464,7 @@
     const worst = agg.metrics_max ? agg.metrics_max[worstKey] : undefined;
     if (worst) addRow(`Worst ${metricLabel(worstKey).toLowerCase()}`, `${fmt(worst.value)} — ${baseName(worst.path)}`, isOverThreshold(worstKey, worst.value, languageOfPath(worst.path)));
     tooltip.append(table);
-    if (agg.violations > 0) tooltip.append(el("div", { class: "tt-alert" }, `${agg.violations} threshold violation(s) in this directory`));
+    if (agg.violations > 0) tooltip.append(el("div", { class: "tt-alert" }, `${plural(agg.violations, "threshold violation")} in this directory`));
     tooltip.hidden = false; positionTooltip(event);
   }
   function showTooltip(event, fileEntry, selectedMetric) {
@@ -1474,7 +1475,7 @@
     if (note) tooltip.append(note);
     if (selectedMetric !== PRESSURE_METRIC && !(selectedMetric in fileEntry.metrics))
       tooltip.append(el("div", { class: "tt-note" }, `No ${metricLabel(selectedMetric).toLowerCase()} data for ${fileEntry.language} — shown neutral`));
-    if ((fileEntry.violations || []).length) tooltip.append(el("div", { class: "tt-alert" }, `${fileEntry.violations.length} threshold violation(s)`));
+    if ((fileEntry.violations || []).length) tooltip.append(el("div", { class: "tt-alert" }, plural(fileEntry.violations.length, "threshold violation")));
     if (fileEntry.error) tooltip.append(el("div", { class: "tt-alert" }, `Analysis error: ${fileEntry.error}`));
     tooltip.hidden = false; positionTooltip(event);
   }
